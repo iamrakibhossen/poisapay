@@ -1,0 +1,136 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use App\Enums\KycStatus;
+use App\Enums\KycTier;
+use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+
+class User extends Authenticatable implements MustVerifyEmail
+{
+    use HasApiTokens, HasFactory, HasUuids, MustVerifyEmailTrait, Notifiable;
+
+    protected $fillable = [
+        'name', 'email', 'phone', 'handle', 'password',
+        'kyc_tier', 'kyc_status', 'referral_code', 'referred_by',
+        'base_currency', 'locale', 'timezone', 'is_frozen',
+        'two_factor_secret', 'two_factor_recovery_codes', 'two_factor_confirmed_at',
+    ];
+
+    protected $hidden = [
+        'password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'phone_verified_at' => 'datetime',
+            'two_factor_confirmed_at' => 'datetime',
+            'password' => 'hashed',
+            'is_frozen' => 'boolean',
+            'kyc_tier' => KycTier::class,
+            'kyc_status' => KycStatus::class,
+        ];
+    }
+
+    // ----- Relationships -----
+
+    public function ledgerAccounts(): HasMany
+    {
+        return $this->hasMany(LedgerAccount::class);
+    }
+
+    public function depositAddresses(): HasMany
+    {
+        return $this->hasMany(DepositAddress::class);
+    }
+
+    public function deposits(): HasMany
+    {
+        return $this->hasMany(Deposit::class);
+    }
+
+    public function withdrawals(): HasMany
+    {
+        return $this->hasMany(Withdrawal::class);
+    }
+
+    public function sentTransfers(): HasMany
+    {
+        return $this->hasMany(Transfer::class, 'sender_id');
+    }
+
+    public function cards(): HasMany
+    {
+        return $this->hasMany(Card::class);
+    }
+
+    public function kycProfiles(): HasMany
+    {
+        return $this->hasMany(KycProfile::class);
+    }
+
+    public function latestKyc(): HasOne
+    {
+        return $this->hasOne(KycProfile::class)->latestOfMany();
+    }
+
+    public function devices(): HasMany
+    {
+        return $this->hasMany(UserDevice::class);
+    }
+
+    public function spendingPriority(): HasMany
+    {
+        return $this->hasMany(UserSpendingPriority::class)->orderBy('position');
+    }
+
+    public function addressBook(): HasMany
+    {
+        return $this->hasMany(AddressBookEntry::class)->orderByDesc('is_favorite')->orderByDesc('last_used_at');
+    }
+
+    public function favoriteAssets(): BelongsToMany
+    {
+        return $this->belongsToMany(Asset::class, 'user_favorite_assets')->withPivot('position');
+    }
+
+    public function supportTickets(): HasMany
+    {
+        return $this->hasMany(SupportTicket::class);
+    }
+
+    public function merchant(): HasOne
+    {
+        return $this->hasOne(Merchant::class);
+    }
+
+    // ----- Domain helpers -----
+
+    public function isMerchant(): bool
+    {
+        return $this->merchant()->exists();
+    }
+
+    public function tier(): KycTier
+    {
+        return $this->kyc_tier;
+    }
+
+    public function hasTwoFactorEnabled(): bool
+    {
+        return ! is_null($this->two_factor_confirmed_at);
+    }
+}

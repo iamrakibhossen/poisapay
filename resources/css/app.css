@@ -1,0 +1,252 @@
+@import url('https://fonts.bunny.net/css?family=lato:300,400,700,900&display=swap');
+@import url('https://fonts.bunny.net/css?family=nunito:400,500,600,700&display=swap');
+@import url('https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap');
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * PoisaPay design system — DollarHub design language.
+ * Primary = amber/gold (#FFC107), secondary = dark slate (#1F2937),
+ * Lato (app) / Nunito (admin), 15px base, light-first. Buttons on the gold
+ * primary use dark ink text for contrast. Neutral = surface/text gray scale.
+ */
+@theme {
+    --font-sans: 'Lato', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+    --font-admin: 'Nunito', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+
+    /* Primary — Material Amber (DollarHub #FFC107 = brand-500) */
+    --color-brand-50: #fff8e1;
+    --color-brand-100: #ffecb3;
+    --color-brand-200: #ffe082;
+    --color-brand-300: #ffd54f;
+    --color-brand-400: #ffca28;
+    --color-brand-500: #ffc107;
+    --color-brand-600: #ffb300;
+    --color-brand-700: #ffa000;
+    --color-brand-800: #ff8f00;
+    --color-brand-900: #ff6f00;
+
+    /* Secondary — dark slate (#1F2937), the sidebar/ink accent */
+    --color-ink-700: #334155;
+    --color-ink-800: #1f2937;
+    --color-ink-900: #111827;
+    --color-ink-950: #0b1220;
+
+    --color-money-up: #10b981;
+    --color-money-down: #f43f5e;
+
+    --radius-card: 0.75rem;
+
+    --shadow-card: 0 1px 2px 0 rgb(16 24 40 / 0.04), 0 1px 3px 0 rgb(16 24 40 / 0.06);
+    --shadow-pop: 0 12px 32px -8px rgb(16 24 40 / 0.18);
+}
+
+/*
+ * Semantic button theming. Default = DollarHub gold primary with dark ink text
+ * (used by the admin console). The consumer frontend re-themes these below.
+ */
+:root {
+    --btn-primary-bg: var(--color-brand-500);
+    --btn-primary-bg-hover: var(--color-brand-600);
+    --btn-primary-fg: var(--color-ink-900);
+
+    --btn-secondary-bg: var(--color-gray-200);
+    --btn-secondary-hover: var(--color-gray-100);
+    --btn-secondary-fg: var(--color-gray-900);
+    --btn-secondary-border: var(--color-gray-300);
+}
+
+/*
+ * Premium theme — scoped to the consumer frontend shell only
+ * (body.theme-minimal). Re-themes the shared x-ui.* components by overriding the
+ * design-token CSS variables: a blue primary (#2563EB) with a slate neutral
+ * scale, Inter typography, soft shadows and 12px radii. The admin console
+ * (no .theme-minimal) keeps the gold/navy DollarHub look untouched.
+ */
+.theme-minimal {
+    /* Primary — blue (#2563EB / hover #1D4ED8) */
+    --color-brand-50: #eff6ff;
+    --color-brand-100: #dbeafe;
+    --color-brand-200: #bfdbfe;
+    --color-brand-300: #93c5fd;
+    --color-brand-400: #60a5fa;
+    --color-brand-500: #2563eb;
+    --color-brand-600: #1d4ed8;
+    --color-brand-700: #1e40af;
+    --color-brand-800: #1e3a8a;
+    --color-brand-900: #172554;
+
+    /* Neutral + gray — unified slate scale (bg #F8FAFC, border #E2E8F0, text #0F172A).
+       Components mix `neutral-*` and `gray-*`, so both are remapped for consistency. */
+    --color-neutral-50: #f8fafc;
+    --color-neutral-100: #f1f5f9;
+    --color-neutral-200: #e2e8f0;
+    --color-neutral-300: #cbd5e1;
+    --color-neutral-400: #94a3b8;
+    --color-neutral-500: #64748b;
+    --color-neutral-600: #475569;
+    --color-neutral-700: #334155;
+    --color-neutral-800: #1e293b;
+    --color-neutral-900: #0f172a;
+
+    --color-gray-50: #f8fafc;
+    --color-gray-100: #f1f5f9;
+    --color-gray-200: #e2e8f0;
+    --color-gray-300: #cbd5e1;
+    --color-gray-400: #94a3b8;
+    --color-gray-500: #64748b;
+    --color-gray-600: #475569;
+    --color-gray-700: #334155;
+    --color-gray-800: #1e293b;
+    --color-gray-900: #0f172a;
+
+    --btn-primary-bg: #2563eb;
+    --btn-primary-bg-hover: #1d4ed8;
+    --btn-primary-fg: #ffffff;
+
+    --btn-secondary-bg: #ffffff;
+    --btn-secondary-hover: #f8fafc;
+    --btn-secondary-fg: #334155;
+    --btn-secondary-border: #e2e8f0;
+
+    /* Flat, border-first cards (Mercury/Linear): a whisper of shadow, not a float. */
+    --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.03);
+    --shadow-pop: 0 12px 32px -8px rgb(15 23 42 / 0.18);
+    --radius-card: 0.75rem;
+}
+
+/* Frontend surface + typography — Inter with its refined OpenType features,
+   antialiased, slight negative tracking (the premium Mercury/Linear feel). Also
+   points the `font-sans` utility at Inter within the scope. */
+body.theme-minimal {
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    background-color: #f8fafc;
+    color: #475569;
+    letter-spacing: -0.011em;
+    font-feature-settings: 'cv11', 'ss01';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Tighten large headings a touch (Inter reads better with negative tracking). */
+.theme-minimal :is(h1, h2) {
+    letter-spacing: -0.02em;
+}
+
+/* Cards: clean and STATIC (no blanket hover-lift). Crisp hairline border on the
+   slate canvas + the shared soft shadow. Interactive cards add their own hover. */
+.theme-minimal .pp-card {
+    @apply border-neutral-200;
+}
+
+/* Keep raw .pp-input in lock-step with the button / x-ui.input / x-ui.select
+   controls (rounded-lg, min-h 2.625rem, flat — no drop shadow); only the focus
+   ring is retuned. */
+.theme-minimal .pp-input {
+    @apply border-neutral-300 shadow-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20;
+}
+
+@layer base {
+    html {
+        -webkit-text-size-adjust: 100%;
+        font-size: 15px;
+    }
+
+    body {
+        @apply bg-neutral-100 text-neutral-700 antialiased;
+        font-family: 'Lato', Arial, sans-serif;
+        font-weight: 400;
+    }
+
+    body.admin {
+        font-family: 'Nunito', ui-sans-serif, system-ui, sans-serif;
+    }
+
+    .font-display {
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+    }
+
+    .tabular {
+        font-variant-numeric: tabular-nums;
+    }
+
+    * {
+        scrollbar-width: thin;
+    }
+
+    /*
+     * @tailwindcss/forms defaults every control border to gray-500
+     * (oklch(55.1% 0.027 264.364) = #6b7280) — too dark for this design.
+     * Replace it with the lighter neutral used by the x-ui.* field wrappers.
+     */
+    [type='text'],
+    [type='email'],
+    [type='url'],
+    [type='password'],
+    [type='number'],
+    [type='date'],
+    [type='datetime-local'],
+    [type='month'],
+    [type='search'],
+    [type='tel'],
+    [type='time'],
+    [type='week'],
+    [type='color'],
+    [multiple],
+    textarea,
+    select {
+        border-color: var(--color-neutral-300, #d4d4d4);
+    }
+
+    [type='checkbox'],
+    [type='radio'] {
+        border-color: var(--color-neutral-400, #a3a3a3);
+    }
+
+    /* Softer, more subtle placeholders across all fields. */
+    input::placeholder,
+    textarea::placeholder {
+        color: var(--color-neutral-300, #d4d4d4);
+        opacity: 1;
+    }
+}
+
+@layer components {
+    .pp-card {
+        @apply rounded-[var(--radius-card)] border border-neutral-200/80 bg-white shadow-[var(--shadow-card)];
+    }
+
+    /* py-2.5 matches x-ui.input / x-ui.select / x-ui.button (md) so raw inputs,
+       selects and buttons all line up at the same height. */
+    .pp-input {
+        @apply min-h-[2.625rem] w-full rounded-lg border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 shadow-sm transition placeholder:text-neutral-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/40;
+    }
+
+    .pp-label {
+        @apply mb-1.5 block text-sm font-semibold text-neutral-700;
+    }
+
+    .pp-skeleton {
+        @apply animate-pulse rounded-lg bg-neutral-200/70;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        transition-duration: 0.001ms !important;
+    }
+}
