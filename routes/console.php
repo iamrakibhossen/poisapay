@@ -21,6 +21,9 @@ Schedule::job(new EvmCustodyTickJob)->everyMinute()->withoutOverlapping();
 // Custody reconciliation: on-chain hot-wallet balances vs treasury:hot ledger; alert on drift.
 Schedule::command('poisapay:reconcile')->everyFiveMinutes()->withoutOverlapping();
 
+// Release the reserve on failed withdrawals that never broadcast (opt-in via feature flag).
+Schedule::command('poisapay:resolve-failed-withdrawals')->everyFiveMinutes()->withoutOverlapping();
+
 // P2P marketplace: expire orders past their payment window and refund escrow.
 Schedule::command('p2p:process-timeouts')->everyMinute()->withoutOverlapping();
 
