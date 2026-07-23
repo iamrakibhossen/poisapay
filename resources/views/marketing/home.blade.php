@@ -124,6 +124,72 @@
         </div>
     </section>
 
+    {{-- ===================== LIVE PRICES ===================== --}}
+    <section id="prices" class="relative px-4 py-20 sm:px-6 lg:px-8 lg:py-24">
+        @php
+            $priceCoins = ['BTC', 'ETH', 'USDT', 'BNB', 'USDC', 'TRX'];
+            $priceNames = ['BTC' => 'Bitcoin', 'ETH' => 'Ethereum', 'USDT' => 'Tether', 'BNB' => 'BNB', 'USDC' => 'USD Coin', 'TRX' => 'TRON'];
+            $liveRates = app(\App\Domain\Exchange\CoinGeckoRateProvider::class)->bdtRatesWithFallback($priceCoins);
+        @endphp
+        <div class="mx-auto max-w-6xl">
+            <div class="mx-auto max-w-xl text-center reveal">
+                <p class="text-sm font-semibold uppercase tracking-[0.16em]" style="color:var(--brand)">{{ __('Live prices') }}</p>
+                <h2 class="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">{{ __('Crypto prices, live in Taka') }}</h2>
+                <p class="mt-3 text-slate-600">{{ __('Real-time reference rates, refreshed continuously.') }}</p>
+            </div>
+
+            <div class="reveal mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-price-grid data-rates-url="{{ route('marketing.rates') }}">
+                @foreach ($priceCoins as $sym)
+                    <a href="{{ route('marketing.rates') }}" class="glass glass-hover flex items-center gap-4 rounded-2xl p-5">
+                        <x-ui.asset-icon :symbol="$sym" size="lg" class="shrink-0" />
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-bold text-slate-900">{{ $sym }}</p>
+                            <p class="truncate text-xs text-slate-400">{{ $priceNames[$sym] ?? $sym }}</p>
+                        </div>
+                        <div class="shrink-0 text-right">
+                            <p class="tabular text-base font-bold text-slate-900" data-price data-sym="{{ $sym }}">৳{{ number_format((float) ($liveRates[$sym] ?? 0), 2) }}</p>
+                            <p class="text-[11px] font-medium uppercase tracking-wide text-slate-400">BDT</p>
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+
+            <p class="mt-5 flex items-center justify-center gap-1.5 text-xs font-medium text-slate-400">
+                <span class="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 motion-safe:animate-pulse"></span>
+                {{ __('Live · updates every minute') }} ·
+                <a href="{{ route('marketing.rates') }}" class="text-slate-500 underline-offset-2 hover:text-slate-900 hover:underline">{{ __('View all rates') }}</a>
+            </p>
+        </div>
+
+        @push('scripts')
+        <style>@keyframes ppFlashP{0%{color:var(--brand)}100%{color:inherit}}.pp-price-flash{animation:ppFlashP .7s ease-out}</style>
+        <script>
+        (function () {
+            var grid = document.querySelector('[data-price-grid]');
+            if (!grid || !window.fetch) return;
+            var url = grid.getAttribute('data-rates-url');
+            function fmt(n) { return '৳' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+            function refresh() {
+                if (document.hidden) return;
+                fetch(url, { headers: { Accept: 'application/json' } })
+                    .then(function (r) { return r.ok ? r.json() : null; })
+                    .then(function (data) {
+                        if (!data || !data.rates) return;
+                        grid.querySelectorAll('[data-price][data-sym]').forEach(function (el) {
+                            var v = data.rates[el.getAttribute('data-sym')];
+                            if (v == null) return;
+                            var t = fmt(v);
+                            if (el.textContent !== t) { el.textContent = t; el.classList.remove('pp-price-flash'); void el.offsetWidth; el.classList.add('pp-price-flash'); }
+                        });
+                    }).catch(function () {});
+            }
+            setInterval(refresh, 60000);
+            document.addEventListener('visibilitychange', function () { if (!document.hidden) refresh(); });
+        })();
+        </script>
+        @endpush
+    </section>
+
     {{-- ===================== CARD SHOWCASE ===================== --}}
     <section id="cards" class="relative px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
         <div class="mx-auto max-w-7xl">

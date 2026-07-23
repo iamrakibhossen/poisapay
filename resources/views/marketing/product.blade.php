@@ -132,13 +132,27 @@
         </div>
     </section>
 
+    {{-- ═══════════ Stats ═══════════ --}}
+    @if (! empty($product['stats']))
+        <section class="mx-auto mt-16 max-w-6xl px-4 sm:px-6">
+            <div class="grid grid-cols-2 gap-6 rounded-3xl border border-slate-200 bg-white px-6 py-8 shadow-sm sm:grid-cols-4">
+                @foreach ($product['stats'] as $s)
+                    <div class="text-center">
+                        <p class="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">{{ $s['value'] }}</p>
+                        <p class="mt-1 text-xs font-medium text-slate-500">{{ $s['label'] }}</p>
+                    </div>
+                @endforeach
+            </div>
+        </section>
+    @endif
+
     {{-- ═══════════ Features ═══════════ --}}
     <section class="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
         <div class="mx-auto max-w-xl text-center">
             <p class="text-sm font-semibold uppercase tracking-[0.16em]" style="color:var(--brand)">{{ __('Features') }}</p>
             <h2 class="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">{{ __('Everything you need') }}</h2>
         </div>
-        <div class="mt-12 grid gap-4 sm:grid-cols-2">
+        <div class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($product['features'] as $f)
                 <div class="glass glass-hover flex gap-4 rounded-2xl p-6">
                     <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-white shadow-sm" style="background:linear-gradient(135deg,var(--brand),var(--brand-600))">
@@ -153,19 +167,52 @@
         </div>
     </section>
 
-    {{-- ═══════════ CTA ═══════════ --}}
-    <section class="mx-auto max-w-6xl px-4 pb-24 sm:px-6">
-        <div class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white px-6 py-14 text-center shadow-sm sm:px-12">
-            <div class="pointer-events-none absolute -right-10 -top-16 h-56 w-56 rounded-full blur-3xl" style="background:color-mix(in srgb,var(--brand) 12%,transparent)"></div>
-            <div class="pointer-events-none absolute -bottom-16 -left-10 h-52 w-52 rounded-full blur-3xl" style="background:color-mix(in srgb,var(--indigo,#6366f1) 10%,transparent)"></div>
-            <div class="relative">
-                <h2 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{{ __('Ready to get started?') }}</h2>
-                <p class="mx-auto mt-3 max-w-md text-slate-600">{{ __('Create your PoisaPay account in minutes — no paperwork, no waiting.') }}</p>
-                <a href="{{ auth()->check() ? route('dashboard') : route('register') }}" class="pp-btn pp-btn-primary pp-btn-lg mt-7">
-                    {{ auth()->check() ? __('Open dashboard') : __('Create free account') }}
-                    <x-heroicon-o-arrow-right class="h-4 w-4" />
-                </a>
+    {{-- ═══════════ How it works ═══════════ --}}
+    @if (! empty($product['steps']))
+        <section class="mx-auto max-w-5xl px-4 pb-8 sm:px-6">
+            <div class="mx-auto max-w-xl text-center">
+                <p class="text-sm font-semibold uppercase tracking-[0.16em]" style="color:var(--brand)">{{ __('How it works') }}</p>
+                <h2 class="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">{{ __('Up and running in minutes') }}</h2>
             </div>
-        </div>
-    </section>
+            <div class="mt-12 grid gap-8 sm:grid-cols-3">
+                @foreach ($product['steps'] as $i => $step)
+                    <div class="text-center sm:text-left">
+                        <span class="mx-auto grid h-11 w-11 place-items-center rounded-xl text-base font-bold text-white shadow-sm sm:mx-0" style="background:linear-gradient(135deg,var(--brand),var(--brand-600))">{{ $i + 1 }}</span>
+                        <h3 class="mt-4 text-base font-semibold text-slate-900">{{ $step['title'] }}</h3>
+                        <p class="mt-1.5 text-sm leading-relaxed text-slate-600">{{ $step['desc'] }}</p>
+                    </div>
+                @endforeach
+            </div>
+        </section>
+    @endif
+
+    {{-- ═══════════ FAQ ═══════════ --}}
+    @if (! empty($product['faqs']))
+        <section class="mx-auto max-w-3xl px-4 py-16 sm:px-6" x-data="{ open: 0 }">
+            <div class="text-center">
+                <h2 class="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">{{ __('Frequently asked questions') }}</h2>
+            </div>
+            <div class="mt-10 space-y-3">
+                @foreach ($product['faqs'] as $i => $faq)
+                    <div class="overflow-hidden rounded-2xl border bg-white transition"
+                        :class="open === {{ $i }} ? 'border-blue-500/40 shadow-md ring-1 ring-blue-500/20' : 'border-slate-200'">
+                        <button type="button" @click="open === {{ $i }} ? open = null : open = {{ $i }}"
+                            class="flex w-full items-center justify-between gap-4 p-5 text-left" :aria-expanded="open === {{ $i }}">
+                            <span class="text-sm font-semibold text-slate-900 sm:text-base">{{ $faq['q'] }}</span>
+                            <span class="grid h-8 w-8 flex-none place-items-center rounded-full ring-1 transition-all duration-300"
+                                :class="open === {{ $i }} ? 'rotate-180 bg-blue-600 text-white ring-blue-600' : 'bg-slate-50 text-slate-500 ring-slate-200'">
+                                <x-heroicon-o-chevron-down class="h-4 w-4" />
+                            </span>
+                        </button>
+                        <div x-show="open === {{ $i }}" x-cloak
+                            x-transition:enter="transition duration-300 ease-out"
+                            x-transition:enter-start="opacity-0 -translate-y-2"
+                            x-transition:enter-end="opacity-100 translate-y-0">
+                            <p class="border-t border-slate-100 px-5 pb-5 pt-4 text-sm leading-relaxed text-slate-600">{{ $faq['a'] }}</p>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </section>
+    @endif
 </x-layouts.marketing>
