@@ -99,33 +99,75 @@
                     </dl>
                 </x-ui.card>
 
-                {{-- Masked card details (no reveal endpoint — masked values only) --}}
+                {{-- Card details — revealed straight from the issuer into the user's browser
+                     (PCI SAQ-A). Step-up guarded; PoisaPay's server never sees the PAN/CVV
+                     for a live provider. See CardManageController::revealSession(). --}}
                 <x-ui.card :title="__('Card details')" :subtitle="__('Sensitive data never touches PoisaPay servers.')">
-                    <div x-data="{ revealed: false }">
-                        <x-ui.button x-on:click="revealed = !revealed" variant="secondary" size="sm" class="w-full">
-                            <span x-text="revealed ? 'Hide card details' : 'Reveal card details'"></span>
-                        </x-ui.button>
+                    @if ($canReveal)
+                        <div
+                            x-data="cardReveal({
+                                driver: @js($revealDriver),
+                                card: @js($issuerCardRef),
+                                pk: @js($stripePublishableKey),
+                                url: @js(route('card.reveal', $card->id)),
+                                csrf: @js(csrf_token()),
+                                last4: @js($card->last4),
+                            })"
+                            class="space-y-4"
+                        >
+                            {{-- Step-up: confirm password, then reveal --}}
+                            <form x-show="!revealed" x-on:submit.prevent="submit" class="space-y-3">
+                                <p class="text-xs text-gray-500">{{ __('Confirm your password to view full card details.') }}</p>
+                                <input type="password" x-model="password" autocomplete="current-password"
+                                    placeholder="{{ __('Account password') }}"
+                                    class="w-full rounded-lg border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500" />
+                                <p x-show="error" x-cloak x-text="error" class="text-xs font-medium text-red-600"></p>
+                                <x-ui.button type="submit" variant="secondary" size="sm" class="w-full" x-bind:disabled="loading">
+                                    <span x-text="loading ? @js(__('Loading…')) : @js(__('Reveal card details'))"></span>
+                                </x-ui.button>
+                            </form>
 
-                        <div x-show="revealed" x-cloak class="mt-4 space-y-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4">
+                            {{-- Revealed panel: Stripe mounts PCI iframes into the refs; the mock writes text --}}
+                            <div x-show="revealed" x-cloak class="space-y-3 rounded-xl border border-gray-200 bg-white p-4">
+                                <div>
+                                    <p class="text-[11px] uppercase tracking-wide text-gray-500">{{ __('Card number') }}</p>
+                                    <div x-ref="pan" class="font-mono text-lg tracking-widest text-gray-900">•••• •••• •••• {{ $card->last4 }}</div>
+                                </div>
+                                <div class="flex gap-6">
+                                    <div>
+                                        <p class="text-[11px] uppercase tracking-wide text-gray-500">{{ __('Expiry') }}</p>
+                                        <div x-ref="exp" class="font-mono text-gray-900">{{ $expiry }}</div>
+                                    </div>
+                                    <div>
+                                        <p class="text-[11px] uppercase tracking-wide text-gray-500">{{ __('CVV') }}</p>
+                                        <div x-ref="cvc" class="font-mono text-gray-900">•••</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between pt-1">
+                                    <p class="text-[11px] text-gray-400" x-show="secondsLeft > 0">
+                                        {{ __('Hides automatically in') }} <span x-text="secondsLeft"></span>s
+                                    </p>
+                                    <x-ui.button type="button" variant="ghost" size="sm" x-on:click="hide()">{{ __('Hide') }}</x-ui.button>
+                                </div>
+                            </div>
+
+                            <x-ui.alert type="info">
+                                @if ($revealDriver === 'mock')
+                                    {{ __('Simulated provider: these demo details are generated locally. With a live issuer the real PAN, expiry and CVV render inside the issuer\'s PCI-DSS iframe and never touch PoisaPay servers.') }}
+                                @else
+                                    {{ __('The full PAN, expiry and CVV are rendered inside the issuer\'s PCI-DSS-compliant iframe directly in your browser. PoisaPay never sees or stores them — we retain only an opaque issuer token.') }}
+                                @endif
+                            </x-ui.alert>
+                        </div>
+                    @else
+                        <div class="space-y-3">
                             <div>
                                 <p class="text-[11px] uppercase tracking-wide text-gray-500">{{ __('Card number') }}</p>
                                 <p class="font-mono text-lg tracking-widest text-gray-900">•••• •••• •••• {{ $card->last4 }}</p>
                             </div>
-                            <div class="flex gap-6">
-                                <div>
-                                    <p class="text-[11px] uppercase tracking-wide text-gray-500">{{ __('Expiry') }}</p>
-                                    <p class="font-mono text-gray-900">{{ $expiry }}</p>
-                                </div>
-                                <div>
-                                    <p class="text-[11px] uppercase tracking-wide text-gray-500">{{ __('CVV') }}</p>
-                                    <p class="font-mono text-gray-900">•••</p>
-                                </div>
-                            </div>
-                            <x-ui.alert type="info">
-                                {{ __('In production the full PAN, expiry and CVV are rendered inside the issuer\'s PCI-DSS-compliant iframe and are never stored by PoisaPay — we retain only an opaque issuer token. This masked demo is a security-correct stub.') }}
-                            </x-ui.alert>
+                            <x-ui.alert type="info">{{ __('Full card details are unavailable for this card.') }}</x-ui.alert>
                         </div>
-                    </div>
+                    @endif
                 </x-ui.card>
 
                 {{-- Actions --}}

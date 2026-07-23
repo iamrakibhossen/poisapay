@@ -41,8 +41,13 @@ return [
             'driver' => StripeProvider::class,
             'label' => 'Stripe',
             'secret_key' => env('CARD_STRIPE_SECRET_KEY'),
+            // Publishable key is safe to expose client-side; Stripe.js needs it to render
+            // the PCI display Elements that show the PAN/CVV in the user's browser.
+            'publishable_key' => env('CARD_STRIPE_PUBLISHABLE_KEY'),
             'webhook_secret' => env('CARD_STRIPE_WEBHOOK_SECRET'),
             'api_version' => env('CARD_STRIPE_API_VERSION') ?: null,
+            // Ephemeral keys for card reveal must be minted with the version @stripe/stripe-js pins.
+            'ephemeral_key_api_version' => env('CARD_STRIPE_EPHEMERAL_API_VERSION', '2020-03-02'),
             'network' => env('CARD_STRIPE_NETWORK', 'visa'),
             // Fallback cardholder billing address (Issuing requires one).
             'billing_address' => array_filter([

@@ -23,6 +23,8 @@ Route::controller(CardsController::class)->group(function () {
 // Card management (detail) page + its mutations.
 Route::controller(CardManageController::class)->group(function () {
     Route::get('/cards/{card}', 'index')->name('cards.manage');
+    // Card-detail reveal: step-up guarded + tightly rate-limited (mints an issuer session).
+    Route::post('/cards/{card}/reveal-session', 'revealSession')->name('card.reveal')->middleware('throttle:10,1');
     Route::put('/cards/{card}/controls', 'saveControls')->name('card.controls');
     Route::post('/cards/{card}/pin', 'setPin')->name('card.pin');
     Route::post('/cards/{card}/manage-freeze', 'toggleFreeze')->name('card.freeze');

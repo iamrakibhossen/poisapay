@@ -11,6 +11,7 @@ use App\Card\DTOs\CardholderResult;
 use App\Card\DTOs\CardIssueRequest;
 use App\Card\DTOs\NormalizedWebhookEvent;
 use App\Card\DTOs\ProviderHealth;
+use App\Card\DTOs\RevealSession;
 use App\Card\DTOs\SpendControlData;
 use App\Card\Enums\ProviderCapability;
 use App\Card\Exceptions\FeatureNotSupportedException;
@@ -66,6 +67,11 @@ abstract class AbstractCardProvider implements CardProviderInterface
     public function getCard(string $providerCardRef, bool $reveal = false): CardData
     {
         $this->unsupported('getCard');
+    }
+
+    public function createRevealSession(string $providerCardRef, array $context = []): RevealSession
+    {
+        $this->unsupported('createRevealSession');
     }
 
     public function listCards(string $cardholderRef): array

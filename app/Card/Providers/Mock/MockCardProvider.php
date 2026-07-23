@@ -10,6 +10,7 @@ use App\Card\DTOs\CardholderResult;
 use App\Card\DTOs\CardIssueRequest;
 use App\Card\DTOs\NormalizedWebhookEvent;
 use App\Card\DTOs\ProviderHealth;
+use App\Card\DTOs\RevealSession;
 use App\Card\DTOs\SpendControlData;
 use App\Card\Enums\ProviderCapability;
 use App\Card\Enums\WebhookEventType;
@@ -98,6 +99,26 @@ class MockCardProvider extends AbstractCardProvider
             expYear: $card->expYear,
             pan: $this->derivePan($providerCardRef),
             cvv: str_pad((string) (crc32('cvv'.$providerCardRef) % 1000), 3, '0', STR_PAD_LEFT),
+        );
+    }
+
+    /**
+     * Simulated reveal: returns the deterministic demo PAN/CVV directly so the local
+     * frontend has something to display without an issuer round-trip. This is the ONLY
+     * provider that puts a PAN in the session — real issuers never do (see StripeProvider).
+     */
+    public function createRevealSession(string $providerCardRef, array $context = []): RevealSession
+    {
+        $card = $this->getCard($providerCardRef, reveal: true);
+
+        return new RevealSession(
+            driver: $this->key,
+            providerCardRef: $providerCardRef,
+            last4: $card->last4,
+            expMonth: $card->expMonth,
+            expYear: $card->expYear,
+            pan: $card->pan,
+            cvv: $card->cvv,
         );
     }
 

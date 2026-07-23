@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Frontend;
 
 use App\Card\CardService;
+use App\Card\Enums\ProviderCapability;
+use App\Card\Exceptions\FeatureNotSupportedException;
 use App\Domain\Card\CardStatementService;
 use App\Domain\Card\CloseCardAction;
 use App\Domain\Card\OpenCardDisputeAction;
@@ -17,8 +19,10 @@ use App\Models\Card;
 use App\Models\CardAuthorization;
 use App\Models\CardDispute;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Throwable;
@@ -29,16 +33,32 @@ use Throwable;
  * authorizations) is rendered directly in the Blade view; mutations are form POSTs
  * that redirect back with a flash message (or validation errors).
  *
- * SECURITY: card details are rendered as masked values only (last4 + masked
- * expiry/CVV placeholders). The real PAN/expiry/CVV live in the issuer's PCI-DSS
- * iframe and never touch PoisaPay servers — there is no reveal endpoint.
+ * SECURITY: the page itself only ever renders masked values (last4 + masked
+ * expiry/CVV). Full details are revealed out-of-band via {@see self::revealSession()}:
+ * for real providers the PAN/CVV render inside the issuer's PCI-DSS iframe in the
+ * user's browser and never touch PoisaPay servers (we only mint a scoped client key).
  */
 class CardManageController extends Controller
 {
-    public function index(Request $request, string $card, CardStatementService $statements): View
+    public function index(Request $request, string $card, CardStatementService $statements, CardService $cards): View
     {
         $model = Card::with('provider')->where('user_id', $request->user()->id)->find($card);
         abort_unless($model !== null && $model->user_id === $request->user()->id, 403);
+
+        // Reveal is driven client-side; expose only what the browser needs. The
+        // publishable key is safe to expose; issuer_card_ref is Stripe.js's own handle.
+        $provider = $cards->forCard($model);
+        $revealDriver = $provider->key();
+        $canReveal = feature('card_reveal_enabled', true)
+            && $provider->supports(ProviderCapability::RevealPan)
+            && $model->status !== CardStatus::Closed;
+        $stripePublishableKey = $revealDriver === 'stripe'
+            ? (string) config('card.providers.stripe.publishable_key')
+            : null;
+        // Stripe.js needs the issuing card id (ic_…) client-side to run its PCI handshake;
+        // it's not a secret. Every other driver resolves the card server-side by our id,
+        // so the opaque issuer token never leaves the server.
+        $issuerCardRef = $revealDriver === 'stripe' ? $model->issuer_card_ref : null;
 
         $monthParam = (string) $request->query('month', '');
         $month = $monthParam !== ''
@@ -70,6 +90,10 @@ class CardManageController extends Controller
             'card' => $model,
             'holderName' => $request->user()->name ?: 'Card Holder',
             'currency' => $model->settlement_currency,
+            'canReveal' => $canReveal,
+            'revealDriver' => $revealDriver,
+            'issuerCardRef' => $issuerCardRef,
+            'stripePublishableKey' => $stripePublishableKey,
             'selectedMonth' => $month->format('Y-m'),
             'monthOptions' => $monthOptions,
             'statement' => [
@@ -105,6 +129,46 @@ class CardManageController extends Controller
                 'disputed' => in_array($a->id, $disputedIds, true),
             ])->all(),
         ]);
+    }
+
+    /**
+     * Mint a short-lived reveal session so the user's browser can display full card
+     * details straight from the issuer. Step-up guarded (re-enter password) and
+     * rate-limited at the route. Returns JSON — the one place the frontend goes async,
+     * because Stripe's PCI Elements are an inherently client-side + nonce handshake.
+     * For real providers the JSON carries only a scoped client key, never a PAN.
+     */
+    public function revealSession(Request $request, string $card, CardService $cards): JsonResponse
+    {
+        abort_unless(feature('card_reveal_enabled', true), 404);
+
+        $model = $this->resolve($request, $card);
+
+        $validated = $request->validate([
+            'password' => 'required|string',
+            'nonce' => 'nullable|string|max:255', // Stripe client nonce; absent for the mock driver
+        ]);
+
+        // Step-up: re-verify the account password before exposing card details.
+        if (! Hash::check($validated['password'], (string) $request->user()->password)) {
+            throw ValidationException::withMessages(['password' => __('The password is incorrect.')]);
+        }
+
+        if ($model->status === CardStatus::Closed) {
+            throw ValidationException::withMessages(['card' => __('A closed card has no details to reveal.')]);
+        }
+
+        try {
+            $session = $cards->revealSession($model, ['nonce' => (string) ($validated['nonce'] ?? '')]);
+        } catch (FeatureNotSupportedException) {
+            return response()->json(['message' => __('Card detail reveal is not available for this card.')], 422);
+        } catch (Throwable $e) {
+            report($e);
+
+            return response()->json(['message' => __('Unable to load card details right now. Please try again.')], 502);
+        }
+
+        return response()->json($session->toArray());
     }
 
     public function saveControls(Request $request, string $card, UpdateCardControlsAction $action): RedirectResponse

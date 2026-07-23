@@ -7,6 +7,7 @@ namespace App\Card;
 use App\Card\Contracts\CardProviderInterface;
 use App\Card\DTOs\CardIssueRequest;
 use App\Card\DTOs\ProviderHealth;
+use App\Card\DTOs\RevealSession;
 use App\Card\DTOs\SpendControlData;
 use App\Card\Enums\CardProviderDriver;
 use App\Card\Enums\ProviderCapability;
@@ -140,6 +141,38 @@ class CardService
         ActivityLogger::log('card.unfrozen', $card);
 
         return $card->refresh();
+    }
+
+    /**
+     * Mint a browser-scoped session to reveal this card's full details straight from
+     * the issuer (PCI SAQ-A). Throws FeatureNotSupportedException when the card's
+     * provider can't reveal. We audit the attempt but never log the PAN/CVV — the
+     * session for real providers carries only a client secret anyway.
+     *
+     * @param  array<string, mixed>  $context  provider handshake data (e.g. Stripe nonce)
+     */
+    public function revealSession(Card $card, array $context = []): RevealSession
+    {
+        $provider = $this->forCard($card);
+
+        if (! $provider->supports(ProviderCapability::RevealPan)) {
+            throw FeatureNotSupportedException::for($provider->key(), ProviderCapability::RevealPan);
+        }
+
+        $session = $provider->createRevealSession($card->issuer_card_ref, $context);
+
+        $this->logger->record([
+            'card_provider_id' => $card->card_provider_id,
+            'driver' => $provider->key(),
+            'card_id' => $card->id,
+            'direction' => 'outbound',
+            'operation' => 'createRevealSession',
+            'success' => true,
+        ]);
+
+        ActivityLogger::log('card.details_revealed', $card, ['driver' => $provider->key()]);
+
+        return $session;
     }
 
     public function syncControls(Card $card): void

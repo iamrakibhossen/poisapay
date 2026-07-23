@@ -69,6 +69,38 @@ it('forbids the manage page for a non-owner (smoke parity)', function () {
     actingAs(User::factory()->create())->get(route('cards.manage', $card))->assertForbidden();
 });
 
+it('reveals card details only after a correct step-up password (mock driver)', function () {
+    $user = cardsUser(); // factory password is 'password'
+    $card = makeCard($user);
+
+    // Wrong password is rejected — no details returned.
+    actingAs($user)->postJson(route('card.reveal', $card), ['password' => 'nope'])
+        ->assertStatus(422)->assertJsonValidationErrors('password');
+
+    // Correct password mints a session; the simulated provider returns demo PAN/CVV.
+    $res = actingAs($user)->postJson(route('card.reveal', $card), ['password' => 'password'])
+        ->assertOk()->assertJson(['driver' => 'mock']);
+
+    expect($res->json('pan'))->toBeString()->not->toBeEmpty()
+        ->and($res->json('cvv'))->toBeString();
+});
+
+it('forbids revealing details on another user\'s card', function () {
+    $card = makeCard(cardsUser());
+
+    actingAs(User::factory()->create())
+        ->postJson(route('card.reveal', $card), ['password' => 'password'])
+        ->assertForbidden();
+});
+
+it('will not reveal details for a closed card', function () {
+    $user = cardsUser();
+    $card = makeCard($user, ['status' => 'closed']);
+
+    actingAs($user)->postJson(route('card.reveal', $card), ['password' => 'password'])
+        ->assertStatus(422)->assertJsonValidationErrors('card');
+});
+
 it('generates a card and redirects back with a flash message', function () {
     $user = cardsUser();
     seedProvider(); // provider is auto-resolved server-side; user does not choose

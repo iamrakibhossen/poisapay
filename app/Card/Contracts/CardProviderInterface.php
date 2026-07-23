@@ -11,6 +11,7 @@ use App\Card\DTOs\CardIssueRequest;
 use App\Card\DTOs\NormalizedWebhookEvent;
 use App\Card\DTOs\ProviderHealth;
 use App\Card\DTOs\ProviderTransactionData;
+use App\Card\DTOs\RevealSession;
 use App\Card\DTOs\SpendControlData;
 use App\Card\Enums\ProviderCapability;
 use App\Domain\Card\AuthorizationResult;
@@ -42,6 +43,16 @@ interface CardProviderInterface
 
     /** $reveal returns transient PAN/CVV (PCI-scoped); never persist them. */
     public function getCard(string $providerCardRef, bool $reveal = false): CardData;
+
+    /**
+     * Mint a short-lived, single-card-scoped session so the USER'S BROWSER can fetch
+     * full card details straight from the issuer (PCI SAQ-A). Real providers return
+     * only a client secret (never a PAN); $context carries provider-specific handshake
+     * data such as Stripe's client-generated `nonce`.
+     *
+     * @param  array<string, mixed>  $context
+     */
+    public function createRevealSession(string $providerCardRef, array $context = []): RevealSession;
 
     /** @return list<CardData> */
     public function listCards(string $cardholderRef): array;

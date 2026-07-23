@@ -2084,5 +2084,16 @@
     "— / system": "— / system",
     "— None (fiat / chain-less) —": "— None (fiat / chain-less) —",
     "••••••••": "••••••••",
-    "← Back to support": "← Back to support"
+    "← Back to support": "← Back to support",
+    "Confirm your password to view full card details.": "Confirm your password to view full card details.",
+    "Account password": "Account password",
+    "Reveal card details": "Reveal card details",
+    "Hides automatically in": "Hides automatically in",
+    "Full card details are unavailable for this card.": "Full card details are unavailable for this card.",
+    "The password is incorrect.": "The password is incorrect.",
+    "A closed card has no details to reveal.": "A closed card has no details to reveal.",
+    "Card detail reveal is not available for this card.": "Card detail reveal is not available for this card.",
+    "Unable to load card details right now. Please try again.": "Unable to load card details right now. Please try again.",
+    "Simulated provider: these demo details are generated locally. With a live issuer the real PAN, expiry and CVV render inside the issuer's PCI-DSS iframe and never touch PoisaPay servers.": "Simulated provider: these demo details are generated locally. With a live issuer the real PAN, expiry and CVV render inside the issuer's PCI-DSS iframe and never touch PoisaPay servers.",
+    "The full PAN, expiry and CVV are rendered inside the issuer's PCI-DSS-compliant iframe directly in your browser. PoisaPay never sees or stores them — we retain only an opaque issuer token.": "The full PAN, expiry and CVV are rendered inside the issuer's PCI-DSS-compliant iframe directly in your browser. PoisaPay never sees or stores them — we retain only an opaque issuer token."
 }

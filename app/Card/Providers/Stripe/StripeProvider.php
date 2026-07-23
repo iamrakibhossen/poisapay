@@ -10,6 +10,7 @@ use App\Card\DTOs\CardholderResult;
 use App\Card\DTOs\CardIssueRequest;
 use App\Card\DTOs\NormalizedWebhookEvent;
 use App\Card\DTOs\ProviderHealth;
+use App\Card\DTOs\RevealSession;
 use App\Card\Enums\ProviderCapability;
 use App\Card\Enums\WebhookEventType;
 use App\Card\Exceptions\ProviderRequestException;
@@ -155,6 +156,40 @@ class StripeProvider extends AbstractCardProvider
         $card = $this->guard(fn () => $this->client->sdk()->issuing->cards->retrieve($providerCardRef, $params));
 
         return $this->mapCard($card->toArray(), $reveal);
+    }
+
+    /**
+     * Mint a Stripe Issuing ephemeral key so the browser can render the card's PAN/CVV
+     * via Stripe.js display Elements. The key is scoped to this one card + the client's
+     * one-time nonce and expires in minutes; the PAN never reaches our server. Stripe
+     * requires the ephemeral key be created with the API version the client SDK pins.
+     */
+    public function createRevealSession(string $providerCardRef, array $context = []): RevealSession
+    {
+        $this->requireCapability(ProviderCapability::RevealPan);
+
+        $nonce = trim((string) ($context['nonce'] ?? ''));
+        if ($nonce === '') {
+            throw new ProviderRequestException('A client nonce is required to reveal card details.', 422);
+        }
+
+        $key = $this->guard(fn () => $this->client->sdk()->ephemeralKeys->create(
+            ['issuing_card' => $providerCardRef, 'nonce' => $nonce],
+            ['stripe_version' => $this->ephemeralApiVersion()],
+        ));
+
+        return new RevealSession(
+            driver: $this->key,
+            providerCardRef: $providerCardRef,
+            ephemeralKeySecret: (string) $key->secret,
+            expiresAt: isset($key->expires) ? (int) $key->expires : null,
+        );
+    }
+
+    /** API version the ephemeral key is minted with — must match what @stripe/stripe-js expects. */
+    private function ephemeralApiVersion(): string
+    {
+        return (string) ($this->config['ephemeral_key_api_version'] ?? $this->config['api_version'] ?? '2020-03-02');
     }
 
     public function listCards(string $cardholderRef): array
