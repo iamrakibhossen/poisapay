@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\EvmCustodyTickJob;
+use App\Jobs\TronCustodyTickJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -14,6 +15,10 @@ Schedule::command('poisapay:chain-tick')->everyMinute()->withoutOverlapping();
 
 // Simulated node/RPC health probe.
 Schedule::command('poisapay:chain-health')->everyFiveMinutes()->withoutOverlapping();
+
+// Live TRON custody tick — scan deposits, broadcast approved TRC20 withdrawals,
+// advance confirmations. No-op while custody is simulated (chain-tick handles that).
+Schedule::job(new TronCustodyTickJob)->everyMinute()->withoutOverlapping();
 
 // Live EVM (Ethereum/BSC) custody tick — no-op while custody is simulated (Wave 2).
 Schedule::job(new EvmCustodyTickJob)->everyMinute()->withoutOverlapping();
