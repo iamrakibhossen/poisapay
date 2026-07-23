@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Chain\Tron;
 
+use App\Domain\Chain\Evm\HotWalletManager;
+use App\Domain\Custody\Crypto\TronAddress;
 use App\Models\RpcEndpoint;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
@@ -65,6 +67,29 @@ class TronGridClient
             'blockNumber' => (int) $info['blockNumber'],
             'success' => $result === 'SUCCESS',
         ];
+    }
+
+    /**
+     * Read-only TRC20 balanceOf(address) via a constant contract call.
+     * Returns the on-chain token balance in base units (string). The TRON
+     * counterpart to {@see HotWalletManager::reconcileErc20()}.
+     */
+    public function tokenBalance(string $address, string $contract): string
+    {
+        $owner20 = substr(TronAddress::decode($address), 1); // drop 0x41 prefix → 20 bytes
+        $parameter = str_pad(bin2hex($owner20), 64, '0', STR_PAD_LEFT);
+
+        $result = $this->http()->post($this->url('/wallet/triggerconstantcontract'), [
+            'owner_address' => $address,
+            'contract_address' => $contract,
+            'function_selector' => 'balanceOf(address)',
+            'parameter' => $parameter,
+            'visible' => true,
+        ])->json();
+
+        $hex = $result['constant_result'][0] ?? null;
+
+        return $hex ? gmp_strval(gmp_init($hex, 16)) : '0';
     }
 
     /**

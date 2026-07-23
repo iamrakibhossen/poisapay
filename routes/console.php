@@ -18,6 +18,9 @@ Schedule::command('poisapay:chain-health')->everyFiveMinutes()->withoutOverlappi
 // Live EVM (Ethereum/BSC) custody tick — no-op while custody is simulated (Wave 2).
 Schedule::job(new EvmCustodyTickJob)->everyMinute()->withoutOverlapping();
 
+// Custody reconciliation: on-chain hot-wallet balances vs treasury:hot ledger; alert on drift.
+Schedule::command('poisapay:reconcile')->everyFiveMinutes()->withoutOverlapping();
+
 // P2P marketplace: expire orders past their payment window and refund escrow.
 Schedule::command('p2p:process-timeouts')->everyMinute()->withoutOverlapping();
 
