@@ -184,3 +184,16 @@ it('closes a card with no pending holds', function () {
     expect($this->card->refresh()->status)->toBe(CardStatus::Closed)
         ->and($this->card->closed_at)->not->toBeNull();
 });
+
+it('notifies the cardholder when a card transaction settles', function () {
+    $auth = authorizeFixture($this->card, 'auth_notify', '2500'); // $25.00
+
+    app(SettleCardAuthAction::class)->execute($auth);
+
+    $note = $this->user->notifications()->get()
+        ->firstWhere(fn ($n) => ($n->data['event'] ?? null) === 'card.settled');
+
+    expect($note)->not->toBeNull()
+        ->and($note->data['category'])->toBe('money')
+        ->and($note->data['body'])->toContain('Test Merchant');
+});
