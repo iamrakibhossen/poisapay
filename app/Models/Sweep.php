@@ -9,6 +9,11 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property SweepStatus $status
+ * @property string $amount
+ * @property string|null $onchain_tx_id
+ */
 class Sweep extends Model
 {
     use HasUuids;

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Domain\Withdrawal\Tron;
 
 use App\Domain\Audit\ActivityLogger;
+use App\Domain\Chain\Tron\Trc20;
 use App\Domain\Chain\Tron\TronGridClient;
 use App\Domain\Custody\Contracts\SignerKeyProvider;
 use App\Domain\Custody\Crypto\Secp256k1Signer;
-use App\Domain\Custody\Crypto\TronAddress;
 use App\Domain\Withdrawal\SettleWithdrawalAction;
 use App\Enums\ChainType;
 use App\Enums\OnchainTxStatus;
@@ -55,7 +55,7 @@ class TronWithdrawalSigner
             'owner_address' => $hotAddress,
             'contract_address' => $contract,
             'function_selector' => 'transfer(address,uint256)',
-            'parameter' => $this->transferParams($withdrawal->to_address, $withdrawal->amount),
+            'parameter' => Trc20::transferCalldata($withdrawal->to_address, $withdrawal->amount),
             'fee_limit' => 100_000_000,
             'call_value' => 0,
             'visible' => true,
@@ -106,15 +106,5 @@ class TronWithdrawalSigner
         ActivityLogger::log('withdrawal.broadcast.failed', $withdrawal, ['reason' => $reason], 'Withdrawal broadcast failed');
 
         return $withdrawal->refresh();
-    }
-
-    /** ABI-encode transfer(address,uint256): 32-byte padded to-address + 32-byte padded amount. */
-    private function transferParams(string $toAddress, string $baseAmount): string
-    {
-        $to20 = substr(TronAddress::decode($toAddress), 1); // drop the 0x41 prefix → 20 bytes
-        $toWord = str_pad(bin2hex($to20), 64, '0', STR_PAD_LEFT);
-        $amountWord = str_pad(gmp_strval(gmp_init($baseAmount, 10), 16), 64, '0', STR_PAD_LEFT);
-
-        return $toWord.$amountWord;
     }
 }
