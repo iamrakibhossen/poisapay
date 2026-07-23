@@ -6,6 +6,7 @@ use App\Domain\Chain\Evm\Contracts\BlockchainProvider;
 use App\Domain\Chain\Evm\Evm;
 use App\Domain\Chain\Evm\FakeBlockchainProvider;
 use App\Domain\Ledger\AccountResolver;
+use App\Domain\Ledger\LedgerService;
 use App\Domain\Withdrawal\Evm\EvmWithdrawalSigner;
 use App\Domain\Withdrawal\Evm\RebroadcastStuckWithdrawalsAction;
 use App\Domain\Withdrawal\RequestWithdrawalAction;
@@ -80,4 +81,17 @@ it('does nothing when the batching flag is off', function () {
     $this->fake->setBlock(ChainType::Ethereum, 100 + 50);
 
     expect(app(RebroadcastStuckWithdrawalsAction::class)->execute())->toBe(0);
+});
+
+it('dead-letters a stuck withdrawal after exhausting RBF attempts (funds stay locked)', function () {
+    $max = (int) config('poisapay.custody.withdrawal_max_broadcast_attempts', 3);
+    $this->withdrawal->update(['broadcast_attempts' => $max]); // attempts already exhausted
+    $this->fake->setBlock(ChainType::Ethereum, 100 + 15); // still stuck, no receipt
+
+    app(RebroadcastStuckWithdrawalsAction::class)->execute();
+
+    $fresh = $this->withdrawal->fresh();
+    expect($fresh->status)->toBe(WithdrawalStatus::Failed)
+        ->and($fresh->failure_reason)->toContain('Dead-lettered')
+        ->and(app(LedgerService::class)->lockedBalance($this->user, $this->asset->id)->isPositive())->toBeTrue();
 });

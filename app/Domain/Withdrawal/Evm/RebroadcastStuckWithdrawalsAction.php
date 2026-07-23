@@ -56,7 +56,7 @@ class RebroadcastStuckWithdrawalsAction
             ->get()
             ->each(function (Withdrawal $withdrawal) use ($stuckAfter, $maxAttempts, &$replaced) {
                 $chain = $withdrawal->asset->chain;
-                if ($chain === null || ! $chain->key->isEvm() || $withdrawal->broadcast_attempts >= $maxAttempts) {
+                if ($chain === null || ! $chain->key->isEvm()) {
                     return;
                 }
                 $chainType = $chain->key;
@@ -74,6 +74,13 @@ class RebroadcastStuckWithdrawalsAction
                 $head = $this->chain->blockNumber($chainType);
                 if ($head - (int) $withdrawal->broadcast_block < $stuckAfter) {
                     return; // still within the wait window
+                }
+
+                // Exhausted RBF attempts and still not mined → dead-letter for manual review.
+                if ($withdrawal->broadcast_attempts >= $maxAttempts) {
+                    $this->deadLetter($withdrawal);
+
+                    return;
                 }
 
                 try {
@@ -114,5 +121,28 @@ class RebroadcastStuckWithdrawalsAction
             });
 
         return $replaced;
+    }
+
+    /**
+     * Dead-letter a withdrawal whose broadcasts never confirmed. Funds stay LOCKED —
+     * a prior broadcast could still be mined, so releasing here risks a double-pay.
+     * The reserve is resolved by reconciliation / manual review once on-chain absence
+     * is proven (see the deliberate post-broadcast safety design).
+     */
+    private function deadLetter(Withdrawal $withdrawal): void
+    {
+        $withdrawal->update([
+            'status' => WithdrawalStatus::Failed,
+            'failure_reason' => "Dead-lettered: not confirmed after {$withdrawal->broadcast_attempts} broadcast attempts. Funds remain locked pending reconciliation.",
+        ]);
+
+        notifyAdmins(
+            'Withdrawal dead-lettered',
+            "Withdrawal {$withdrawal->id} (nonce {$withdrawal->broadcast_nonce}) was not confirmed after {$withdrawal->broadcast_attempts} broadcast attempts. Funds stay locked — verify on-chain and resolve manually.",
+            null,
+            'security',
+        );
+
+        ActivityLogger::log('withdrawal.dead_lettered', $withdrawal, ['attempts' => $withdrawal->broadcast_attempts, 'nonce' => $withdrawal->broadcast_nonce]);
     }
 }
