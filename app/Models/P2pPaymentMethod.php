@@ -34,4 +34,18 @@ class P2pPaymentMethod extends Model
     {
         return $this->hasMany(P2pUserPaymentMethod::class, 'payment_method_id');
     }
+
+    /**
+     * The account field schema, falling back to a generic name+number pair when
+     * an admin hasn't configured one. Shared by the payout form and order view.
+     *
+     * @return array<int, array{key: string, label: string, required: bool}>
+     */
+    public function fieldSchema(): array
+    {
+        return ! empty($this->fields) ? $this->fields : [
+            ['key' => 'account_name', 'label' => 'Account name', 'required' => true],
+            ['key' => 'account_number', 'label' => 'Account number', 'required' => true],
+        ];
+    }
 }

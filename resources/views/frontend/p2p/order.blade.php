@@ -222,8 +222,8 @@
                         <div class="flex items-center gap-2">
                             <x-heroicon-o-banknotes class="h-5 w-5 text-brand-600" />
                             <h3 class="text-base font-semibold text-neutral-900">{{ __('Pay to') }}</h3>
-                            @if ($order->paymentMethod)
-                                <span class="ml-auto inline-flex items-center rounded-md border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-xs font-medium text-neutral-600">{{ $order->paymentMethod->name }}</span>
+                            @if ($payToAccounts->count() > 1)
+                                <span class="ml-auto text-xs font-medium text-neutral-400">{{ __('Pay to any one') }}</span>
                             @endif
                         </div>
 
@@ -231,26 +231,38 @@
                         <div class="mt-3 flex items-center justify-between rounded-xl bg-brand-50 px-4 py-3">
                             <div>
                                 <p class="text-xs font-medium text-neutral-500">{{ __('Amount to send') }}</p>
-                                <p class="text-lg font-bold tabular text-neutral-900">{{ number_format((float) $order->fiat_amount, 2) }} {{ $order->fiat_currency }}</p>
+                                <p class="text-xl font-bold tabular text-neutral-900">{{ number_format((float) $order->fiat_amount, 2) }} <span class="text-sm font-semibold text-neutral-500">{{ $order->fiat_currency }}</span></p>
                             </div>
                             <x-ui.copy-text :text="number_format((float) $order->fiat_amount, 2, '.', '')" />
                         </div>
 
                         @forelse ($payToAccounts as $acc)
-                            @php $fields = $acc->method?->fields ?: []; @endphp
-                            <div class="mt-3 rounded-xl border border-neutral-200 p-4">
-                                @if ($acc->label)<p class="mb-1 text-xs text-neutral-400">{{ $acc->label }}</p>@endif
-                                @foreach ($fields as $f)
-                                    @if (! empty($acc->account[$f['key']]))
-                                        <div class="flex items-center justify-between gap-3 border-neutral-100 py-1.5 {{ ! $loop->first ? 'border-t' : '' }}">
-                                            <div class="min-w-0">
-                                                <p class="text-xs text-neutral-500">{{ $f['label'] }}</p>
-                                                <p class="truncate text-sm font-semibold text-neutral-900">{{ $acc->account[$f['key']] }}</p>
+                            @php $fields = $acc->method?->fieldSchema() ?? []; @endphp
+                            <div class="mt-3 overflow-hidden rounded-xl border border-neutral-200">
+                                {{-- Account header: method (account type) + optional label --}}
+                                @if ($acc->method?->name || $acc->label)
+                                    <div class="flex items-center gap-2 border-b border-neutral-100 bg-neutral-50/70 px-4 py-2.5">
+                                        @if ($acc->method?->name)
+                                            <span class="grid h-6 w-6 place-items-center rounded-full bg-brand-100 text-[11px] font-bold text-brand-700">{{ mb_strtoupper(mb_substr($acc->method->name, 0, 1)) }}</span>
+                                            <span class="text-sm font-semibold text-neutral-800">{{ $acc->method->name }}</span>
+                                        @endif
+                                        @if ($acc->label)<span class="ml-auto text-xs text-neutral-400">{{ $acc->label }}</span>@endif
+                                    </div>
+                                @endif
+                                {{-- Account fields --}}
+                                <div class="divide-y divide-neutral-100 px-4">
+                                    @foreach ($fields as $f)
+                                        @if (! empty($acc->account[$f['key']]))
+                                            <div class="flex items-center justify-between gap-3 py-2.5">
+                                                <div class="min-w-0">
+                                                    <p class="text-xs text-neutral-500">{{ $f['label'] }}</p>
+                                                    <p class="truncate text-sm font-semibold text-neutral-900">{{ $acc->account[$f['key']] }}</p>
+                                                </div>
+                                                <x-ui.copy-text :text="$acc->account[$f['key']]" />
                                             </div>
-                                            <x-ui.copy-text :text="$acc->account[$f['key']]" />
-                                        </div>
-                                    @endif
-                                @endforeach
+                                        @endif
+                                    @endforeach
+                                </div>
                             </div>
                         @empty
                             <p class="mt-3 rounded-lg bg-neutral-50 px-3 py-2.5 text-sm text-neutral-500">
@@ -342,19 +354,20 @@
                         <p x-show="messages.length === 0" class="py-8 text-center text-sm text-neutral-400">{{ __('No messages yet. Say hello') }} 👋</p>
                     </div>
 
-                    <form method="POST" action="{{ route('p2p.messages.send', $order) }}" enctype="multipart/form-data"
-                          class="flex items-center gap-2 border-t border-neutral-100 px-3 py-3">
-                        @csrf
-                        <input type="hidden" name="type" value="text">
-                        <input type="text" name="body" placeholder="{{ __('Type a message…') }}" autocomplete="off"
-                               x-on:input="whisperTyping()"
-                               class="pp-input flex-1">
-                        <label class="grid h-10 w-10 shrink-0 cursor-pointer place-items-center rounded-lg border border-neutral-200 text-neutral-500 hover:bg-neutral-50" title="{{ __('Attach receipt') }}">
-                            <x-heroicon-o-paper-clip class="h-5 w-5" />
-                            <input type="file" name="attachment" class="sr-only" onchange="this.form.querySelector('[name=type]').value='receipt'; this.form.submit();">
-                        </label>
-                        <x-ui.button type="submit" icon="paper-airplane" class="shrink-0">{{ __('Send') }}</x-ui.button>
-                    </form>
+                    <div class="border-t border-neutral-100">
+                        <p x-show="error" x-cloak x-text="error" class="px-4 pt-2 text-xs text-red-600"></p>
+                        <form x-on:submit.prevent="send()" class="flex items-center gap-2 px-3 py-3">
+                            <input type="text" x-model="draft" placeholder="{{ __('Type a message…') }}" autocomplete="off"
+                                   x-on:input="whisperTyping()"
+                                   x-on:keydown.enter.prevent="send()"
+                                   class="pp-input flex-1">
+                            <label class="grid h-10 w-10 shrink-0 cursor-pointer place-items-center rounded-lg border border-neutral-200 text-neutral-500 hover:bg-neutral-50" title="{{ __('Attach receipt') }}">
+                                <x-heroicon-o-paper-clip class="h-5 w-5" />
+                                <input type="file" class="sr-only" accept=".jpg,.jpeg,.png,.webp,.pdf" x-on:change="sendFile($event)">
+                            </label>
+                            <x-ui.button type="submit" icon="paper-airplane" class="shrink-0" ::disabled="sending">{{ __('Send') }}</x-ui.button>
+                        </form>
+                    </div>
                 </div>
             </x-ui.card>
         </div>

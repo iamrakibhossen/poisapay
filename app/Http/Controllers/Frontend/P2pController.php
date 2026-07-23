@@ -326,14 +326,20 @@ class P2pController extends Controller
     public function order(Request $request, P2pOrder $order): View
     {
         $this->assertParty($request, $order);
-        $order->load(['ad', 'buyer', 'seller', 'asset', 'escrow', 'paymentMethod', 'dispute.evidence']);
+        $order->load(['ad.paymentMethods', 'buyer', 'seller', 'asset', 'escrow', 'paymentMethod', 'dispute.evidence']);
 
         // The seller's payout accounts for this order's rail — surfaced to the buyer
-        // (who pays the fiat) once an order is open.
-        $payToAccounts = $order->payment_method_id
+        // (who pays the fiat) once an order is open. When the order didn't pin a
+        // specific method, fall back to every rail the ad accepts so the seller's
+        // saved accounts still show up.
+        $methodIds = $order->payment_method_id
+            ? [$order->payment_method_id]
+            : $order->ad->paymentMethods->modelKeys();
+
+        $payToAccounts = ! empty($methodIds)
             ? P2pUserPaymentMethod::with('method')
                 ->where('user_id', $order->seller_id)
-                ->where('payment_method_id', $order->payment_method_id)
+                ->whereIn('payment_method_id', $methodIds)
                 ->where('is_active', true)->get()
             : collect();
 
@@ -405,12 +411,7 @@ class P2pController extends Controller
      */
     private function methodFields(P2pPaymentMethod $method): array
     {
-        $fields = $method->fields ?: [];
-
-        return ! empty($fields) ? $fields : [
-            ['key' => 'account_name', 'label' => 'Account name', 'required' => true],
-            ['key' => 'account_number', 'label' => 'Account number', 'required' => true],
-        ];
+        return $method->fieldSchema();
     }
 
     public function destroyPaymentMethod(Request $request, P2pUserPaymentMethod $method): RedirectResponse

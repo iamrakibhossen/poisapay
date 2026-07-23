@@ -20,7 +20,10 @@ Alpine.plugin(persist);
  */
 Alpine.data('p2pChat', (orderId, meId) => ({
     messages: [],
+    draft: '',
+    sending: false,
     typing: false,
+    error: '',
     _typingTimer: null,
 
     init() {
@@ -34,10 +37,7 @@ Alpine.data('p2pChat', (orderId, meId) => ({
 
         if (window.Echo) {
             window.Echo.private(`p2p.order.${orderId}`)
-                .listen('.p2p.message', (m) => {
-                    this.messages.push(m);
-                    this.$nextTick(() => this.scroll());
-                })
+                .listen('.p2p.message', (m) => this.add(m))
                 .listenForWhisper('typing', (e) => {
                     if (e && e.id !== meId) {
                         this.typing = true;
@@ -46,6 +46,57 @@ Alpine.data('p2pChat', (orderId, meId) => ({
                     }
                 });
         }
+    },
+
+    // Append a message unless we already have it (dedupes our own echoed broadcast).
+    add(m) {
+        if (!m || !m.id || this.messages.some((x) => x.id === m.id)) return;
+        this.messages.push(m);
+        this.$nextTick(() => this.scroll());
+    },
+
+    // Post a text message over fetch — no page reload. The reply appears instantly
+    // from the response; the broadcast to the counterparty delivers it live.
+    send() {
+        const body = this.draft.trim();
+        if (!body || this.sending) return;
+        this.post({ type: 'text', body });
+        this.draft = '';
+    },
+
+    // Attachment (receipt/image) picked from the file input.
+    sendFile(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        this.post({ type: 'receipt', attachment: file });
+        event.target.value = '';
+    },
+
+    post(fields) {
+        this.sending = true;
+        this.error = '';
+        const fd = new FormData();
+        Object.entries(fields).forEach(([k, v]) => fd.append(k, v));
+
+        fetch(`/p2p/orders/${orderId}/messages`, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+            },
+            body: fd,
+        })
+            .then(async (r) => {
+                const d = await r.json().catch(() => ({}));
+                if (!r.ok) throw new Error(d.message || 'Message failed to send.');
+                return d;
+            })
+            .then((d) => this.add(d.data))
+            .catch((e) => {
+                this.error = e.message;
+                setTimeout(() => (this.error = ''), 4000);
+            })
+            .finally(() => (this.sending = false));
     },
 
     whisperTyping() {

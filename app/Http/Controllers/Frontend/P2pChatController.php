@@ -32,21 +32,12 @@ class P2pChatController extends Controller
             ->orderBy('created_at')
             ->limit(500)
             ->get()
-            ->map(fn (P2pOrderMessage $m) => [
-                'id' => $m->id,
-                'sender_type' => $m->sender_type,
-                'sender_id' => $m->sender_id,
-                'type' => $m->type->value,
-                'body' => $m->body,
-                'has_attachment' => $m->attachment_path !== null,
-                'read_at' => $m->read_at?->toIso8601String(),
-                'created_at' => $m->created_at?->toIso8601String(),
-            ]);
+            ->map(fn (P2pOrderMessage $m) => $this->present($m));
 
         return response()->json(['data' => $messages]);
     }
 
-    public function store(Request $request, P2pOrder $order, SendMessageAction $action): RedirectResponse
+    public function store(Request $request, P2pOrder $order, SendMessageAction $action): RedirectResponse|JsonResponse
     {
         $this->assertParty($request, $order);
 
@@ -57,7 +48,7 @@ class P2pChatController extends Controller
         ]);
 
         try {
-            $action->execute(
+            $message = $action->execute(
                 $order,
                 $request->user(),
                 P2pMessageType::from($validated['type'] ?? 'text'),
@@ -65,10 +56,33 @@ class P2pChatController extends Controller
                 $request->file('attachment'),
             );
         } catch (Throwable $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $e->getMessage()], 422);
+            }
+
             return back()->with('error', $e->getMessage());
         }
 
+        if ($request->expectsJson()) {
+            return response()->json(['data' => $this->present($message)]);
+        }
+
         return back();
+    }
+
+    /** @return array<string, mixed> */
+    private function present(P2pOrderMessage $m): array
+    {
+        return [
+            'id' => $m->id,
+            'sender_type' => $m->sender_type,
+            'sender_id' => $m->sender_id,
+            'type' => $m->type->value,
+            'body' => $m->body,
+            'has_attachment' => $m->attachment_path !== null,
+            'read_at' => $m->read_at?->toIso8601String(),
+            'created_at' => $m->created_at?->toIso8601String(),
+        ];
     }
 
     public function read(Request $request, P2pOrder $order, MarkMessagesReadAction $action): RedirectResponse
