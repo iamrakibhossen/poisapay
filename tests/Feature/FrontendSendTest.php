@@ -34,6 +34,26 @@ it('executes a transfer and moves funds', function () {
         ->and($this->ledger->availableBalance($this->recipient, $this->asset->id)->baseString())->toBe('1200000');
 });
 
+it('notifies both the recipient and the sender', function () {
+    creditUser($this->sender, $this->asset, '3000000');
+    $this->sender->update(['name' => 'Bob Sender']);
+
+    actingAs($this->sender)->post(route('send.execute'), [
+        'recipient' => '@alice', 'assetId' => $this->asset->id, 'amount' => '1.2',
+    ])->assertSessionHas('success');
+
+    // Recipient gets the "money received" alert (the previously-missing one).
+    $received = $this->recipient->notifications()->first();
+    expect($received)->not->toBeNull()
+        ->and($received->data['event'])->toBe('transfer.received')
+        ->and($received->data['category'])->toBe('money')
+        ->and($received->data['body'])->toContain('Bob Sender');
+
+    // Sender gets a "money sent" record.
+    $sent = $this->sender->notifications()->first();
+    expect($sent->data['event'])->toBe('transfer.sent');
+});
+
 it('reports an unknown recipient', function () {
     creditUser($this->sender, $this->asset, '3000000');
 

@@ -49,6 +49,7 @@ class LedgerEventNotification extends Notification implements ShouldQueue
     public function toArray(object $notifiable): array
     {
         return [
+            'category' => 'money',
             'event' => $this->event,
             'title' => $this->title,
             'body' => $this->body,

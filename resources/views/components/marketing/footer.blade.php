@@ -1,5 +1,7 @@
 @php
     $home = route('home');
+    // Each destination appears exactly once — columns hold product/company/account
+    // links; legal links live only in the bottom bar.
     $footCols = [
         __('Product') => [
             [__('Virtual card'), $home.'#cards'],
@@ -8,16 +10,14 @@
             [__('Merchant pay'), route('merchants')],
         ],
         __('Company') => [
+            [__('About us'), route('page.show', 'about-us')],
             [__('Features'), $home.'#features'],
             [__('Security'), $home.'#security'],
+        ],
+        __('Account') => [
+            [__('Help center'), route('faqs.public')],
             [__('Create account'), route('register')],
             [__('Log in'), route('login')],
-        ],
-        __('Resources') => [
-            [__('Help center'), route('faqs.public')],
-            [__('FAQ'), $home.'#faq'],
-            [__('Live prices'), $home.'#exchange'],
-            [__('Get started'), route('register')],
         ],
     ];
 @endphp
@@ -54,9 +54,8 @@
         <div class="mt-12 flex flex-col items-center justify-between gap-3 border-t border-slate-200 pt-6 text-sm text-slate-500 sm:flex-row">
             <p>© {{ date('Y') }} PoisaPay · {{ __('Custodial · KYC/AML gated') }}</p>
             <div class="flex gap-5">
-                <a href="#" class="transition hover:text-slate-900">{{ __('Privacy') }}</a>
-                <a href="#" class="transition hover:text-slate-900">{{ __('Terms') }}</a>
-                <a href="#" class="transition hover:text-slate-900">{{ __('Legal') }}</a>
+                <a href="{{ route('page.show', 'privacy') }}" class="transition hover:text-slate-900">{{ __('Privacy') }}</a>
+                <a href="{{ route('page.show', 'terms') }}" class="transition hover:text-slate-900">{{ __('Terms') }}</a>
             </div>
         </div>
     </div>

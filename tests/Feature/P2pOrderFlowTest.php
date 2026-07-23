@@ -103,3 +103,23 @@ it('blocks a non-buyer from marking paid and a non-seller from releasing', funct
     expect(fn () => app(ConfirmReleaseAction::class)->execute($order->refresh(), $this->buyer))
         ->toThrow(RuntimeException::class);
 });
+
+it('notifies participants across the order lifecycle', function () {
+    $hasEvent = fn ($user, string $event) => $user->notifications()->get()
+        ->contains(fn ($n) => ($n->data['event'] ?? null) === $event);
+
+    // Order opened → the seller is alerted.
+    $order = app(CreateOrderAction::class)->execute($this->buyer, $this->ad, Money::ofDecimal('100', 6, 'USDT'));
+    expect($hasEvent($this->seller, 'p2p.order.created'))->toBeTrue();
+
+    // Buyer marked paid → the seller is alerted to release.
+    app(MarkBuyerPaidAction::class)->execute($order->refresh(), $this->buyer);
+    expect($hasEvent($this->seller, 'p2p.order.paid'))->toBeTrue();
+
+    // Escrow released → the buyer is alerted the crypto arrived.
+    app(ConfirmReleaseAction::class)->execute($order->refresh(), $this->seller);
+    $done = $this->buyer->notifications()->get()->firstWhere(fn ($n) => ($n->data['event'] ?? null) === 'p2p.order.completed');
+    expect($done)->not->toBeNull()
+        ->and($done->data['category'])->toBe('money')
+        ->and($done->data['url'])->toContain($order->id);
+});

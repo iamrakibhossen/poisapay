@@ -38,7 +38,7 @@ use Illuminate\Support\Facades\Route;
 Route::view('/', 'marketing.home')->name('home');
 Route::view('/merchants', 'marketing.merchants')->name('merchants');   // marketing (console lives at /merchant, behind auth)
 Route::get('/faqs', FaqController::class)->name('faqs.public');
-Route::get('/p/{slug}', [PageController::class, 'show'])->name('page.show');
+Route::get('/pages/{slug}', [PageController::class, 'show'])->name('page.show');
 Route::get('/rates', RatesController::class)->name('marketing.rates');  // live crypto→BDT reference rates (display only)
 Route::post('/locale', [LocaleController::class, 'update'])->name('locale.switch');
 

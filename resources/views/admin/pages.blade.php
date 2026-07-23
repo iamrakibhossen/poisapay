@@ -27,7 +27,7 @@
                         <p class="text-sm font-semibold text-neutral-900">{{ $page->title }}</p>
                     </td>
                     <td class="px-4 py-3">
-                        <a href="{{ route('page.show', $page->slug) }}" target="_blank" class="font-mono text-xs text-brand-600 hover:underline">/p/{{ $page->slug }}</a>
+                        <a href="{{ route('page.show', $page->slug) }}" target="_blank" class="font-mono text-xs text-brand-600 hover:underline">/pages/{{ $page->slug }}</a>
                     </td>
                     <td class="px-4 py-3">
                         <x-ui.badge :color="$page->status === 'published' ? 'success' : 'gray'" dot>{{ ucfirst($page->status) }}</x-ui.badge>
