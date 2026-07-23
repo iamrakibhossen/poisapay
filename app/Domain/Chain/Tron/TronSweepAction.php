@@ -34,6 +34,7 @@ class TronSweepAction
         private readonly TronGridClient $client,
         private readonly SignerKeyProvider $keys,
         private readonly Secp256k1Signer $signer,
+        private readonly TronGasSponsor $gas,
     ) {}
 
     public function execute(DepositAddress $address, Asset $asset): ?Sweep
@@ -44,13 +45,29 @@ class TronSweepAction
 
         $nonceContext = "sweep:onchain:{$address->id}:{$asset->id}";
         $existing = Sweep::where('nonce_context', $nonceContext)->first();
-        if ($existing !== null && $existing->status !== SweepStatus::Failed) {
-            return $existing; // already in flight or settled — idempotent
+        // Skip only in-flight/settled sweeps; gassing/failed ones are re-processable.
+        if ($existing !== null && in_array($existing->status, [SweepStatus::Broadcast, SweepStatus::Swept], true)) {
+            return $existing;
         }
 
         $balance = $this->client->tokenBalance($address->address, $asset->contract_address);
         if (bccomp($balance, '0') <= 0) {
             return null; // nothing to sweep
+        }
+
+        // Ensure the deposit address can pay for the transfer (opt-in gas sponsoring).
+        // When sponsoring is off, fall through and let the broadcast succeed or fail on gas.
+        if (feature('gas_sponsoring_enabled', false) && ! $this->gas->ensure($address, $asset)->isReady()) {
+            return Sweep::updateOrCreate(
+                ['nonce_context' => $nonceContext],
+                [
+                    'deposit_address_id' => $address->id,
+                    'asset_id' => $asset->id,
+                    'amount' => $balance,
+                    'gas_cost' => '0',
+                    'status' => SweepStatus::Gassing,
+                ],
+            );
         }
 
         $hot = $this->keys->hotWalletAddress(ChainType::Tron);

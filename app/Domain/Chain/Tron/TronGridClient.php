@@ -93,6 +93,36 @@ class TronGridClient
     }
 
     /**
+     * Native TRX balance of an account in sun (base units). Returns '0' for an
+     * inactive / never-funded account.
+     */
+    public function accountTrxBalance(string $address): string
+    {
+        $account = $this->http()->post($this->url('/wallet/getaccount'), [
+            'address' => $address,
+            'visible' => true,
+        ])->json();
+
+        return (string) (is_array($account) ? ($account['balance'] ?? '0') : '0');
+    }
+
+    /**
+     * Ask the node to build an unsigned native TRX transfer (returns raw_data + txID).
+     * Sign the txID off-node and {@see broadcast()} it.
+     *
+     * @return array<string, mixed>
+     */
+    public function createTrxTransfer(string $fromAddress, string $toAddress, string $amountSun): array
+    {
+        return $this->http()->post($this->url('/wallet/createtransaction'), [
+            'owner_address' => $fromAddress,
+            'to_address' => $toAddress,
+            'amount' => (int) $amountSun,
+            'visible' => true,
+        ])->json() ?? [];
+    }
+
+    /**
      * Ask the node to build an unsigned TRC20 transfer (returns raw_data + txID).
      * The node does the protobuf assembly; we only sign the txID off-node.
      *
