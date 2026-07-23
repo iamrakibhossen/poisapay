@@ -121,6 +121,8 @@ it('signs, broadcasts and settles an EVM withdrawal', function () {
     $signed = app(EvmWithdrawalSigner::class)->execute($withdrawal->fresh());
     expect($signed->status)->toBe(WithdrawalStatus::Broadcast)
         ->and($signed->onchain_tx_id)->not->toBeNull()
+        ->and($signed->broadcast_nonce)->not->toBeNull()       // recorded for RBF
+        ->and($signed->broadcast_attempts)->toBe(1)
         ->and($this->fake->sent)->toHaveCount(1)
         ->and($this->fake->sent[0]['raw'])->toStartWith('0x02'); // typed EIP-1559 tx
 

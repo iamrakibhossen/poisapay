@@ -35,6 +35,7 @@ class Withdrawal extends Model
         'user_id', 'asset_id', 'to_address', 'payout_method', 'payout_details', 'amount', 'fee', 'status', 'idempotency_key',
         'risk_score', 'risk_level', 'requires_review', 'lock_entry_id', 'settle_entry_id',
         'onchain_tx_id', 'approved_by', 'approved_at', 'completed_at', 'failure_reason', 'reserve_released_at',
+        'broadcast_nonce', 'broadcast_block', 'broadcast_attempts',
     ];
 
     protected function casts(): array
@@ -48,6 +49,9 @@ class Withdrawal extends Model
             'approved_at' => 'datetime',
             'completed_at' => 'datetime',
             'reserve_released_at' => 'datetime',
+            'broadcast_nonce' => 'integer',
+            'broadcast_block' => 'integer',
+            'broadcast_attempts' => 'integer',
         ];
     }
 

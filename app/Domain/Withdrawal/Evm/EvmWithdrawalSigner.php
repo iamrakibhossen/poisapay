@@ -61,6 +61,7 @@ class EvmWithdrawalSigner
             $hotAddress = $this->keys->hotWalletAddress($chainType);
             $privateKey = $this->keys->hotWalletPrivateKey($chainType);
             $nonce = $this->nonces->next($chainType, $hotAddress);
+            $head = $this->chain->blockNumber($chainType);
             $gas = $this->gas->suggest($chainType);
             $chainId = (int) config("poisapay.custody.{$chainType->value}.chain_id");
 
@@ -95,7 +96,7 @@ class EvmWithdrawalSigner
             return $this->fail($withdrawal, 'Broadcast returned no transaction hash.');
         }
 
-        return DB::transaction(function () use ($withdrawal, $asset, $txHash, $hotAddress): Withdrawal {
+        return DB::transaction(function () use ($withdrawal, $asset, $txHash, $hotAddress, $nonce, $head): Withdrawal {
             $onchain = OnchainTx::create([
                 'chain_id' => $asset->chain_id,
                 'tx_hash' => strtolower($txHash),
@@ -112,6 +113,9 @@ class EvmWithdrawalSigner
             $withdrawal->update([
                 'status' => WithdrawalStatus::Broadcast,
                 'onchain_tx_id' => $onchain->id,
+                'broadcast_nonce' => $nonce,
+                'broadcast_block' => $head,
+                'broadcast_attempts' => $withdrawal->broadcast_attempts + 1,
             ]);
 
             ActivityLogger::log('withdrawal.broadcast', $withdrawal, ['tx' => $txHash]);
