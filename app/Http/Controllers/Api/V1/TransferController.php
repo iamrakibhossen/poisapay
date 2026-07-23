@@ -19,7 +19,7 @@ class TransferController extends ApiController
     public function store(Request $request, ExecuteTransferAction $action): JsonResponse
     {
         $data = $request->validate([
-            'recipient' => 'required|string',   // handle | email | phone
+            'recipient' => 'required|string',   // uid | email | phone
             'asset' => 'required|string',
             'amount' => 'required|numeric|gt:0',
             'memo' => 'nullable|string|max:140',
@@ -30,12 +30,12 @@ class TransferController extends ApiController
             return $this->fail('asset_not_found', 'Unknown asset.', [], 404);
         }
 
-        $recipient = User::where('handle', $data['recipient'])
-            ->orWhere('email', $data['recipient'])
+        $recipient = User::where('email', $data['recipient'])
             ->orWhere('phone', $data['recipient'])
+            ->when(ctype_digit($data['recipient']), fn ($b) => $b->orWhere('uid', $data['recipient']))
             ->first();
         if (! $recipient) {
-            return $this->fail('recipient_not_found', 'No PoisaPay user matches that handle.', [], 404);
+            return $this->fail('recipient_not_found', 'No PoisaPay user matches that ID, email or phone.', [], 404);
         }
 
         try {
@@ -58,7 +58,7 @@ class TransferController extends ApiController
             'asset' => $asset->symbol,
             'amount' => $transfer->money()->toDecimal(),
             'status' => $transfer->status->value,
-            'recipient' => $recipient->handle ?? $recipient->name,
+            'recipient' => $recipient->name,
         ], 201);
     }
 

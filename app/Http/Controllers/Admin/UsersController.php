@@ -60,7 +60,7 @@ class UsersController extends Controller
                 ->where('name', 'like', '%'.$search.'%')
                 ->orWhere('email', 'like', '%'.$search.'%')
                 ->orWhere('phone', 'like', '%'.$search.'%')
-                ->orWhere('handle', 'like', '%'.$search.'%')))
+                ->when(ctype_digit($search), fn ($u2) => $u2->orWhere('uid', $search))))
             ->latest()
             ->paginate(15)
             ->withQueryString();
@@ -145,7 +145,6 @@ class UsersController extends Controller
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:190', Rule::unique('users', 'email')->ignore($user->id)],
             'phone' => ['nullable', 'string', 'max:32'],
-            'handle' => ['nullable', 'string', 'max:60', Rule::unique('users', 'handle')->ignore($user->id)],
             'base_currency' => ['required', 'string', 'size:3'],
             'kyc_tier' => ['required', Rule::enum(KycTier::class)],
             'kyc_status' => ['required', Rule::enum(KycStatus::class)],
@@ -156,7 +155,6 @@ class UsersController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'phone' => $data['phone'] ?? null,
-            'handle' => $data['handle'] ?? null,
             'base_currency' => strtoupper($data['base_currency']),
             'kyc_tier' => $data['kyc_tier'],
             'kyc_status' => $data['kyc_status'],

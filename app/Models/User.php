@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -22,7 +24,7 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasApiTokens, HasFactory, HasUuids, MustVerifyEmailTrait, Notifiable;
 
     protected $fillable = [
-        'name', 'email', 'phone', 'handle', 'password',
+        'name', 'email', 'phone', 'password',
         'kyc_tier', 'kyc_status', 'referral_code', 'referred_by',
         'base_currency', 'locale', 'timezone', 'is_frozen',
         'two_factor_secret', 'two_factor_recovery_codes', 'two_factor_confirmed_at',
@@ -43,7 +45,38 @@ class User extends Authenticatable implements MustVerifyEmail
             'is_frozen' => 'boolean',
             'kyc_tier' => KycTier::class,
             'kyc_status' => KycStatus::class,
+            'uid' => 'integer',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        // Every user gets a public, shareable numeric ID on creation (§F4.1).
+        // Retry on the `uid` unique index so a concurrent collision can't slip
+        // through the exists() pre-check — the DB is the source of truth.
+        static::creating(function (User $user) {
+            if (empty($user->uid)) {
+                $user->uid = static::generateUid();
+            }
+        });
+
+        static::saving(function (User $user) {
+            if ($user->isDirty('uid')) {
+                Validator::make(['uid' => $user->uid], [
+                    'uid' => ['required', 'integer', Rule::unique('users')->ignore($user)],
+                ])->validate();
+            }
+        });
+    }
+
+    /** A unique 9-digit public account ID others use to send money. */
+    public static function generateUid(): int
+    {
+        do {
+            $uid = random_int(100_000_000, 999_999_999);
+        } while (static::where('uid', $uid)->exists());
+
+        return $uid;
     }
 
     // ----- Relationships -----

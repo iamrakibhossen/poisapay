@@ -38,12 +38,12 @@ it('rejects an unauthenticated wallet request', function () {
 
 it('performs a transfer via the API', function () {
     $sender = User::factory()->create();
-    $recipient = User::factory()->create(['handle' => 'payee']);
+    $recipient = User::factory()->create(['email' => 'payee@poisapay.test']);
     creditUser($sender, $this->asset, '5000000');
     Sanctum::actingAs($sender);
 
     $res = $this->postJson('/api/v1/transfers', [
-        'recipient' => 'payee',
+        'recipient' => 'payee@poisapay.test',
         'asset' => 'USDT',
         'amount' => '1.5',
     ], ['Idempotency-Key' => 'api-tf-1']);

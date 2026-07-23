@@ -40,7 +40,6 @@ it('updates a user profile and KYC from the edit form', function () {
             'name' => 'Renamed User',
             'email' => 'renamed@poisapay.test',
             'phone' => '01700000000',
-            'handle' => 'renamed',
             'base_currency' => 'usd',
             'kyc_tier' => KycTier::Full->value,
             'kyc_status' => KycStatus::Approved->value,

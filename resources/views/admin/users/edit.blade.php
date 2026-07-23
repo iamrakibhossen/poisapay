@@ -16,7 +16,6 @@
                     <x-ui.input :label="__('Name')" name="name" :value="old('name', $user->name)" :error="$errors->first('name')" />
                     <x-ui.input :label="__('Email')" name="email" type="email" :value="old('email', $user->email)" :error="$errors->first('email')" />
                     <x-ui.input :label="__('Phone')" name="phone" :value="old('phone', $user->phone)" :error="$errors->first('phone')" placeholder="{{ __('—') }}" />
-                    <x-ui.input :label="__('Handle')" name="handle" :value="old('handle', $user->handle)" :error="$errors->first('handle')" placeholder="{{ __('username') }}" />
                     <x-ui.input :label="__('Base currency')" name="base_currency" :value="old('base_currency', $user->base_currency ?? 'USD')" maxlength="3" :error="$errors->first('base_currency')" />
                 </div>
             </div>

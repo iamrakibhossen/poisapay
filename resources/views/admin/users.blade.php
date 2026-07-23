@@ -19,7 +19,7 @@
             </div>
 
             <input type="hidden" name="tier" value="{{ $tier }}" />
-            <x-ui.input name="search" :value="$search" icon="magnifying-glass" placeholder="{{ __('Search name, email, phone, handle…') }}" class="w-full sm:w-72" />
+            <x-ui.input name="search" :value="$search" icon="magnifying-glass" placeholder="{{ __('Search name, email, phone, ID…') }}" class="w-full sm:w-72" />
         </form>
 
         <x-ui.table :headers="[__('User'), __('Phone'), __('KYC tier'), __('KYC status'), __('Joined'), '']">

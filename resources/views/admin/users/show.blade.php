@@ -54,7 +54,7 @@
                         @if ($user->is_frozen)<x-heroicon-s-lock-closed class="h-4 w-4 text-rose-500" />@endif
                     </h2>
                     <p class="text-sm text-neutral-500">{{ $user->email }}</p>
-                    @if ($user->handle)<p class="mt-0.5 text-xs text-neutral-400">&#64;{{ $user->handle }}</p>@endif
+                    <p class="mt-0.5 text-xs text-neutral-400">{{ __('ID') }} {{ $user->uid }}</p>
                 </div>
                 <div class="flex flex-wrap gap-2">
                     <x-ui.badge :color="$user->kyc_tier->color()">{{ $user->kyc_tier->label() }}</x-ui.badge>

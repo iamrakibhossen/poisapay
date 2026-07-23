@@ -24,10 +24,13 @@
             <h1 class="text-base font-semibold tracking-tight text-neutral-900 sm:text-lg">
                 {{ $greeting }}, {{ $firstName }}
             </h1>
-            <p class="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-500">
-                <x-heroicon-o-calendar-days class="h-4 w-4 text-neutral-400" />
-                {{ now()->format('l, j M Y') }}
-            </p>
+            <div class="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs font-medium text-neutral-500 shadow-sm"
+                title="{{ __('Share this ID to get paid') }}">
+                <x-heroicon-o-identification class="h-4 w-4 text-neutral-400" />
+                <span class="text-neutral-400">{{ __('ID') }}</span>
+                <span class="tabular font-semibold tracking-wide text-neutral-900">{{ auth()->user()->uid }}</span>
+                <x-ui.copy-text :text="(string) auth()->user()->uid" :label="__('Copy ID')" />
+            </div>
         </div>
 
         {{-- KYC nudge --}}

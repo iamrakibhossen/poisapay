@@ -30,7 +30,6 @@ class DemoSeeder extends Seeder
             [
                 'name' => 'Rahim Uddin',
                 'phone' => '+8801700000000',
-                'handle' => 'rahim',
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),
                 'kyc_tier' => KycTier::Full,

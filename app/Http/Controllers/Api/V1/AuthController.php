@@ -85,7 +85,7 @@ class AuthController extends ApiController
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
-            'handle' => $user->handle,
+            'uid' => $user->uid,
             'kyc_tier' => $user->kyc_tier->value,
             'kyc_status' => $user->kyc_status->value,
             'base_currency' => $user->base_currency,

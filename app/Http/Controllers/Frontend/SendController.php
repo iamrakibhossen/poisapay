@@ -84,7 +84,7 @@ class SendController extends Controller
 
         $recipient = $this->resolveRecipient($validated['recipient']);
         if (! $recipient) {
-            throw ValidationException::withMessages(['recipient' => 'No PoisaPay user found with that handle, email or phone.']);
+            throw ValidationException::withMessages(['recipient' => 'No PoisaPay user found with that ID, email or phone.']);
         }
 
         if ($recipient->is($request->user())) {
@@ -116,17 +116,16 @@ class SendController extends Controller
         }
 
         return redirect()->route('send.index')
-            ->with('success', 'Sent '.$money->format().' to '.($recipient->handle ? '@'.$recipient->handle : $recipient->name).'.');
+            ->with('success', 'Sent '.$money->format().' to '.$recipient->name.'.');
     }
 
     private function resolveRecipient(string $query): ?User
     {
         $q = trim($query);
-        $handle = ltrim($q, '@');
 
-        return User::where('handle', $handle)
-            ->orWhere('email', $q)
+        return User::where('email', $q)
             ->orWhere('phone', $q)
+            ->when(ctype_digit($q), fn ($b) => $b->orWhere('uid', $q))
             ->first();
     }
 }
