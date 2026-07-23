@@ -60,3 +60,22 @@ function creditUser(User $user, Asset $asset, string $baseAmount): void
         ],
     ));
 }
+
+/** Seed a treasury:hot balance for an asset (test convenience: pending -> hot). */
+function seedHotBalance(Asset $asset, string $baseAmount): void
+{
+    $ledger = app(LedgerService::class);
+    $resolver = $ledger->resolver();
+
+    $hot = $resolver->system(LedgerAccountType::TreasuryHot, $asset->id);
+    $pending = $resolver->system(LedgerAccountType::TreasuryPending, $asset->id);
+
+    $ledger->post(new EntryData(
+        type: 'test.seed',
+        idempotencyKey: 'test:seedhot:'.$asset->id.':'.uniqid('', true),
+        lines: [
+            PostingLine::debit($hot->id, $asset->id, $baseAmount),
+            PostingLine::credit($pending->id, $asset->id, $baseAmount),
+        ],
+    ));
+}

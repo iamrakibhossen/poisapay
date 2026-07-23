@@ -2,34 +2,11 @@
 
 declare(strict_types=1);
 
-use App\Domain\Ledger\AccountResolver;
-use App\Domain\Ledger\DTO\EntryData;
-use App\Domain\Ledger\DTO\PostingLine;
-use App\Domain\Ledger\LedgerService;
 use App\Domain\Reconciliation\HotColdWatermarkMonitor;
-use App\Enums\LedgerAccountType;
-use App\Models\Asset;
-use App\Support\Money;
 
 beforeEach(function () {
     $this->asset = testAsset('USDT', 6, 'tron');
 });
-
-function seedHotBalance(Asset $asset, string $base): void
-{
-    $ledger = app(LedgerService::class);
-    $accounts = app(AccountResolver::class);
-    $money = Money::ofBase($base, $asset->decimals, $asset->symbol);
-
-    $ledger->post(new EntryData(
-        type: 'test.seed',
-        idempotencyKey: "seed:{$asset->id}:{$base}",
-        lines: [
-            PostingLine::debit($accounts->system(LedgerAccountType::TreasuryHot, $asset->id)->id, $asset->id, $money),
-            PostingLine::credit($accounts->system(LedgerAccountType::TreasuryPending, $asset->id)->id, $asset->id, $money),
-        ],
-    ));
-}
 
 function watermarkState(): string
 {
