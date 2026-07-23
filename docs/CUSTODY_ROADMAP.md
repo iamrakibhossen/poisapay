@@ -69,8 +69,17 @@ Watermarks: settings `custody.watermark.high.<SYMBOL>` / `.low.<SYMBOL>` (base u
 
 ## After the above, ONLY non-code work remains
 MPC/HSM custody, KMS/Vault secrets, own blockchain nodes, Chainalysis/Elliptic AML,
-Sumsub/Onfido KYC, PCI DSS scoping, multi-region HA, licensing/VASP, vendor integrations.
-(These are specced in the architecture docs; they are procurement/ops, not commits.)
+Sumsub/Onfido KYC, PCI DSS scoping, multi-region HA, licensing/VASP, node operations,
+third-party vendor integrations. (Specced in the architecture docs; procurement/ops, not commits.)
+
+---
+
+## Definition of Done (custody implementation complete when ALL hold)
+- All remaining code tasks (1–4 above) implemented, tested, documented, and protected by feature flags where appropriate.
+- **Reconciliation passes under both normal AND failure scenarios** (stuck/reverted/dropped txs, gas starvation, worker/RPC outage) — no undetected ledger⇄chain drift.
+- Failure-recovery paths tested: RBF replaces stuck txs; DLQ + reserve-release only after confirmed on-chain absence; sweep/move settle only after confirmation.
+- No custody-related code work remains — only external infra / compliance / MPC-HSM / KMS-Vault / licensing / node-ops / vendor integrations.
+- Repository left clean & reproducible: all work committed, tests passing, docs (this file + memory) updated, flags OFF by default.
 
 ---
 
