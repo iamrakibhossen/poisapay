@@ -31,6 +31,13 @@ class ChainTickJob implements ShouldQueue
 
     public function handle(CreditDepositAction $credit, SettleWithdrawalAction $settle, SweepDepositAction $sweep): void
     {
+        // Simulated engine only. Under live custody the real Tron/Evm custody ticks
+        // own deposits, sweeps and withdrawals — no-op here so we never fake-settle
+        // (fake tx hash) an approved withdrawal that a real signer should broadcast.
+        if (! config('poisapay.custody_simulated')) {
+            return;
+        }
+
         // 1. Advance deposit confirmations, credit when canonical + deep enough.
         Deposit::with('onchainTx')
             ->whereIn('status', [DepositStatus::Detected->value, DepositStatus::Confirming->value])
