@@ -41,9 +41,15 @@
 
 | Spec event | Real mechanism |
 |---|---|
-| `DepositDetected` | status transition `onchain_txs`/`deposits` → `detected` + `ActivityLogger` (no Event object) |
+| `DepositDetected` | **`DepositDetected` event** — dispatched from `Scan*DepositsAction` on new deposit |
 | `DepositConfirmed` | **`DepositCredited` event** (`CreditDepositAction`), dispatched to `HandleDepositCredited` |
-| `SweepRequested` / `SweepBroadcasted` / `SweepConfirmed` / `SweepFailed` | `sweeps.status` machine (`pending`→`broadcast`→`swept`/`failed`) + `ActivityLogger` (`sweep.broadcast`, `sweep.failed`); **no Event objects** |
+| `SweepRequested` | **`SweepRequested` event** — dispatched from `SweepDepositJob` |
+| `SweepBroadcasted` | **`SweepBroadcasted` event** — dispatched from `Tron/EvmSweepAction` after broadcast |
+| `SweepConfirmed` | **`SweepConfirmed` event** — dispatched from `Settle*SweepsAction` after ledger post |
+| `SweepFailed` | **`SweepFailed` event** — dispatched from the sweep `fail()` path and on settle-time revert |
+
+All six lifecycle events are now real dispatched Event objects (the status-machine transitions +
+`ActivityLogger` audit trail remain as before — the events are additive hooks on top).
 
 ---
 
@@ -250,22 +256,19 @@ transitions + `ActivityLogger`, not dispatched Event objects.
 
 ---
 
-## Genuine deltas vs. the literal spec (the only things not already present)
+## Deltas vs. the literal spec — status
 
-These are **optional, additive** — nothing here is a bug, and none of it changes the tested logic:
-
-1. **Named event objects.** Spec lists `DepositDetected`, `SweepRequested`, `SweepBroadcasted`,
-   `SweepConfirmed`, `SweepFailed`. Today only `DepositCredited` is a real Event; the rest are
-   status transitions + activity logs. Adding the thin event classes (dispatched from the
-   existing transition points, no logic change) would satisfy the spec literally and give
-   listeners/webhooks a clean hook. **Additive, low-risk.**
-2. **Auto-sweep on confirmation.** Spec says "immediately queue a sweep after confirmation."
-   Today the sweep is a separate flag-gated command (`poisapay:sweep`) run on schedule/manually,
-   deliberately decoupled so custody consolidation stays operator-controlled. Wiring
-   `CreditDepositAction` to dispatch a `SweepRequested`/queue a sweep job (still behind
-   `onchain_sweep_enabled`) would match the spec — a small, contained change.
-3. **Table naming.** Purely cosmetic; renaming tested tables (`onchain_txs`→`blockchain_transactions`
-   etc.) would be churn with migration risk and **is not recommended**.
+1. **Named event objects — ✅ IMPLEMENTED** (`f12ce32`). `DepositDetected`, `SweepRequested`,
+   `SweepBroadcasted`, `SweepConfirmed`, `SweepFailed` are now dispatched from the existing
+   transition points (additive, no logic change). Tests: existing deposit/sweep suites pass.
+2. **Auto-sweep on confirmation — ✅ IMPLEMENTED, opt-in** (`7f05dc0`). New default-OFF flag
+   `auto_sweep_on_confirm`: `CreditDepositAction` queues `SweepDepositJob` right after credit
+   (broadcast still gated by `onchain_sweep_enabled`); settlement runs on the custody tick via
+   `Settle*SweepsAction`. Default OFF preserves the operator-controlled, batched sweep design;
+   flip it on for RedotPay-style immediate consolidation. Tests: `AutoSweepOnConfirmTest`.
+3. **Table naming — not changed (by design).** Renaming tested tables
+   (`onchain_txs`→`blockchain_transactions` etc.) is cosmetic churn with migration risk and is
+   **not recommended**.
 
 The monitoring gaps from the readiness report (no proactive alert on failed sweeps / refill
-reverts) also apply here and remain the higher-value hardening than any renaming.
+reverts) remain the higher-value hardening than any renaming.
