@@ -19,15 +19,18 @@ beforeEach(function () {
 
 it('models USDT as one coin with a network per chain', function () {
     $usdt = Currency::where('symbol', 'USDT')->first();
+    $networks = $usdt?->assets()->count();
 
+    // Derived from the seeded registry: USDT is one stablecoin deployed on
+    // several chains (count grows as chains are added — don't hardcode it).
     expect($usdt)->not->toBeNull()
-        ->and($usdt->assets()->count())->toBe(3)                 // Tron, Ethereum, BSC
+        ->and($networks)->toBeGreaterThan(1)
         ->and($usdt->is_stablecoin)->toBeTrue();
 
     // Every network shares the coin's identity but has its own chain + contract.
     $usdt->assets->each(fn (Asset $a) => expect($a->symbol)->toBe('USDT'));
-    expect($usdt->assets->pluck('chain_id')->unique()->count())->toBe(3)
-        ->and($usdt->assets->pluck('contract_address')->unique()->count())->toBe(3);
+    expect($usdt->assets->pluck('chain_id')->unique()->count())->toBe($networks)
+        ->and($usdt->assets->pluck('contract_address')->unique()->count())->toBe($networks);
 });
 
 it('links every asset to a currency (no orphans)', function () {
@@ -39,10 +42,12 @@ it('renders the admin catalogue grouped by coin', function () {
     $admin = Admin::create(['name' => 'Op', 'email' => 'coins@poisapay.test', 'password' => bcrypt('x'), 'is_active' => true]);
     $admin->syncRoles(['super-admin']);
 
+    $networks = Currency::where('symbol', 'USDT')->first()->assets()->count();
+
     actingAs($admin, 'admin')->get(route('admin.assets'))
         ->assertOk()
         ->assertSee('USDT')
-        ->assertSee('3 networks');
+        ->assertSee("{$networks} networks");
 });
 
 it('renders the swap page showing each coin once', function () {
@@ -59,7 +64,7 @@ it('pools a user balance across a coin\'s networks (RedotPay model)', function (
     $user = User::factory()->create();
 
     $usdt = Asset::where('symbol', 'USDT')->orderBy('id')->get();
-    expect($usdt->count())->toBe(3);
+    expect($usdt->count())->toBeGreaterThanOrEqual(2);   // pooled across however many chains are seeded
 
     // Credit the user on two different chains.
     creditUser($user, $usdt[0], '5000000'); // 5 USDT on chain A
