@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Domain\Reconciliation\CustodyReconciler;
+use App\Domain\Reconciliation\HotColdWatermarkMonitor;
 use App\Domain\Reconciliation\ReconciliationService;
 use Illuminate\Console\Command;
 
@@ -14,7 +15,7 @@ class ReconcileCommand extends Command
 
     protected $description = 'Reconcile custody: ledger solvency (treasury ≥ liability) + on-chain hot backing vs treasury:hot; alert on drift';
 
-    public function handle(ReconciliationService $solvency, CustodyReconciler $onchain): int
+    public function handle(ReconciliationService $solvency, CustodyReconciler $onchain, HotColdWatermarkMonitor $watermarks): int
     {
         $this->info('— Ledger solvency (treasury ≥ liability) —');
         foreach ($solvency->runAll() as $run) {
@@ -41,6 +42,12 @@ class ReconcileCommand extends Command
         }
 
         $this->line("On-chain backing: {$breaches} breach(es).");
+
+        $this->info('— Hot-wallet watermarks —');
+        foreach ($watermarks->evaluate() as $row) {
+            $line = "  {$row['asset']}: hot={$row['hot']} (high={$row['high']} low={$row['low']})";
+            $row['state'] === 'ok' ? $this->info("{$line}  ok") : $this->warn("{$line}  ⚠ {$row['state']}");
+        }
 
         return self::SUCCESS;
     }
