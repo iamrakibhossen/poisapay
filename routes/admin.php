@@ -44,7 +44,6 @@ use App\Http\Controllers\Admin\SimulationController;
 use App\Http\Controllers\Admin\SupportController;
 use App\Http\Controllers\Admin\SystemHealthController;
 use App\Http\Controllers\Admin\LogViewerController;
-use App\Http\Controllers\Admin\WebhookEndpointsController;
 use App\Http\Controllers\Admin\WebhookLogsController;
 use App\Http\Controllers\Admin\TransfersController;
 use App\Http\Controllers\Admin\TreasuryController;
@@ -89,11 +88,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/logs/download', 'download')->name('logs.download');
             Route::post('/logs/clear', 'clear')->name('logs.clear');
         });
-        Route::controller(WebhookEndpointsController::class)->group(function () {
-            Route::get('/webhooks', 'index')->name('webhooks');
-            Route::post('/webhooks/{id}/toggle', 'toggle')->name('webhooks.toggle');
-            Route::post('/webhook-deliveries/{id}/retry', 'retry')->name('webhooks.retry');
-        });
+        // NOTE: outbound-webhook monitor (admin.webhooks) is hidden until merchants can
+        // register endpoints — the WebhookService backend stays wired.
         Route::controller(WebhookLogsController::class)->group(function () {
             Route::get('/webhook-logs', 'index')->name('webhook-logs');
             Route::get('/webhook-logs/{id}', 'show')->name('webhook-logs.show');

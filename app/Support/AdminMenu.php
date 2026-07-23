@@ -52,17 +52,21 @@ class AdminMenu
             ['heading' => __('Cards'), 'items' => [
                 ['label' => __('Issued Cards'), 'icon' => 'heroicon-o-credit-card', 'route' => 'admin.cards', 'perm' => 'view-cards'],
                 ['label' => __('Disputes'), 'icon' => 'heroicon-o-scale', 'route' => 'admin.card-disputes', 'perm' => 'manage-card-disputes'],
-                ['label' => __('Card Providers'), 'icon' => 'heroicon-o-rectangle-stack', 'route' => 'admin.card-providers', 'perm' => 'manage-assets'],
-                ['label' => __('Provider Health'), 'icon' => 'heroicon-o-heart', 'route' => 'admin.card-health', 'perm' => 'view-cards'],
-                ['label' => __('Webhooks'), 'icon' => 'heroicon-o-inbox-arrow-down', 'route' => 'admin.card-webhooks', 'perm' => 'view-cards'],
-                ['label' => __('Provider Logs'), 'icon' => 'heroicon-o-clipboard-document-list', 'route' => 'admin.card-logs', 'perm' => 'view-cards'],
+                ['label' => __('Providers'), 'icon' => 'heroicon-o-rectangle-stack', 'children' => [
+                    ['label' => __('Card Providers'), 'route' => 'admin.card-providers', 'perm' => 'manage-assets'],
+                    ['label' => __('Provider Health'), 'route' => 'admin.card-health', 'perm' => 'view-cards'],
+                    ['label' => __('Webhooks'), 'route' => 'admin.card-webhooks', 'perm' => 'view-cards'],
+                    ['label' => __('Provider Logs'), 'route' => 'admin.card-logs', 'perm' => 'view-cards'],
+                ]],
             ]],
 
             ['heading' => __('Commerce'), 'items' => [
                 ['label' => __('Merchants'), 'icon' => 'heroicon-o-building-storefront', 'route' => 'admin.merchants', 'perm' => 'view-merchants'],
-                ['label' => __('P2P Orders'), 'icon' => 'heroicon-o-user-group', 'route' => 'admin.p2p', 'perm' => 'view-p2p'],
-                ['label' => __('P2P Disputes'), 'icon' => 'heroicon-o-scale', 'route' => 'admin.p2p-disputes', 'perm' => 'view-p2p'],
-                ['label' => __('P2P Methods'), 'icon' => 'heroicon-o-credit-card', 'route' => 'admin.p2p-payment-methods', 'perm' => 'manage-p2p'],
+                ['label' => __('P2P'), 'icon' => 'heroicon-o-user-group', 'children' => [
+                    ['label' => __('Orders'), 'route' => 'admin.p2p', 'perm' => 'view-p2p'],
+                    ['label' => __('Disputes'), 'route' => 'admin.p2p-disputes', 'perm' => 'view-p2p'],
+                    ['label' => __('Payment Methods'), 'route' => 'admin.p2p-payment-methods', 'perm' => 'manage-p2p'],
+                ]],
                 ['label' => __('Rewards'), 'icon' => 'heroicon-o-gift', 'route' => 'admin.rewards', 'perm' => 'view-rewards'],
                 ['label' => __('Support'), 'icon' => 'heroicon-o-lifebuoy', 'route' => 'admin.support', 'perm' => 'view-support'],
             ]],
@@ -90,7 +94,6 @@ class AdminMenu
             ['heading' => __('Monitoring'), 'items' => [
                 ['label' => __('Server Health'), 'icon' => 'heroicon-o-heart', 'route' => 'admin.system-health', 'perm' => 'view-system-health'],
                 ['label' => __('Logs'), 'icon' => 'heroicon-o-document-magnifying-glass', 'route' => 'admin.logs', 'perm' => 'view-system-health'],
-                ['label' => __('Webhooks'), 'icon' => 'heroicon-o-bolt', 'route' => 'admin.webhooks', 'perm' => 'view-system-health'],
                 ['label' => __('Webhook Logs'), 'icon' => 'heroicon-o-inbox-stack', 'route' => 'admin.webhook-logs', 'perm' => 'view-system-health'],
                 ['label' => __('Queue (Horizon)'), 'icon' => 'heroicon-o-queue-list', 'url' => url('/horizon'), 'target' => '_blank', 'perm' => 'view-system-health'],
             ]],

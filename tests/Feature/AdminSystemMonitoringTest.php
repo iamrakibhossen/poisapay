@@ -27,10 +27,6 @@ it('renders and parses a populated log file', function () {
         ->assertOk()->assertSee('Something broke')->assertSee('error'); // level rendered lowercase, CSS-uppercased
 });
 
-it('renders the webhooks page', function () {
-    actingAs($this->op, 'admin')->get(route('admin.webhooks'))->assertOk()->assertSee('Outbound Webhooks');
-});
-
 it('blocks a non-operator from system monitoring', function () {
     $plain = Admin::create(['name' => 'X', 'email' => 'x@poisapay.test', 'password' => bcrypt('password'), 'is_active' => true]);
     actingAs($plain, 'admin')->get(route('admin.system-health'))->assertForbidden();
