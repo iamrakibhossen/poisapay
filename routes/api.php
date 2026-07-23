@@ -22,19 +22,19 @@ Route::controller(OpenApiController::class)->group(function () {
 });
 
 /*
- * Card provider inbound (provider-agnostic, unauthenticated — verified per provider).
- * Webhooks are deduped + queued; JIT funding is answered synchronously by the ledger.
+ * Inbound webhooks (provider-agnostic, unauthenticated — verified per provider). The
+ * `webhook.log` middleware records every request + response into webhook_logs for
+ * audit/debug/replay. Card webhooks are deduped + queued; JIT funding is answered
+ * synchronously by the ledger; payout webhooks apply the terminal outcome idempotently.
  */
-Route::controller(CardInboundController::class)->group(function () {
-    Route::post('card/webhooks/{provider}', 'webhook')->middleware('throttle:240,1');
-    Route::post('card/jit/{provider}', 'jit')->middleware('throttle:600,1');
-});
+Route::middleware('webhook.log')->group(function () {
+    Route::controller(CardInboundController::class)->group(function () {
+        Route::post('card/webhooks/{provider}', 'webhook')->middleware('throttle:240,1');
+        Route::post('card/jit/{provider}', 'jit')->middleware('throttle:600,1');
+    });
 
-/*
- * Fiat payout (off-ramp) inbound webhook (provider-agnostic, verified per PSP).
- * Correlated by provider_ref; applies the terminal outcome idempotently.
- */
-Route::post('ramp/payout/webhook/{driver}', [PayoutWebhookController::class, 'handle'])->middleware('throttle:240,1');
+    Route::post('ramp/payout/webhook/{driver}', [PayoutWebhookController::class, 'handle'])->middleware('throttle:240,1');
+});
 
 /*
  * PoisaPay REST API v1 (TDD §8). Bearer token (Sanctum) for users; mutating

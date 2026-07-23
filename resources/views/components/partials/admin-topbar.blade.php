@@ -7,9 +7,13 @@
             <x-heroicon-o-bars-3-bottom-left class="h-6 w-6" />
         </button>
 
-        <h1 class="text-lg font-medium">{{ $title }}</h1>
+        <h1 class="shrink-0 text-lg font-medium">{{ $title }}</h1>
 
-        <div class="ml-auto flex items-center justify-center gap-4">
+        <div class="ml-auto flex shrink-0 items-center justify-center gap-4">
+            <div class="hidden w-56 md:block lg:w-64">
+                <x-partials.admin-search />
+            </div>
+
             {{-- Notifications (real DB notifications) --}}
             @php
                 $admin = auth('admin')->user();

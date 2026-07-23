@@ -42,6 +42,10 @@ use App\Http\Controllers\Admin\SecurityController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\SimulationController;
 use App\Http\Controllers\Admin\SupportController;
+use App\Http\Controllers\Admin\SystemHealthController;
+use App\Http\Controllers\Admin\LogViewerController;
+use App\Http\Controllers\Admin\WebhookEndpointsController;
+use App\Http\Controllers\Admin\WebhookLogsController;
 use App\Http\Controllers\Admin\TransfersController;
 use App\Http\Controllers\Admin\TreasuryController;
 use App\Http\Controllers\Admin\UsersController;
@@ -77,6 +81,25 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs');
         Route::get('/transfers', [TransfersController::class, 'index'])->name('transfers');
+
+        // ── System monitoring: health, logs, webhooks (Horizon is served at /horizon) ──
+        Route::get('/system-health', [SystemHealthController::class, 'index'])->name('system-health');
+        Route::controller(LogViewerController::class)->group(function () {
+            Route::get('/logs', 'index')->name('logs');
+            Route::get('/logs/download', 'download')->name('logs.download');
+            Route::post('/logs/clear', 'clear')->name('logs.clear');
+        });
+        Route::controller(WebhookEndpointsController::class)->group(function () {
+            Route::get('/webhooks', 'index')->name('webhooks');
+            Route::post('/webhooks/{id}/toggle', 'toggle')->name('webhooks.toggle');
+            Route::post('/webhook-deliveries/{id}/retry', 'retry')->name('webhooks.retry');
+        });
+        Route::controller(WebhookLogsController::class)->group(function () {
+            Route::get('/webhook-logs', 'index')->name('webhook-logs');
+            Route::get('/webhook-logs/{id}', 'show')->name('webhook-logs.show');
+            Route::post('/webhook-logs/{id}/resolve', 'resolve')->name('webhook-logs.resolve');
+            Route::delete('/webhook-logs/{id}', 'destroy')->name('webhook-logs.delete');
+        });
 
         // ── Treasury / reports / wallets ──
         Route::controller(TreasuryController::class)->group(function () {

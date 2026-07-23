@@ -34,11 +34,32 @@ class AdminNotificationController extends Controller
         'general' => ['label' => 'System', 'icon' => 'bell', 'tint' => 'bg-neutral-100 text-neutral-500'],
     ];
 
+    /** Postgres expression that pulls the stored category out of the JSON `data` text column. */
+    private const CATEGORY_EXPR = "coalesce(nullif(data::jsonb->>'category', ''), 'general')";
+
     public function index(Request $request): View
     {
         $admin = auth('admin')->user();
 
-        $items = $admin->notifications()->latest()->limit(150)->get()->map(function ($note) {
+        // Chip counts are computed across the operator's whole history (not the
+        // current page) so the badges stay accurate as you page through.
+        $total = $admin->notifications()->count();
+        $unreadCount = $admin->unreadNotifications()->count();
+        $categoryCounts = $this->categoryCounts($admin);
+
+        // Filter: all | unread | <category>. Anything unknown falls back to all.
+        $filter = (string) $request->query('filter', 'all');
+
+        $query = $admin->notifications();
+        if ($filter === 'unread') {
+            $query->whereNull('read_at');
+        } elseif (isset(self::CATEGORY_META[$filter])) {
+            $this->scopeToCategory($query, $filter);
+        }
+
+        $page = $query->paginate(25)->withQueryString();
+
+        $items = collect($page->items())->map(function ($note) {
             $data = (array) $note->data;
             $category = $data['category'] ?? 'general';
 
@@ -54,28 +75,50 @@ class AdminNotificationController extends Controller
             ];
         });
 
-        $unreadCount = $items->where('is_unread', true)->count();
-        $categoryCounts = $items->countBy('category');
-
-        // Filter: all | unread | <category>. Anything unknown falls back to all.
-        $filter = (string) $request->query('filter', 'all');
-        $visible = match (true) {
-            $filter === 'unread' => $items->where('is_unread', true),
-            isset(self::CATEGORY_META[$filter]) => $items->where('category', $filter),
-            default => $items,
-        };
-
         // Newest-first feed grouped into human date buckets (groupBy keeps order).
-        $groups = $visible->groupBy(fn ($n) => $this->bucketFor($n['at']));
+        $groups = $items->groupBy(fn ($n) => $this->bucketFor($n['at']));
 
         return view('admin.notifications', [
             'groups' => $groups,
-            'total' => $items->count(),
+            'paginator' => $page,
+            'total' => $total,
             'unreadCount' => $unreadCount,
             'categoryCounts' => $categoryCounts,
             'filter' => $filter,
             'categoryMeta' => self::CATEGORY_META,
         ]);
+    }
+
+    /** Per-category totals across all of the admin's notifications, folding unknown categories into `general`. */
+    private function categoryCounts($admin): \Illuminate\Support\Collection
+    {
+        $counts = collect();
+
+        $admin->notifications()
+            ->reorder() // drop the relation's default `order by created_at` — illegal alongside group by
+            ->selectRaw(self::CATEGORY_EXPR.' as category, count(*) as aggregate')
+            ->groupBy('category')
+            ->pluck('aggregate', 'category')
+            ->each(function ($aggregate, $category) use ($counts) {
+                $key = isset(self::CATEGORY_META[$category]) ? $category : 'general';
+                $counts[$key] = ($counts[$key] ?? 0) + (int) $aggregate;
+            });
+
+        return $counts;
+    }
+
+    /** Constrain a notifications query to one display category (folding unknown values into `general`). */
+    private function scopeToCategory($query, string $filter): void
+    {
+        if ($filter === 'general') {
+            // "general" is the catch-all: explicit general, empty, or any category we don't recognise.
+            $known = array_values(array_diff(array_keys(self::CATEGORY_META), ['general']));
+            $query->whereRaw(self::CATEGORY_EXPR.' not in ('.implode(',', array_fill(0, count($known), '?')).')', $known);
+
+            return;
+        }
+
+        $query->whereRaw(self::CATEGORY_EXPR.' = ?', [$filter]);
     }
 
     /** Bucket a timestamp into the label its activity group is filed under. */

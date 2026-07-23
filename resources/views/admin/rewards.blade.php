@@ -212,6 +212,8 @@
                         @csrf
                         <input type="hidden" name="_form" value="campaign" />
                         <input type="hidden" name="id" :value="campaign.editingId" />
+                        {{-- The key <select> is disabled when editing, so the browser won't POST it; carry the locked key here instead. --}}
+                        <input type="hidden" name="key" :value="campaign.form.key" x-bind:disabled="!campaign.editingId" />
                         <div class="grid gap-4 sm:grid-cols-2">
                             <x-ui.select :label="__('Key')" name="key" x-model="campaign.form.key" x-bind:disabled="!!campaign.editingId" :error="$errors->first('key')">
                                 <option value="">{{ __('Select…') }}</option>

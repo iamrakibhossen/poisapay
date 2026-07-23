@@ -24,4 +24,5 @@ Schedule::command('p2p:process-timeouts')->everyMinute()->withoutOverlapping();
 // Ops (Wave 7): nightly DB backup + weekly telemetry retention + audit-chain heartbeat.
 Schedule::command('poisapay:backup')->dailyAt('02:30')->withoutOverlapping();
 Schedule::command('poisapay:retention')->weekly();
+Schedule::command('poisapay:webhooks-clean')->daily()->runInBackground();
 Schedule::command('poisapay:audit-verify')->dailyAt('03:00');

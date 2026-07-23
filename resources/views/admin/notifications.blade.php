@@ -100,6 +100,10 @@
                     </div>
                 </div>
             @endforeach
+
+            @if ($paginator->hasPages())
+                <div class="pt-2">{{ $paginator->links() }}</div>
+            @endif
         @endif
     </div>
 </x-layouts.admin>
