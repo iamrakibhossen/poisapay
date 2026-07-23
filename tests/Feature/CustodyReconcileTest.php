@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Reconciliation\CustodyReconciler;
+use App\Domain\Reconciliation\ReconciliationService;
 use App\Models\Chain;
 use Illuminate\Support\Facades\Http;
 
@@ -48,4 +49,12 @@ it('is a no-op under simulated custody', function () {
     config(['poisapay.custody_simulated' => true]);
 
     expect(app(CustodyReconciler::class)->reconcile())->toBe([]);
+});
+
+it('populates a reconciliation run onchain_controlled from the chain probe', function () {
+    fakeTronBalance('3000000'); // 3 USDT held on-chain by the hot wallet
+
+    $run = app(ReconciliationService::class)->runForAsset($this->asset->fresh());
+
+    expect($run->onchain_controlled)->toBe('3000000');
 });

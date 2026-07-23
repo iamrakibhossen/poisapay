@@ -5,28 +5,33 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Domain\Reconciliation\CustodyReconciler;
+use App\Domain\Reconciliation\ReconciliationService;
 use Illuminate\Console\Command;
 
 class ReconcileCommand extends Command
 {
     protected $signature = 'poisapay:reconcile';
 
-    protected $description = 'Reconcile on-chain hot-wallet balances against the treasury:hot ledger; alert operators on drift';
+    protected $description = 'Reconcile custody: ledger solvency (treasury ≥ liability) + on-chain hot backing vs treasury:hot; alert on drift';
 
-    public function handle(CustodyReconciler $reconciler): int
+    public function handle(ReconciliationService $solvency, CustodyReconciler $onchain): int
     {
-        $report = $reconciler->reconcile();
-        $breaches = 0;
+        $this->info('— Ledger solvency (treasury ≥ liability) —');
+        foreach ($solvency->runAll() as $run) {
+            $status = $run->is_solvent ? 'ok' : 'INSOLVENT';
+            $this->line("  asset#{$run->asset_id}: treasury={$run->ledger_treasury} liability={$run->ledger_liability} onchain={$run->onchain_controlled}  {$status}");
+        }
 
-        foreach ($report as $row) {
+        $this->info('— On-chain hot backing (chain vs treasury:hot) —');
+        $breaches = 0;
+        foreach ($onchain->reconcile() as $row) {
             if ($row['error'] !== null) {
-                $this->warn("{$row['chain']}/{$row['asset']}: ERROR {$row['error']}");
+                $this->warn("  {$row['chain']}/{$row['asset']}: {$row['error']}");
 
                 continue;
             }
 
-            $line = "{$row['chain']}/{$row['asset']}: onchain={$row['onchain']} ledger={$row['ledger']} drift={$row['drift']}";
-
+            $line = "  {$row['chain']}/{$row['asset']}: onchain={$row['onchain']} ledger={$row['ledger']} drift={$row['drift']}";
             if ($row['breached']) {
                 $this->error($line.'  ⚠ DRIFT');
                 $breaches++;
@@ -35,7 +40,7 @@ class ReconcileCommand extends Command
             }
         }
 
-        $this->line(count($report).' account(s) checked, '.$breaches.' breach(es).');
+        $this->line("On-chain backing: {$breaches} breach(es).");
 
         return self::SUCCESS;
     }

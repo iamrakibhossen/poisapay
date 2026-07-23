@@ -23,6 +23,8 @@ use Illuminate\Support\Facades\Log;
  */
 class ReconciliationService
 {
+    public function __construct(private readonly CustodyReconciler $onchain) {}
+
     public function runForAsset(Asset $asset): ReconciliationRun
     {
         // User balances are pooled per coin while treasury reserves live per
@@ -38,7 +40,7 @@ class ReconciliationService
 
         $run = ReconciliationRun::create([
             'asset_id' => $asset->id,
-            'onchain_controlled' => '0', // populated by the monitor in production
+            'onchain_controlled' => $this->onchainControlled($assetIds),
             'ledger_treasury' => (string) $treasury,
             'ledger_liability' => (string) $liability,
             'drift' => (string) $drift,
@@ -91,6 +93,28 @@ class ReconciliationService
             ->map(fn ($group) => $this->runForAsset($group->sortBy('id')->first()))
             ->values()
             ->all();
+    }
+
+    /**
+     * On-chain controlled total (base units) for a coin: Σ hot-wallet balance across
+     * each of the coin's networks, from the {@see CustodyReconciler} probe. Assets whose
+     * balance can't be read (simulated custody, RPC error) contribute nothing, so this
+     * stays a best-effort figure that never blocks the ledger-internal solvency check.
+     *
+     * @param  array<int, int>  $assetIds
+     */
+    private function onchainControlled(array $assetIds): string
+    {
+        $sum = BigInteger::zero();
+
+        foreach (Asset::whereIn('id', $assetIds)->get() as $asset) {
+            $balance = $this->onchain->hotBalanceBase($asset);
+            if ($balance !== null) {
+                $sum = $sum->plus($balance);
+            }
+        }
+
+        return (string) $sum;
     }
 
     /** All active asset ids sharing this asset's coin (its settlement networks). */
