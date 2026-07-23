@@ -10,6 +10,7 @@ use App\Domain\Chain\Evm\HotWalletManager;
 use App\Domain\Chain\Evm\ScanEvmDepositsAction;
 use App\Domain\Withdrawal\Evm\AdvanceEvmWithdrawalsAction;
 use App\Domain\Withdrawal\Evm\EvmWithdrawalSigner;
+use App\Domain\Withdrawal\Evm\RebroadcastStuckWithdrawalsAction;
 use App\Enums\ChainType;
 use App\Enums\WithdrawalStatus;
 use App\Models\Chain;
@@ -44,6 +45,7 @@ class EvmCustodyTickJob implements ShouldQueue
         EvmWithdrawalSigner $signer,
         AdvanceEvmWithdrawalsAction $advanceWithdrawals,
         HotWalletManager $hotWallet,
+        RebroadcastStuckWithdrawalsAction $rbf,
     ): void {
         if (config('poisapay.custody_simulated')) {
             return; // live-custody only
@@ -64,6 +66,10 @@ class EvmCustodyTickJob implements ShouldQueue
 
             $advanceWithdrawals->execute($chainType);
         }
+
+        // Replace-By-Fee + dead-letter for stuck broadcasts (no-op unless
+        // withdrawal_batching_enabled). Runs once across all chains.
+        $rbf->execute();
     }
 
     private function syncHealth(BlockchainProvider $provider, Chain $chain, ChainType $chainType): void
