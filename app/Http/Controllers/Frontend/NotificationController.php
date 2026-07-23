@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\NotificationPreference;
+use Carbon\CarbonInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -35,7 +36,20 @@ class NotificationController extends Controller
     {
         $user = $request->user();
 
-        $items = $user->notifications()->latest()->limit(100)->get()->map(function ($note) {
+        // Filter: all | unread | <category>. Anything unknown falls back to all.
+        $filter = (string) $request->query('filter', 'all');
+
+        $query = $user->notifications()->latest();
+        if ($filter === 'unread') {
+            $query->whereNull('read_at');
+        } elseif (isset(self::CATEGORY_META[$filter])) {
+            // `data` is a text column, so cast to jsonb to read the category key.
+            $query->whereRaw("(data::jsonb) ->> 'category' = ?", [$filter]);
+        }
+
+        $paginator = $query->paginate(20)->withQueryString();
+
+        $items = $paginator->getCollection()->map(function ($note) {
             $data = (array) $note->data;
             $category = $data['category'] ?? 'product';
 
@@ -51,24 +65,23 @@ class NotificationController extends Controller
             ];
         });
 
-        $unreadCount = $items->where('is_unread', true)->count();
-        $categoryCounts = $items->countBy('category');
+        // Full-set counts for the filter chips (independent of the current page/filter).
+        $total = $user->notifications()->count();
+        $unreadCount = $user->notifications()->whereNull('read_at')->count();
+        $categoryCounts = $user->notifications()
+            ->reorder()   // drop the relation's default created_at ordering (invalid with GROUP BY)
+            ->selectRaw("(data::jsonb) ->> 'category' as cat, count(*) as c")
+            ->groupBy('cat')
+            ->pluck('c', 'cat');
 
-        // Filter: all | unread | <category>. Anything unknown falls back to all.
-        $filter = (string) $request->query('filter', 'all');
-        $visible = match (true) {
-            $filter === 'unread' => $items->where('is_unread', true),
-            isset(self::CATEGORY_META[$filter]) => $items->where('category', $filter),
-            default => $items,
-        };
-
-        // Group the (already newest-first) feed into human date buckets. groupBy
+        // Group the current page (already newest-first) into human date buckets. groupBy
         // preserves insertion order, so the buckets stay chronological.
-        $groups = $visible->groupBy(fn ($n) => $this->bucketFor($n['at']));
+        $groups = $items->groupBy(fn ($n) => $this->bucketFor($n['at']));
 
         return view('frontend.notifications', [
             'groups' => $groups,
-            'total' => $items->count(),
+            'paginator' => $paginator,
+            'total' => $total,
             'unreadCount' => $unreadCount,
             'categoryCounts' => $categoryCounts,
             'filter' => $filter,
@@ -87,7 +100,7 @@ class NotificationController extends Controller
     }
 
     /** Bucket a timestamp into the label its activity group is filed under. */
-    private function bucketFor(?\Illuminate\Support\Carbon $at): string
+    private function bucketFor(?CarbonInterface $at): string
     {
         return match (true) {
             $at === null => 'Earlier',

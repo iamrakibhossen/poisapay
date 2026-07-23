@@ -34,10 +34,16 @@ class MerchantController extends Controller
     {
         $user = $request->user();
 
+        // Balances are pooled per coin (USDT/USDC etc. exist as one Asset row per
+        // network), so the merchant only picks a coin — collapse to one canonical
+        // (lowest-id) row per symbol to avoid listing USDT/USDC once per chain.
         $assets = Asset::where('is_active', true)
             ->where('kind', 'crypto')
-            ->orderBy('sort')->orderBy('symbol')
-            ->get();
+            ->orderBy('id')
+            ->get()
+            ->unique('symbol')
+            ->sortBy(fn (Asset $a) => [$a->sort, $a->symbol])
+            ->values();
 
         $allowRefunds = (bool) getSetting('merchant_allow_refunds', true);
 
@@ -182,7 +188,7 @@ class MerchantController extends Controller
             : 'INV-'.Str::upper(Str::random(10));
 
         try {
-            $invoices->execute(
+            $invoice = $invoices->execute(
                 merchant: $request->user(),
                 asset: $asset,
                 amount: $money,
@@ -191,6 +197,14 @@ class MerchantController extends Controller
             );
         } catch (\Throwable $e) {
             throw ValidationException::withMessages(['amount' => $e->getMessage()]);
+        }
+
+        // firstOrCreate is idempotent by (merchant, reference): if it returned an existing
+        // invoice, the reference is a duplicate — surface that instead of a false "created".
+        if (! $invoice->wasRecentlyCreated) {
+            throw ValidationException::withMessages([
+                'reference' => 'You already have an invoice with reference “'.$reference.'”. Use a different reference.',
+            ]);
         }
 
         return redirect()->route('merchant')->with('success', 'Invoice '.$reference.' created for '.$money->format().'.');

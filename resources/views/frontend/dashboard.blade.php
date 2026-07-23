@@ -47,86 +47,130 @@
         @endif
 
         <div class="grid gap-6 lg:grid-cols-3">
-            {{-- Balance hero --}}
-            <div class="pp-card p-6 lg:col-span-2" x-data="{ hidden: $persist(false).as('pp_hide_balance') }">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <p class="text-sm font-medium text-neutral-500">{{ __('Total balance') }} · {{ $baseCurrency }}</p>
-                        <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-600" title="{{ __('Values update live') }}">
-                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 motion-safe:animate-pulse"></span> {{ __('Live') }}
-                        </span>
-                    </div>
-                    <button type="button" x-on:click="hidden = !hidden" class="rounded-full p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600" aria-label="{{ __('Toggle balance visibility') }}">
-                        <x-heroicon-o-eye x-show="!hidden" class="h-5 w-5" />
-                        <x-heroicon-o-eye-slash x-show="hidden" class="h-5 w-5" x-cloak />
-                    </button>
-                </div>
-                <p class="tabular mt-2 text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl">
-                    <span x-show="!hidden" class="js-pv">{{ $portfolioValue }}</span>
-                    <span x-show="hidden" x-cloak>••••••</span>
-                </p>
-                <div class="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-neutral-500">
-                    <span>{{ $assetCount }} {{ $assetCount === 1 ? __('asset') : __('assets') }}</span>
-                    @if ($hasLocked)
-                        <span class="inline-flex items-center gap-1">
-                            <x-heroicon-o-lock-closed class="h-3.5 w-3.5" />
-                            <span x-show="!hidden" class="js-lv">{{ $lockedValue }}</span><span x-show="hidden" x-cloak>••••</span> {{ __('locked') }}
-                        </span>
-                    @endif
-                    @if ($pending > 0)
-                        <span class="inline-flex items-center gap-1">
-                            <x-heroicon-o-clock class="h-3.5 w-3.5" />
-                            {{ $pending }} {{ __('pending') }}
-                        </span>
-                    @endif
-                </div>
+            {{-- Balance hero (wallet-style) --}}
+            <div x-data="{ hidden: $persist(false).as('pp_hide_balance') }"
+                class="pp-card relative overflow-hidden border-brand-100 bg-gradient-to-br from-white to-brand-50 p-5 lg:col-span-2">
+                <div class="absolute -right-8 -top-10 h-40 w-40 rounded-full bg-brand-300/20 blur-3xl"></div>
+                <div class="absolute -bottom-12 -left-6 h-32 w-32 rounded-full bg-brand-200/25 blur-2xl"></div>
 
-                {{-- Quick actions --}}
-                <div class="mt-6 grid grid-cols-4 gap-2">
-                    <a href="{{ route('deposit.index') }}" class="group flex flex-col items-center gap-1.5 rounded-xl bg-neutral-100 py-3 text-xs font-semibold text-neutral-800 transition hover:bg-brand-50 hover:text-neutral-900">
-                        <x-heroicon-o-arrow-down-tray class="h-6 w-6 text-brand-600 transition group-hover:text-brand-700" />
-                        {{ __('Deposit') }}
-                    </a>
-                    <a href="{{ route('send.index') }}" class="group flex flex-col items-center gap-1.5 rounded-xl bg-neutral-100 py-3 text-xs font-semibold text-neutral-800 transition hover:bg-brand-50 hover:text-neutral-900">
-                        <x-heroicon-o-paper-airplane class="h-6 w-6 text-brand-600 transition group-hover:text-brand-700" />
-                        {{ __('Send') }}
-                    </a>
-                    <a href="{{ route('exchange.index') }}" class="group flex flex-col items-center gap-1.5 rounded-xl bg-neutral-100 py-3 text-xs font-semibold text-neutral-800 transition hover:bg-brand-50 hover:text-neutral-900">
-                        <x-heroicon-o-arrows-right-left class="h-6 w-6 text-brand-600 transition group-hover:text-brand-700" />
-                        {{ __('Swap') }}
-                    </a>
-                    <a href="{{ route('wallet') }}" class="group flex flex-col items-center gap-1.5 rounded-xl bg-neutral-100 py-3 text-xs font-semibold text-neutral-800 transition hover:bg-brand-50 hover:text-neutral-900">
-                        <x-heroicon-o-wallet class="h-6 w-6 text-brand-600 transition group-hover:text-brand-700" />
-                        {{ __('Wallet') }}
-                    </a>
+                <div class="relative">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <p class="text-xs font-medium uppercase tracking-wide text-brand-700">{{ __('Total balance') }} · {{ $baseCurrency }}</p>
+                                <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-600" title="{{ __('Values update live') }}">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 motion-safe:animate-pulse"></span> {{ __('Live') }}
+                                </span>
+                            </div>
+                            <div class="mt-1">
+                                <p class="tabular text-3xl font-bold tracking-tight text-neutral-900" x-show="!hidden"><span class="js-pv">{{ $portfolioValue }}</span></p>
+                                <p class="text-3xl font-bold tracking-tight text-neutral-900" x-show="hidden" x-cloak>••••••</p>
+                            </div>
+                            <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-neutral-500">
+                                <span>{{ $assetCount }} {{ $assetCount === 1 ? __('asset') : __('assets') }}</span>
+                                @if ($hasLocked)
+                                    <span class="inline-flex items-center gap-1">
+                                        <x-heroicon-o-lock-closed class="h-3.5 w-3.5" />
+                                        <span x-show="!hidden" class="js-lv">{{ $lockedValue }}</span><span x-show="hidden" x-cloak>••••</span> {{ __('locked') }}
+                                    </span>
+                                @endif
+                                @if ($pending > 0)
+                                    <span class="inline-flex items-center gap-1">
+                                        <x-heroicon-o-clock class="h-3.5 w-3.5" />
+                                        {{ $pending }} {{ __('pending') }}
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                        <button type="button" x-on:click="hidden = !hidden" class="rounded-lg p-1.5 text-neutral-400 transition hover:bg-white/70 hover:text-neutral-700" title="{{ __('Hide balance') }}" aria-label="{{ __('Toggle balance visibility') }}">
+                            <x-heroicon-o-eye x-show="!hidden" class="h-5 w-5" />
+                            <x-heroicon-o-eye-slash x-show="hidden" x-cloak class="h-5 w-5" />
+                        </button>
+                    </div>
+
+                    {{-- Quick actions --}}
+                    @php
+                        $p2pOn = feature('p2p_enabled', false);
+                        $actions = [
+                            ['route' => route('deposit.index'), 'label' => __('Deposit'), 'icon' => 'arrow-down-tray'],
+                            ['route' => route('withdraw.index'), 'label' => __('Withdraw'), 'icon' => 'arrow-up-tray'],
+                            ['route' => route('send.index'), 'label' => __('Send'), 'icon' => 'paper-airplane'],
+                            ['route' => route('exchange.index'), 'label' => __('Swap'), 'icon' => 'arrows-right-left'],
+                            ['route' => route('cards'), 'label' => __('Cards'), 'icon' => 'credit-card'],
+                        ];
+                        if ($p2pOn) {
+                            $actions[] = ['route' => route('p2p'), 'label' => __('P2P'), 'icon' => 'user-group'];
+                        }
+                    @endphp
+                    <div @class([
+                        'mt-5 grid grid-cols-3 gap-2 sm:max-w-xl',
+                        'sm:grid-cols-6' => $p2pOn,
+                        'sm:grid-cols-5' => ! $p2pOn,
+                    ])>
+                        @foreach ($actions as $a)
+                            <a href="{{ $a['route'] }}" class="group flex flex-col items-center gap-1.5">
+                                <span class="grid h-11 w-11 place-items-center rounded-full bg-white text-brand-600 shadow-sm ring-1 ring-brand-100 transition group-hover:bg-brand-500 group-hover:text-white group-hover:ring-brand-500">
+                                    <x-dynamic-component :component="'heroicon-o-'.$a['icon']" class="h-5 w-5" />
+                                </span>
+                                <span class="text-[11px] font-medium text-neutral-600 group-hover:text-neutral-900">{{ $a['label'] }}</span>
+                            </a>
+                        @endforeach
+                    </div>
                 </div>
             </div>
 
-            {{-- Allocation --}}
-            <x-ui.card :title="__('Allocation')">
-                @if ($assetCount > 0)
-                    <div class="flex items-center gap-4">
-                        <div class="relative h-32 w-32 shrink-0" x-data="chart(@js($allocationConfig))">
-                            <canvas x-ref="canvas"></canvas>
-                            <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                                <span class="text-lg font-bold text-neutral-900">{{ $assetCount }}</span>
-                                <span class="text-[10px] uppercase tracking-wide text-neutral-400">{{ __('assets') }}</span>
+            {{-- Your card (compact, no title) --}}
+            @if ($card)
+                @php
+                    $statusDot = ['success' => 'bg-emerald-500', 'warning' => 'bg-amber-500', 'danger' => 'bg-rose-500', 'gray' => 'bg-gray-400'][$card->status->color()] ?? 'bg-gray-400';
+                    $expiry = $card->exp_month ? sprintf('%02d/%02d', $card->exp_month, $card->exp_year % 100) : '••/••';
+                @endphp
+                <a href="{{ route('cards') }}" class="block self-start">
+                    <div class="relative aspect-[1.586/1] overflow-hidden rounded-2xl bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 p-5 text-white shadow-[var(--shadow-card)] transition hover:-translate-y-0.5">
+                        <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 80% 10%, black 1px, transparent 1px); background-size: 28px 28px;"></div>
+                        <div class="relative flex h-full flex-col justify-between">
+                            <div class="flex items-start justify-between">
+                                <div class="flex items-center gap-2">
+                                    <svg class="h-5 w-5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M14.615 1.595a.75.75 0 0 1 .359.852L12.982 9.75h7.268a.75.75 0 0 1 .548 1.262l-10.5 11.25a.75.75 0 0 1-1.272-.71l1.992-7.302H3.75a.75.75 0 0 1-.548-1.262l10.5-11.25a.75.75 0 0 1 .913-.143Z"/></svg>
+                                    <span class="text-sm font-semibold">PoisaPay</span>
+                                </div>
+                                <span class="inline-flex items-center gap-1.5 rounded-full bg-white/85 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-900 shadow-sm">
+                                    <span class="h-1.5 w-1.5 rounded-full {{ $statusDot }}"></span>{{ $card->status->label() }}
+                                </span>
+                            </div>
+                            <div class="h-7 w-9 rounded-md bg-gradient-to-br from-yellow-100 to-amber-300 shadow-inner ring-1 ring-ink-900/10"></div>
+                            <div>
+                                <p class="tabular font-mono text-lg tracking-widest">•••• •••• •••• {{ $card->last4 }}</p>
+                                <div class="mt-3 flex items-end justify-between gap-2">
+                                    <div class="min-w-0">
+                                        <p class="text-[9px] uppercase tracking-wider text-white/50">{{ __('Card holder') }}</p>
+                                        <p class="truncate text-xs font-medium uppercase tracking-wide text-white/90">{{ $card->nickname ?: $holderName }}</p>
+                                    </div>
+                                    <div class="shrink-0 text-center">
+                                        <p class="text-[9px] uppercase tracking-wider text-white/50">{{ __('Valid thru') }}</p>
+                                        <p class="tabular text-xs font-medium text-white/90">{{ $expiry }}</p>
+                                    </div>
+                                    <span class="shrink-0 text-lg font-bold italic">{{ $card->network->label() }}</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="min-w-0 flex-1 space-y-1.5">
-                            @foreach (array_slice($funded, 0, 5) as $row)
-                                <div class="flex items-center gap-2 text-xs">
-                                    <span class="h-2.5 w-2.5 shrink-0 rounded-full" style="background: {{ $row['color'] }}"></span>
-                                    <span class="font-medium text-neutral-700">{{ $row['symbol'] }}</span>
-                                    <span class="js-alloc-share tabular ml-auto text-neutral-500" data-sym="{{ $row['symbol'] }}">{{ $row['share'] }}%</span>
-                                </div>
-                            @endforeach
-                        </div>
                     </div>
-                @else
-                    <x-ui.empty-state icon="chart-pie" :title="__('No holdings')" :description="__('Fund your wallet to see allocation.')" />
-                @endif
-            </x-ui.card>
+                </a>
+            @else
+                {{-- No card yet — highlighted promo to draw attention --}}
+                <a href="{{ route('cards') }}" class="group relative flex aspect-[1.586/1] flex-col items-center justify-center gap-2 self-start overflow-hidden rounded-2xl bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 p-5 text-center text-white shadow-[var(--shadow-card)] transition hover:-translate-y-0.5">
+                    <div class="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-white/10"></div>
+                    <div class="pointer-events-none absolute -bottom-10 -left-6 h-24 w-24 rounded-full bg-white/10"></div>
+                    <span class="relative grid h-12 w-12 place-items-center rounded-full bg-white/15">
+                        <x-heroicon-o-credit-card class="h-6 w-6" />
+                    </span>
+                    <p class="relative text-sm font-semibold">{{ __('Get a virtual card') }}</p>
+                    <p class="relative text-xs text-white/80">{{ __('Spend your balance anywhere.') }}</p>
+                    <span class="relative mt-1 inline-flex items-center gap-1 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold">
+                        {{ __('Create now') }} <x-heroicon-o-arrow-right class="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                    </span>
+                </a>
+            @endif
         </div>
 
         {{-- 30-day money flow --}}

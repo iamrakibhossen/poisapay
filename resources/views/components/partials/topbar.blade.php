@@ -1,7 +1,7 @@
 @props(['title' => 'Dashboard'])
 
 {{-- DollarHub frontend header — full width across the top, logo left, actions right. --}}
-<header class="relative flex h-16 items-center justify-between border-b border-neutral-200 bg-white px-4 sm:px-6">
+<header class="relative z-40 flex h-16 items-center justify-between border-b border-neutral-200 bg-white px-4 sm:px-6">
     <div class="flex items-center gap-4">
         <button class="lg:hidden text-neutral-500 hover:text-neutral-900" @click="sidebar = !sidebar" aria-label="{{ __('Menu') }}">
             <x-heroicon-o-bars-3 class="h-6 w-6" />
@@ -15,18 +15,6 @@
     </div>
 
     <div class="flex items-center gap-2 sm:gap-3">
-        {{-- Highlighted P2P entry (feature-gated) --}}
-        @if (feature('p2p_enabled', false))
-            @php $p2pActive = request()->routeIs('p2p') || request()->routeIs('p2p.*'); @endphp
-            <a href="{{ route('p2p') }}" @class([
-                'hidden items-center gap-1.5 rounded-lg border px-3.5 py-2 text-sm font-semibold transition sm:inline-flex',
-                'border-brand-500 bg-brand-500 text-white shadow-sm' => $p2pActive,
-                'border-brand-200 bg-brand-50 text-brand-700 hover:bg-brand-100' => ! $p2pActive,
-            ])>
-                <x-heroicon-o-user-group class="h-4 w-4" /> P2P
-            </a>
-        @endif
-
         {{-- Locale switcher --}}
         <div x-data="{ open: false }" class="relative" @keydown.escape="open = false">
             <button type="button" @click="open = !open"
@@ -36,7 +24,7 @@
                 <span>{{ app()->getLocale() === 'bn' ? 'বাংলা' : 'EN' }}</span>
             </button>
             <div x-show="open" x-cloak x-transition @click.outside="open = false"
-                 class="absolute right-0 mt-2 w-36 origin-top-right overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-[var(--shadow-pop)]">
+                 class="absolute right-0 z-50 mt-2 w-36 origin-top-right overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-[var(--shadow-pop)]">
                 @foreach (['en' => 'English', 'bn' => 'বাংলা'] as $code => $label)
                     <form method="POST" action="{{ route('locale.switch') }}">
                         @csrf
@@ -70,7 +58,7 @@
                 <x-heroicon-m-chevron-down class="h-4 w-4 text-neutral-400" />
             </button>
             <div x-show="open" x-cloak x-transition @click.outside="open = false"
-                 class="absolute right-0 mt-2 w-56 origin-top-right overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-[var(--shadow-pop)]">
+                 class="absolute right-0 z-50 mt-2 w-56 origin-top-right overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-[var(--shadow-pop)]">
                 <div class="px-4 py-3">
                     <x-ui.user :user="auth()->user()" size="sm">
                         <div class="mt-2"><x-ui.badge :color="auth()->user()->tier()->color()" dot>{{ auth()->user()->tier()->label() }}</x-ui.badge></div>

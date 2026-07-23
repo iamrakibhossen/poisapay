@@ -41,7 +41,7 @@
 <div x-show="sidebar" x-cloak x-transition.opacity class="fixed inset-0 z-30 bg-black/40 lg:hidden" @click="sidebar = false"></div>
 
 <aside
-    class="fixed lg:static inset-y-0 left-0 z-40 w-[260px] shrink-0 -translate-x-full overflow-y-auto border-r border-neutral-100 bg-white pt-6 transition-transform duration-300 lg:translate-x-0"
+    class="fixed lg:static inset-y-0 left-0 z-40 w-[260px] shrink-0 -translate-x-full overflow-y-auto border-r border-neutral-100 bg-white pt-3 transition-transform duration-300 lg:translate-x-0"
     :class="sidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
 >
     <nav class="px-2 pb-8">
@@ -51,7 +51,14 @@
             @endif
             <div class="space-y-1">
                 @foreach ($group['items'] as $item)
-                    @php $active = request()->routeIs($item['route']); @endphp
+                    @php
+                        // Active for the item's own route AND any child pages
+                        // (e.g. wallet → wallet.show, send.index → send.*, settings.index → settings.*).
+                        $base = str_ends_with($item['route'], '.index')
+                            ? substr($item['route'], 0, -6)
+                            : \Illuminate\Support\Str::before($item['route'], '.');
+                        $active = request()->routeIs($item['route']) || request()->routeIs($base) || request()->routeIs($base.'.*');
+                    @endphp
                     <a href="{{ route($item['route']) }}" wire:navigate
                        @class([
                            'group relative flex h-11 items-center gap-3 rounded-lg px-4 text-sm font-medium transition-colors',

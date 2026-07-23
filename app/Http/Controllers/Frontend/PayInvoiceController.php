@@ -6,7 +6,9 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Domain\Merchant\PayInvoiceAction;
 use App\Domain\Wallet\WalletService;
+use App\Enums\MerchantStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Merchant;
 use App\Models\MerchantInvoice;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,6 +29,9 @@ class PayInvoiceController extends Controller
         $user = $request->user();
         $isMerchant = $user->id === $model->merchant_id;
 
+        // Business profile behind the invoice — used to show trustworthy merchant info.
+        $business = Merchant::where('user_id', $model->merchant_id)->first();
+
         $available = $isMerchant ? null : $wallets->balanceFor($user, $model->asset)->available;
 
         $expired = $model->status === 'expired'
@@ -43,7 +48,15 @@ class PayInvoiceController extends Controller
             'invoice' => $model,
             'symbol' => $model->asset->symbol,
             'amount' => $model->money()->format(),
-            'merchantName' => $model->merchant->name,
+            'merchantName' => $business?->business_name ?: $model->merchant->name,
+            'business' => $business ? [
+                'name' => $business->business_name,
+                'category' => $business->category,
+                'website' => $business->website,
+                'supportEmail' => $business->support_email,
+                'statusLabel' => $business->status->label(),
+                'verified' => $business->status === MerchantStatus::Active,
+            ] : null,
             'reference' => $model->reference,
             'memo' => $model->memo,
             'status' => $model->status,

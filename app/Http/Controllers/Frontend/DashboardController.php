@@ -7,9 +7,11 @@ namespace App\Http\Controllers\Frontend;
 use App\Domain\Analytics\FlowAnalytics;
 use App\Domain\Exchange\Contracts\RateProvider;
 use App\Domain\Wallet\WalletService;
+use App\Enums\CardStatus;
 use App\Enums\KycTier;
 use App\Http\Controllers\Controller;
 use App\Models\Asset;
+use App\Models\Card;
 use App\Models\Deposit;
 use App\Models\Transfer;
 use App\Models\User;
@@ -77,8 +79,17 @@ class DashboardController extends Controller
             ],
         ];
 
+        // Primary card for the right-side preview: prefer an active card, else the newest.
+        $card = Card::where('user_id', $user->id)
+            ->where('status', '!=', CardStatus::Closed->value)
+            ->orderByRaw('CASE WHEN status = ? THEN 0 ELSE 1 END', [CardStatus::Active->value])
+            ->latest()
+            ->first();
+
         return view('frontend.dashboard', [
             'firstName' => str($user->name)->explode(' ')->first(),
+            'card' => $card,
+            'holderName' => $user->name,
             'needsKyc' => $user->tier() !== KycTier::Full,
             'funded' => $funded,
             'assetCount' => $assetCount,

@@ -1,6 +1,6 @@
 <x-layouts.app :title="__('Merchant')">
     <div x-data="{
-            showEditProfile: {{ $errors->any() && $isMerchant ? 'true' : 'false' }},
+            showEditProfile: {{ $isMerchant && $errors->hasAny(['businessName', 'category', 'website', 'supportEmail', 'settlementAssetId']) ? 'true' : 'false' }},
             confirmingCancel: null,
             confirmingRefund: null,
             qr: null,
@@ -10,10 +10,9 @@
                 navigator.clipboard.writeText(this.qr.payUrl).then(() => { this.copied = true; setTimeout(() => this.copied = false, 2000); });
             },
         }" class="space-y-6">
-        <x-ui.page-header :title="__('Merchant')" :subtitle="__('Accept crypto payments with shareable, QR-ready invoices.')" />
-
         {{-- ============================= ONBOARDING ============================= --}}
         @unless ($isMerchant)
+            <x-ui.page-header :title="__('Merchant')" :subtitle="__('Accept crypto payments with shareable, QR-ready invoices.')" />
             @unless ($featureEnabled)
                 <x-ui.alert type="warning" :title="__('Merchant accounts unavailable')">
                     {{ __('Merchant onboarding is temporarily disabled. Please check back soon.') }}
@@ -94,6 +93,36 @@
             @endif
         @else
             {{-- ============================= DASHBOARD ============================= --}}
+            {{-- Business identity header --}}
+            @php
+                $statusChip = [
+                    'success' => 'bg-emerald-50 text-emerald-700',
+                    'warning' => 'bg-amber-50 text-amber-700',
+                    'danger' => 'bg-red-50 text-red-700',
+                ][$merchant->status->color()] ?? 'bg-neutral-100 text-neutral-600';
+            @endphp
+            <div class="pp-card flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex min-w-0 items-center gap-4">
+                    <span class="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-xl font-bold text-white shadow-sm">
+                        {{ mb_strtoupper(mb_substr($merchant->business_name, 0, 1)) ?: 'M' }}
+                    </span>
+                    <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h1 class="truncate text-lg font-bold tracking-tight text-neutral-900">{{ $merchant->business_name }}</h1>
+                            <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium {{ $statusChip }}">
+                                <span class="h-1.5 w-1.5 rounded-full bg-current"></span>{{ $merchant->status->label() }}
+                            </span>
+                        </div>
+                        <p class="mt-0.5 truncate text-sm text-neutral-500">
+                            {{ $merchant->category ?: __('Merchant account') }} · <span class="font-mono">{{ $merchant->slug }}</span> · {{ $feePct }} {{ __('fee') }}
+                        </p>
+                    </div>
+                </div>
+                <div class="flex shrink-0 items-center gap-2">
+                    <x-ui.button x-on:click="showEditProfile = true" variant="secondary" size="sm" icon="pencil-square">{{ __('Edit profile') }}</x-ui.button>
+                </div>
+            </div>
+
             @if ($merchant->status === \App\Enums\MerchantStatus::Pending)
                 <x-ui.alert type="info" :title="__('Application under review')">
                     {{ __("Your merchant profile is pending operator approval. You can set things up now — invoicing unlocks once you're approved.") }}
@@ -166,9 +195,6 @@
 
             {{-- Business profile --}}
             <x-ui.card :title="__('Business profile')">
-                <x-slot:actions>
-                    <x-ui.button x-on:click="showEditProfile = true" variant="secondary" size="sm" icon="pencil-square">{{ __('Edit profile') }}</x-ui.button>
-                </x-slot:actions>
                 <dl class="grid gap-x-8 gap-y-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
                     <div>
                         <dt class="text-gray-500">{{ __('Business name') }}</dt>

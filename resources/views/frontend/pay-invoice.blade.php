@@ -1,14 +1,38 @@
 <x-layouts.app :title="__('Pay Invoice')">
+    @php $initial = mb_strtoupper(mb_substr($merchantName, 0, 1)) ?: 'M'; @endphp
     <div class="mx-auto max-w-lg space-y-6">
         <x-ui.page-header :title="__('Pay invoice')" :subtitle="__('Review the request and confirm payment from your balance.')" />
 
         <x-ui.card>
-            <div class="flex flex-col items-center gap-2 border-b border-neutral-100 pb-6">
-                <p class="tabular text-3xl font-semibold tracking-tight text-neutral-900">{{ $amount }}</p>
-                <p class="text-sm text-neutral-500">{{ __('to') }} <span class="font-medium text-neutral-700">{{ $merchantName }}</span></p>
+            {{-- Merchant identity --}}
+            <div class="flex items-center gap-3 border-b border-neutral-100 pb-4">
+                <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-lg font-bold text-white shadow-sm">{{ $initial }}</span>
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-1.5">
+                        <p class="truncate text-sm font-semibold text-neutral-900">{{ $merchantName }}</p>
+                        @if ($business && $business['verified'])
+                            <span class="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700" title="{{ __('Verified merchant') }}">
+                                <x-heroicon-s-check-badge class="h-3.5 w-3.5" /> {{ __('Verified') }}
+                            </span>
+                        @endif
+                    </div>
+                    <p class="truncate text-xs text-neutral-500">
+                        {{ $business['category'] ?? __('Merchant') }}
+                        @if ($business && $business['website'])
+                            · <a href="{{ $business['website'] }}" target="_blank" rel="noopener" class="text-brand-600 hover:underline">{{ preg_replace('#^https?://#', '', $business['website']) }}</a>
+                        @endif
+                    </p>
+                </div>
             </div>
 
-            <dl class="divide-y divide-neutral-100">
+            {{-- Amount --}}
+            <div class="flex flex-col items-center gap-1 py-6">
+                <p class="text-[11px] font-medium uppercase tracking-wide text-neutral-400">{{ __('Amount due') }}</p>
+                <p class="tabular text-3xl font-bold tracking-tight text-neutral-900">{{ $amount }}</p>
+                <p class="text-sm text-neutral-500">{{ __('Payment to') }} <span class="font-medium text-neutral-700">{{ $merchantName }}</span></p>
+            </div>
+
+            <dl class="divide-y divide-neutral-100 border-t border-neutral-100">
                 <div class="flex items-center justify-between py-3">
                     <dt class="text-sm text-neutral-500">{{ __('Reference') }}</dt>
                     <dd class="font-mono text-sm text-neutral-800">{{ $reference }}</dd>
@@ -89,5 +113,12 @@
                 @endif
             </div>
         </x-ui.card>
+
+        @if ($business && $business['supportEmail'])
+            <p class="text-center text-xs text-neutral-400">
+                {{ __('Questions about this payment?') }}
+                <a href="mailto:{{ $business['supportEmail'] }}" class="font-medium text-neutral-500 hover:text-brand-600">{{ $business['supportEmail'] }}</a>
+            </p>
+        @endif
     </div>
 </x-layouts.app>
