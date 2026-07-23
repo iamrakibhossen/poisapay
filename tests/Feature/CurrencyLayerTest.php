@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Domain\Ledger\LedgerService;
+use App\Domain\Wallet\WalletService;
 use App\Models\Admin;
 use App\Models\Asset;
 use App\Models\Currency;
@@ -53,10 +55,10 @@ it('renders the swap page showing each coin once', function () {
 });
 
 it('pools a user balance across a coin\'s networks (RedotPay model)', function () {
-    $ledger = app(App\Domain\Ledger\LedgerService::class);
+    $ledger = app(LedgerService::class);
     $user = User::factory()->create();
 
-    $usdt = App\Models\Asset::where('symbol', 'USDT')->orderBy('id')->get();
+    $usdt = Asset::where('symbol', 'USDT')->orderBy('id')->get();
     expect($usdt->count())->toBe(3);
 
     // Credit the user on two different chains.
@@ -69,7 +71,7 @@ it('pools a user balance across a coin\'s networks (RedotPay model)', function (
     }
 
     // The wallet lists USDT once, with the pooled balance.
-    $wallets = app(App\Domain\Wallet\WalletService::class)->walletsFor($user);
+    $wallets = app(WalletService::class)->walletsFor($user);
     $usdtWallet = $wallets->firstWhere(fn ($w) => $w->asset->symbol === 'USDT');
     expect($wallets->where(fn ($w) => $w->asset->symbol === 'USDT')->count())->toBe(1)
         ->and($usdtWallet->available->baseString())->toBe('8000000');

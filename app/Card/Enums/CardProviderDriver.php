@@ -13,7 +13,8 @@ enum CardProviderDriver: string
 
     case Mock = 'mock';
     case Marqeta = 'marqeta';
-    // Future adapters: case Stripe = 'stripe'; case Lithic = 'lithic'; …
+    case Stripe = 'stripe';
+    // Future adapters: case Lithic = 'lithic'; …
 
     public function isSimulated(): bool
     {

@@ -19,38 +19,83 @@ use Illuminate\View\View;
  */
 class NotificationController extends Controller
 {
-    /** Categories exposed in the preferences matrix, with display labels. */
-    public const CATEGORIES = [
-        'security' => 'Security',
-        'money' => 'Money',
-        'product' => 'Product',
-        'marketing' => 'Marketing',
+    /**
+     * Notification categories with their display label plus the icon + tint used
+     * to render them in the activity feed. Also the source of truth for the
+     * preferences matrix and its validation.
+     */
+    public const CATEGORY_META = [
+        'security' => ['label' => 'Security', 'icon' => 'shield-check', 'tint' => 'bg-red-50 text-red-600'],
+        'money' => ['label' => 'Money', 'icon' => 'banknotes', 'tint' => 'bg-emerald-50 text-emerald-600'],
+        'product' => ['label' => 'Product', 'icon' => 'sparkles', 'tint' => 'bg-blue-50 text-blue-600'],
+        'marketing' => ['label' => 'Marketing', 'icon' => 'megaphone', 'tint' => 'bg-indigo-50 text-indigo-600'],
     ];
 
     public function index(Request $request): View
     {
         $user = $request->user();
 
-        $notifications = $user->notifications()->latest()->limit(100)->get()->map(function ($note) {
+        $items = $user->notifications()->latest()->limit(100)->get()->map(function ($note) {
             $data = (array) $note->data;
+            $category = $data['category'] ?? 'product';
 
             return [
                 'id' => $note->id,
-                'category' => $data['category'] ?? 'product',
+                'category' => isset(self::CATEGORY_META[$category]) ? $category : 'product',
                 'title' => $data['title'] ?? 'Notification',
                 'body' => $data['body'] ?? null,
                 'url' => $data['url'] ?? null,
                 'is_unread' => $note->read_at === null,
+                'at' => $note->created_at,
                 'created' => $note->created_at?->diffForHumans(),
             ];
         });
 
+        $unreadCount = $items->where('is_unread', true)->count();
+        $categoryCounts = $items->countBy('category');
+
+        // Filter: all | unread | <category>. Anything unknown falls back to all.
+        $filter = (string) $request->query('filter', 'all');
+        $visible = match (true) {
+            $filter === 'unread' => $items->where('is_unread', true),
+            isset(self::CATEGORY_META[$filter]) => $items->where('category', $filter),
+            default => $items,
+        };
+
+        // Group the (already newest-first) feed into human date buckets. groupBy
+        // preserves insertion order, so the buckets stay chronological.
+        $groups = $visible->groupBy(fn ($n) => $this->bucketFor($n['at']));
+
         return view('frontend.notifications', [
-            'notifications' => $notifications,
-            'unreadCount' => $user->unreadNotifications()->count(),
-            'prefs' => $this->preferencesFor($request),
-            'categories' => self::CATEGORIES,
+            'groups' => $groups,
+            'total' => $items->count(),
+            'unreadCount' => $unreadCount,
+            'categoryCounts' => $categoryCounts,
+            'filter' => $filter,
+            'categoryMeta' => self::CATEGORY_META,
         ]);
+    }
+
+    /** Standalone delivery-preferences page. */
+    public function preferences(Request $request): View
+    {
+        return view('frontend.notification-preferences', [
+            'prefs' => $this->preferencesFor($request),
+            'categories' => array_map(fn ($m) => $m['label'], self::CATEGORY_META),
+            'categoryMeta' => self::CATEGORY_META,
+        ]);
+    }
+
+    /** Bucket a timestamp into the label its activity group is filed under. */
+    private function bucketFor(?\Illuminate\Support\Carbon $at): string
+    {
+        return match (true) {
+            $at === null => 'Earlier',
+            $at->isToday() => 'Today',
+            $at->isYesterday() => 'Yesterday',
+            $at->greaterThan(now()->subDays(7)) => 'Earlier this week',
+            default => 'Earlier',
+        };
     }
 
     public function markRead(Request $request, string $id): RedirectResponse
@@ -58,7 +103,28 @@ class NotificationController extends Controller
         $notification = $request->user()->notifications()->findOrFail($id);
         $notification->markAsRead();
 
+        // Clicking a notification clears it from the unread count and then follows
+        // its deep link (if any); otherwise it lands back on the feed. Only same-site
+        // links are honoured to avoid an open redirect off arbitrary payload data.
+        $url = ((array) $notification->data)['url'] ?? null;
+        if (is_string($url) && $url !== '' && $this->isLocalUrl($request, $url)) {
+            return redirect()->to($url);
+        }
+
         return redirect()->route('notifications');
+    }
+
+    /** Whether a stored deep link is a same-site path or URL (never off-host). */
+    private function isLocalUrl(Request $request, string $url): bool
+    {
+        // A leading single slash is a relative path; reject protocol-relative "//host".
+        if (str_starts_with($url, '/') && ! str_starts_with($url, '//')) {
+            return true;
+        }
+
+        $host = parse_url($url, PHP_URL_HOST);
+
+        return $host !== null && $host === $request->getHost();
     }
 
     public function markAllRead(Request $request): RedirectResponse
@@ -83,13 +149,13 @@ class NotificationController extends Controller
         $uid = $request->user()->id;
 
         // Only the known categories may be persisted.
-        if (array_diff(array_keys($incoming), array_keys(self::CATEGORIES)) !== []) {
+        if (array_diff(array_keys($incoming), array_keys(self::CATEGORY_META)) !== []) {
             throw ValidationException::withMessages([
                 'prefs' => 'Unknown notification category.',
             ]);
         }
 
-        foreach (array_keys(self::CATEGORIES) as $cat) {
+        foreach (array_keys(self::CATEGORY_META) as $cat) {
             $row = $incoming[$cat] ?? [];
 
             // Force security channels to always-on regardless of client state.
@@ -109,7 +175,7 @@ class NotificationController extends Controller
             );
         }
 
-        return redirect()->route('notifications')->with('success', 'Preferences saved.');
+        return redirect()->route('notifications.preferences')->with('success', 'Preferences saved.');
     }
 
     /**
@@ -123,7 +189,7 @@ class NotificationController extends Controller
         $uid = $request->user()->id;
         $prefs = [];
 
-        foreach (array_keys(self::CATEGORIES) as $cat) {
+        foreach (array_keys(self::CATEGORY_META) as $cat) {
             $pref = NotificationPreference::firstOrNew([
                 'user_id' => $uid,
                 'category' => $cat,

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Domain\Analytics\FlowAnalytics;
 use App\Domain\Exchange\Contracts\RateProvider;
 use App\Domain\Wallet\WalletService;
 use App\Enums\KycTier;
@@ -11,10 +12,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Asset;
 use App\Models\Deposit;
 use App\Models\Transfer;
+use App\Models\User;
 use App\Models\Withdrawal;
 use App\Support\Money;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
@@ -36,51 +39,23 @@ class DashboardController extends Controller
     public function index(Request $request, WalletService $wallets): View
     {
         $user = $request->user();
-        $balances = $wallets->walletsFor($user);
-        $funded = $balances->filter(fn ($b) => ! $b->total()->isZero())->values();
 
-        $rates = app(RateProvider::class);
-        $base = Asset::where('currency_code', $user->base_currency)->first() ?? Asset::where('symbol', 'BDT')->first();
-
-        $totalBase = BigDecimal::zero();
-        $lockedBase = BigDecimal::zero();
-
-        $rows = $funded->map(function ($b) use ($rates, $base, &$totalBase, &$lockedBase) {
-            $value = BigDecimal::zero();
-            $lockedValue = BigDecimal::zero();
-            if ($base) {
-                $rate = $rates->rate($b->asset, $base);
-                $value = BigDecimal::ofUnscaledValue($b->total()->baseString(), $b->asset->decimals)->multipliedBy($rate);
-                $lockedValue = BigDecimal::ofUnscaledValue($b->locked->baseString(), $b->asset->decimals)->multipliedBy($rate);
-                $totalBase = $totalBase->plus($value);
-                $lockedBase = $lockedBase->plus($lockedValue);
-            }
-
-            return [
-                'symbol' => $b->asset->symbol,
-                'available' => $b->available->format(),
-                'fiatValue' => $value,
-                'fiat' => $base ? $this->fmt($value, $base) : null,
-            ];
-        });
-
-        // Per-asset share for the allocation chart + bars.
-        $total = $totalBase->isZero() ? BigDecimal::one() : $totalBase;
-        $rows = $rows->map(function ($row) use ($total) {
-            $share = $row['fiatValue']->dividedBy($total, 4, RoundingMode::DOWN)->multipliedBy(100);
-            $row['share'] = (float) (string) $share->toScale(1, RoundingMode::HALF_UP);
-
-            return $row;
-        })->sortByDesc('share')->values();
-
-        $assetCount = $funded->count();
+        // Value the portfolio off the system rate provider (live CoinGecko by
+        // default, per config/providers.php) so the numbers the page loads with
+        // match the ones the live poll refreshes them to.
+        $snap = $this->snapshot($user, $wallets, app(RateProvider::class));
+        $rows = $snap['rows'];
+        $base = $snap['base'];
+        $totalBase = $snap['totalBase'];
+        $lockedBase = $snap['lockedBase'];
+        $assetCount = $snap['assetCount'];
 
         $funded = $rows->map(fn ($r) => [
             'symbol' => $r['symbol'],
             'available' => $r['available'],
             'fiat' => $r['fiat'],
             'share' => $r['share'],
-            'color' => self::PALETTE[$r['symbol']] ?? '#94a3b8',
+            'color' => $r['color'],
         ])->all();
 
         $allocationValues = $rows->map(fn ($r) => (float) (string) $r['fiatValue']->toScale(2, RoundingMode::HALF_UP))->all();
@@ -112,11 +87,89 @@ class DashboardController extends Controller
             'lockedValue' => $base ? $this->fmt($lockedBase, $base) : '—',
             'hasLocked' => ! $lockedBase->isZero(),
             'allocationConfig' => $allocationConfig,
-            'analytics' => app(\App\Domain\Analytics\FlowAnalytics::class)->forUser($user),
+            'analytics' => app(FlowAnalytics::class)->forUser($user),
             'recent' => $this->recentActivity($user->id),
             'pendingDeposits' => Deposit::where('user_id', $user->id)->whereIn('status', ['detected', 'confirming'])->count(),
             'pendingWithdrawals' => Withdrawal::where('user_id', $user->id)->whereIn('status', ['pending', 'review', 'approved', 'signing', 'broadcast'])->count(),
         ]);
+    }
+
+    /**
+     * Live portfolio values as JSON — polled client-side so the dashboard's
+     * currency figures tick without a page reload (parity with the homepage
+     * converter). Recomputes off the same live feed as {@see index()}.
+     */
+    public function live(Request $request, WalletService $wallets): JsonResponse
+    {
+        $user = $request->user();
+        $snap = $this->snapshot($user, $wallets, app(RateProvider::class));
+        $base = $snap['base'];
+
+        return response()->json([
+            'base' => $base?->symbol ?? 'BDT',
+            'portfolioValue' => $base ? $this->fmt($snap['totalBase'], $base) : '—',
+            'portfolioRaw' => (float) (string) $snap['totalBase']->toScale(2, RoundingMode::HALF_UP),
+            'lockedValue' => $base ? $this->fmt($snap['lockedBase'], $base) : '—',
+            'hasLocked' => ! $snap['lockedBase']->isZero(),
+            'assets' => $snap['rows']->map(fn ($r) => [
+                'symbol' => $r['symbol'],
+                'fiat' => $r['fiat'],
+                'share' => $r['share'],
+            ])->all(),
+            'asOf' => now()->toIso8601String(),
+        ])->header('Cache-Control', 'no-store');
+    }
+
+    /**
+     * Shared portfolio computation for {@see index()} and {@see live()}: funded
+     * wallets valued in the user's base currency, with per-asset share + colour.
+     *
+     * @return array{rows: Collection, totalBase: BigDecimal, lockedBase: BigDecimal, base: ?Asset, assetCount: int}
+     */
+    private function snapshot(User $user, WalletService $wallets, RateProvider $rates): array
+    {
+        $funded = $wallets->walletsFor($user)->filter(fn ($b) => ! $b->total()->isZero())->values();
+        $base = Asset::where('currency_code', $user->base_currency)->first() ?? Asset::where('symbol', 'BDT')->first();
+
+        $totalBase = BigDecimal::zero();
+        $lockedBase = BigDecimal::zero();
+
+        $rows = $funded->map(function ($b) use ($rates, $base, &$totalBase, &$lockedBase) {
+            $value = BigDecimal::zero();
+            $lockedValue = BigDecimal::zero();
+            if ($base) {
+                $rate = $rates->rate($b->asset, $base);
+                $value = BigDecimal::ofUnscaledValue($b->total()->baseString(), $b->asset->decimals)->multipliedBy($rate);
+                $lockedValue = BigDecimal::ofUnscaledValue($b->locked->baseString(), $b->asset->decimals)->multipliedBy($rate);
+                $totalBase = $totalBase->plus($value);
+                $lockedBase = $lockedBase->plus($lockedValue);
+            }
+
+            return [
+                'symbol' => $b->asset->symbol,
+                'available' => $b->available->format(),
+                'fiatValue' => $value,
+                'fiat' => $base ? $this->fmt($value, $base) : null,
+            ];
+        });
+
+        // Per-asset share for the allocation chart + bars.
+        $total = $totalBase->isZero() ? BigDecimal::one() : $totalBase;
+        $rows = $rows->map(function ($row) use ($total) {
+            $share = $row['fiatValue']->dividedBy($total, 4, RoundingMode::DOWN)->multipliedBy(100);
+            $row['share'] = (float) (string) $share->toScale(1, RoundingMode::HALF_UP);
+            $row['color'] = self::PALETTE[$row['symbol']] ?? '#94a3b8';
+
+            return $row;
+        })->sortByDesc('share')->values();
+
+        return [
+            'rows' => $rows,
+            'totalBase' => $totalBase,
+            'lockedBase' => $lockedBase,
+            'base' => $base,
+            'assetCount' => $funded->count(),
+        ];
     }
 
     private function recentActivity(string $userId): Collection

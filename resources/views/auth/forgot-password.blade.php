@@ -7,7 +7,7 @@
             <x-ui.alert type="success" title="Check your inbox">{{ session('status') }}</x-ui.alert>
             <p class="mt-4 text-sm text-neutral-500">
                 Didn't get it? Check your spam folder, or
-                <a href="{{ route('password.request') }}" class="font-medium text-amber-700 hover:text-amber-800">try again</a>.
+                <a href="{{ route('password.request') }}" class="font-medium text-brand-600 hover:text-brand-700">try again</a>.
             </p>
         </div>
     @else
@@ -22,6 +22,6 @@
 
     <p class="mt-6 text-center text-sm text-neutral-500">
         Remembered it?
-        <a href="{{ route('login') }}" class="font-medium text-amber-700 hover:text-amber-800">Back to sign in</a>
+        <a href="{{ route('login') }}" class="font-medium text-brand-600 hover:text-brand-700">Back to sign in</a>
     </p>
 </x-layouts.guest>

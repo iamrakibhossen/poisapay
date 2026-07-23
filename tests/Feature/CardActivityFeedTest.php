@@ -11,6 +11,7 @@ use App\Listeners\HandleCardTransactionSettled;
 use App\Models\CardAuthorization;
 use App\Models\CardProvider;
 use App\Models\User;
+use App\Notifications\LedgerEventNotification;
 use Illuminate\Support\Facades\Notification;
 
 function feedCard(User $user, string $status = 'settled', string $merchant = 'Test Store'): CardAuthorization
@@ -56,6 +57,6 @@ it('notifies the cardholder when a card transaction settles', function () {
 
     (new HandleCardTransactionSettled)->handle(new CardTransactionSettled($auth->id));
 
-    Notification::assertSentTo($user, App\Notifications\LedgerEventNotification::class,
+    Notification::assertSentTo($user, LedgerEventNotification::class,
         fn ($n) => $n->event === 'card.settled' && str_contains($n->body, 'Diner'));
 });

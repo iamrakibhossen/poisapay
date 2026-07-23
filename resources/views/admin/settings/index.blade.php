@@ -9,7 +9,7 @@
         'exchange' => ['label' => 'Exchange', 'icon' => 'arrow-path-rounded-square'],
         'cards' => ['label' => 'Cards', 'icon' => 'credit-card'],
         'merchant' => ['label' => 'Merchant', 'icon' => 'building-storefront'],
-        'credit' => ['label' => 'Credit', 'icon' => 'scale'],
+        'p2p' => ['label' => 'P2P', 'icon' => 'user-group'],
         'rewards' => ['label' => 'Rewards', 'icon' => 'gift'],
         'compliance' => ['label' => 'Compliance', 'icon' => 'shield-exclamation'],
         'localization' => ['label' => 'Localization', 'icon' => 'language'],

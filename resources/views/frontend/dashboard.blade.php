@@ -18,7 +18,7 @@
         $pending = $pendingDeposits + $pendingWithdrawals;
     @endphp
 
-    <div class="space-y-6">
+    <div class="space-y-6" data-live-root data-live-url="{{ route('dashboard.live') }}">
         {{-- Greeting --}}
         <div class="flex flex-wrap items-center justify-between gap-3">
             <h1 class="text-base font-semibold tracking-tight text-neutral-900 sm:text-lg">
@@ -50,14 +50,19 @@
             {{-- Balance hero --}}
             <div class="pp-card p-6 lg:col-span-2" x-data="{ hidden: $persist(false).as('pp_hide_balance') }">
                 <div class="flex items-center justify-between">
-                    <p class="text-sm font-medium text-neutral-500">Total balance · {{ $baseCurrency }}</p>
+                    <div class="flex items-center gap-2">
+                        <p class="text-sm font-medium text-neutral-500">Total balance · {{ $baseCurrency }}</p>
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-600" title="Values update live">
+                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 motion-safe:animate-pulse"></span> Live
+                        </span>
+                    </div>
                     <button type="button" x-on:click="hidden = !hidden" class="rounded-full p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600" aria-label="Toggle balance visibility">
                         <x-heroicon-o-eye x-show="!hidden" class="h-5 w-5" />
                         <x-heroicon-o-eye-slash x-show="hidden" class="h-5 w-5" x-cloak />
                     </button>
                 </div>
                 <p class="tabular mt-2 text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl">
-                    <span x-show="!hidden">{{ $portfolioValue }}</span>
+                    <span x-show="!hidden" class="js-pv">{{ $portfolioValue }}</span>
                     <span x-show="hidden" x-cloak>••••••</span>
                 </p>
                 <div class="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-neutral-500">
@@ -65,7 +70,7 @@
                     @if ($hasLocked)
                         <span class="inline-flex items-center gap-1">
                             <x-heroicon-o-lock-closed class="h-3.5 w-3.5" />
-                            <span x-show="!hidden">{{ $lockedValue }}</span><span x-show="hidden" x-cloak>••••</span> locked
+                            <span x-show="!hidden" class="js-lv">{{ $lockedValue }}</span><span x-show="hidden" x-cloak>••••</span> locked
                         </span>
                     @endif
                     @if ($pending > 0)
@@ -113,7 +118,7 @@
                                 <div class="flex items-center gap-2 text-xs">
                                     <span class="h-2.5 w-2.5 shrink-0 rounded-full" style="background: {{ $row['color'] }}"></span>
                                     <span class="font-medium text-neutral-700">{{ $row['symbol'] }}</span>
-                                    <span class="tabular ml-auto text-neutral-500">{{ $row['share'] }}%</span>
+                                    <span class="js-alloc-share tabular ml-auto text-neutral-500" data-sym="{{ $row['symbol'] }}">{{ $row['share'] }}%</span>
                                 </div>
                             @endforeach
                         </div>
@@ -153,9 +158,9 @@
                                         </div>
                                         <div class="mt-1 flex items-center justify-between gap-2">
                                             <div class="h-1.5 w-24 overflow-hidden rounded-full bg-neutral-100">
-                                                <div class="h-full rounded-full" style="width: {{ min(100, $row['share']) }}%; background: {{ $row['color'] }}"></div>
+                                                <div class="js-asset-bar h-full rounded-full transition-[width] duration-500 ease-out" data-sym="{{ $row['symbol'] }}" style="width: {{ min(100, $row['share']) }}%; background: {{ $row['color'] }}"></div>
                                             </div>
-                                            <p class="tabular text-xs text-neutral-500">{{ $row['fiat'] }}</p>
+                                            <p class="js-asset-fiat tabular text-xs text-neutral-500" data-sym="{{ $row['symbol'] }}">{{ $row['fiat'] }}</p>
                                         </div>
                                     </div>
                                 </a>
@@ -199,4 +204,56 @@
             </div>
         </div>
     </div>
+
+    {{-- Live currency values: poll the dashboard.live JSON feed and refresh the
+         portfolio total, per-asset fiat values and allocation shares in place.
+         Mirrors the homepage converter's live-rate refresh. --}}
+    <style>
+        @keyframes ppFlash { 0% { background-color: rgba(37,99,235,.14); } 100% { background-color: transparent; } }
+        .pp-flash { animation: ppFlash .8s ease-out; border-radius: 4px; }
+        @media (prefers-reduced-motion: reduce) { .pp-flash { animation: none; } }
+    </style>
+
+    @push('scripts')
+    <script>
+    (function () {
+        var root = document.querySelector('[data-live-root]');
+        if (!root || !window.fetch) return;
+        var url = root.getAttribute('data-live-url');
+
+        function flash(el) { el.classList.remove('pp-flash'); void el.offsetWidth; el.classList.add('pp-flash'); }
+
+        function setText(el, val) {
+            if (el && val != null && el.textContent.trim() !== String(val)) { el.textContent = val; flash(el); }
+        }
+
+        function apply(data) {
+            if (!data) return;
+            setText(root.querySelector('.js-pv'), data.portfolioValue);
+            var lv = root.querySelector('.js-lv');
+            if (lv && data.lockedValue != null) lv.textContent = data.lockedValue;
+
+            (data.assets || []).forEach(function (a) {
+                var sel = '[data-sym="' + a.symbol + '"]';
+                setText(root.querySelector('.js-asset-fiat' + sel), a.fiat);
+                var bar = root.querySelector('.js-asset-bar' + sel);
+                if (bar) bar.style.width = Math.min(100, a.share) + '%';
+                var sh = root.querySelector('.js-alloc-share' + sel);
+                if (sh) sh.textContent = a.share + '%';
+            });
+        }
+
+        function refresh() {
+            if (document.hidden) return;
+            fetch(url, { headers: { Accept: 'application/json' } })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(apply)
+                .catch(function () {});
+        }
+
+        setInterval(refresh, 60000);
+        document.addEventListener('visibilitychange', function () { if (!document.hidden) refresh(); });
+    })();
+    </script>
+    @endpush
 </x-layouts.app>

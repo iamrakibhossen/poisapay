@@ -17,7 +17,7 @@
             <div>
                 <div class="flex items-center justify-between">
                     <label class="pp-label mb-0">Password</label>
-                    <a href="{{ route('password.request') }}" class="text-xs font-medium text-amber-700 hover:text-amber-800">Forgot password?</a>
+                    <a href="{{ route('password.request') }}" class="text-xs font-medium text-brand-600 hover:text-brand-700">Forgot password?</a>
                 </div>
                 <div class="mt-1.5">
                     <x-ui.input type="password" name="password" icon="lock-closed"
@@ -40,10 +40,6 @@
 
     <p class="mt-6 text-center text-sm text-neutral-500">
         New to PoisaPay?
-        <a href="{{ route('register') }}" class="font-medium text-amber-700 hover:text-amber-800">Create an account</a>
+        <a href="{{ route('register') }}" class="font-medium text-brand-600 hover:text-brand-700">Create an account</a>
     </p>
-
-    <div class="mt-8 rounded-xl border border-dashed border-neutral-300 p-3 text-center text-xs text-neutral-500">
-        Demo — <span class="font-mono">demo@poisapay.test</span> / <span class="font-mono">password</span>
-    </div>
 </x-layouts.guest>

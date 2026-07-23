@@ -1,6 +1,11 @@
 <?php
 
+use App\Providers\AppServiceProvider;
+use App\Providers\CardServiceProvider;
+use App\Providers\P2pServiceProvider;
+
 return [
-    App\Providers\AppServiceProvider::class,
-    App\Providers\CardServiceProvider::class,
+    AppServiceProvider::class,
+    CardServiceProvider::class,
+    P2pServiceProvider::class,
 ];

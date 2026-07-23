@@ -99,3 +99,69 @@
         </div>
     @endif
 </x-settings.section>
+
+{{-- Withdrawal address whitelist --}}
+<x-settings.section title="Withdrawal addresses"
+    :description="$whitelistEnforced
+        ? 'Withdrawals are restricted to whitelisted addresses.'
+        : 'Save trusted addresses. New addresses wait '.$cooldownHours.'h before they can be used.'">
+    <form method="POST" action="{{ route('security.address.add') }}" class="flex flex-col gap-3 sm:flex-row">
+        @csrf
+        <input name="label" placeholder="Label (optional)" class="pp-input sm:w-40" />
+        <input name="address" placeholder="Address" required class="pp-input flex-1" />
+        <x-ui.button type="submit" variant="dark" icon="plus">Add</x-ui.button>
+    </form>
+
+    <ul class="mt-4 divide-y divide-neutral-100">
+        @forelse ($addresses as $a)
+            <li class="flex items-center justify-between gap-3 py-3">
+                <div class="min-w-0">
+                    <p class="truncate text-sm font-medium text-neutral-900">{{ $a->label }}</p>
+                    <p class="truncate font-mono text-xs text-neutral-500">{{ $a->address }}</p>
+                </div>
+                <div class="flex shrink-0 items-center gap-3">
+                    @if ($a->inCooldown())
+                        <x-ui.badge color="warning">Cooldown · {{ $a->cooldown_until->diffForHumans() }}</x-ui.badge>
+                    @elseif ($a->status === 'blocked')
+                        <x-ui.badge color="danger">Blocked</x-ui.badge>
+                    @else
+                        <x-ui.badge color="success" dot>Whitelisted</x-ui.badge>
+                    @endif
+                    <form method="POST" action="{{ route('security.address.delete', $a->id) }}">
+                        @csrf @method('DELETE')
+                        <button class="text-xs font-medium text-neutral-400 hover:text-rose-600">Remove</button>
+                    </form>
+                </div>
+            </li>
+        @empty
+            <li class="py-4 text-sm text-neutral-400">No saved addresses yet.</li>
+        @endforelse
+    </ul>
+</x-settings.section>
+
+{{-- Anti-phishing code --}}
+<x-settings.section title="Anti-phishing code" description="A phrase we include in every genuine email so you can spot fakes.">
+    <form method="POST" action="{{ route('security.anti-phishing') }}" class="flex flex-col gap-3 sm:flex-row">
+        @csrf @method('PUT')
+        <input name="anti_phishing_code" value="{{ $antiPhishing }}" maxlength="32"
+            placeholder="e.g. blue-otter-42" class="pp-input flex-1" />
+        <x-ui.button type="submit" variant="dark" icon="check">Save</x-ui.button>
+    </form>
+</x-settings.section>
+
+{{-- Recent security events --}}
+<x-settings.section title="Recent security events" description="Sign-ins, address changes and other sensitive activity on your account.">
+    <ul class="divide-y divide-neutral-100">
+        @forelse ($securityEvents as $e)
+            <li class="flex items-center justify-between gap-3 py-3">
+                <div class="min-w-0">
+                    <p class="truncate text-sm font-medium text-neutral-900">{{ ucfirst(str_replace('_', ' ', $e->type)) }}</p>
+                    <p class="truncate text-xs text-neutral-500">{{ $e->ip_address }} · {{ $e->created_at->diffForHumans() }}</p>
+                </div>
+                <x-ui.badge :color="match ($e->severity) { 'critical' => 'danger', 'warning' => 'warning', default => 'gray' }">{{ ucfirst($e->severity) }}</x-ui.badge>
+            </li>
+        @empty
+            <li class="py-4 text-sm text-neutral-400">No security events.</li>
+        @endforelse
+    </ul>
+</x-settings.section>

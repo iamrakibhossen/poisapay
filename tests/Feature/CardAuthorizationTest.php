@@ -55,6 +55,26 @@ it('is idempotent — a re-sent auth never double-holds', function () {
         ->and($this->ledger->availableBalance($this->user, $this->usdt->id)->baseString())->toBe('90000000');
 });
 
+it('approves a $0 authorisation without placing a hold', function () {
+    creditUser($this->user, $this->usdt, '100000000');
+
+    $result = app(AuthorizeCardAction::class)->authorize(new CardAuthorizationRequest(
+        cardRef: $this->card->issuer_card_ref,
+        networkAuthId: 'auth_zero',
+        amountMinor: '0', // e.g. Stripe card-verification pre-auth
+        currency: 'USD',
+        merchant: 'Verification',
+    ));
+
+    $auth = CardAuthorization::where('network_auth_id', 'auth_zero')->first();
+    expect($result->approved)->toBeTrue()
+        ->and($auth)->not->toBeNull()
+        ->and($auth->held_amount)->toBe('0')
+        ->and($auth->hold_entry_id)->toBeNull()
+        // No hold posted → available balance is untouched.
+        ->and($this->ledger->availableBalance($this->user, $this->usdt->id)->baseString())->toBe('100000000');
+});
+
 it('declines when funds are insufficient', function () {
     creditUser($this->user, $this->usdt, '1000000'); // 1 USDT
 

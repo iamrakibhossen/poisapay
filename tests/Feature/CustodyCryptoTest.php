@@ -10,6 +10,7 @@ use App\Domain\Custody\Crypto\Bip32;
 use App\Domain\Custody\Crypto\TronAddress;
 use App\Domain\Custody\DeterministicAddressDeriver;
 use App\Domain\Custody\EnvSeedSignerKeyProvider;
+use App\Domain\Custody\EvmAddressDeriver;
 use App\Domain\Custody\TronAddressDeriver;
 use App\Enums\ChainType;
 use Elliptic\EC;
@@ -87,7 +88,7 @@ it('routes TRON to real derivation only when custody is live', function () {
     config(['poisapay.custody.seed' => TEST_SEED_HEX]);
     $xpub = (new EnvSeedSignerKeyProvider(new Bip32))->accountXpub(ChainType::Tron);
 
-    $router = new ChainRoutingAddressDeriver(new TronAddressDeriver(new Bip32), new DeterministicAddressDeriver);
+    $router = new ChainRoutingAddressDeriver(new TronAddressDeriver(new Bip32), new EvmAddressDeriver(new Bip32), new DeterministicAddressDeriver);
 
     config(['poisapay.custody_simulated' => true]);
     $simulated = $router->derive(ChainType::Tron, $xpub, 0);

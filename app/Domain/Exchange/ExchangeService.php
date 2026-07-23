@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Exchange;
 
+use App\Domain\Compliance\AccountGuard;
 use App\Domain\Exchange\Contracts\RateProvider;
 use App\Domain\Ledger\AccountResolver;
 use App\Domain\Ledger\DTO\EntryData;
@@ -89,6 +90,7 @@ class ExchangeService
     /** Execute a quote: lock from, credit to, accrue spread. Idempotent. */
     public function execute(User $user, FxQuote $quote, string $idempotencyKey): Conversion
     {
+        AccountGuard::assertActive($user);
         if ($quote->expires_at->isPast()) {
             throw new RuntimeException('Quote has expired. Please request a new quote.');
         }

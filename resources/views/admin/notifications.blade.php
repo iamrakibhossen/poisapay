@@ -1,54 +1,105 @@
 <x-layouts.admin :title="'Notifications'">
     @php
-        $meta = fn (string $c) => match ($c) {
-            'deposit' => ['icon' => 'arrow-down-tray', 'bg' => 'bg-emerald-50', 'text' => 'text-emerald-600'],
-            'withdrawal' => ['icon' => 'arrow-up-tray', 'bg' => 'bg-amber-50', 'text' => 'text-amber-600'],
-            'kyc' => ['icon' => 'identification', 'bg' => 'bg-sky-50', 'text' => 'text-sky-600'],
-            'invoice' => ['icon' => 'receipt-percent', 'bg' => 'bg-brand-50', 'text' => 'text-brand-600'],
-            default => ['icon' => 'bell', 'bg' => 'bg-neutral-100', 'text' => 'text-neutral-500'],
-        };
+        // Filter chips: All + Unread, then one per category that actually has alerts.
+        $chips = [
+            ['key' => 'all', 'label' => 'All', 'count' => $total],
+            ['key' => 'unread', 'label' => 'Unread', 'count' => $unreadCount],
+        ];
+        foreach ($categoryMeta as $key => $meta) {
+            if (($categoryCounts[$key] ?? 0) > 0) {
+                $chips[] = ['key' => $key, 'label' => $meta['label'], 'count' => $categoryCounts[$key]];
+            }
+        }
     @endphp
-    <div class="space-y-6">
+
+    <div class="mx-auto max-w-3xl space-y-6">
         <x-ui.page-header title="Notifications" subtitle="Operator alerts across the platform.">
             <x-slot:actions>
-                @if ($unread > 0)
+                @if ($unreadCount > 0)
                     <form method="POST" action="{{ route('admin.notifications.read-all') }}">
                         @csrf
-                        <x-ui.button type="submit" variant="secondary" size="sm" icon="check">Mark all read ({{ $unread }})</x-ui.button>
+                        <x-ui.button type="submit" variant="secondary" size="sm" icon="check">Mark all read ({{ $unreadCount }})</x-ui.button>
                     </form>
                 @endif
             </x-slot:actions>
         </x-ui.page-header>
 
-        <x-ui.card>
-            @forelse ($notifications as $n)
-                @php $c = $meta($n->data['category'] ?? 'general'); @endphp
-                <div class="flex items-start gap-3 py-3 {{ ! $loop->last ? 'border-b border-neutral-100' : '' }} {{ is_null($n->read_at) ? '-mx-2 rounded-lg bg-brand-50/40 px-2' : '' }}">
-                    <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full {{ $c['bg'] }} {{ $c['text'] }}">
-                        <x-dynamic-component :component="'heroicon-o-'.$c['icon']" class="h-4 w-4" />
-                    </span>
-                    <div class="min-w-0 flex-1">
-                        <p class="text-sm font-medium text-neutral-900">{{ $n->data['title'] ?? 'Notification' }}</p>
-                        <p class="text-xs text-neutral-500">{{ $n->data['body'] ?? '' }}</p>
-                        <p class="mt-0.5 text-[11px] text-neutral-400">{{ $n->created_at->diffForHumans() }}</p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        @if (! empty($n->data['url']))
-                            <a href="{{ $n->data['url'] }}" class="text-xs font-semibold text-amber-700 hover:text-amber-800">View</a>
-                        @endif
-                        @if (is_null($n->read_at))
-                            <form method="POST" action="{{ route('admin.notifications.read', $n->id) }}">
+        @if (session('success'))<x-ui.alert type="success">{{ session('success') }}</x-ui.alert>@endif
+
+        {{-- Filter chips (plain GET query param) --}}
+        <div class="-mx-1 flex flex-nowrap gap-2 overflow-x-auto px-1 pb-1">
+            @foreach ($chips as $chip)
+                <a href="{{ route('admin.notifications', ['filter' => $chip['key']]) }}"
+                    @class([
+                        'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition',
+                        'border-brand-500 bg-brand-50 text-brand-700' => $filter === $chip['key'],
+                        'border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300 hover:text-neutral-900' => $filter !== $chip['key'],
+                    ])>
+                    {{ $chip['label'] }}
+                    @if ($chip['count'] > 0)
+                        <span class="inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[11px] font-bold {{ $filter === $chip['key'] ? 'bg-brand-500 text-white' : 'bg-neutral-100 text-neutral-500' }}">{{ $chip['count'] }}</span>
+                    @endif
+                </a>
+            @endforeach
+        </div>
+
+        @if ($groups->isEmpty())
+            <x-ui.card>
+                @if ($total === 0)
+                    <x-ui.empty-state icon="bell" title="No notifications yet"
+                        description="Operator alerts — security, compliance, deposits and more — will show up here." />
+                @else
+                    <x-ui.empty-state icon="funnel" title="Nothing to show"
+                        description="No notifications match this filter.">
+                        <x-slot:action>
+                            <x-ui.button href="{{ route('admin.notifications') }}" variant="secondary" size="sm">View all</x-ui.button>
+                        </x-slot:action>
+                    </x-ui.empty-state>
+                @endif
+            </x-ui.card>
+        @else
+            @foreach ($groups as $bucket => $notes)
+                <div>
+                    <h2 class="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-neutral-400">{{ $bucket }}</h2>
+                    <div class="divide-y divide-neutral-100 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+                        @foreach ($notes as $note)
+                            @php $meta = $categoryMeta[$note['category']]; @endphp
+                            {{-- The whole row is a form: clicking marks the notification read
+                                 (clearing it from the unread count) then follows its deep link. --}}
+                            <form method="POST" action="{{ route('admin.notifications.read', $note['id']) }}" class="block">
                                 @csrf
-                                <button type="submit" class="text-xs text-neutral-400 hover:text-neutral-700">Mark read</button>
+                                <button type="submit"
+                                    class="flex w-full items-center gap-3.5 px-4 py-4 text-left transition {{ $note['is_unread'] ? 'bg-brand-50/60 hover:bg-brand-50' : 'hover:bg-neutral-50/70' }}">
+                                    {{-- Category icon --}}
+                                    <span class="relative grid h-10 w-10 shrink-0 place-items-center rounded-full {{ $meta['tint'] }}">
+                                        <x-dynamic-component :component="'heroicon-o-'.$meta['icon']" class="h-5 w-5" />
+                                        @if ($note['is_unread'])
+                                            <span class="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-brand-500 ring-2 ring-white"></span>
+                                        @endif
+                                    </span>
+
+                                    <span class="block min-w-0 flex-1">
+                                        <span class="block font-semibold {{ $note['is_unread'] ? 'text-neutral-900' : 'text-neutral-700' }}">{{ $note['title'] }}</span>
+
+                                        @if ($note['body'])
+                                            <span class="mt-0.5 block text-sm text-neutral-600">{{ $note['body'] }}</span>
+                                        @endif
+
+                                        <span class="mt-2 flex flex-wrap items-center gap-2 text-xs text-neutral-400">
+                                            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium {{ $meta['tint'] }}">{{ $meta['label'] }}</span>
+                                            <span>{{ $note['created'] }}</span>
+                                        </span>
+                                    </span>
+
+                                    @if ($note['url'])
+                                        <x-heroicon-o-chevron-right class="h-5 w-5 shrink-0 text-neutral-300" />
+                                    @endif
+                                </button>
                             </form>
-                        @endif
+                        @endforeach
                     </div>
                 </div>
-            @empty
-                <x-ui.empty-state icon="bell-slash" title="No notifications" description="Operator alerts will appear here." />
-            @endforelse
-        </x-ui.card>
-
-        {{ $notifications->links() }}
+            @endforeach
+        @endif
     </div>
 </x-layouts.admin>

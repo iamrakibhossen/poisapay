@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Transfer;
 
 use App\Domain\Audit\ActivityLogger;
+use App\Domain\Compliance\AccountGuard;
 use App\Domain\Ledger\AccountResolver;
 use App\Domain\Ledger\DTO\EntryData;
 use App\Domain\Ledger\DTO\PostingLine;
@@ -34,6 +35,7 @@ class ExecuteTransferAction
 
     public function execute(User $sender, User $recipient, Asset $asset, Money $amount, string $idempotencyKey, ?string $memo = null): Transfer
     {
+        AccountGuard::assertActive($sender);
         if ($sender->is($recipient)) {
             throw new RuntimeException('Cannot transfer to yourself.');
         }

@@ -43,9 +43,24 @@
                                     @if ($d['reference'])
                                         <p class="truncate text-xs text-neutral-400">{{ $d['reference'] }}</p>
                                     @endif
+                                    @if ($d['txidShort'])
+                                        @if ($d['explorer'])
+                                            <a href="{{ $d['explorer'] }}" target="_blank" rel="noopener"
+                                                class="mt-0.5 inline-flex items-center gap-1 font-mono text-xs text-brand-600 transition hover:text-brand-700"
+                                                title="{{ $d['txid'] }}">
+                                                {{ $d['txidShort'] }}
+                                                <x-heroicon-o-arrow-top-right-on-square class="h-3 w-3" />
+                                            </a>
+                                        @else
+                                            <p class="mt-0.5 font-mono text-xs text-neutral-400" title="{{ $d['txid'] }}">{{ $d['txidShort'] }}</p>
+                                        @endif
+                                    @endif
                                 </td>
                                 <td class="px-5 py-4 align-middle">
                                     <x-ui.badge :color="$d['statusColor'] ?? 'gray'" dot>{{ $d['status'] }}</x-ui.badge>
+                                    @if ($d['confirmations'] !== null && $d['status'] !== 'Credited')
+                                        <p class="mt-1 text-[11px] text-neutral-400">{{ $d['confirmations'] }}/{{ $d['requiredConfirmations'] }} confs</p>
+                                    @endif
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4 text-right align-middle">
                                     <p class="tabular text-sm font-semibold text-emerald-600">+{{ $d['amount'] }}</p>

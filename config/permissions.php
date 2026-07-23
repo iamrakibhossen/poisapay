@@ -34,8 +34,14 @@ return [
         // Merchants
         'view-merchants', 'manage-merchants',
 
+        // P2P
+        'view-p2p', 'manage-p2p',
+
         // Rewards
         'view-rewards', 'manage-rewards',
+
+        // Support
+        'view-support', 'manage-support',
 
         // Users
         'view-users', 'manage-users', 'freeze-users', 'adjust-balance', 'impersonate-users',
@@ -62,7 +68,9 @@ return [
         'Exchange' => ['exchange'],
         'Cards' => ['card'],
         'Merchants' => ['merchant'],
+        'P2P' => ['p2p'],
         'Rewards' => ['reward'],
+        'Support' => ['support'],
         'Users' => ['user', 'balance'],
         'Configuration' => ['asset', 'setting', 'feature-flag'],
         'CMS' => ['page', 'faq', 'announcement'],
@@ -79,8 +87,10 @@ return [
             'view-dashboard', 'view-users', 'manage-users', 'freeze-users', 'review-kyc', 'approve-kyc',
             'view-deposits', 'view-withdrawals', 'approve-withdrawals', 'view-transfers', 'view-ledger',
             'view-treasury', 'manage-assets', 'manage-cards', 'manage-card-providers', 'manage-card-disputes', 'view-merchants',
+            'view-p2p', 'manage-p2p',
             'view-rewards', 'view-reports', 'export-reports', 'manage-pages', 'manage-faqs',
-            'manage-announcements', 'manage-settings', 'view-activity-logs',
+            'manage-announcements', 'manage-settings', 'manage-feature-flags', 'view-activity-logs',
+            'view-support', 'manage-support',
         ],
         'compliance' => [
             'view-dashboard', 'review-kyc', 'approve-kyc', 'view-compliance', 'file-sar',
@@ -92,6 +102,7 @@ return [
         ],
         'support' => [
             'view-dashboard', 'view-users', 'view-deposits', 'view-withdrawals', 'view-merchants', 'view-pages',
+            'view-support', 'manage-support', 'view-p2p',
         ],
     ],
 ];

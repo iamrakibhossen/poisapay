@@ -1,0 +1,3967 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Parameter \#1 \$provider of method App\\Card\\CardManager\:\:forProvider\(\) expects App\\Models\\CardProvider, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Card/CardManager.php
+
+		-
+			message: '#^Method App\\Card\\DTOs\\CardholderData\:\:__construct\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Card/DTOs/CardholderData.php
+
+		-
+			message: '#^Method App\\Card\\Enums\\CardProviderDriver\:\:configured\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Card/Enums/CardProviderDriver.php
+
+		-
+			message: '#^Property App\\Card\\Inbound\\WebhookEventRouter\:\:\$refund is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Card/Inbound/WebhookEventRouter.php
+
+		-
+			message: '#^Property App\\Card\\Inbound\\WebhookEventRouter\:\:\$reverse is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Card/Inbound/WebhookEventRouter.php
+
+		-
+			message: '#^Property App\\Card\\Inbound\\WebhookEventRouter\:\:\$settle is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Card/Inbound/WebhookEventRouter.php
+
+		-
+			message: '#^Result of \|\| is always true\.$#'
+			identifier: booleanOr.alwaysTrue
+			count: 3
+			path: app/Card/Inbound/WebhookEventRouter.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\CardAuthStatus\:\:Approved will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 2
+			path: app/Card/Inbound/WebhookEventRouter.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\CardAuthStatus\:\:Settled will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Card/Inbound/WebhookEventRouter.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\CardStatus\:\:Closed will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Card/Inbound/WebhookEventRouter.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 3
+			path: app/Card/Inbound/WebhookEventRouter.php
+
+		-
+			message: '#^Method App\\Card\\Providers\\Marqeta\\MarqetaClient\:\:get\(\) has parameter \$query with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Card/Providers/Marqeta/MarqetaClient.php
+
+		-
+			message: '#^Method App\\Card\\Providers\\Marqeta\\MarqetaClient\:\:get\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Card/Providers/Marqeta/MarqetaClient.php
+
+		-
+			message: '#^Method App\\Card\\Providers\\Marqeta\\MarqetaClient\:\:post\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Card/Providers/Marqeta/MarqetaClient.php
+
+		-
+			message: '#^Method App\\Card\\Providers\\Marqeta\\MarqetaClient\:\:put\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Card/Providers/Marqeta/MarqetaClient.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$body$#'
+			identifier: parameter.notFound
+			count: 1
+			path: app/Card/Providers/Marqeta/MarqetaClient.php
+
+		-
+			message: '#^Method App\\Card\\Providers\\Marqeta\\MarqetaProvider\:\:transactionEvent\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: app/Card/Providers/Marqeta/MarqetaProvider.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Console/Commands/SimulateCardPurchase.php
+
+		-
+			message: '#^Result of && is always false\.$#'
+			identifier: booleanAnd.alwaysFalse
+			count: 1
+			path: app/Console/Commands/SimulateCardPurchase.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\CardStatus\:\:Active will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Console/Commands/SimulateCardPurchase.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\CardStatus\:\:Inactive will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Console/Commands/SimulateCardPurchase.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Console/Commands/SimulateCardPurchase.php
+
+		-
+			message: '#^Parameter \#2 \$chain of method App\\Domain\\Custody\\AllocateDepositAddressAction\:\:execute\(\) expects App\\Models\\Chain, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Console/Commands/SimulateDepositCommand.php
+
+		-
+			message: '#^Parameter \#1 \$asset of closure expects App\\Models\\Asset, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 3
+			path: app/Domain/Analytics/FlowAnalytics.php
+
+		-
+			message: '#^Parameter \#2 \$baseUnits of closure expects string, float given\.$#'
+			identifier: argument.type
+			count: 3
+			path: app/Domain/Analytics/FlowAnalytics.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Audit/ActivityLogger.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Domain/Audit/ActivityLogger.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Domain/Auth/TwoFactorService.php
+
+		-
+			message: '#^Method App\\Domain\\Card\\AuthorizationResult\:\:toResponse\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/Card/AuthorizationResult.php
+
+		-
+			message: '#^Call to function is_array\(\) with string\|null will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 2
+			path: app/Domain/Card/AuthorizeCardAction.php
+
+		-
+			message: '#^Method App\\Domain\\Card\\AuthorizeCardAction\:\:controlDecline\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: app/Domain/Card/AuthorizeCardAction.php
+
+		-
+			message: '#^Method App\\Domain\\Card\\AuthorizeCardAction\:\:pickFundingAsset\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: app/Domain/Card/AuthorizeCardAction.php
+
+		-
+			message: '#^Property App\\Domain\\Card\\AuthorizeCardAction\:\:\$accounts is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Domain/Card/AuthorizeCardAction.php
+
+		-
+			message: '#^Property App\\Domain\\Card\\AuthorizeCardAction\:\:\$ledger is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Domain/Card/AuthorizeCardAction.php
+
+		-
+			message: '#^Result of && is always false\.$#'
+			identifier: booleanAnd.alwaysFalse
+			count: 5
+			path: app/Domain/Card/AuthorizeCardAction.php
+
+		-
+			message: '#^Result of \|\| is always true\.$#'
+			identifier: booleanOr.alwaysTrue
+			count: 1
+			path: app/Domain/Card/AuthorizeCardAction.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between \*NEVER\* and array\{\} will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Domain/Card/AuthorizeCardAction.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\CardStatus\:\:Active will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Domain/Card/AuthorizeCardAction.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Domain/Card/AuthorizeCardAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Card/CardStatementService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$mcc\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Card/CardStatementService.php
+
+		-
+			message: '#^Method App\\Domain\\Card\\CardStatementService\:\:analytics\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/Card/CardStatementService.php
+
+		-
+			message: '#^Method App\\Domain\\Card\\CardStatementService\:\:forPeriod\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/Card/CardStatementService.php
+
+		-
+			message: '#^Unable to resolve the template type TGroupKey in call to method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:groupBy\(\)$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Domain/Card/CardStatementService.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\CardStatus\:\:Closed will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Domain/Card/CloseCardAction.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\CardAuthStatus\:\:Settled will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Domain/Card/OpenCardDisputeAction.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Domain/Card/OpenCardDisputeAction.php
+
+		-
+			message: '#^Property App\\Domain\\Card\\RefundCardAuthAction\:\:\$accounts is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Domain/Card/RefundCardAuthAction.php
+
+		-
+			message: '#^Property App\\Domain\\Card\\RefundCardAuthAction\:\:\$ledger is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Domain/Card/RefundCardAuthAction.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\CardAuthStatus\:\:Settled will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Domain/Card/RefundCardAuthAction.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Domain/Card/RefundCardAuthAction.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Domain\\Card\\GenerateCardAction\:\:execute\(\) expects App\\Models\\User, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Card/ReplaceCardAction.php
+
+		-
+			message: '#^Parameter \#2 \$provider of method App\\Domain\\Card\\GenerateCardAction\:\:execute\(\) expects App\\Models\\CardProvider, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Card/ReplaceCardAction.php
+
+		-
+			message: '#^Parameter \#3 \$type of method App\\Domain\\Card\\GenerateCardAction\:\:execute\(\) expects App\\Enums\\CardType, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Card/ReplaceCardAction.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\CardStatus\:\:Closed will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Domain/Card/ReplaceCardAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$card\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Card/ResolveCardDisputeAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$funding_asset_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Card/ResolveCardDisputeAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$held_amount\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Card/ResolveCardDisputeAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$merchant\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Card/ResolveCardDisputeAction.php
+
+		-
+			message: '#^Call to function in_array\(\) with arguments ''lost''\|''won'', array\{''won'', ''lost''\} and true will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app/Domain/Card/ResolveCardDisputeAction.php
+
+		-
+			message: '#^Property App\\Domain\\Card\\ReverseCardAuthAction\:\:\$accounts is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Domain/Card/ReverseCardAuthAction.php
+
+		-
+			message: '#^Property App\\Domain\\Card\\ReverseCardAuthAction\:\:\$ledger is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Domain/Card/ReverseCardAuthAction.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\CardAuthStatus\:\:Approved will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Domain/Card/ReverseCardAuthAction.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\CardAuthStatus\:\:Reversed will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Domain/Card/ReverseCardAuthAction.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Domain/Card/ReverseCardAuthAction.php
+
+		-
+			message: '#^Property App\\Domain\\Card\\SettleCardAuthAction\:\:\$accounts is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Domain/Card/SettleCardAuthAction.php
+
+		-
+			message: '#^Property App\\Domain\\Card\\SettleCardAuthAction\:\:\$cashback is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Domain/Card/SettleCardAuthAction.php
+
+		-
+			message: '#^Property App\\Domain\\Card\\SettleCardAuthAction\:\:\$ledger is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Domain/Card/SettleCardAuthAction.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\CardAuthStatus\:\:Approved will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Domain/Card/SettleCardAuthAction.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\CardAuthStatus\:\:Settled will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Domain/Card/SettleCardAuthAction.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Domain/Card/SettleCardAuthAction.php
+
+		-
+			message: '#^Method App\\Domain\\Chain\\ChainHealthService\:\:summary\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/Chain/ChainHealthService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$block_number\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Chain/Tron/AdvanceTronDepositsAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$tx_hash\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Chain/Tron/AdvanceTronDepositsAction.php
+
+		-
+			message: '#^Parameter \#2 \$tx of method App\\Domain\\Chain\\Tron\\AdvanceTronDepositsAction\:\:orphan\(\) expects App\\Models\\OnchainTx, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Domain/Chain/Tron/AdvanceTronDepositsAction.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\DepositStatus\:\:Credited will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Domain/Chain/Tron/AdvanceTronDepositsAction.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Domain/Chain/Tron/TronGridClient.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Domain/Chain/Tron/TronGridClient.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\CaseStatus\:\:Open will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Domain/Compliance/ComplianceCaseService.php
+
+		-
+			message: '#^Cannot call method rank\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Domain/Compliance/RaiseAlertAction.php
+
+		-
+			message: '#^Method App\\Domain\\Compliance\\TransactionMonitor\:\:flag\(\) has parameter \$reasons with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/Compliance/TransactionMonitor.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Domain\\Compliance\\ScreeningService\:\:screen\(\) expects App\\Models\\User, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Compliance/TransactionMonitor.php
+
+		-
+			message: '#^Parameter \$user of method App\\Domain\\Compliance\\RaiseAlertAction\:\:execute\(\) expects App\\Models\\User, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 3
+			path: app/Domain/Compliance/TransactionMonitor.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\ScreeningStatus\:\:Hit will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Domain/Compliance/TransactionMonitor.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\ScreeningStatus\:\:Review will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Domain/Compliance/TransactionMonitor.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$decimals\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Credit/AccrueInterestAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Credit/AccrueInterestAction.php
+
+		-
+			message: '#^Property App\\Models\\CreditLine\:\:\$accrued_fee \(float\) does not accept string\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Domain/Credit/AccrueInterestAction.php
+
+		-
+			message: '#^Property App\\Models\\CreditLine\:\:\$last_accrued_at \(string\|null\) does not accept Illuminate\\Support\\Carbon\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Domain/Credit/AccrueInterestAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$decimals\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Credit/CreditService.php
+
+		-
+			message: '#^Parameter \#1 \$asset of method App\\Domain\\Credit\\CreditService\:\:unitPriceUsd\(\) expects App\\Models\\Asset, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Credit/CreditService.php
+
+		-
+			message: '#^Parameter \#1 \$asset of method App\\Domain\\Credit\\CreditService\:\:valueInUsd\(\) expects App\\Models\\Asset, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 4
+			path: app/Domain/Credit/CreditService.php
+
+		-
+			message: '#^Parameter \#2 \$base of method App\\Domain\\Credit\\CreditService\:\:valueInUsd\(\) expects string, float given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Domain/Credit/CreditService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$decimals\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Credit/DrawCreditAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Credit/DrawCreditAction.php
+
+		-
+			message: '#^Property App\\Models\\CreditLine\:\:\$principal_drawn \(float\) does not accept string\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Domain/Credit/DrawCreditAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$decimals\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Domain/Credit/LiquidateCreditLineAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Domain/Credit/LiquidateCreditLineAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Domain/Credit/LiquidateCreditLineAction.php
+
+		-
+			message: '#^Parameter \#1 \$base of static method App\\Support\\Money\:\:ofBase\(\) expects Brick\\Math\\BigInteger\|int\|string, float given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Domain/Credit/LiquidateCreditLineAction.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Domain\\Exchange\\ExchangeService\:\:execute\(\) expects App\\Models\\User, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Credit/LiquidateCreditLineAction.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Domain\\Exchange\\ExchangeService\:\:quote\(\) expects App\\Models\\User, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Credit/LiquidateCreditLineAction.php
+
+		-
+			message: '#^Parameter \#2 \$from of method App\\Domain\\Exchange\\ExchangeService\:\:quote\(\) expects App\\Models\\Asset, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Credit/LiquidateCreditLineAction.php
+
+		-
+			message: '#^Parameter \#3 \$to of method App\\Domain\\Exchange\\ExchangeService\:\:quote\(\) expects App\\Models\\Asset, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Credit/LiquidateCreditLineAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$decimals\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Domain/Credit/RepayCreditAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Domain/Credit/RepayCreditAction.php
+
+		-
+			message: '#^Parameter \#1 \$base of static method App\\Support\\Money\:\:ofBase\(\) expects Brick\\Math\\BigInteger\|int\|string, float given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Credit/RepayCreditAction.php
+
+		-
+			message: '#^Property App\\Models\\CreditLine\:\:\$accrued_fee \(float\) does not accept string\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Domain/Credit/RepayCreditAction.php
+
+		-
+			message: '#^Property App\\Models\\CreditLine\:\:\$collateral_amount \(float\) does not accept string\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Domain/Credit/RepayCreditAction.php
+
+		-
+			message: '#^Property App\\Models\\CreditLine\:\:\$principal_drawn \(float\) does not accept string\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Domain/Credit/RepayCreditAction.php
+
+		-
+			message: '#^Property App\\Models\\CreditLine\:\:\$status \(string\) does not accept App\\Enums\\CreditStatus\:\:Repaid\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Domain/Credit/RepayCreditAction.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Cache\\Store\:\:connection\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Domain/Custody/AllocateDepositAddressAction.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 2
+			path: app/Domain/Custody/AllocateDepositAddressAction.php
+
+		-
+			message: '#^Parameter \#1 \$chain of method App\\Domain\\Custody\\Contracts\\AddressDeriver\:\:derive\(\) expects App\\Enums\\ChainType, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Custody/AllocateDepositAddressAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$log_index\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Deposit/CreditDepositAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Deposit/CreditDepositAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$tx_hash\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Deposit/CreditDepositAction.php
+
+		-
+			message: '#^Parameter \#1 \$amountBase of static method App\\Domain\\Fees\\PlatformFees\:\:depositFee\(\) expects string, float given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Deposit/CreditDepositAction.php
+
+		-
+			message: '#^Parameter \#3 \$amount of static method App\\Domain\\Ledger\\DTO\\PostingLine\:\:debit\(\) expects App\\Support\\Money\|Brick\\Math\\BigInteger\|int\|string, float given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Deposit/CreditDepositAction.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\DepositStatus\:\:Credited will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Domain/Deposit/CreditDepositAction.php
+
+		-
+			message: '#^Property App\\Domain\\Deposit\\CreditManualDepositAction\:\:\$accounts is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Domain/Deposit/CreditManualDepositAction.php
+
+		-
+			message: '#^Property App\\Domain\\Deposit\\CreditManualDepositAction\:\:\$ledger is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Domain/Deposit/CreditManualDepositAction.php
+
+		-
+			message: '#^Result of \|\| is always true\.$#'
+			identifier: booleanOr.alwaysTrue
+			count: 1
+			path: app/Domain/Deposit/CreditManualDepositAction.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\DepositStatus\:\:Detected will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 2
+			path: app/Domain/Deposit/CreditManualDepositAction.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\DepositStatus\:\:Credited will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Domain/Deposit/CreditManualDepositAction.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 2
+			path: app/Domain/Deposit/CreditManualDepositAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$deposit_enabled\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Deposit/SubmitManualDepositAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$is_active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Deposit/SubmitManualDepositAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$decimals\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Domain/Exchange/ExchangeService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 10
+			path: app/Domain/Exchange/ExchangeService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 5
+			path: app/Domain/Exchange/ExchangeService.php
+
+		-
+			message: '#^Cannot call method isPast\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Domain/Exchange/ExchangeService.php
+
+		-
+			message: '#^Parameter \#1 \$base of method App\\Models\\Asset\:\:money\(\) expects int\|string\|null, float given\.$#'
+			identifier: argument.type
+			count: 3
+			path: app/Domain/Exchange/ExchangeService.php
+
+		-
+			message: '#^Parameter \#1 \$base of static method App\\Support\\Money\:\:ofBase\(\) expects Brick\\Math\\BigInteger\|int\|string, float given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Domain/Exchange/ExchangeService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>spread_bps" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Domain/Exchange/ExchangeService.php
+
+		-
+			message: '#^Cannot call method atLeast\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Domain/Kyc/KycService.php
+
+		-
+			message: '#^Cannot call method canWithdraw\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Domain/Kyc/KycService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Auth\\Authenticatable\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Domain/Kyc/ReviewKycAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Domain/Kyc/ReviewKycAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$kyc_status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Domain/Kyc/ReviewKycAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$kyc_tier\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Kyc/ReviewKycAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$referred_by\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Kyc/ReviewKycAction.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 2
+			path: app/Domain/Kyc/ReviewKycAction.php
+
+		-
+			message: '#^Cannot call method label\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Domain/Kyc/ReviewKycAction.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Domain\\Notification\\NotificationService\:\:send\(\) expects App\\Models\\User, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Domain/Kyc/ReviewKycAction.php
+
+		-
+			message: '#^Property App\\Models\\User\:\:\$kyc_status \(string\) does not accept App\\Enums\\KycStatus\:\:Pending\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Domain/Kyc/SubmitKycAction.php
+
+		-
+			message: '#^Method App\\Domain\\Ledger\\DTO\\EntryData\:\:__construct\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/Ledger/DTO/EntryData.php
+
+		-
+			message: '#^Method App\\Domain\\Ledger\\LedgerReportService\:\:accountBalance\(\) has parameter \$types with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/Ledger/LedgerReportService.php
+
+		-
+			message: '#^Method App\\Domain\\Ledger\\LedgerReportService\:\:incomeStatement\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/Ledger/LedgerReportService.php
+
+		-
+			message: '#^Method App\\Domain\\Ledger\\LedgerReportService\:\:solvency\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/Ledger/LedgerReportService.php
+
+		-
+			message: '#^Method App\\Domain\\Ledger\\LedgerReportService\:\:trialBalance\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/Ledger/LedgerReportService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>symbol" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Domain/Ledger/LedgerReportService.php
+
+		-
+			message: '#^Method App\\Domain\\Ledger\\LedgerService\:\:lock\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/Ledger/LedgerService.php
+
+		-
+			message: '#^Method App\\Domain\\Ledger\\LedgerService\:\:unlock\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/Ledger/LedgerService.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\LedgerSide will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Domain/Ledger/LedgerService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$account_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Ledger/ReverseEntryAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$amount\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Ledger/ReverseEntryAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$asset_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Ledger/ReverseEntryAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$side\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Ledger/ReverseEntryAction.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\EntryStatus\:\:Reversed will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Domain/Ledger/ReverseEntryAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Ledger/WithdrawProfitAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$decimals\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Domain/Merchant/PayInvoiceAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Domain/Merchant/PayInvoiceAction.php
+
+		-
+			message: '#^Parameter \#1 \$base of static method App\\Support\\Money\:\:ofBase\(\) expects Brick\\Math\\BigInteger\|int\|string, float given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Merchant/PayInvoiceAction.php
+
+		-
+			message: '#^Result of && is always false\.$#'
+			identifier: booleanAnd.alwaysFalse
+			count: 1
+			path: app/Domain/Merchant/PayInvoiceAction.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\MerchantStatus\:\:Suspended will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Domain/Merchant/PayInvoiceAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$decimals\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Domain/Merchant/RefundInvoiceAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Domain/Merchant/RefundInvoiceAction.php
+
+		-
+			message: '#^Parameter \#1 \$base of static method App\\Support\\Money\:\:ofBase\(\) expects Brick\\Math\\BigInteger\|int\|string, float given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Merchant/RefundInvoiceAction.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:notify\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Domain/Merchant/SetMerchantStatusAction.php
+
+		-
+			message: '#^Method App\\Domain\\Notification\\BroadcastAnnouncementAction\:\:execute\(\) has parameter \$channels with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/Notification/BroadcastAnnouncementAction.php
+
+		-
+			message: '#^Method App\\Domain\\Notification\\BroadcastAnnouncementAction\:\:segmentQuery\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Domain/Notification/BroadcastAnnouncementAction.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>category" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Domain/Notification/NotificationService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>channels" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Domain/Notification/NotificationService.php
+
+		-
+			message: '#^Parameter \#3 \$amount of static method App\\Domain\\Ledger\\DTO\\PostingLine\:\:credit\(\) expects App\\Support\\Money\|Brick\\Math\\BigInteger\|int\|string, float given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Ramp/CreditOnRampAction.php
+
+		-
+			message: '#^Parameter \#3 \$amount of static method App\\Domain\\Ledger\\DTO\\PostingLine\:\:debit\(\) expects App\\Support\\Money\|Brick\\Math\\BigInteger\|int\|string, float given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Ramp/CreditOnRampAction.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\RampStatus\:\:Credited will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Domain/Ramp/CreditOnRampAction.php
+
+		-
+			message: '#^Method App\\Domain\\Reconciliation\\ReconciliationService\:\:coinAssetIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/Reconciliation/ReconciliationService.php
+
+		-
+			message: '#^Method App\\Domain\\Reconciliation\\ReconciliationService\:\:runAll\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/Reconciliation/ReconciliationService.php
+
+		-
+			message: '#^Method App\\Domain\\Reconciliation\\ReconciliationService\:\:sumSignedFor\(\) has parameter \$types with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/Reconciliation/ReconciliationService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$decimals\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Revenue/ProcessRevenueWithdrawalAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Revenue/ProcessRevenueWithdrawalAction.php
+
+		-
+			message: '#^Cannot call method isActive\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Domain/Revenue/ProcessRevenueWithdrawalAction.php
+
+		-
+			message: '#^Cannot call method isTerminal\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Domain/Revenue/ProcessRevenueWithdrawalAction.php
+
+		-
+			message: '#^Method App\\Domain\\Revenue\\ProcessRevenueWithdrawalAction\:\:drawLines\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: app/Domain/Revenue/ProcessRevenueWithdrawalAction.php
+
+		-
+			message: '#^Method App\\Domain\\Revenue\\ProcessRevenueWithdrawalAction\:\:drawLines\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/Revenue/ProcessRevenueWithdrawalAction.php
+
+		-
+			message: '#^Method App\\Domain\\Revenue\\ProcessRevenueWithdrawalAction\:\:treasuryOutflowLines\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: app/Domain/Revenue/ProcessRevenueWithdrawalAction.php
+
+		-
+			message: '#^Property App\\Domain\\Revenue\\ProcessRevenueWithdrawalAction\:\:\$ledger is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Domain/Revenue/ProcessRevenueWithdrawalAction.php
+
+		-
+			message: '#^Property App\\Domain\\Revenue\\ProcessRevenueWithdrawalAction\:\:\$revenue is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Domain/Revenue/ProcessRevenueWithdrawalAction.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\RevenueWithdrawalStatus\:\:Pending will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Domain/Revenue/ProcessRevenueWithdrawalAction.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Domain/Revenue/ProcessRevenueWithdrawalAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Revenue/RequestRevenueWithdrawalAction.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: app/Domain/Revenue/RevenueService.php
+
+		-
+			message: '#^Method App\\Domain\\Revenue\\RevenueService\:\:accountBalance\(\) has parameter \$types with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/Revenue/RevenueService.php
+
+		-
+			message: '#^Method App\\Domain\\Revenue\\RevenueService\:\:dailySeries\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/Revenue/RevenueService.php
+
+		-
+			message: '#^Method App\\Domain\\Revenue\\RevenueService\:\:monthlySeries\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/Revenue/RevenueService.php
+
+		-
+			message: '#^Parameter \#1 \$base of static method App\\Support\\Money\:\:ofBase\(\) expects Brick\\Math\\BigInteger\|int\|string, float given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Domain/Rewards/AwardCashbackAction.php
+
+		-
+			message: '#^Method App\\Domain\\Rewards\\ProcessReferralQualificationAction\:\:bonus\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: app/Domain/Rewards/ProcessReferralQualificationAction.php
+
+		-
+			message: '#^Property App\\Domain\\Rewards\\ProcessReferralQualificationAction\:\:\$grantReward is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Domain/Rewards/ProcessReferralQualificationAction.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\ReferralStatus\:\:Pending will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Domain/Rewards/ProcessReferralQualificationAction.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Domain/Rewards/ProcessReferralQualificationAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$fromAsset\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Domain/Transaction/TransactionFeedService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$from_amount\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Transaction/TransactionFeedService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 13
+			path: app/Domain/Transaction/TransactionFeedService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$toAsset\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Domain/Transaction/TransactionFeedService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$to_amount\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Transaction/TransactionFeedService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:displayName\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Domain/Transaction/TransactionFeedService.php
+
+		-
+			message: '#^Cannot call method color\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: app/Domain/Transaction/TransactionFeedService.php
+
+		-
+			message: '#^Cannot call method label\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 5
+			path: app/Domain/Transaction/TransactionFeedService.php
+
+		-
+			message: '#^Method App\\Domain\\Transaction\\TransactionFeedService\:\:activity\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/Transaction/TransactionFeedService.php
+
+		-
+			message: '#^Method App\\Domain\\Transaction\\TransactionFeedService\:\:cards\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/Transaction/TransactionFeedService.php
+
+		-
+			message: '#^Method App\\Domain\\Transaction\\TransactionFeedService\:\:conversions\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/Transaction/TransactionFeedService.php
+
+		-
+			message: '#^Method App\\Domain\\Transaction\\TransactionFeedService\:\:deposits\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/Transaction/TransactionFeedService.php
+
+		-
+			message: '#^Method App\\Domain\\Transaction\\TransactionFeedService\:\:feed\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/Transaction/TransactionFeedService.php
+
+		-
+			message: '#^Method App\\Domain\\Transaction\\TransactionFeedService\:\:payments\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/Transaction/TransactionFeedService.php
+
+		-
+			message: '#^Method App\\Domain\\Transaction\\TransactionFeedService\:\:row\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/Transaction/TransactionFeedService.php
+
+		-
+			message: '#^Method App\\Domain\\Transaction\\TransactionFeedService\:\:row\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/Transaction/TransactionFeedService.php
+
+		-
+			message: '#^Method App\\Domain\\Transaction\\TransactionFeedService\:\:transfers\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/Transaction/TransactionFeedService.php
+
+		-
+			message: '#^Method App\\Domain\\Transaction\\TransactionFeedService\:\:withdrawals\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/Transaction/TransactionFeedService.php
+
+		-
+			message: '#^Parameter \#2 \$at of method App\\Domain\\Transaction\\TransactionFeedService\:\:row\(\) expects Illuminate\\Support\\Carbon, Carbon\\Carbon\|null given\.$#'
+			identifier: argument.type
+			count: 5
+			path: app/Domain/Transaction/TransactionFeedService.php
+
+		-
+			message: '#^Parameter \#2 \$at of method App\\Domain\\Transaction\\TransactionFeedService\:\:row\(\) expects Illuminate\\Support\\Carbon, Carbon\\Carbon\|string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Transaction/TransactionFeedService.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\CardAuthStatus\:\:Reversed will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Domain/Transaction/TransactionFeedService.php
+
+		-
+			message: '#^Ternary operator condition is always false\.$#'
+			identifier: ternary.alwaysFalse
+			count: 2
+			path: app/Domain/Transaction/TransactionFeedService.php
+
+		-
+			message: '#^Method App\\Domain\\Wallet\\WalletBalance\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/Wallet/WalletBalance.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$balance\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Wallet/WalletService.php
+
+		-
+			message: '#^Method App\\Domain\\Wallet\\WalletService\:\:fundedWallets\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/Wallet/WalletService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>balance" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Domain/Wallet/WalletService.php
+
+		-
+			message: '#^Method App\\Domain\\Webhook\\WebhookService\:\:dispatch\(\) has parameter \$payload with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/Webhook/WebhookService.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\WithdrawalStatus\:\:Review will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Domain/Withdrawal/RequestWithdrawalAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$chain_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Withdrawal/SettleWithdrawalAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$decimals\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Domain/Withdrawal/SettleWithdrawalAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 8
+			path: app/Domain/Withdrawal/SettleWithdrawalAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Domain/Withdrawal/SettleWithdrawalAction.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:requiredConfirmations\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Domain/Withdrawal/SettleWithdrawalAction.php
+
+		-
+			message: '#^Parameter \#1 \$base of static method App\\Support\\Money\:\:ofBase\(\) expects Brick\\Math\\BigInteger\|int\|string, float given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Domain/Withdrawal/SettleWithdrawalAction.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\WithdrawalStatus\:\:Completed will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Domain/Withdrawal/SettleWithdrawalAction.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:requiredConfirmations\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Domain/Withdrawal/Tron/AdvanceTronWithdrawalsAction.php
+
+		-
+			message: '#^Method App\\Domain\\Withdrawal\\Tron\\TronWithdrawalSigner\:\:fail\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: app/Domain/Withdrawal/Tron/TronWithdrawalSigner.php
+
+		-
+			message: '#^Method App\\Domain\\Withdrawal\\Tron\\TronWithdrawalSigner\:\:transferParams\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: app/Domain/Withdrawal/Tron/TronWithdrawalSigner.php
+
+		-
+			message: '#^Property App\\Domain\\Withdrawal\\Tron\\TronWithdrawalSigner\:\:\$client is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Domain/Withdrawal/Tron/TronWithdrawalSigner.php
+
+		-
+			message: '#^Property App\\Domain\\Withdrawal\\Tron\\TronWithdrawalSigner\:\:\$keys is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Domain/Withdrawal/Tron/TronWithdrawalSigner.php
+
+		-
+			message: '#^Property App\\Domain\\Withdrawal\\Tron\\TronWithdrawalSigner\:\:\$signer is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Domain/Withdrawal/Tron/TronWithdrawalSigner.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\WithdrawalStatus\:\:Approved will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Domain/Withdrawal/Tron/TronWithdrawalSigner.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Domain/Withdrawal/Tron/TronWithdrawalSigner.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Events/CardTransactionSettled.php
+
+		-
+			message: '#^Parameter \#1 \$array \(array\{0\: Illuminate\\Broadcasting\\PrivateChannel, 1\?\: Illuminate\\Broadcasting\\PrivateChannel\}\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: app/Events/InvoicePaid.php
+
+		-
+			message: '#^Parameter \#1 \$array \(array\{0\: Illuminate\\Broadcasting\\PrivateChannel, 1\?\: Illuminate\\Broadcasting\\PrivateChannel\}\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: app/Events/TransferCompleted.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/AssetsController.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 2
+			path: app/Http/Controllers/Admin/AssetsController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\AssetsController\:\:assetCurrencyCode\(\) never returns string so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: app/Http/Controllers/Admin/AssetsController.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\AssetKind\:\:Fiat will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/Admin/AssetsController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Admin/AssetsController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\StatefulGuard\:\:getProvider\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/AuthController.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\CardStatus\:\:Closed will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/Admin/CardsController.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\CardStatus\:\:Frozen will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/Admin/CardsController.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Http/Controllers/Admin/FinancialReportController.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Http/Controllers/Admin/FinancialReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/KycQueueController.php
+
+		-
+			message: '#^Cannot call method label\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Admin/KycQueueController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/RevenueController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\),Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Asset\>\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Admin/RevenueController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\),Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Asset\>\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Admin/RevenueController.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type App\\Models\\Admin\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 6
+			path: app/Http/Controllers/Admin/RevenueController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Admin/RevenueController.php
+
+		-
+			message: '#^Parameter \#1 \$filters of method App\\Domain\\Revenue\\RevenueService\:\:transactionsQuery\(\) expects array\{asset_id\?\: int, fee_type\?\: string, user\?\: string, from\?\: string, to\?\: string\}, array\<string, string\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Http/Controllers/Admin/RevenueTransactionsController.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between non\-empty\-string and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Http/Controllers/Admin/RevenueTransactionsController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/RevenueWalletController.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type App\\Models\\Admin\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Http/Controllers/Admin/RevenueWalletController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Admin/RevenueWalletController.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\RevenueWithdrawalStatus\:\:Pending will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Http/Controllers/Admin/RevenueWithdrawalsController.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 2
+			path: app/Http/Controllers/Admin/RevenueWithdrawalsController.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type App\\Models\\Admin\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Http/Controllers/Admin/RevenueWithdrawalsController.php
+
+		-
+			message: '#^Parameter \#2 \$subject of static method App\\Domain\\Audit\\ActivityLogger\:\:log\(\) expects Illuminate\\Database\\Eloquent\\Model\|null, Illuminate\\Database\\Eloquent\\Collection\<int, Spatie\\Permission\\Models\\Role\>\|Spatie\\Permission\\Contracts\\Role given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Admin/RolesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\SettingController\:\:sections\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/Admin/SettingController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\SimulationController\:\:cryptoAssets\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/Admin/SimulationController.php
+
+		-
+			message: '#^Parameter \#2 \$chain of method App\\Domain\\Custody\\AllocateDepositAddressAction\:\:execute\(\) expects App\\Models\\Chain, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Admin/SimulationController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$asset\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/UsersController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:money\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/Admin/UsersController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\),Illuminate\\Database\\Eloquent\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\>\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Admin/UsersController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\),Illuminate\\Database\\Eloquent\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\>\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Admin/UsersController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$decimals\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Admin/WithdrawalsController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Admin/WithdrawalsController.php
+
+		-
+			message: '#^Cannot call method isReversibleLock\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Http/Controllers/Admin/WithdrawalsController.php
+
+		-
+			message: '#^Parameter \#1 \$base of static method App\\Support\\Money\:\:ofBase\(\) expects Brick\\Math\\BigInteger\|int\|string, float given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Http/Controllers/Admin/WithdrawalsController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Api\\V1\\ApiController\:\:fail\(\) has parameter \$details with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/Api/V1/ApiController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Api\\V1\\ApiController\:\:ok\(\) has parameter \$meta with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/Api/V1/ApiController.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 2
+			path: app/Http/Controllers/Api/V1/AuthController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Api\\V1\\AuthController\:\:userPayload\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/Api/V1/AuthController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Api/V1/DepositController.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 2
+			path: app/Http/Controllers/Api/V1/DepositController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Deposit\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Api/V1/DepositController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Deposit\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Api/V1/DepositController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$key\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Api/V1/ReferenceController.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 2
+			path: app/Http/Controllers/Api/V1/ReferenceController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Asset\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Api/V1/ReferenceController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Chain\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Api/V1/ReferenceController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Asset\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Api/V1/ReferenceController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Chain\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Api/V1/ReferenceController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Api/V1/TransferController.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 3
+			path: app/Http/Controllers/Api/V1/TransferController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Transfer\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Api/V1/TransferController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Transfer\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Api/V1/TransferController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$fromAsset\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Frontend/AssetShowController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$from_amount\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Frontend/AssetShowController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$key\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Frontend/AssetShowController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Frontend/AssetShowController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$toAsset\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Frontend/AssetShowController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$to_amount\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Frontend/AssetShowController.php
+
+		-
+			message: '#^Cannot call method label\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 3
+			path: app/Http/Controllers/Frontend/AssetShowController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Frontend\\AssetShowController\:\:transactions\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Http/Controllers/Frontend/AssetShowController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Asset\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Frontend/AssetShowController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Deposit\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Frontend/AssetShowController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Transfer\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Frontend/AssetShowController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Withdrawal\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Frontend/AssetShowController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Asset\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Frontend/AssetShowController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Deposit\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Frontend/AssetShowController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Transfer\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Frontend/AssetShowController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Withdrawal\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Frontend/AssetShowController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Frontend/AssetShowController.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 2
+			path: app/Http/Controllers/Frontend/CardManageController.php
+
+		-
+			message: '#^Cannot call method color\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Frontend/CardManageController.php
+
+		-
+			message: '#^Cannot call method label\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Frontend/CardManageController.php
+
+		-
+			message: '#^Parameter \#1 \$auth of method App\\Domain\\Card\\OpenCardDisputeAction\:\:execute\(\) expects App\\Models\\CardAuthorization, Illuminate\\Database\\Eloquent\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\>\|Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Frontend/CardManageController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Frontend/CardManageController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: string, merchant\: string, mcc\: string, amount\: non\-falsy\-string, status\: mixed, statusLabel\: mixed, statusColor\: mixed, date\: non\-falsy\-string\|null, disputable\: bool, disputed\: bool\}, Closure\(App\\Models\\CardAuthorization\)\: array\{id\: string, merchant\: string, mcc\: string, amount\: non\-falsy\-string, status\: mixed, statusLabel\: mixed, statusColor\: mixed, date\: non\-falsy\-string\|null, disputable\: bool, disputed\: bool\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Frontend/CardManageController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Frontend/CardManageController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:all\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Frontend/CardManageController.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\CardStatus\:\:Closed will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/Frontend/CardManageController.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\CardStatus\:\:Frozen will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 2
+			path: app/Http/Controllers/Frontend/CardManageController.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\CardStatus\:\:Inactive will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Http/Controllers/Frontend/CardsController.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\CardStatus\:\:Closed will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/Frontend/CardsController.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\CardStatus\:\:Frozen will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/Frontend/CardsController.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Http/Controllers/Frontend/CardsController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>network" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Frontend/CardsController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>settlement_currency" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Frontend/CardsController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$decimals\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/Frontend/CreditController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 6
+			path: app/Http/Controllers/Frontend/CreditController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:money\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: app/Http/Controllers/Frontend/CreditController.php
+
+		-
+			message: '#^Cannot call method color\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Frontend/CreditController.php
+
+		-
+			message: '#^Cannot call method label\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Frontend/CreditController.php
+
+		-
+			message: '#^Comparison operation "\>" between int\<1, max\> and 0 is always true\.$#'
+			identifier: greater.alwaysTrue
+			count: 1
+			path: app/Http/Controllers/Frontend/CreditController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Frontend\\CreditController\:\:fundedCrypto\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/Frontend/CreditController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Frontend\\CreditController\:\:fundedCrypto\(\) has parameter \$user with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/Frontend/CreditController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Frontend\\CreditController\:\:parsePositive\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/Frontend/CreditController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\CreditTransaction\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Frontend/CreditController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\CreditTransaction\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Frontend/CreditController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:values\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Frontend/CreditController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/Frontend/DashboardController.php
+
+		-
+			message: '#^Cannot call method label\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 3
+			path: app/Http/Controllers/Frontend/DashboardController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Frontend\\DashboardController\:\:recentActivity\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Http/Controllers/Frontend/DashboardController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Deposit\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Frontend/DashboardController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Transfer\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Frontend/DashboardController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Withdrawal\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Frontend/DashboardController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Deposit\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Frontend/DashboardController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Transfer\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Frontend/DashboardController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Withdrawal\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Frontend/DashboardController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>symbol" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Frontend/DashboardController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Frontend/DepositController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$is_active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Frontend/DepositController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/Frontend/DepositController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Frontend/DepositController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$type\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Frontend/DepositController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:isFiat\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Frontend/DepositController.php
+
+		-
+			message: '#^Cannot call method color\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Frontend/DepositController.php
+
+		-
+			message: '#^Cannot call method label\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Frontend/DepositController.php
+
+		-
+			message: '#^Left side of && is always false\.$#'
+			identifier: booleanAnd.leftAlwaysFalse
+			count: 1
+			path: app/Http/Controllers/Frontend/DepositController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Frontend\\DepositController\:\:allocateNetworkAddress\(\) has parameter \$user with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/Frontend/DepositController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Pagination\\AbstractPaginator\<int,App\\Models\\Deposit\>\:\:through\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Frontend/DepositController.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Illuminate\\Support\\Str\:\:headline\(\) expects string, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Frontend/DepositController.php
+
+		-
+			message: '#^Parameter \#2 \$chain of method App\\Domain\\Custody\\AllocateDepositAddressAction\:\:execute\(\) expects App\\Models\\Chain, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Frontend/DepositController.php
+
+		-
+			message: '#^Parameter \#2 \$method of method App\\Domain\\Deposit\\SubmitManualDepositAction\:\:execute\(\) expects App\\Models\\DepositMethod, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Frontend/DepositController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Pagination\\AbstractPaginator\<int,App\\Models\\Deposit\>\:\:through\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Frontend/DepositController.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between 0 and ''address'' will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/Frontend/DepositController.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\DepositMethodType\:\:Crypto will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/Frontend/DepositController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 3
+			path: app/Http/Controllers/Frontend/DepositController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$decimals\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Frontend/ExchangeController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$fromAsset\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Frontend/ExchangeController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$from_amount\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Frontend/ExchangeController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Frontend/ExchangeController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/Frontend/ExchangeController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$toAsset\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Frontend/ExchangeController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$to_amount\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Frontend/ExchangeController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:money\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Frontend/ExchangeController.php
+
+		-
+			message: '#^Cannot access property \$timestamp on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Http/Controllers/Frontend/ExchangeController.php
+
+		-
+			message: '#^Cannot call method isPast\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Http/Controllers/Frontend/ExchangeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Frontend\\ExchangeController\:\:fromAssetIds\(\) has parameter \$all with generic class Illuminate\\Support\\Collection but does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Http/Controllers/Frontend/ExchangeController.php
+
+		-
+			message: '#^Parameter \#1 \$base of static method App\\Support\\Money\:\:ofBase\(\) expects Brick\\Math\\BigInteger\|int\|string, float given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Http/Controllers/Frontend/ExchangeController.php
+
+		-
+			message: '#^Call to function in_array\(\) with arguments string, array\{App\\Enums\\KycStatus\:\:None, App\\Enums\\KycStatus\:\:Rejected\} and true will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: app/Http/Controllers/Frontend/KycController.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Http/Controllers/Frontend/KycController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Frontend/MerchantController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Frontend/MerchantController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:feeBps\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Frontend/MerchantController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Frontend/PayInvoiceController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Frontend/PayInvoiceController.php
+
+		-
+			message: '#^Cannot call method diffForHumans\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Frontend/PayInvoiceController.php
+
+		-
+			message: '#^Cannot call method isPast\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Frontend/PayInvoiceController.php
+
+		-
+			message: '#^Parameter \#2 \$asset of method App\\Domain\\Wallet\\WalletService\:\:balanceFor\(\) expects App\\Models\\Asset, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Frontend/PayInvoiceController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Frontend/RewardsController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Frontend/RewardsController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:money\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/Frontend/RewardsController.php
+
+		-
+			message: '#^Cannot call method color\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Frontend/RewardsController.php
+
+		-
+			message: '#^Cannot call method label\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Frontend/RewardsController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Referral\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Frontend/RewardsController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Referral\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Frontend/RewardsController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:all\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Frontend/RewardsController.php
+
+		-
+			message: '#^Unable to resolve the template type TGroupKey in call to method Illuminate\\Support\\Collection\<int,App\\Models\\RewardGrant\>\:\:groupBy\(\)$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Http/Controllers/Frontend/RewardsController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Frontend/RewardsController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>symbol" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Frontend/RewardsController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Frontend/SendController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Frontend/SendController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Pagination\\AbstractPaginator\<int,App\\Models\\Transfer\>\:\:through\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Frontend/SendController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Pagination\\AbstractPaginator\<int,App\\Models\\Transfer\>\:\:through\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Frontend/SendController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Http/Controllers/Frontend/SendController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$asset\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Frontend/SettingsController.php
+
+		-
+			message: '#^Call to function in_array\(\) with arguments string, array\{App\\Enums\\KycStatus\:\:None, App\\Enums\\KycStatus\:\:Rejected\} and true will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: app/Http/Controllers/Frontend/SettingsController.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Http/Controllers/Frontend/SettingsController.php
+
+		-
+			message: '#^Cannot call method color\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Frontend/SettingsController.php
+
+		-
+			message: '#^Cannot call method diffForHumans\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Frontend/SettingsController.php
+
+		-
+			message: '#^Cannot call method label\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Frontend/SettingsController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Frontend/SettingsController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: string, name\: string\|null, ip\: string\|null, last\: mixed, current\: bool\}, Closure\(App\\Models\\UserDevice\)\: array\{id\: string, name\: string\|null, ip\: string\|null, last\: mixed, current\: bool\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Frontend/SettingsController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Frontend/SettingsController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>symbol" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Frontend/SettingsController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Frontend\\WalletController\:\:baseAsset\(\) has parameter \$user with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/Frontend/WalletController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Frontend/WithdrawController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/Frontend/WithdrawController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Frontend/WithdrawController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:isFiat\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Frontend/WithdrawController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:money\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Frontend/WithdrawController.php
+
+		-
+			message: '#^Cannot call method color\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Frontend/WithdrawController.php
+
+		-
+			message: '#^Cannot call method label\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Frontend/WithdrawController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Frontend\\WithdrawController\:\:rememberAccount\(\) has parameter \$user with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/Frontend/WithdrawController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Frontend\\WithdrawController\:\:resolvePayoutTarget\(\) has parameter \$user with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/Frontend/WithdrawController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Frontend\\WithdrawController\:\:resolvePayoutTarget\(\) should return array\{App\\Models\\WithdrawalMethod\|null, App\\Models\\PayoutAccount\|null, string, string, string\|null\} but returns array\{Illuminate\\Database\\Eloquent\\Model\|null, App\\Models\\PayoutAccount\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\PayoutAccount\>, string, string, string\|null\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Frontend/WithdrawController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Frontend\\WithdrawController\:\:withdrawableWallets\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/Frontend/WithdrawController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Frontend\\WithdrawController\:\:withdrawableWallets\(\) has parameter \$user with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/Frontend/WithdrawController.php
+
+		-
+			message: '#^Offset ''number_label'' on string\|null on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Http/Controllers/Frontend/WithdrawController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\PayoutAccount\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Frontend/WithdrawController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Pagination\\AbstractPaginator\<int,App\\Models\\Withdrawal\>\:\:through\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Frontend/WithdrawController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\PayoutAccount\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Frontend/WithdrawController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Pagination\\AbstractPaginator\<int,App\\Models\\Withdrawal\>\:\:through\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Frontend/WithdrawController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:all\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Frontend/WithdrawController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:values\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Frontend/WithdrawController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 4
+			path: app/Http/Controllers/Frontend/WithdrawController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>type" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Frontend/WithdrawController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ImpersonationController\:\:start\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ImpersonationController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ImpersonationController\:\:stop\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ImpersonationController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>locale" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Middleware/SetLocale.php
+
+		-
+			message: '#^Result of \|\| is always true\.$#'
+			identifier: booleanOr.alwaysTrue
+			count: 1
+			path: app/Jobs/BroadcastRevenueWithdrawalJob.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\RevenueWithdrawalStatus\:\:Approved will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Jobs/BroadcastRevenueWithdrawalJob.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Jobs/BroadcastRevenueWithdrawalJob.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$decimals\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Jobs/ChainTickJob.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Jobs/ChainTickJob.php
+
+		-
+			message: '#^Parameter \#1 \$address of method App\\Domain\\Chain\\SweepDepositAction\:\:execute\(\) expects App\\Models\\DepositAddress, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Jobs/ChainTickJob.php
+
+		-
+			message: '#^Parameter \#1 \$base of static method App\\Support\\Money\:\:ofBase\(\) expects Brick\\Math\\BigInteger\|int\|string, float given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Jobs/ChainTickJob.php
+
+		-
+			message: '#^Parameter \#2 \$asset of method App\\Domain\\Chain\\SweepDepositAction\:\:execute\(\) expects App\\Models\\Asset, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Jobs/ChainTickJob.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$secret\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Jobs/DispatchWebhookJob.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$url\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Jobs/DispatchWebhookJob.php
+
+		-
+			message: '#^Method App\\Jobs\\DispatchWebhookJob\:\:backoff\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Jobs/DispatchWebhookJob.php
+
+		-
+			message: '#^Offset ''amount_minor'' on array\{\}\|string on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Jobs/ProcessCardWebhookJob.php
+
+		-
+			message: '#^Offset ''currency'' on array\{\}\|string on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Jobs/ProcessCardWebhookJob.php
+
+		-
+			message: '#^Offset ''raw'' on array\{\}\|string on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Jobs/ProcessCardWebhookJob.php
+
+		-
+			message: '#^Method App\\Listeners\\GrantWelcomeBonus\:\:resolve\(\) should return array\{App\\Models\\Asset\|null, App\\Support\\Money\} but returns array\{Illuminate\\Database\\Eloquent\\Model\|null, App\\Support\\Money\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Listeners/GrantWelcomeBonus.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Listeners/HandleCardTransactionSettled.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$user\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Listeners/HandleCardTransactionSettled.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Listeners/HandleDepositCredited.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:notify\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Listeners/HandleDepositCredited.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Listeners/HandleInvoicePaid.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:notify\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Listeners/HandleInvoicePaid.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Listeners/HandleWithdrawalCompleted.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:notify\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Listeners/HandleWithdrawalCompleted.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Listeners/NotifyOperatorsOfActivity.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Listeners/NotifyOperatorsOfReview.php
+
+		-
+			message: '#^Cannot call method label\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Listeners/NotifyOperatorsOfReview.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Domain\\Compliance\\ScreeningService\:\:screen\(\) expects App\\Models\\User, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Listeners/ScreenOnKycSubmission.php
+
+		-
+			message: '#^Parameter \$user of method App\\Domain\\Compliance\\RaiseAlertAction\:\:execute\(\) expects App\\Models\\User, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Listeners/ScreenOnKycSubmission.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\ScreeningStatus\:\:Hit will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Listeners/ScreenOnKycSubmission.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\ScreeningStatus\:\:Review will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Listeners/ScreenOnKycSubmission.php
+
+		-
+			message: '#^Method App\\Models\\AccountBalance\:\:account\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/AccountBalance.php
+
+		-
+			message: '#^Method App\\Models\\AddressBookEntry\:\:asset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/AddressBookEntry.php
+
+		-
+			message: '#^Method App\\Models\\AddressBookEntry\:\:chain\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/AddressBookEntry.php
+
+		-
+			message: '#^Method App\\Models\\AddressBookEntry\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/AddressBookEntry.php
+
+		-
+			message: '#^Class App\\Models\\Admin uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Admin.php
+
+		-
+			message: '#^Method App\\Models\\AmlAlert\:\:case\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/AmlAlert.php
+
+		-
+			message: '#^Method App\\Models\\AmlAlert\:\:resolver\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/AmlAlert.php
+
+		-
+			message: '#^Method App\\Models\\AmlAlert\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/AmlAlert.php
+
+		-
+			message: '#^Method App\\Models\\Announcement\:\:sender\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Announcement.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$min_confirmations\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Asset.php
+
+		-
+			message: '#^Method App\\Models\\Asset\:\:chain\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Asset.php
+
+		-
+			message: '#^Method App\\Models\\Asset\:\:currency\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Asset.php
+
+		-
+			message: '#^Method App\\Models\\Asset\:\:depositMethods\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Asset.php
+
+		-
+			message: '#^Method App\\Models\\Asset\:\:scopeDepositable\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Asset.php
+
+		-
+			message: '#^Method App\\Models\\Asset\:\:scopeDepositable\(\) has parameter \$query with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/Asset.php
+
+		-
+			message: '#^Result of && is always false\.$#'
+			identifier: booleanAnd.alwaysFalse
+			count: 1
+			path: app/Models/Asset.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\AssetKind\:\:Crypto will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Models/Asset.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\AssetKind\:\:Fiat will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Models/Asset.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>min_confirmations" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Models/Asset.php
+
+		-
+			message: '#^Method App\\Models\\AuditLog\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/AuditLog.php
+
+		-
+			message: '#^Cannot call method label\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Models/Card.php
+
+		-
+			message: '#^Method App\\Models\\Card\:\:authorizations\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Card.php
+
+		-
+			message: '#^Method App\\Models\\Card\:\:frozenBy\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Card.php
+
+		-
+			message: '#^Method App\\Models\\Card\:\:metadata\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Card.php
+
+		-
+			message: '#^Method App\\Models\\Card\:\:provider\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Card.php
+
+		-
+			message: '#^Method App\\Models\\Card\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Card.php
+
+		-
+			message: '#^Method App\\Models\\CardAuthorization\:\:card\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/CardAuthorization.php
+
+		-
+			message: '#^Method App\\Models\\CardAuthorization\:\:fundingAsset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/CardAuthorization.php
+
+		-
+			message: '#^Method App\\Models\\CardAuthorization\:\:holdEntry\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/CardAuthorization.php
+
+		-
+			message: '#^Method App\\Models\\CardAuthorization\:\:quote\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/CardAuthorization.php
+
+		-
+			message: '#^Method App\\Models\\CardAuthorization\:\:settleEntry\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/CardAuthorization.php
+
+		-
+			message: '#^Method App\\Models\\CardDispute\:\:authorization\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/CardDispute.php
+
+		-
+			message: '#^Method App\\Models\\CardDispute\:\:entry\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/CardDispute.php
+
+		-
+			message: '#^Method App\\Models\\CardMetadata\:\:card\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/CardMetadata.php
+
+		-
+			message: '#^Method App\\Models\\CardProvider\:\:cards\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/CardProvider.php
+
+		-
+			message: '#^Method App\\Models\\CardProviderLog\:\:card\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/CardProviderLog.php
+
+		-
+			message: '#^Method App\\Models\\CardProviderLog\:\:provider\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/CardProviderLog.php
+
+		-
+			message: '#^Method App\\Models\\Chain\:\:assets\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Chain.php
+
+		-
+			message: '#^Method App\\Models\\Chain\:\:xpubs\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Chain.php
+
+		-
+			message: '#^Method App\\Models\\ComplianceCase\:\:alerts\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/ComplianceCase.php
+
+		-
+			message: '#^Method App\\Models\\ComplianceCase\:\:assignee\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/ComplianceCase.php
+
+		-
+			message: '#^Method App\\Models\\ComplianceCase\:\:opener\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/ComplianceCase.php
+
+		-
+			message: '#^Method App\\Models\\ComplianceCase\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/ComplianceCase.php
+
+		-
+			message: '#^Method App\\Models\\Conversion\:\:entry\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Conversion.php
+
+		-
+			message: '#^Method App\\Models\\Conversion\:\:quote\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Conversion.php
+
+		-
+			message: '#^Method App\\Models\\Conversion\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Conversion.php
+
+		-
+			message: '#^Method App\\Models\\CreditLine\:\:collateralAsset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/CreditLine.php
+
+		-
+			message: '#^Method App\\Models\\CreditLine\:\:principalAsset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/CreditLine.php
+
+		-
+			message: '#^Method App\\Models\\CreditLine\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/CreditLine.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:money\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/CreditTransaction.php
+
+		-
+			message: '#^Method App\\Models\\CreditTransaction\:\:asset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/CreditTransaction.php
+
+		-
+			message: '#^Method App\\Models\\CreditTransaction\:\:creditLine\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/CreditTransaction.php
+
+		-
+			message: '#^Method App\\Models\\Currency\:\:assets\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Currency.php
+
+		-
+			message: '#^Method App\\Models\\Currency\:\:networks\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Currency.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\AssetKind\:\:Fiat will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Models/Currency.php
+
+		-
+			message: '#^Method App\\Models\\CustodyXpub\:\:chain\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/CustodyXpub.php
+
+		-
+			message: '#^Method App\\Models\\CustodyXpub\:\:depositAddresses\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/CustodyXpub.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:money\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Models/Deposit.php
+
+		-
+			message: '#^Method App\\Models\\Deposit\:\:asset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Deposit.php
+
+		-
+			message: '#^Method App\\Models\\Deposit\:\:depositAddress\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Deposit.php
+
+		-
+			message: '#^Method App\\Models\\Deposit\:\:depositMethod\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Deposit.php
+
+		-
+			message: '#^Method App\\Models\\Deposit\:\:onchainTx\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Deposit.php
+
+		-
+			message: '#^Method App\\Models\\Deposit\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Deposit.php
+
+		-
+			message: '#^Method App\\Models\\DepositAddress\:\:chain\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DepositAddress.php
+
+		-
+			message: '#^Method App\\Models\\DepositAddress\:\:deposits\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DepositAddress.php
+
+		-
+			message: '#^Method App\\Models\\DepositAddress\:\:sweeps\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DepositAddress.php
+
+		-
+			message: '#^Method App\\Models\\DepositAddress\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DepositAddress.php
+
+		-
+			message: '#^Method App\\Models\\DepositAddress\:\:xpub\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DepositAddress.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:money\(\)\.$#'
+			identifier: method.notFound
+			count: 4
+			path: app/Models/DepositMethod.php
+
+		-
+			message: '#^Method App\\Models\\DepositMethod\:\:asset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DepositMethod.php
+
+		-
+			message: '#^Method App\\Models\\FxQuote\:\:fromAsset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/FxQuote.php
+
+		-
+			message: '#^Method App\\Models\\FxQuote\:\:toAsset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/FxQuote.php
+
+		-
+			message: '#^Method App\\Models\\FxQuote\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/FxQuote.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$native_symbol\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/GasWallet.php
+
+		-
+			message: '#^Method App\\Models\\GasWallet\:\:chain\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/GasWallet.php
+
+		-
+			message: '#^Parameter \#1 \$base of static method App\\Support\\Money\:\:ofBase\(\) expects Brick\\Math\\BigInteger\|int\|string, float given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Models/GasWallet.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>native_symbol" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Models/GasWallet.php
+
+		-
+			message: '#^Method App\\Models\\JournalEntry\:\:lines\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/JournalEntry.php
+
+		-
+			message: '#^Method App\\Models\\JournalEntry\:\:reverses\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/JournalEntry.php
+
+		-
+			message: '#^Call to function array_key_exists\(\) with string and array\{\}\|string will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: app/Models/KycProfile.php
+
+		-
+			message: '#^Method App\\Models\\KycProfile\:\:reviewedBy\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/KycProfile.php
+
+		-
+			message: '#^Method App\\Models\\KycProfile\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/KycProfile.php
+
+		-
+			message: '#^Parameter \#1 \$array \(array\{\}\|string\) to function array_values is empty, call has no effect\.$#'
+			identifier: arrayValues.empty
+			count: 1
+			path: app/Models/KycProfile.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$balance\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/LedgerAccount.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$decimals\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/LedgerAccount.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/LedgerAccount.php
+
+		-
+			message: '#^Method App\\Models\\LedgerAccount\:\:asset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/LedgerAccount.php
+
+		-
+			message: '#^Method App\\Models\\LedgerAccount\:\:balance\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasOne does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/LedgerAccount.php
+
+		-
+			message: '#^Method App\\Models\\LedgerAccount\:\:lines\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/LedgerAccount.php
+
+		-
+			message: '#^Method App\\Models\\LedgerAccount\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/LedgerAccount.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>balance" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Models/LedgerAccount.php
+
+		-
+			message: '#^Method App\\Models\\LedgerLine\:\:account\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/LedgerLine.php
+
+		-
+			message: '#^Method App\\Models\\LedgerLine\:\:asset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/LedgerLine.php
+
+		-
+			message: '#^Method App\\Models\\LedgerLine\:\:entry\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/LedgerLine.php
+
+		-
+			message: '#^Method App\\Models\\Merchant\:\:invoices\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Merchant.php
+
+		-
+			message: '#^Method App\\Models\\Merchant\:\:settlementAsset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Merchant.php
+
+		-
+			message: '#^Method App\\Models\\Merchant\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Merchant.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:money\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Models/MerchantInvoice.php
+
+		-
+			message: '#^Cannot call method isFuture\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Models/MerchantInvoice.php
+
+		-
+			message: '#^Method App\\Models\\MerchantInvoice\:\:asset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/MerchantInvoice.php
+
+		-
+			message: '#^Method App\\Models\\MerchantInvoice\:\:merchant\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/MerchantInvoice.php
+
+		-
+			message: '#^Method App\\Models\\MerchantInvoice\:\:payer\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/MerchantInvoice.php
+
+		-
+			message: '#^Method App\\Models\\NotificationPreference\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/NotificationPreference.php
+
+		-
+			message: '#^Method App\\Models\\NotificationTemplate\:\:interpolate\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/NotificationTemplate.php
+
+		-
+			message: '#^Method App\\Models\\NotificationTemplate\:\:render\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/NotificationTemplate.php
+
+		-
+			message: '#^Method App\\Models\\NotificationTemplate\:\:render\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/NotificationTemplate.php
+
+		-
+			message: '#^Method App\\Models\\OnchainTx\:\:asset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/OnchainTx.php
+
+		-
+			message: '#^Method App\\Models\\OnchainTx\:\:chain\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/OnchainTx.php
+
+		-
+			message: '#^Method App\\Models\\OtpCode\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/OtpCode.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/PayoutAccount.php
+
+		-
+			message: '#^Method App\\Models\\PayoutAccount\:\:asset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/PayoutAccount.php
+
+		-
+			message: '#^Method App\\Models\\PayoutAccount\:\:method\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/PayoutAccount.php
+
+		-
+			message: '#^Method App\\Models\\PayoutAccount\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/PayoutAccount.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Models/PayoutAccount.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:money\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/ProfitPayout.php
+
+		-
+			message: '#^Method App\\Models\\ProfitPayout\:\:asset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/ProfitPayout.php
+
+		-
+			message: '#^Method App\\Models\\ProfitPayout\:\:operator\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/ProfitPayout.php
+
+		-
+			message: '#^Method App\\Models\\ProviderAccount\:\:provider\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/ProviderAccount.php
+
+		-
+			message: '#^Method App\\Models\\ProviderAccount\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/ProviderAccount.php
+
+		-
+			message: '#^Method App\\Models\\RampOrder\:\:entry\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/RampOrder.php
+
+		-
+			message: '#^Method App\\Models\\RampOrder\:\:fiatAsset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/RampOrder.php
+
+		-
+			message: '#^Method App\\Models\\RampOrder\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/RampOrder.php
+
+		-
+			message: '#^Method App\\Models\\ReconciliationRun\:\:asset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/ReconciliationRun.php
+
+		-
+			message: '#^Method App\\Models\\Referral\:\:referee\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Referral.php
+
+		-
+			message: '#^Method App\\Models\\Referral\:\:referrer\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Referral.php
+
+		-
+			message: '#^Method App\\Models\\Referral\:\:rewardEntry\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Referral.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:money\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Models/RevenueWithdrawal.php
+
+		-
+			message: '#^Method App\\Models\\RevenueWithdrawal\:\:approver\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/RevenueWithdrawal.php
+
+		-
+			message: '#^Method App\\Models\\RevenueWithdrawal\:\:asset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/RevenueWithdrawal.php
+
+		-
+			message: '#^Method App\\Models\\RevenueWithdrawal\:\:creator\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/RevenueWithdrawal.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:money\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/RewardCampaign.php
+
+		-
+			message: '#^Method App\\Models\\RewardCampaign\:\:asset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/RewardCampaign.php
+
+		-
+			message: '#^Method App\\Models\\RewardGrant\:\:asset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/RewardGrant.php
+
+		-
+			message: '#^Method App\\Models\\RewardGrant\:\:entry\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/RewardGrant.php
+
+		-
+			message: '#^Method App\\Models\\RewardGrant\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/RewardGrant.php
+
+		-
+			message: '#^Method App\\Models\\RpcEndpoint\:\:chain\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/RpcEndpoint.php
+
+		-
+			message: '#^Method App\\Models\\ScreeningResult\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/ScreeningResult.php
+
+		-
+			message: '#^Method App\\Models\\SupportMessage\:\:author\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SupportMessage.php
+
+		-
+			message: '#^Method App\\Models\\SupportMessage\:\:ticket\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SupportMessage.php
+
+		-
+			message: '#^Method App\\Models\\SupportTicket\:\:assignedTo\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SupportTicket.php
+
+		-
+			message: '#^Method App\\Models\\SupportTicket\:\:messages\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SupportTicket.php
+
+		-
+			message: '#^Method App\\Models\\SupportTicket\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SupportTicket.php
+
+		-
+			message: '#^Method App\\Models\\Sweep\:\:asset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Sweep.php
+
+		-
+			message: '#^Method App\\Models\\Sweep\:\:depositAddress\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Sweep.php
+
+		-
+			message: '#^Method App\\Models\\Sweep\:\:onchainTx\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Sweep.php
+
+		-
+			message: '#^Method App\\Models\\Sweep\:\:settleEntry\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Sweep.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/TradingPair.php
+
+		-
+			message: '#^Method App\\Models\\TradingPair\:\:fromAsset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/TradingPair.php
+
+		-
+			message: '#^Method App\\Models\\TradingPair\:\:toAsset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/TradingPair.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>symbol" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Models/TradingPair.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:money\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/Transfer.php
+
+		-
+			message: '#^Method App\\Models\\Transfer\:\:asset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Transfer.php
+
+		-
+			message: '#^Method App\\Models\\Transfer\:\:recipient\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Transfer.php
+
+		-
+			message: '#^Method App\\Models\\Transfer\:\:sender\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Transfer.php
+
+		-
+			message: '#^Class App\\Models\\User uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:addressBook\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:cards\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:depositAddresses\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:deposits\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:devices\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:favoriteAssets\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany does not specify its types\: TRelatedModel, TDeclaringModel, TPivotModel, TAccessor \(2\-4 required\)$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:kycProfiles\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:latestKyc\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasOne does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:ledgerAccounts\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:merchant\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasOne does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:sentTransfers\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:spendingPriority\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:supportTickets\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:tier\(\) should return App\\Enums\\KycTier but returns string\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:withdrawals\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\UserDevice\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/UserDevice.php
+
+		-
+			message: '#^Method App\\Models\\UserSpendingPriority\:\:asset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/UserSpendingPriority.php
+
+		-
+			message: '#^Method App\\Models\\UserSpendingPriority\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/UserSpendingPriority.php
+
+		-
+			message: '#^Method App\\Models\\WebhookDelivery\:\:endpoint\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/WebhookDelivery.php
+
+		-
+			message: '#^Method App\\Models\\WebhookEndpoint\:\:deliveries\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/WebhookEndpoint.php
+
+		-
+			message: '#^Method App\\Models\\WebhookEndpoint\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/WebhookEndpoint.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:money\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Models/Withdrawal.php
+
+		-
+			message: '#^Method App\\Models\\Withdrawal\:\:approver\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Withdrawal.php
+
+		-
+			message: '#^Method App\\Models\\Withdrawal\:\:asset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Withdrawal.php
+
+		-
+			message: '#^Method App\\Models\\Withdrawal\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Withdrawal.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:money\(\)\.$#'
+			identifier: method.notFound
+			count: 4
+			path: app/Models/WithdrawalMethod.php
+
+		-
+			message: '#^Method App\\Models\\WithdrawalMethod\:\:asset\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/WithdrawalMethod.php
+
+		-
+			message: '#^Method App\\Support\\Money\:\:jsonSerialize\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Money.php

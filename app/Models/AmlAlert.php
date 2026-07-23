@@ -9,7 +9,19 @@ use App\Enums\RiskLevel;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property string $id
+ * @property string|null $user_id
+ * @property string $type
+ * @property RiskLevel $severity
+ * @property AlertStatus $status
+ * @property string|null $context
+ * @property int $score
+ * @property string|null $case_id
+ * @property Carbon|null $created_at
+ */
 class AmlAlert extends Model
 {
     use HasUuids;

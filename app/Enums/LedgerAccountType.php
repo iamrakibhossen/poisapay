@@ -19,6 +19,7 @@ enum LedgerAccountType: string
     case UserLocked = 'user:locked';
     case UserCardHold = 'user:card_hold';
     case UserCollateralLocked = 'user:collateral:locked';
+    case UserP2pEscrow = 'user:p2p_escrow';   // seller USDT held during a P2P trade
 
     // Treasury / system accounts
     case TreasuryHot = 'treasury:hot';
@@ -30,6 +31,7 @@ enum LedgerAccountType: string
     case FeeCard = 'fee:card';
     case GasExpense = 'gas:expense';
     case FxSpreadIncome = 'fx:spread_income';
+    case P2pFeeIncome = 'p2p:fee_income';   // platform taker fee on P2P trades
     case RampClearing = 'ramp:clearing';
     case CardProgramSettlement = 'card_program:settlement';
     case CardProgramLoss = 'card_program:loss';
@@ -51,8 +53,8 @@ enum LedgerAccountType: string
     {
         return match ($this) {
             self::UserAvailable, self::UserLocked, self::UserCardHold,
-            self::UserCollateralLocked, self::LiabilityUserFunds,
-            self::FeeIncome, self::FeeCard, self::FxSpreadIncome,
+            self::UserCollateralLocked, self::UserP2pEscrow, self::LiabilityUserFunds,
+            self::FeeIncome, self::FeeCard, self::FxSpreadIncome, self::P2pFeeIncome,
             self::CardProgramSettlement, self::Rewards, self::OwnerPayout => LedgerSide::Credit,
             default => LedgerSide::Debit,
         };

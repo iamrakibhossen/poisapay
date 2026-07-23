@@ -22,10 +22,12 @@
         "pragmarx/google2fa": "^8.0",
         "predis/predis": "^2.0",
         "simplito/elliptic-php": "^1.0",
-        "spatie/laravel-permission": "^6.0"
+        "spatie/laravel-permission": "^6.0",
+        "stripe/stripe-php": "^21.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
+        "larastan/larastan": "^3.0",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.24",
         "laravel/sail": "^1.41",
@@ -65,6 +67,17 @@
         ],
         "test": [
             "@php artisan config:clear --ansi",
+            "@php artisan test"
+        ],
+        "lint": [
+            "vendor/bin/pint"
+        ],
+        "analyse": [
+            "vendor/bin/phpstan analyse --no-progress"
+        ],
+        "ci": [
+            "vendor/bin/pint --test",
+            "vendor/bin/phpstan analyse --no-progress",
             "@php artisan test"
         ],
         "post-autoload-dump": [

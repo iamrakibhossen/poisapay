@@ -1,49 +1,39 @@
 @props(['title' => 'Welcome'])
 
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full scroll-smooth">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title }} · PoisaPay</title>
     @vite(['resources/css/app.css', 'resources/js/frontend.js'])
+    @include('partials.marketing-styles')
     @include('partials.brand-colors')
-    <style>[x-cloak]{display:none!important}</style>
+    <style>
+        /* Auth form card + gradient primary button (matches homepage pp-btn-primary). */
+        .pp-auth-card{background:#fff;border:1px solid #e2e8f0;border-radius:1.5rem;box-shadow:0 24px 60px -30px rgb(15 23 42 / .3),0 2px 8px -4px rgb(15 23 42 / .06)}
+        .pp-auth-card button[type="submit"]{background-image:linear-gradient(120deg,#2563eb,#1d4ed8)!important;color:#fff!important;border-color:transparent!important;box-shadow:0 10px 24px -10px rgba(37,99,235,.6),inset 0 1px 0 rgba(255,255,255,.2);transition:box-shadow .3s,transform .2s,background-image .2s}
+        .pp-auth-card button[type="submit"]:hover{background-image:linear-gradient(120deg,#1d4ed8,#1e40af)!important;box-shadow:0 16px 34px -10px rgba(37,99,235,.7);transform:translateY(-1px)}
+    </style>
 </head>
-<body class="theme-minimal h-full">
-<div class="grid min-h-full lg:grid-cols-2">
-    {{-- Brand panel --}}
-    <div class="relative hidden overflow-hidden bg-gradient-to-br from-brand-50 via-brand-100 to-brand-200 lg:block">
-        <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 20% 20%, black 1px, transparent 1px); background-size: 32px 32px;"></div>
-        <div class="relative flex h-full flex-col justify-between p-12 text-neutral-900">
-            <a href="{{ route('home') }}" wire:navigate class="flex w-fit items-center gap-2.5">
-                <span class="grid h-10 w-10 place-items-center rounded-xl bg-brand-500 text-white"><x-heroicon-s-bolt class="h-6 w-6" /></span>
-                <span class="text-xl font-bold">PoisaPay</span>
-            </a>
-            <div>
-                <h1 class="text-3xl font-bold leading-tight text-neutral-900">The multi-chain wallet<br>built for Bangladesh.</h1>
-                <p class="mt-4 max-w-md text-neutral-600">Hold, send and exchange crypto and Taka. Instant P2P, virtual cards, and bank-grade custody — all in one app.</p>
-                <div class="mt-8 flex gap-6 text-sm text-neutral-600">
-                    <div><p class="text-2xl font-bold text-brand-600">3</p><p>Chains supported</p></div>
-                    <div><p class="text-2xl font-bold text-brand-600">0 ৳</p><p>P2P transfer fee</p></div>
-                    <div><p class="text-2xl font-bold text-brand-600">24/7</p><p>Instant settlement</p></div>
-                </div>
-            </div>
-            <p class="text-xs text-neutral-500">Custodial · KYC/AML gated · Original design</p>
-        </div>
-    </div>
+<body class="poisa-landing h-full antialiased">
 
-    {{-- Form panel --}}
-    <div class="flex items-center justify-center p-6 sm:p-12">
+<div class="pp-mesh" aria-hidden="true"></div>
+<div class="pp-grid-overlay" aria-hidden="true"></div>
+
+<div class="relative z-10 flex min-h-full flex-col">
+    <x-marketing.nav />
+
+    <main class="flex flex-1 items-center justify-center px-4 pb-16 pt-28 sm:px-6 sm:pt-32">
         <div class="w-full max-w-md">
-            <a href="{{ route('home') }}" wire:navigate class="mb-8 flex w-fit items-center gap-2.5 lg:hidden">
-                <span class="grid h-9 w-9 place-items-center rounded-xl bg-brand-500 text-white"><x-heroicon-s-bolt class="h-5 w-5" /></span>
-                <span class="text-lg font-bold text-neutral-900">PoisaPay</span>
-            </a>
-            {{ $slot }}
+            <div class="theme-minimal pp-auth-card p-8 sm:p-10">
+                {{ $slot }}
+            </div>
         </div>
-    </div>
+    </main>
+
+    <x-marketing.footer />
 </div>
 </body>
 </html>

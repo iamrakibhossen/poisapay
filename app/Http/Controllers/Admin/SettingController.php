@@ -112,12 +112,20 @@ class SettingController extends Controller
                 ],
                 'booleans' => ['merchant_enabled', 'merchant_auto_approve', 'merchant_allow_refunds'],
             ],
-            'credit' => [
-                'group' => 'credit',
+            'p2p' => [
+                'group' => 'p2p',
                 'rules' => [
-                    'credit_enabled' => 'boolean',
+                    'p2p_enabled' => 'boolean',
+                    'p2p_taker_fee_bps' => 'required|integer|min:0|max:10000',
+                    'p2p_order_expiry_minutes' => 'required|integer|min:5|max:180',
+                    'p2p_require_full_kyc' => 'boolean',
+                    'p2p_risk_enabled' => 'boolean',
+                    'p2p_daily_limit_basic' => 'required|integer|min:0',
+                    'p2p_daily_limit_full' => 'required|integer|min:0',
+                    'p2p_max_orders_per_hour' => 'required|integer|min:0|max:1000',
+                    'p2p_high_value_usdt' => 'required|integer|min:0',
                 ],
-                'booleans' => ['credit_enabled'],
+                'booleans' => ['p2p_enabled', 'p2p_require_full_kyc', 'p2p_risk_enabled'],
             ],
             'rewards' => [
                 'group' => 'rewards',

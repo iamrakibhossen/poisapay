@@ -23,10 +23,7 @@ class DeterministicAddressDeriver implements AddressDeriver
     {
         $seed = hash('sha256', $xpub.'/0/'.$index, true);
 
-        return match ($chain) {
-            ChainType::Ethereum, ChainType::Bsc => $this->evmAddress($seed),
-            ChainType::Tron => $this->tronAddress($seed),
-        };
+        return $chain->isEvm() ? $this->evmAddress($seed) : $this->tronAddress($seed);
     }
 
     private function evmAddress(string $seed): string

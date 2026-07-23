@@ -63,6 +63,31 @@ class AuthorizeCardAction
             }
         }
 
+        // $0 authorisations (card verification / account-status checks, e.g. Stripe's
+        // pre-auth) approve without a hold — there is nothing to lock and a zero-amount
+        // ledger line is invalid. Idempotent by network_auth_id like the funded path.
+        if ((int) $request->amountMinor <= 0) {
+            return DB::transaction(function () use ($card, $request): AuthorizationResult {
+                $existing = CardAuthorization::where('network_auth_id', $request->networkAuthId)->first();
+                if ($existing) {
+                    return AuthorizationResult::approve($existing);
+                }
+
+                $auth = CardAuthorization::create([
+                    'card_id' => $card->id,
+                    'network_auth_id' => $request->networkAuthId,
+                    'amount' => 0,
+                    'currency_code' => $request->currency,
+                    'mcc' => $request->mcc,
+                    'merchant' => $request->merchant,
+                    'held_amount' => '0',
+                    'status' => CardAuthStatus::Approved,
+                ]);
+
+                return AuthorizationResult::approve($auth);
+            });
+        }
+
         // Step 3: pick funding asset by spending priority; JIT-quote to settlement fiat.
         $funding = $this->pickFundingAsset($card, $request);
         if (! $funding) {

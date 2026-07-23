@@ -4,7 +4,8 @@
         $twoFactorSetup = session('twoFactorSetup');
         $nav = [
             'profile' => ['label' => 'Profile', 'icon' => 'user-circle', 'hint' => 'Name, contact & preferences'],
-            'security' => ['label' => 'Security', 'icon' => 'shield-check', 'hint' => 'Password, 2FA & phone'],
+            'security' => ['label' => 'Security', 'icon' => 'shield-check', 'hint' => '2FA, phone & addresses'],
+            'password' => ['label' => 'Password', 'icon' => 'key', 'hint' => 'Change your password'],
             'verification' => ['label' => 'Verification', 'icon' => 'identification', 'hint' => 'Identity & KYC'],
             'devices' => ['label' => 'Devices', 'icon' => 'computer-desktop', 'hint' => 'Signed-in devices'],
             'preferences' => ['label' => 'Preferences', 'icon' => 'adjustments-horizontal', 'hint' => 'Spending priority'],
@@ -12,7 +13,7 @@
         ];
         $current = $nav[$activeTab];
         // Each section is its own URL (/settings/{tab}); a full page, not a client tab.
-        $sectionClass = in_array($activeTab, ['profile', 'security', 'verification'], true) ? 'space-y-8' : '';
+        $sectionClass = in_array($activeTab, ['profile', 'security', 'password', 'verification'], true) ? 'space-y-8' : '';
     @endphp
 
     <div class="mx-auto max-w-5xl">

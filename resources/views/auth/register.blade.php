@@ -28,6 +28,6 @@
 
     <p class="mt-6 text-center text-sm text-neutral-500">
         Already have an account?
-        <a href="{{ route('login') }}" class="font-medium text-amber-700 hover:text-amber-800">Sign in</a>
+        <a href="{{ route('login') }}" class="font-medium text-brand-600 hover:text-brand-700">Sign in</a>
     </p>
 </x-layouts.guest>

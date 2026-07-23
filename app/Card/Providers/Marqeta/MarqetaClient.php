@@ -6,6 +6,7 @@ namespace App\Card\Providers\Marqeta;
 
 use App\Card\Exceptions\ProviderRequestException;
 use App\Card\Support\ProviderLogger;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
@@ -56,7 +57,7 @@ class MarqetaClient
                 ->timeout((int) ($http['timeout'] ?? 15))
                 // Retry only genuine connection failures (no response = no side effect);
                 // never throw on 4xx/5xx so our own handler maps status + error_code.
-                ->retry((int) ($http['retry_attempts'] ?? 2), (int) ($http['retry_sleep_ms'] ?? 200), fn ($e) => $e instanceof \Illuminate\Http\Client\ConnectionException, throw: false)
+                ->retry((int) ($http['retry_attempts'] ?? 2), (int) ($http['retry_sleep_ms'] ?? 200), fn ($e) => $e instanceof ConnectionException, throw: false)
                 ->acceptJson()
                 ->send($method, $url, array_filter([
                     'query' => $query ?: null,

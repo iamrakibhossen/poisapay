@@ -1,0 +1,26 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - phpstan-baseline.neon
+
+parameters:
+    level: 6
+    paths:
+        - app
+    # Legacy debt is captured in phpstan-baseline.neon so CI stays green while
+    # preventing NEW violations. Regenerate after large refactors:
+    #   vendor/bin/phpstan analyse --generate-baseline
+    reportUnmatchedIgnoredErrors: false
+    checkModelProperties: true
+    excludePaths:
+        # Untracked work-in-progress for the upcoming P2P marketplace wave. It is
+        # not yet part of the build; re-include when that wave is implemented.
+        # (Currently also triggers a larastan internal crash mid-analysis.)
+        - app/Domain/P2p
+        - app/Models/P2p*
+        - app/Events/P2p*
+        - app/Enums/P2p*
+        - app/Jobs/P2p*
+        - app/Http/Controllers/*/P2p*
+        - app/Policies/P2p*
+        - app/Listeners/P2p*
+        - app/Notifications/P2p*

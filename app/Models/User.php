@@ -26,6 +26,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'kyc_tier', 'kyc_status', 'referral_code', 'referred_by',
         'base_currency', 'locale', 'timezone', 'is_frozen',
         'two_factor_secret', 'two_factor_recovery_codes', 'two_factor_confirmed_at',
+        'anti_phishing_code', 'telegram_chat_id',
     ];
 
     protected $hidden = [
@@ -92,11 +93,30 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(UserDevice::class);
     }
 
+    /** @return HasMany<LoginHistory, $this> */
+    public function loginHistories(): HasMany
+    {
+        return $this->hasMany(LoginHistory::class)->latest('created_at');
+    }
+
+    /** @return HasMany<UserPushToken, $this> */
+    public function pushTokens(): HasMany
+    {
+        return $this->hasMany(UserPushToken::class);
+    }
+
+    /** @return HasMany<SecurityEvent, $this> */
+    public function securityEvents(): HasMany
+    {
+        return $this->hasMany(SecurityEvent::class)->latest();
+    }
+
     public function spendingPriority(): HasMany
     {
         return $this->hasMany(UserSpendingPriority::class)->orderBy('position');
     }
 
+    /** @return HasMany<AddressBookEntry, $this> */
     public function addressBook(): HasMany
     {
         return $this->hasMany(AddressBookEntry::class)->orderByDesc('is_favorite')->orderByDesc('last_used_at');

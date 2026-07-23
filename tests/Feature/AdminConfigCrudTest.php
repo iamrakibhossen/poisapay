@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Card\Enums\CardProviderDriver;
 use App\Models\Admin;
 use App\Models\Asset;
 use App\Models\CardProvider;
+use App\Models\Chain;
 use App\Models\Currency;
 use App\Models\DepositMethod;
 use App\Models\WithdrawalMethod;
@@ -46,7 +48,7 @@ it('creates and updates a coin, syncing its networks', function () {
     expect($coin)->not->toBeNull()->and($coin->name)->toBe('Alpha Coin');
 
     // Add a network (per-chain deployment) under it.
-    $chainId = App\Models\Chain::first()->id;
+    $chainId = Chain::first()->id;
     actingAs($this->admin, 'admin')->post(route('admin.assets.save'), [
         'currency_id' => $coin->id, 'chain_id' => (string) $chainId, 'contract_address' => '0xABCDEF',
         'decimals' => 6, 'sort' => 0, 'withdrawal_min' => '0', 'withdrawal_fee' => '0', 'is_active' => '1',
@@ -189,7 +191,7 @@ it('creates and updates a card provider', function () {
     $p = CardProvider::where('slug', 'acme-issuer')->first();
     expect($p)->not->toBeNull()
         ->and($p->settlement_currency)->toBe('USD')
-        ->and($p->driver)->toBe(\App\Card\Enums\CardProviderDriver::Marqeta)
+        ->and($p->driver)->toBe(CardProviderDriver::Marqeta)
         ->and($p->is_demo)->toBeFalse()
         ->and($p->supports_virtual)->toBeTrue();
 

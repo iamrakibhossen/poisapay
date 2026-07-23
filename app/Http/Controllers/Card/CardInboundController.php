@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Card;
 
 use App\Card\CardManager;
+use App\Card\Contracts\CardProviderInterface;
+use App\Card\Enums\WebhookEventType;
 use App\Card\Support\ProviderLogger;
 use App\Domain\Card\AuthorizeCardAction;
 use App\Http\Controllers\Controller;
@@ -25,7 +27,7 @@ class CardInboundController extends Controller
         private readonly ProviderLogger $logger,
     ) {}
 
-    public function webhook(string $provider, Request $request): JsonResponse
+    public function webhook(string $provider, Request $request, AuthorizeCardAction $authorize): JsonResponse
     {
         $adapter = $this->resolve($provider);
         $raw = $request->getContent();
@@ -37,8 +39,23 @@ class CardInboundController extends Controller
             return response()->json(['error' => 'invalid signature'], 401);
         }
 
+        $events = $adapter->processWebhook($raw, $headers);
+
+        // Real-time (JIT) authorisation requests must be answered synchronously so the
+        // provider (e.g. Stripe issuing_authorization.request) approves/declines from
+        // our ledger within its ~2s window. Everything else is deduped + queued.
+        foreach ($events as $event) {
+            if ($event->type === WebhookEventType::AuthorizationRequest && $adapter->supportsJitFunding()) {
+                $result = $authorize->authorize($adapter->parseFundingRequest($raw, $headers));
+                $response = $adapter->formatFundingResponse($result);
+                $this->log($provider, 'jit', $result->approved, $result->reason, $response['status']);
+
+                return response()->json($response['body'], $response['status']);
+            }
+        }
+
         $received = 0;
-        foreach ($adapter->processWebhook($raw, $headers) as $event) {
+        foreach ($events as $event) {
             $webhook = CardWebhook::firstOrCreate(
                 ['driver' => $provider, 'provider_event_id' => $event->providerEventId],
                 [
@@ -90,7 +107,7 @@ class CardInboundController extends Controller
         return response()->json($response['body'], $response['status']);
     }
 
-    private function resolve(string $provider): \App\Card\Contracts\CardProviderInterface
+    private function resolve(string $provider): CardProviderInterface
     {
         try {
             return $this->manager->driver($provider);

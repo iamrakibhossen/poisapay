@@ -6,9 +6,12 @@ namespace App\Domain\Withdrawal;
 
 use App\Domain\Audit\ActivityLogger;
 use App\Domain\Compliance\TransactionMonitor;
+use App\Domain\Compliance\TravelRule\TravelRuleService;
 use App\Domain\Fees\PlatformFees;
 use App\Domain\Ledger\LedgerService;
 use App\Domain\Risk\RiskEngine;
+use App\Domain\Security\AddressBookService;
+use App\Domain\Security\VelocityGuard;
 use App\Enums\WithdrawalStatus;
 use App\Events\WithdrawalRequested;
 use App\Models\Asset;
@@ -30,6 +33,9 @@ class RequestWithdrawalAction
         private readonly LedgerService $ledger,
         private readonly RiskEngine $risk,
         private readonly TransactionMonitor $monitor,
+        private readonly AddressBookService $addressBook,
+        private readonly VelocityGuard $velocity,
+        private readonly TravelRuleService $travelRule,
     ) {}
 
     /**
@@ -65,6 +71,11 @@ class RequestWithdrawalAction
             ]);
         }
 
+        // Address whitelist (on-chain destinations only; feature-gated, no-op when off).
+        if ($payoutMethod === null) {
+            $this->addressBook->assertWithdrawable($user, $toAddress, $asset->chain_id);
+        }
+
         return DB::transaction(function () use ($user, $asset, $amount, $toAddress, $idempotencyKey, $payoutMethod, $payoutDetails, $feeOverride): Withdrawal {
             $existing = Withdrawal::where('idempotency_key', $idempotencyKey)->first();
             if ($existing) {
@@ -72,6 +83,10 @@ class RequestWithdrawalAction
             }
 
             $assessment = $this->risk->scoreWithdrawal($user, $amount, $toAddress);
+
+            // Velocity limiting: breaching the rolling-24h cap forces manual review.
+            $velocityHit = $this->velocity->exceededWithdrawalVelocity($user);
+            $mustReview = $assessment->requiresManualReview() || $velocityHit;
 
             // Rail fee (flat network cost or fiat method fee) + platform % (admin's cut).
             $railFee = $feeOverride ?? $asset->money($asset->withdrawal_fee);
@@ -85,11 +100,11 @@ class RequestWithdrawalAction
                 'payout_details' => $payoutMethod ? $payoutDetails : null,
                 'amount' => $amount->baseString(),
                 'fee' => $fee->baseString(),
-                'status' => $assessment->requiresManualReview() ? WithdrawalStatus::Review : WithdrawalStatus::Approved,
+                'status' => $mustReview ? WithdrawalStatus::Review : WithdrawalStatus::Approved,
                 'idempotency_key' => $idempotencyKey,
                 'risk_score' => $assessment->score,
                 'risk_level' => $assessment->level,
-                'requires_review' => $assessment->requiresManualReview(),
+                'requires_review' => $mustReview,
             ]);
 
             // AML monitoring: screen + raise alerts. A sanctions hit or critical
@@ -111,6 +126,11 @@ class RequestWithdrawalAction
             );
 
             $withdrawal->update(['lock_entry_id' => $lockEntry->id]);
+
+            // Travel Rule (on-chain, above threshold): capture originator/beneficiary.
+            if ($payoutMethod === null && $this->travelRule->applies($asset, $amount)) {
+                $this->travelRule->recordForWithdrawal($withdrawal, $user, $asset);
+            }
 
             ActivityLogger::log('withdrawal.requested', $withdrawal, ['amount' => $withdrawal->amount]);
 

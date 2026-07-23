@@ -7,6 +7,4 @@ namespace App\Card\Exceptions;
 use RuntimeException;
 
 /** Base for every fault raised inside the card provider layer. */
-class CardProviderException extends RuntimeException
-{
-}
+class CardProviderException extends RuntimeException {}

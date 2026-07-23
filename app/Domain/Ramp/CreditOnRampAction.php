@@ -41,7 +41,7 @@ class CreditOnRampAction
 
             $entry = $this->ledger->post(new EntryData(
                 type: 'ramp.on.credit',
-                idempotencyKey: "ramp:{$order->rail}:{$order->provider_ref}",
+                idempotencyKey: "ramp:{$order->rail->value}:{$order->provider_ref}",
                 lines: [
                     PostingLine::debit($clearing->id, $assetId, $order->fiat_amount),
                     PostingLine::credit($available->id, $assetId, $order->fiat_amount),

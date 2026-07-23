@@ -7,6 +7,7 @@ use App\Domain\Ledger\DTO\EntryData;
 use App\Domain\Ledger\DTO\PostingLine;
 use App\Domain\Ledger\LedgerService;
 use App\Domain\Ledger\WithdrawProfitAction;
+use App\Domain\Reconciliation\ReconciliationService;
 use App\Enums\LedgerAccountType;
 use App\Models\Admin;
 use App\Models\ProfitPayout;
@@ -93,7 +94,7 @@ it('actually moves the backing crypto out of the treasury', function () {
         ->and($treasuryBalance(LedgerAccountType::TreasuryOut))->toBe('400000');
 
     // Solvency still holds: treasury ≥ user liabilities.
-    $run = app(App\Domain\Reconciliation\ReconciliationService::class)->runForAsset($this->usdt);
+    $run = app(ReconciliationService::class)->runForAsset($this->usdt);
     expect($run->is_solvent)->toBeTrue();
 });
 

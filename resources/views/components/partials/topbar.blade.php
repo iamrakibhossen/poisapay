@@ -15,10 +15,17 @@
     </div>
 
     <div class="flex items-center gap-2 sm:gap-3">
-        {{-- Deposit CTA (DollarHub) --}}
-        <a href="{{ route('deposit') }}" class="hidden items-center gap-1.5 rounded-lg bg-brand-500 px-5 py-2 text-sm font-semibold text-white hover:bg-brand-600 sm:inline-flex">
-            <x-heroicon-o-arrow-down-tray class="h-4 w-4" /> Deposit
-        </a>
+        {{-- Highlighted P2P entry (feature-gated) --}}
+        @if (feature('p2p_enabled', false))
+            @php $p2pActive = request()->routeIs('p2p') || request()->routeIs('p2p.*'); @endphp
+            <a href="{{ route('p2p') }}" @class([
+                'hidden items-center gap-1.5 rounded-lg border px-3.5 py-2 text-sm font-semibold transition sm:inline-flex',
+                'border-brand-500 bg-brand-500 text-white shadow-sm' => $p2pActive,
+                'border-brand-200 bg-brand-50 text-brand-700 hover:bg-brand-100' => ! $p2pActive,
+            ])>
+                <x-heroicon-o-user-group class="h-4 w-4" /> P2P
+            </a>
+        @endif
 
         {{-- Locale switcher --}}
         <div x-data="{ open: false }" class="relative" @keydown.escape="open = false">
@@ -71,6 +78,8 @@
                 </div>
                 <div class="border-t border-neutral-100"></div>
                 <a href="{{ route('settings') }}" class="flex items-center gap-2 px-4 py-3 text-sm text-neutral-700 hover:bg-neutral-100"><x-heroicon-o-user class="h-5 w-5" /> Profile &amp; Security</a>
+                <a href="{{ route('support') }}" class="flex items-center gap-2 px-4 py-3 text-sm text-neutral-700 hover:bg-neutral-100"><x-heroicon-o-lifebuoy class="h-5 w-5" /> Support</a>
+                <div class="border-t border-neutral-100"></div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="flex w-full items-center gap-2 px-4 py-3 text-sm text-rose-600 hover:bg-rose-50"><x-heroicon-o-arrow-right-start-on-rectangle class="h-5 w-5" /> Sign out</button>

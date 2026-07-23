@@ -1,0 +1,203 @@
+openapi: 3.0.3
+info:
+  title: PoisaPay REST API
+  version: "1.0.0"
+  description: >
+    PoisaPay stablecoin payment platform API. Bearer-token (Sanctum) authenticated;
+    money-moving endpoints accept an Idempotency-Key header and are rate-limited.
+servers:
+  - url: /api/v1
+    description: Version 1
+tags:
+  - name: Auth
+  - name: Wallets
+  - name: Deposits
+  - name: Transfers
+  - name: Security
+  - name: Reference
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema: { type: string }
+      description: Collapses retries of a money-moving request into one operation.
+  schemas:
+    Error:
+      type: object
+      properties:
+        message: { type: string }
+        errors: { type: object, additionalProperties: true }
+    Wallet:
+      type: object
+      properties:
+        symbol: { type: string, example: USDT }
+        available: { type: string, example: "125.500000" }
+        locked: { type: string, example: "0" }
+    Address:
+      type: object
+      properties:
+        id: { type: string }
+        label: { type: string }
+        address: { type: string }
+        status: { type: string, enum: [active, pending, blocked] }
+        whitelisted: { type: boolean }
+        cooldown_until: { type: string, format: date-time, nullable: true }
+security:
+  - bearerAuth: []
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name: { type: string }
+                email: { type: string, format: email }
+                password: { type: string, format: password }
+      responses:
+        "201": { description: Created }
+        "422": { description: Validation error, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+  /auth/login:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Authenticate and receive a bearer token
+      responses:
+        "200": { description: OK }
+        "422": { description: Invalid credentials }
+  /auth/2fa/verify:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Complete a two-factor login step
+      responses:
+        "200": { description: OK }
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Current authenticated user
+      responses:
+        "200": { description: OK }
+        "401": { description: Unauthenticated }
+  /wallets:
+    get:
+      tags: [Wallets]
+      summary: List wallet balances
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, properties: { data: { type: array, items: { $ref: '#/components/schemas/Wallet' } } } }
+  /wallets/{symbol}:
+    get:
+      tags: [Wallets]
+      summary: Balance for a single asset
+      parameters:
+        - { name: symbol, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Wallet' } } } }
+        "404": { description: Not found }
+  /deposit-addresses:
+    post:
+      tags: [Deposits]
+      summary: Allocate a deposit address for a chain/asset
+      responses:
+        "201": { description: Created }
+  /deposits:
+    get:
+      tags: [Deposits]
+      summary: List deposits
+      responses:
+        "200": { description: OK }
+  /transfers:
+    get:
+      tags: [Transfers]
+      summary: List transfers
+      responses:
+        "200": { description: OK }
+    post:
+      tags: [Transfers]
+      summary: Send an internal transfer
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [recipient, symbol, amount]
+              properties:
+                recipient: { type: string, description: handle or email }
+                symbol: { type: string }
+                amount: { type: string }
+      responses:
+        "201": { description: Created }
+        "422": { description: Validation / insufficient balance }
+  /security/addresses:
+    get:
+      tags: [Security]
+      summary: List withdrawal-address whitelist entries
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { data: { type: array, items: { $ref: '#/components/schemas/Address' } } } } } } }
+    post:
+      tags: [Security]
+      summary: Add a withdrawal address (enters cooldown)
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [address]
+              properties:
+                address: { type: string }
+                label: { type: string }
+                chain_id: { type: integer }
+      responses:
+        "201": { description: Created }
+  /security/addresses/{id}:
+    delete:
+      tags: [Security]
+      summary: Remove a saved withdrawal address
+      parameters: [ { name: id, in: path, required: true, schema: { type: string } } ]
+      responses:
+        "200": { description: OK }
+  /security/events:
+    get:
+      tags: [Security]
+      summary: List the user's security events
+      responses:
+        "200": { description: OK }
+  /security/login-history:
+    get:
+      tags: [Security]
+      summary: List the user's recent sign-ins
+      responses:
+        "200": { description: OK }
+  /assets:
+    get:
+      tags: [Reference]
+      summary: List supported assets
+      responses:
+        "200": { description: OK }
+  /chains:
+    get:
+      tags: [Reference]
+      summary: List supported chains
+      responses:
+        "200": { description: OK }

@@ -6,11 +6,13 @@ use App\Domain\Deposit\CreditManualDepositAction;
 use App\Domain\Deposit\SubmitManualDepositAction;
 use App\Domain\Ledger\LedgerService;
 use App\Enums\DepositStatus;
+use App\Enums\LedgerAccountType;
 use App\Models\Asset;
 use App\Models\Deposit;
 use App\Models\DepositMethod;
 use App\Models\User;
 use App\Support\Money;
+use Illuminate\Support\Facades\DB;
 
 beforeEach(function () {
     $this->asset = testAsset('USDT', 6, 'tron');
@@ -50,12 +52,12 @@ it('lands a manual deposit in treasury:hot (settled, already in the company acco
     app(CreditManualDepositAction::class)->execute($deposit);
 
     $resolver = $this->ledger->resolver();
-    $balance = fn ($type) => (string) (\Illuminate\Support\Facades\DB::table('account_balances')
+    $balance = fn ($type) => (string) (DB::table('account_balances')
         ->where('account_id', $resolver->system($type, $this->asset->id)->id)->value('balance') ?? '0');
 
     // The cash is booked to hot (settled), not pending (which is for crypto confirmations).
-    expect($balance(\App\Enums\LedgerAccountType::TreasuryHot))->toBe('5000000')
-        ->and($balance(\App\Enums\LedgerAccountType::TreasuryPending))->toBe('0');
+    expect($balance(LedgerAccountType::TreasuryHot))->toBe('5000000')
+        ->and($balance(LedgerAccountType::TreasuryPending))->toBe('0');
 });
 
 it('is idempotent — approving twice credits once', function () {

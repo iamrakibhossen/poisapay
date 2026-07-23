@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Exchange\ExchangeService;
 use App\Models\User;
 
 use function Pest\Laravel\actingAs;
@@ -25,7 +26,7 @@ it('shows swaps in the per-asset activity (both directions)', function () {
     creditUser($this->user, $this->usdt, '10000000'); // 10 USDT
 
     // Swap 4 USDT -> BTC.
-    $exchange = app(App\Domain\Exchange\ExchangeService::class);
+    $exchange = app(ExchangeService::class);
     $quote = $exchange->quote($this->user, $this->usdt, $btc, $this->usdt->money('4000000'));
     $exchange->execute($this->user, $quote, 'swap-test-1');
 

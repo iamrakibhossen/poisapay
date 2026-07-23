@@ -112,21 +112,28 @@ class WithdrawController extends Controller
     /** Dedicated withdrawal history page — the full, paginated list of the user's withdrawals. */
     public function history(Request $request): View
     {
-        $withdrawals = Withdrawal::with('asset.chain')
+        $withdrawals = Withdrawal::with('asset.chain', 'onchainTx')
             ->where('user_id', $request->user()->id)
             ->latest()
             ->paginate(20)
-            ->through(fn (Withdrawal $w) => [
-                'symbol' => $w->asset->symbol,
-                'name' => $w->asset->name,
-                'network' => $w->asset->chain?->name ?? ($w->asset->isFiat() ? 'Cash-out' : $w->asset->name),
-                'amount' => $w->money()->format(),
-                'fee' => $w->fee > 0 ? $w->asset->money($w->fee)->format() : null,
-                'to' => $w->to_address ? $this->shorten($w->to_address) : null,
-                'status' => $w->status->label(),
-                'statusColor' => $w->status->color(),
-                'at' => $w->created_at->toIso8601String(),
-            ]);
+            ->through(function (Withdrawal $w) {
+                $hash = $w->onchainTx?->tx_hash;
+
+                return [
+                    'symbol' => $w->asset->symbol,
+                    'name' => $w->asset->name,
+                    'network' => $w->asset->chain?->name ?? ($w->asset->isFiat() ? 'Cash-out' : $w->asset->name),
+                    'amount' => $w->money()->format(),
+                    'fee' => $w->fee > 0 ? $w->asset->money($w->fee)->format() : null,
+                    'to' => $w->to_address ? $this->shorten($w->to_address) : null,
+                    'status' => $w->status->label(),
+                    'statusColor' => $w->status->color(),
+                    'at' => $w->created_at->toIso8601String(),
+                    'txid' => $hash,
+                    'txidShort' => $hash ? Str::substr($hash, 0, 10).'…'.Str::substr($hash, -8) : null,
+                    'explorer' => $w->asset->chain?->explorerTxUrl($hash),
+                ];
+            });
 
         return view('frontend.withdrawals', ['withdrawals' => $withdrawals]);
     }

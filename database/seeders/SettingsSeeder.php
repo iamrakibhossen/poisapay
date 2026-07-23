@@ -39,7 +39,6 @@ class SettingsSeeder extends Seeder
                 'exchange_enabled' => true,
                 'cards_enabled' => true,
                 'merchant_enabled' => true,
-                'credit_enabled' => true,
                 'rewards_enabled' => true,
                 'referral_enabled' => true,
                 'exchange_restrict_pairs' => true,

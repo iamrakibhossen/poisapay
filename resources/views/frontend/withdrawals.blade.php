@@ -40,6 +40,18 @@
                                 </td>
                                 <td class="px-5 py-4 align-middle">
                                     <p class="truncate font-mono text-xs text-neutral-500">{{ $w['to'] ?? '—' }}</p>
+                                    @if ($w['txidShort'])
+                                        @if ($w['explorer'])
+                                            <a href="{{ $w['explorer'] }}" target="_blank" rel="noopener"
+                                                class="mt-0.5 inline-flex items-center gap-1 font-mono text-xs text-brand-600 transition hover:text-brand-700"
+                                                title="{{ $w['txid'] }}">
+                                                {{ $w['txidShort'] }}
+                                                <x-heroicon-o-arrow-top-right-on-square class="h-3 w-3" />
+                                            </a>
+                                        @else
+                                            <p class="mt-0.5 font-mono text-xs text-neutral-400" title="{{ $w['txid'] }}">{{ $w['txidShort'] }}</p>
+                                        @endif
+                                    @endif
                                 </td>
                                 <td class="px-5 py-4 align-middle">
                                     <x-ui.badge :color="$w['statusColor'] ?? 'gray'" dot>{{ $w['status'] }}</x-ui.badge>

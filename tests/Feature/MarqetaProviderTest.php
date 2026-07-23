@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 use App\Card\CardManager;
 use App\Card\Contracts\CardProviderInterface;
+use App\Card\DTOs\CardholderData;
+use App\Card\DTOs\CardIssueRequest;
 use App\Card\Enums\WebhookEventType;
 use App\Domain\Card\AuthorizationResult;
 use App\Enums\CardStatus;
 use App\Enums\CardType;
-use App\Support\Money;
+use App\Models\CardAuthorization;
 use Illuminate\Support\Facades\Http;
 
 function marqeta(): CardProviderInterface
@@ -45,7 +47,7 @@ function fakeMarqeta(): void
 
 it('creates a Marqeta cardholder via POST /users', function () {
     fakeMarqeta();
-    $result = marqeta()->createCardholder(new \App\Card\DTOs\CardholderData('user-1', 'Ada', 'Lovelace', 'ada@example.com'));
+    $result = marqeta()->createCardholder(new CardholderData('user-1', 'Ada', 'Lovelace', 'ada@example.com'));
 
     expect($result->providerRef)->toBe('usr_x');
     Http::assertSent(fn ($r) => str_ends_with($r->url(), '/users') && $r['first_name'] === 'Ada');
@@ -61,14 +63,14 @@ it('reuses an existing cardholder when Marqeta reports a duplicate', function ()
         return Http::response(['token' => 'user-1', 'status' => 'ACTIVE'], 200); // GET /users/user-1
     });
 
-    $result = marqeta()->createCardholder(new \App\Card\DTOs\CardholderData('user-1', 'Ada', 'Lovelace'));
+    $result = marqeta()->createCardholder(new CardholderData('user-1', 'Ada', 'Lovelace'));
 
     expect($result->providerRef)->toBe('user-1'); // recovered via GET, not a hard failure
 });
 
 it('issues a Marqeta card and maps its fields', function () {
     fakeMarqeta();
-    $card = marqeta()->createVirtualCard(new \App\Card\DTOs\CardIssueRequest('usr_x', CardType::Virtual, 'prog'));
+    $card = marqeta()->createVirtualCard(new CardIssueRequest('usr_x', CardType::Virtual, 'prog'));
 
     expect($card->providerCardRef)->toBe('card_x')
         ->and($card->last4)->toBe('4321')
@@ -128,7 +130,7 @@ it('parses a JIT gateway message and formats approve/decline', function () {
     $req = $p->parseFundingRequest($body, []);
     expect($req->cardRef)->toBe('card_x')->and($req->amountMinor)->toBe('1250')->and($req->mcc)->toBe('5814');
 
-    $approve = $p->formatFundingResponse(AuthorizationResult::approve(new App\Models\CardAuthorization));
+    $approve = $p->formatFundingResponse(AuthorizationResult::approve(new CardAuthorization));
     expect($approve['status'])->toBe(200)->and($approve['body']['jit_funding']['token'])->toBe('jit_1');
 
     $decline = $p->formatFundingResponse(AuthorizationResult::decline('insufficient_funds'));

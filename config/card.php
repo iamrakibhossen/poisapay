@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Card\Providers\Marqeta\MarqetaProvider;
+use App\Card\Providers\Mock\MockCardProvider;
+use App\Card\Providers\Stripe\StripeProvider;
+
 // Provider-agnostic card issuing. Controllers/ledger only ever talk to CardService;
 // only app/Services/Card reads these credentials. Provider is chosen per card via
 // the card_providers.driver column; default_provider is the fallback driver.
@@ -12,14 +16,14 @@ return [
     'providers' => [
 
         'mock' => [
-            'driver' => \App\Card\Providers\Mock\MockCardProvider::class,
+            'driver' => MockCardProvider::class,
             'label' => 'Mock (Simulated)',
             'webhook_secret' => env('CARD_MOCK_WEBHOOK_SECRET', 'mock-webhook-secret'),
         ],
 
         // Marqeta Core API — Gateway JIT funding (our ledger decides each auth).
         'marqeta' => [
-            'driver' => \App\Card\Providers\Marqeta\MarqetaProvider::class,
+            'driver' => MarqetaProvider::class,
             'label' => 'Marqeta',
             'api_url' => env('CARD_MARQETA_URL', 'https://sandbox-api.marqeta.com/v3'),
             'application_token' => env('CARD_MARQETA_APP_TOKEN', 'd6b75be3-8c1c-41e6-8a2d-0584be8893b9'),
@@ -32,11 +36,28 @@ return [
             'inbound_password' => env('CARD_MARQETA_INBOUND_PASS', 'a1354e24-31aa-4d28-a0b5-d7be4c4432d4A'),
         ],
 
-        // Future adapters register here identically (stripe, lithic, highnote, …).
+        // Stripe Issuing — same contract as Marqeta, chosen by driver key. Keys in .env.
+        'stripe' => [
+            'driver' => StripeProvider::class,
+            'label' => 'Stripe',
+            'secret_key' => env('CARD_STRIPE_SECRET_KEY'),
+            'webhook_secret' => env('CARD_STRIPE_WEBHOOK_SECRET'),
+            'api_version' => env('CARD_STRIPE_API_VERSION') ?: null,
+            'network' => env('CARD_STRIPE_NETWORK', 'visa'),
+            // Fallback cardholder billing address (Issuing requires one).
+            'billing_address' => array_filter([
+                'line1' => env('CARD_STRIPE_BILLING_LINE1', '123 Main Street'),
+                'city' => env('CARD_STRIPE_BILLING_CITY', 'San Francisco'),
+                'state' => env('CARD_STRIPE_BILLING_STATE', 'CA'),
+                'postal_code' => env('CARD_STRIPE_BILLING_POSTAL', '94111'),
+                'country' => env('CARD_STRIPE_BILLING_COUNTRY', 'US'),
+            ]),
+        ],
+
+        // Future adapters register here identically (lithic, highnote, …).
     ],
 
     'http' => [
-        'timeout' => (int) env('CARD_HTTP_TIMEOUT', 15),
         'retry_attempts' => (int) env('CARD_HTTP_RETRY_ATTEMPTS', 2),
         'retry_sleep_ms' => (int) env('CARD_HTTP_RETRY_SLEEP_MS', 200),
     ],

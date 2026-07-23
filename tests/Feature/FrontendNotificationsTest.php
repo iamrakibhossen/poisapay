@@ -76,8 +76,8 @@ it('persists notification preferences (security channels forced on)', function (
         'marketing' => ['in_app' => false, 'email' => true, 'sms' => false, 'push' => false],
     ]];
 
-    actingAs($this->user)->put(route('notifications.preferences'), $payload)
-        ->assertRedirect(route('notifications'))->assertSessionHas('success');
+    actingAs($this->user)->put(route('notifications.preferences.update'), $payload)
+        ->assertRedirect(route('notifications.preferences'))->assertSessionHas('success');
 
     $security = NotificationPreference::where('user_id', $this->user->id)->where('category', 'security')->first();
     expect($security->in_app)->toBeTrue()   // forced on regardless of payload
@@ -89,14 +89,46 @@ it('persists notification preferences (security channels forced on)', function (
 });
 
 it('validates the preferences payload', function () {
-    actingAs($this->user)->put(route('notifications.preferences'), [])
+    actingAs($this->user)->put(route('notifications.preferences.update'), [])
         ->assertSessionHasErrors('prefs');
 });
 
 it('rejects unknown preference categories', function () {
-    actingAs($this->user)->put(route('notifications.preferences'), [
+    actingAs($this->user)->put(route('notifications.preferences.update'), [
         'prefs' => ['bogus' => ['in_app' => true, 'email' => true, 'sms' => false, 'push' => false]],
     ])->assertSessionHasErrors('prefs');
+});
+
+it('renders the standalone preferences page', function () {
+    actingAs($this->user)->get(route('notifications.preferences'))
+        ->assertOk()
+        ->assertSee('Notification preferences')
+        ->assertSee('Always on for your protection.');
+});
+
+it('follows the notification deep link after marking it read', function () {
+    $note = seedNotification($this->user, ['url' => '/wallet']);
+
+    actingAs($this->user)->post(route('notifications.read', $note->id))
+        ->assertRedirect('/wallet');
+
+    expect($note->fresh()->read_at)->not->toBeNull();
+});
+
+it('follows an absolute same-host deep link (as route() produces)', function () {
+    $note = seedNotification($this->user, ['url' => url('/wallet')]);
+
+    actingAs($this->user)->post(route('notifications.read', $note->id))
+        ->assertRedirect(url('/wallet'));
+
+    expect($note->fresh()->read_at)->not->toBeNull();
+});
+
+it('ignores a non-local deep link and returns to the feed', function () {
+    $note = seedNotification($this->user, ['url' => 'https://evil.example/phish']);
+
+    actingAs($this->user)->post(route('notifications.read', $note->id))
+        ->assertRedirect(route('notifications'));
 });
 
 it('requires authentication for the notifications page', function () {

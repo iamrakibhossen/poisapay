@@ -22,6 +22,8 @@ use App\Notifications\UserNotification;
  */
 class NotificationService
 {
+    public function __construct(private readonly NotificationTransportManager $transports) {}
+
     /**
      * @param  array<string, mixed>  $data  template placeholders + optional 'url'
      */
@@ -34,27 +36,42 @@ class NotificationService
             ? $template->render($data)
             : ['subject' => $data['title'] ?? $key, 'body' => $data['body'] ?? ''];
 
-        $channels = $this->channelsFor($user, $category, $template);
-        if ($channels === []) {
+        // Channels this template targets (defaults cover a template-less send).
+        $targeted = $template?->channels ?? ['in_app', 'email'];
+
+        $channels = $this->channelsFor($user, $category, $targeted);
+        $extras = $this->transportChannelsFor($user, $category, $targeted);
+        if ($channels === [] && $extras === []) {
             return;
         }
 
-        $user->notify(new UserNotification(
-            title: $rendered['subject'] ?: $key,
-            body: $rendered['body'],
-            url: $url ?? ($data['url'] ?? null),
-            category: $category,
-            channels: $channels,
-        ));
+        $title = $rendered['subject'] ?: $key;
+        $link = $url ?? ($data['url'] ?? null);
+
+        if ($channels !== []) {
+            $user->notify(new UserNotification(
+                title: $title,
+                body: $rendered['body'],
+                url: $link,
+                category: $category,
+                channels: $channels,
+            ));
+        }
+
+        // SMS / push go through swappable transports (stub logs; real vendors send).
+        foreach ($extras as $channel) {
+            $this->transports->dispatch($channel, $user, $title, $rendered['body'], $link);
+        }
     }
 
     /**
      * Resolve Laravel channel names from the user's preference row for this
      * category, intersected with the template's targeted channels.
      *
+     * @param  array<int, string>  $targeted
      * @return array<int, string>
      */
-    private function channelsFor(User $user, string $category, ?NotificationTemplate $template): array
+    private function channelsFor(User $user, string $category, array $targeted): array
     {
         $pref = NotificationPreference::firstOrNew(
             ['user_id' => $user->id, 'category' => $category],
@@ -68,7 +85,6 @@ class NotificationService
             $inApp = $email = true;
         }
 
-        $targeted = $template?->channels ?? ['in_app', 'email'];
         $channels = [];
 
         if ($inApp && in_array('in_app', $targeted, true)) {
@@ -80,5 +96,29 @@ class NotificationService
         }
 
         return $channels;
+    }
+
+    /**
+     * SMS/push channels the user opted into for this category AND the template
+     * targets. Delivered via NotificationTransportManager (not Laravel channels).
+     *
+     * @param  array<int, string>  $targeted
+     * @return array<int, string>
+     */
+    private function transportChannelsFor(User $user, string $category, array $targeted): array
+    {
+        $pref = NotificationPreference::firstOrNew(
+            ['user_id' => $user->id, 'category' => $category],
+        );
+
+        $extras = [];
+        foreach (['sms', 'push', 'whatsapp', 'telegram'] as $channel) {
+            $enabled = $pref->exists ? (bool) ($pref->{$channel} ?? false) : ($channel === 'push');
+            if ($enabled && in_array($channel, $targeted, true)) {
+                $extras[] = $channel;
+            }
+        }
+
+        return $extras;
     }
 }

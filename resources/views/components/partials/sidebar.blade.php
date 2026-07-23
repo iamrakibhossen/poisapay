@@ -2,7 +2,7 @@
     // Grouped user navigation — clean sections like the DollarHub admin shell.
     $groups = [
         [
-            'heading' => null,
+            'heading' => 'Overview',
             'items' => [
                 ['route' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'home'],
                 ['route' => 'wallet', 'label' => 'Wallet', 'icon' => 'wallet'],
@@ -11,25 +11,26 @@
         [
             'heading' => 'Money',
             'items' => [
+                ['route' => 'send', 'label' => 'Send Money', 'icon' => 'paper-airplane'],
                 ['route' => 'deposit', 'label' => 'Deposit', 'icon' => 'arrow-down-tray'],
                 ['route' => 'withdraw', 'label' => 'Withdraw', 'icon' => 'arrow-up-tray'],
-                ['route' => 'send', 'label' => 'Send Money', 'icon' => 'paper-airplane'],
                 ['route' => 'exchange', 'label' => 'Exchange', 'icon' => 'arrows-right-left'],
                 ['route' => 'transactions', 'label' => 'Transactions', 'icon' => 'receipt-percent'],
             ],
         ],
         [
             'heading' => 'Products',
-            'items' => [
+            'items' => array_values(array_filter([
                 ['route' => 'cards', 'label' => 'Cards', 'icon' => 'credit-card'],
-                ['route' => 'merchant', 'label' => 'Merchant', 'icon' => 'building-storefront'],
-                ['route' => 'credit', 'label' => 'Credit', 'icon' => 'banknotes'],
                 ['route' => 'rewards', 'label' => 'Rewards', 'icon' => 'gift'],
-            ],
+                ['route' => 'merchant', 'label' => 'Merchant', 'icon' => 'building-storefront'],
+                feature('p2p_enabled', false) ? ['route' => 'p2p', 'label' => 'P2P', 'icon' => 'user-group'] : null,
+            ])),
         ],
         [
             'heading' => 'Account',
             'items' => [
+                // Security lives under Settings › Security; Support is in the header user menu.
                 ['route' => 'settings', 'label' => 'Settings', 'icon' => 'cog-6-tooth'],
             ],
         ],
@@ -53,7 +54,7 @@
                     @php $active = request()->routeIs($item['route']); @endphp
                     <a href="{{ route($item['route']) }}" wire:navigate
                        @class([
-                           'group relative flex h-11 items-center gap-3 rounded-lg px-4 text-sm font-semibold transition-colors',
+                           'group relative flex h-11 items-center gap-3 rounded-lg px-4 text-sm font-medium transition-colors',
                            'bg-brand-50 text-neutral-900' => $active,
                            'text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900' => ! $active,
                        ])>

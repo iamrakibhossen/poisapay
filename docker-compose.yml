@@ -1,0 +1,106 @@
+# PoisaPay orchestration — production-shaped (code baked into the image).
+# One image, several roles: php-fpm (app), queue worker (horizon), scheduler, reverb.
+# For local dev with live reload, add a docker-compose.override.yml that bind-mounts `.:/var/www/html`.
+#
+#   cp .env.production.example .env   # then fill secrets
+#   docker compose build
+#   docker compose run --rm app php artisan key:generate
+#   docker compose run --rm app php artisan migrate --force
+#   docker compose up -d
+
+x-app: &app-base
+  build:
+    context: .
+    dockerfile: Dockerfile
+  image: poisapay:latest
+  env_file: .env
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  restart: unless-stopped
+
+services:
+  app: # php-fpm, serves the web tier via nginx
+    <<: *app-base
+    volumes:
+      - app_code:/var/www/html
+      - app_storage:/var/www/html/storage
+
+  web: # nginx front door
+    image: nginx:1.27-alpine
+    depends_on:
+      - app
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - app_code:/var/www/html:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/up"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  horizon: # queue workers (Redis-backed)
+    <<: *app-base
+    command: php artisan horizon
+    volumes:
+      - app_code:/var/www/html
+      - app_storage:/var/www/html/storage
+    healthcheck:
+      test: ["CMD", "php", "artisan", "horizon:status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  scheduler: # cron (chain-tick, chain-health, accrue-credit)
+    <<: *app-base
+    command: php artisan schedule:work
+    volumes:
+      - app_code:/var/www/html
+      - app_storage:/var/www/html/storage
+
+  reverb: # websockets
+    <<: *app-base
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    ports:
+      - "${REVERB_PORT:-8081}:8080"
+    volumes:
+      - app_code:/var/www/html
+      - app_storage:/var/www/html/storage
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-poisapay}
+      POSTGRES_USER: ${DB_USERNAME:-poisapay}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-poisapay} -d ${DB_DATABASE:-poisapay}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  app_code:
+  app_storage:
+  pg_data:
+  redis_data:

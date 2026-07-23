@@ -29,18 +29,32 @@
                     class="absolute right-0 z-50 mt-2 w-80 max-w-[90vw] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg">
                     <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3">
                         <span class="font-semibold text-gray-800">Notifications</span>
+                        @if ($unread > 0)
+                            <form method="POST" action="{{ route('admin.notifications.read-all') }}">
+                                @csrf
+                                <button type="submit" class="text-xs font-medium text-blue-600 hover:text-blue-800">Mark all read</button>
+                            </form>
+                        @endif
                     </div>
                     <div class="max-h-96 overflow-y-auto">
                         @forelse ($recent as $n)
-                            <a href="{{ $n->data['url'] ?? route('admin.notifications') }}"
-                                class="flex items-start gap-3 border-b border-gray-100 px-4 py-3 hover:bg-gray-50 {{ is_null($n->read_at) ? 'bg-blue-50/50' : '' }}">
-                                <span class="mt-0.5 shrink-0 rounded-full bg-gray-100 p-2 text-gray-500"><x-heroicon-o-bell class="h-4 w-4" /></span>
-                                <div class="min-w-0 flex-1">
-                                    <p class="truncate text-sm font-medium text-gray-800">{{ $n->data['title'] ?? 'Notification' }}</p>
-                                    <p class="truncate text-xs text-gray-500">{{ $n->data['body'] ?? '' }}</p>
-                                    <p class="mt-0.5 text-[11px] text-gray-400">{{ $n->created_at->diffForHumans() }}</p>
-                                </div>
-                            </a>
+                            {{-- POST so the click marks it read (updating the unread count) then
+                                 follows its deep link — same behaviour as the full feed. --}}
+                            <form method="POST" action="{{ route('admin.notifications.read', $n->id) }}" class="block">
+                                @csrf
+                                <button type="submit"
+                                    class="flex w-full items-start gap-3 border-b border-gray-100 px-4 py-3 text-left hover:bg-gray-50 {{ is_null($n->read_at) ? 'bg-blue-50/50' : '' }}">
+                                    <span class="mt-0.5 shrink-0 rounded-full bg-gray-100 p-2 text-gray-500"><x-heroicon-o-bell class="h-4 w-4" /></span>
+                                    <span class="block min-w-0 flex-1">
+                                        <span class="block truncate text-sm font-medium text-gray-800">{{ $n->data['title'] ?? 'Notification' }}</span>
+                                        <span class="block truncate text-xs text-gray-500">{{ $n->data['body'] ?? '' }}</span>
+                                        <span class="mt-0.5 block text-[11px] text-gray-400">{{ $n->created_at->diffForHumans() }}</span>
+                                    </span>
+                                    @if (is_null($n->read_at))
+                                        <span class="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-blue-500"></span>
+                                    @endif
+                                </button>
+                            </form>
                         @empty
                             <div class="px-4 py-10 text-center text-sm text-gray-500">No notifications yet</div>
                         @endforelse

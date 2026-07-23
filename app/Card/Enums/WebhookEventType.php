@@ -17,6 +17,9 @@ enum WebhookEventType: string
     case CardUnfrozen = 'card.unfrozen';
     case CardReplaced = 'card.replaced';
     case CardClosed = 'card.closed';
+    // A real-time authorisation request the provider expects us to answer
+    // synchronously (approve/decline) within its window — handled inline, not queued.
+    case AuthorizationRequest = 'authorization.request';
     case TransactionAuthorized = 'transaction.authorized';
     case TransactionCleared = 'transaction.cleared';
     case TransactionRefunded = 'transaction.refunded';

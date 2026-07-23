@@ -4,12 +4,18 @@ declare(strict_types=1);
 
 use App\Domain\Ledger\AccountResolver;
 use App\Domain\Ledger\LedgerService;
+use App\Domain\Withdrawal\RequestWithdrawalAction;
+use App\Domain\Withdrawal\SettleWithdrawalAction;
 use App\Enums\KycTier;
+use App\Enums\LedgerAccountType;
+use App\Enums\WithdrawalStatus;
 use App\Models\Asset;
+use App\Models\OnchainTx;
 use App\Models\PayoutAccount;
 use App\Models\User;
 use App\Models\Withdrawal;
 use App\Models\WithdrawalMethod;
+use Illuminate\Support\Facades\DB;
 
 use function Pest\Laravel\actingAs;
 
@@ -45,8 +51,8 @@ it('offers a fiat cash-out option on the withdraw page', function () {
 
 it('settles a fiat cash-out without an on-chain tx and books the fee to revenue', function () {
     $resolver = app(AccountResolver::class);
-    $request = app(App\Domain\Withdrawal\RequestWithdrawalAction::class);
-    $settle = app(App\Domain\Withdrawal\SettleWithdrawalAction::class);
+    $request = app(RequestWithdrawalAction::class);
+    $settle = app(SettleWithdrawalAction::class);
 
     // Request a fiat withdrawal with a 10.00 BDT rail fee.
     $withdrawal = $request->execute(
@@ -54,18 +60,18 @@ it('settles a fiat cash-out without an on-chain tx and books the fee to revenue'
         'fiat-fee-key', 'mobile', ['number' => '017...'], $this->bdt->money('1000'),
     );
 
-    $feeAccount = $resolver->system(App\Enums\LedgerAccountType::FeeIncome, $this->bdt->id);
-    $feeBefore = (int) (\Illuminate\Support\Facades\DB::table('account_balances')->where('account_id', $feeAccount->id)->value('balance') ?? '0');
+    $feeAccount = $resolver->system(LedgerAccountType::FeeIncome, $this->bdt->id);
+    $feeBefore = (int) (DB::table('account_balances')->where('account_id', $feeAccount->id)->value('balance') ?? '0');
 
     // Settle it (the simulated chain tick passes a tx hash) — must NOT crash on the null chain.
     $settle->execute($withdrawal->fresh(), '0x'.bin2hex(random_bytes(16)));
 
     $withdrawal->refresh();
-    $feeAfter = (int) (\Illuminate\Support\Facades\DB::table('account_balances')->where('account_id', $feeAccount->id)->value('balance') ?? '0');
+    $feeAfter = (int) (DB::table('account_balances')->where('account_id', $feeAccount->id)->value('balance') ?? '0');
 
-    expect($withdrawal->status)->toBe(App\Enums\WithdrawalStatus::Completed)
+    expect($withdrawal->status)->toBe(WithdrawalStatus::Completed)
         ->and($withdrawal->onchain_tx_id)->toBeNull()                 // no on-chain tx for fiat
-        ->and(App\Models\OnchainTx::count())->toBe(0)
+        ->and(OnchainTx::count())->toBe(0)
         ->and($withdrawal->fee)->toBe('1000')                          // 10.00 BDT rail fee (test env: 0% platform fee)
         ->and($feeAfter - $feeBefore)->toBe(1000);                     // fee reached revenue
 });

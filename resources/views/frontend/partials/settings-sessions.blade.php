@@ -1,6 +1,15 @@
-{{-- Settings › Sessions tab — currently signed-in sessions.
-     Expects (from the settings view scope): $sessions. --}}
+{{-- Settings › Sessions tab — active sessions + recent sign-in history.
+     Expects (from the settings view scope): $sessions, $loginHistory. --}}
+@if (session('status'))
+    <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{{ session('status') }}</div>
+@endif
 <x-settings.section title="Active sessions" description="Devices currently signed in to your account.">
+    <div class="mb-4 flex justify-end">
+        <form method="POST" action="{{ route('security.sessions.logout-others') }}">
+            @csrf
+            <x-ui.button type="submit" variant="secondary" size="sm" icon="arrow-right-on-rectangle">Sign out other sessions</x-ui.button>
+        </form>
+    </div>
     <div class="space-y-2.5">
         @forelse ($sessions as $s)
             <div class="flex items-center gap-3 rounded-xl border p-3 {{ $s['current'] ? 'border-emerald-200 bg-emerald-50/40' : 'border-neutral-200' }}">
@@ -20,4 +29,21 @@
                 description="Session records will appear here." />
         @endforelse
     </div>
+</x-settings.section>
+
+{{-- Recent sign-ins (login history) --}}
+<x-settings.section title="Recent sign-ins" description="The latest sign-ins to your account.">
+    <ul class="divide-y divide-neutral-100">
+        @forelse ($loginHistory as $l)
+            <li class="flex items-center justify-between gap-3 py-3 text-sm">
+                <span class="text-neutral-700">{{ $l->ip_address ?? 'Unknown IP' }}{{ $l->country ? ' · '.$l->country : '' }}</span>
+                <span class="flex items-center gap-2 text-xs text-neutral-400">
+                    @if ($l->new_device)<x-ui.badge color="warning">New device</x-ui.badge>@endif
+                    {{ $l->created_at->diffForHumans() }}
+                </span>
+            </li>
+        @empty
+            <li class="py-4 text-sm text-neutral-400">No sign-ins recorded.</li>
+        @endforelse
+    </ul>
 </x-settings.section>

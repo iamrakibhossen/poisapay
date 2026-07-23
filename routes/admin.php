@@ -16,16 +16,21 @@ use App\Http\Controllers\Admin\CardMonitorController;
 use App\Http\Controllers\Admin\CardProvidersController;
 use App\Http\Controllers\Admin\CardsController;
 use App\Http\Controllers\Admin\ComplianceController;
+use App\Http\Controllers\Admin\ComplianceExportController;
+use App\Http\Controllers\Admin\ComplianceListController;
 use App\Http\Controllers\Admin\CustodyController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DepositMethodsController;
 use App\Http\Controllers\Admin\DepositsController;
 use App\Http\Controllers\Admin\FaqsController;
+use App\Http\Controllers\Admin\FeatureFlagController;
 use App\Http\Controllers\Admin\FinancialReportController;
 use App\Http\Controllers\Admin\KycQueueController;
 use App\Http\Controllers\Admin\LedgerController;
 use App\Http\Controllers\Admin\MerchantsController;
 use App\Http\Controllers\Admin\MessagingController;
+use App\Http\Controllers\Admin\P2pController;
+use App\Http\Controllers\Admin\P2pPaymentMethodController;
 use App\Http\Controllers\Admin\PagesController;
 use App\Http\Controllers\Admin\RevenueController;
 use App\Http\Controllers\Admin\RevenueTransactionsController;
@@ -33,11 +38,14 @@ use App\Http\Controllers\Admin\RevenueWalletController;
 use App\Http\Controllers\Admin\RevenueWithdrawalsController;
 use App\Http\Controllers\Admin\RolesController;
 use App\Http\Controllers\Admin\RpcEndpointsController;
+use App\Http\Controllers\Admin\SecurityController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\SimulationController;
+use App\Http\Controllers\Admin\SupportController;
 use App\Http\Controllers\Admin\TransfersController;
 use App\Http\Controllers\Admin\TreasuryController;
 use App\Http\Controllers\Admin\UsersController;
+use App\Http\Controllers\Admin\WalletsController;
 use App\Http\Controllers\Admin\WithdrawalsController;
 use App\Http\Controllers\ImpersonationController;
 use Illuminate\Support\Facades\Auth;
@@ -78,6 +86,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/treasury/reconcile', [TreasuryController::class, 'reconcile'])->name('treasury.reconcile');
         Route::get('/reports', [FinancialReportController::class, 'index'])->name('reports');
         Route::get('/reports/export', [FinancialReportController::class, 'export'])->name('reports.export');
+        Route::get('/wallets', [WalletsController::class, 'index'])->name('wallets');
         Route::get('/blockchain-health', [BlockchainHealthController::class, 'index'])->name('blockchain-health');
         Route::post('/blockchain-health/check', [BlockchainHealthController::class, 'runHealthCheck'])->name('blockchain-health.check');
         Route::post('/blockchain-health/tick', [BlockchainHealthController::class, 'runMonitorTick'])->name('blockchain-health.tick');
@@ -101,6 +110,30 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/ledger', [LedgerController::class, 'index'])->name('ledger');
         Route::post('/ledger/{id}/reverse', [LedgerController::class, 'reverse'])->name('ledger.reverse');
         Route::get('/transfers', [TransfersController::class, 'index'])->name('transfers');
+
+        // ── Compliance lists + exports (Wave 5) ──
+        Route::get('/compliance/export/cases', [ComplianceExportController::class, 'cases'])->name('compliance.export.cases');
+        Route::get('/compliance/export/alerts', [ComplianceExportController::class, 'alerts'])->name('compliance.export.alerts');
+        Route::get('/compliance-lists', [ComplianceListController::class, 'index'])->name('compliance-lists');
+        Route::post('/compliance-lists', [ComplianceListController::class, 'store'])->name('compliance-lists.store');
+        Route::delete('/compliance-lists/{id}', [ComplianceListController::class, 'destroy'])->name('compliance-lists.destroy');
+
+        // ── Feature flags (Wave 6) ──
+        Route::get('/feature-flags', [FeatureFlagController::class, 'index'])->name('feature-flags');
+        Route::post('/feature-flags/toggle', [FeatureFlagController::class, 'toggle'])->name('feature-flags.toggle');
+
+        // ── Support tickets (Wave 6) ──
+        Route::get('/support', [SupportController::class, 'index'])->name('support');
+        Route::get('/support/{id}', [SupportController::class, 'show'])->name('support.show');
+        Route::post('/support/{id}/reply', [SupportController::class, 'reply'])->name('support.reply');
+        Route::post('/support/{id}/status', [SupportController::class, 'updateStatus'])->name('support.status');
+        Route::post('/support/{id}/assign', [SupportController::class, 'assign'])->name('support.assign');
+
+        // ── Security monitoring (Wave 4) ──
+        Route::get('/security', [SecurityController::class, 'index'])->name('security');
+        Route::post('/security/flag', [SecurityController::class, 'toggleFlag'])->name('security.flag');
+        Route::post('/security/ip-denylist', [SecurityController::class, 'saveIpDenylist'])->name('security.ip-denylist');
+        Route::post('/security/verify-chain', [SecurityController::class, 'verifyChain'])->name('security.verify-chain');
 
         // ── Converted to controllers (Batch C: config CRUD) ──
         Route::get('/assets', [AssetsController::class, 'index'])->name('assets');
@@ -216,10 +249,24 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/administrators', [AdministratorsController::class, 'save'])->name('administrators.save');
         Route::post('/administrators/{id}/toggle', [AdministratorsController::class, 'toggleActive'])->name('administrators.toggle');
         Route::delete('/administrators/{id}', [AdministratorsController::class, 'destroy'])->name('administrators.delete');
+        // P2P marketplace — order monitoring + dispute adjudication.
+        Route::get('/p2p/orders', [P2pController::class, 'orders'])->name('p2p');
+        Route::get('/p2p/disputes', [P2pController::class, 'disputes'])->name('p2p-disputes');
+        Route::get('/p2p/disputes/{dispute}', [P2pController::class, 'dispute'])->name('p2p-disputes.show');
+        Route::post('/p2p/disputes/{dispute}/assign', [P2pController::class, 'assign'])->name('p2p-disputes.assign');
+        Route::post('/p2p/disputes/{dispute}/resolve', [P2pController::class, 'resolve'])->name('p2p-disputes.resolve');
+        Route::get('/p2p/dispute-evidence/{evidence}', [P2pController::class, 'disputeEvidence'])->name('p2p-disputes.evidence');
+        // P2P payment-method catalog + per-method field schemas.
+        Route::get('/p2p/payment-methods', [P2pPaymentMethodController::class, 'index'])->name('p2p-payment-methods');
+        Route::get('/p2p/payment-methods/{method}', [P2pPaymentMethodController::class, 'show'])->name('p2p-payment-methods.show');
+        Route::post('/p2p/payment-methods', [P2pPaymentMethodController::class, 'store'])->name('p2p-payment-methods.store');
+        Route::put('/p2p/payment-methods/{method}', [P2pPaymentMethodController::class, 'update'])->name('p2p-payment-methods.update');
+        Route::delete('/p2p/payment-methods/{method}', [P2pPaymentMethodController::class, 'destroy'])->name('p2p-payment-methods.delete');
+
         // Platform settings — DollarHub-style controller + Blade forms (not Livewire).
         Route::get('/settings/{section?}', [SettingController::class, 'index'])
-            ->where('section', 'general|branding|auth|deposit|withdrawal|transfer|exchange|cards|merchant|credit|rewards|compliance|localization|announcement')->name('settings');
+            ->where('section', 'general|branding|auth|deposit|withdrawal|transfer|exchange|cards|merchant|p2p|credit|rewards|compliance|localization|announcement')->name('settings');
         Route::put('/settings/{section}', [SettingController::class, 'update'])
-            ->where('section', 'general|branding|auth|deposit|withdrawal|transfer|exchange|cards|merchant|credit|rewards|compliance|localization|announcement')->name('settings.update');
+            ->where('section', 'general|branding|auth|deposit|withdrawal|transfer|exchange|cards|merchant|p2p|credit|rewards|compliance|localization|announcement')->name('settings.update');
     });
 });

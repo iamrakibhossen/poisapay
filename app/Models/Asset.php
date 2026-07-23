@@ -10,6 +10,19 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property string $symbol
+ * @property string $name
+ * @property AssetKind $kind
+ * @property string|null $currency_code
+ * @property int|null $chain_id
+ * @property string|null $contract_address
+ * @property int $decimals
+ * @property int|null $min_confirmations
+ * @property bool $is_active
+ * @property-read Chain|null $chain
+ */
 class Asset extends Model
 {
     protected $fillable = [

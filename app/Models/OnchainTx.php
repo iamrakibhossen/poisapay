@@ -9,6 +9,20 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property string $id
+ * @property int $chain_id
+ * @property string $tx_hash
+ * @property int $log_index
+ * @property string|null $from_address
+ * @property string|null $to_address
+ * @property int|null $asset_id
+ * @property string $amount
+ * @property int|null $block_number
+ * @property int $confirmations
+ * @property OnchainTxStatus $status
+ * @property string $direction
+ */
 class OnchainTx extends Model
 {
     use HasUuids;

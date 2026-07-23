@@ -85,22 +85,34 @@ class DepositController extends Controller
     /** Dedicated deposit history page — the full, paginated list of the user's deposits. */
     public function history(Request $request): View
     {
-        $deposits = Deposit::with(['asset.chain', 'depositMethod'])
+        $deposits = Deposit::with(['asset.chain', 'depositMethod', 'onchainTx'])
             ->where('user_id', $request->user()->id)
             ->latest()
             ->paginate(20)
-            ->through(fn (Deposit $d) => [
-                'symbol' => $d->asset->symbol,
-                'name' => $d->asset->name,
-                'network' => $d->asset->chain?->name ?? ($d->asset->isFiat() ? 'Fiat' : $d->asset->name),
-                'amount' => $d->money()->format(),
-                'fee' => $d->fee > 0 ? $d->feeMoney()->format() : null,
-                'source' => $d->source === 'manual' ? ($d->depositMethod?->name ?? 'Manual') : 'On-chain',
-                'reference' => $d->reference,
-                'status' => $d->status->label(),
-                'statusColor' => $d->status->color(),
-                'at' => $d->created_at->toIso8601String(),
-            ]);
+            ->through(function (Deposit $d) {
+                $tx = $d->onchainTx;
+                $hash = $tx?->tx_hash;
+
+                return [
+                    'symbol' => $d->asset->symbol,
+                    'name' => $d->asset->name,
+                    'network' => $d->asset->chain?->name ?? ($d->asset->isFiat() ? 'Fiat' : $d->asset->name),
+                    'amount' => $d->money()->format(),
+                    'fee' => $d->fee > 0 ? $d->feeMoney()->format() : null,
+                    'source' => $d->source === 'manual' ? ($d->depositMethod?->name ?? 'Manual') : 'On-chain',
+                    'reference' => $d->reference,
+                    'status' => $d->status->label(),
+                    'statusColor' => $d->status->color(),
+                    'at' => $d->created_at->toIso8601String(),
+                    // On-chain details.
+                    'txid' => $hash,
+                    'txidShort' => $hash ? Str::substr($hash, 0, 10).'…'.Str::substr($hash, -8) : null,
+                    'explorer' => $d->asset->chain?->explorerTxUrl($hash),
+                    'from' => $tx?->from_address,
+                    'confirmations' => $tx?->confirmations,
+                    'requiredConfirmations' => $d->required_confirmations,
+                ];
+            });
 
         return view('frontend.deposits', ['deposits' => $deposits]);
     }

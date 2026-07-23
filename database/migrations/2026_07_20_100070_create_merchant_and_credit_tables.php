@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-/** Merchant invoices/QR (§8.2) + credit-line history (§F6). */
+/** Merchant invoices/QR (§8.2). */
 return new class extends Migration
 {
     public function up(): void
@@ -27,25 +27,10 @@ return new class extends Migration
             $table->unique(['merchant_id', 'reference'], 'uq_invoice_reference'); // idempotent creation
             $table->index(['status', 'created_at']);
         });
-
-        Schema::create('credit_transactions', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('credit_line_id')->constrained('credit_lines')->cascadeOnDelete();
-            $table->string('type', 16);                    // draw|repay|accrue|liquidate
-            $table->foreignId('asset_id')->constrained('assets');
-            $table->decimal('amount', 78, 0);
-            $table->uuid('entry_id')->nullable();
-            $table->string('memo', 160)->nullable();
-            $table->timestamps();
-
-            $table->foreign('entry_id')->references('id')->on('journal_entries')->nullOnDelete();
-            $table->index(['credit_line_id', 'created_at']);
-        });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('credit_transactions');
         Schema::dropIfExists('merchant_invoices');
     }
 };

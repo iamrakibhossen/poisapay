@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Merchant;
 
 use App\Domain\Audit\ActivityLogger;
+use App\Domain\Compliance\AccountGuard;
 use App\Domain\Ledger\AccountResolver;
 use App\Domain\Ledger\DTO\EntryData;
 use App\Domain\Ledger\DTO\PostingLine;
@@ -35,6 +36,8 @@ class PayInvoiceAction
 
     public function execute(User $payer, MerchantInvoice $invoice): MerchantInvoice
     {
+        AccountGuard::assertActive($payer);
+
         return DB::transaction(function () use ($payer, $invoice): MerchantInvoice {
             $invoice = MerchantInvoice::whereKey($invoice->id)->lockForUpdate()->firstOrFail();
             $invoice->loadMissing('asset');

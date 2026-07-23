@@ -4,19 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Domain\Analytics\FlowAnalytics;
 use App\Domain\Exchange\Contracts\RateProvider;
 use App\Domain\Wallet\WalletService;
 use App\Http\Controllers\Controller;
 use App\Models\Asset;
-use App\Models\Deposit;
-use App\Models\Transfer;
-use App\Models\Withdrawal;
 use App\Support\Money;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 /**
@@ -89,7 +86,7 @@ class WalletController extends Controller
             'totalValue' => $base ? $this->fiat($total, $base) : '—',
             'fundedCount' => collect($rows)->where('funded', true)->count(),
             'totalAssets' => count($rows),
-            'analytics' => app(\App\Domain\Analytics\FlowAnalytics::class)->forUser($user),
+            'analytics' => app(FlowAnalytics::class)->forUser($user),
             'filter' => in_array($filter, ['all', 'crypto', 'fiat'], true) ? $filter : 'all',
             'search' => $search,
         ]);

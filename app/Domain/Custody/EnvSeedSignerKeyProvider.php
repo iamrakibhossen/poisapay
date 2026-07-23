@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Custody;
 
+use App\Domain\Chain\Evm\Evm;
 use App\Domain\Custody\Contracts\SignerKeyProvider;
 use App\Domain\Custody\Crypto\Bip32;
 use App\Domain\Custody\Crypto\TronAddress;
@@ -49,8 +50,9 @@ class EnvSeedSignerKeyProvider implements SignerKeyProvider
     {
         $pub = $this->bip32->compressedPublic($this->hotWallet($chain));
 
-        return match ($chain) {
-            ChainType::Tron => TronAddress::fromPublicKey($pub),
+        return match (true) {
+            $chain === ChainType::Tron => TronAddress::fromPublicKey($pub),
+            $chain->isEvm() => Evm::toChecksumAddress(TronAddress::evmHex($pub)),
             default => throw new RuntimeException('Address encoding not implemented for '.$chain->value),
         };
     }

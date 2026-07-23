@@ -14,7 +14,9 @@ use App\Models\KycProfile;
 use App\Models\User;
 use App\Models\Withdrawal;
 use App\Support\Money;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Storage;
 
 use function Pest\Laravel\actingAs;
 
@@ -83,11 +85,11 @@ it('cancels a withdrawal in review — status flips and the locked funds are rel
 });
 
 it('shows the KYC review page with details and streams a document image', function () {
-    Illuminate\Support\Facades\Storage::fake('local');
+    Storage::fake('local');
     $user = User::factory()->create(['name' => 'Jane KYC', 'kyc_status' => KycStatus::Pending]);
 
     // Store a fake selfie the reviewer can view.
-    $path = Illuminate\Http\UploadedFile::fake()->image('selfie.jpg')->store('kyc/'.$user->id, 'local');
+    $path = UploadedFile::fake()->image('selfie.jpg')->store('kyc/'.$user->id, 'local');
 
     $profile = KycProfile::create([
         'user_id' => $user->id, 'requested_tier' => KycTier::Full, 'status' => KycStatus::Pending,

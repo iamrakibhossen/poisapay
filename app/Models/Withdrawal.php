@@ -11,6 +11,22 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property string $id
+ * @property string $user_id
+ * @property int $asset_id
+ * @property string $to_address
+ * @property string|null $payout_method
+ * @property string $amount
+ * @property string $fee
+ * @property WithdrawalStatus $status
+ * @property int $risk_score
+ * @property RiskLevel|null $risk_level
+ * @property string|null $onchain_tx_id
+ * @property string|null $failure_reason
+ * @property-read Asset $asset
+ * @property-read OnchainTx|null $onchainTx
+ */
 class Withdrawal extends Model
 {
     use HasUuids;
@@ -28,7 +44,7 @@ class Withdrawal extends Model
             'risk_level' => RiskLevel::class,
             'risk_score' => 'integer',
             'requires_review' => 'boolean',
-            'payout_details' => 'array',
+            'payout_details' => 'encrypted:array', // PII (bank / mobile account) encrypted at rest
             'approved_at' => 'datetime',
             'completed_at' => 'datetime',
         ];
@@ -53,6 +69,12 @@ class Withdrawal extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'approved_by');
+    }
+
+    /** @return BelongsTo<OnchainTx, $this> */
+    public function onchainTx(): BelongsTo
+    {
+        return $this->belongsTo(OnchainTx::class, 'onchain_tx_id');
     }
 
     public function money(): Money

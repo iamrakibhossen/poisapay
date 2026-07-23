@@ -7,9 +7,10 @@ namespace App\Card;
 use App\Card\Contracts\CardProviderInterface;
 use App\Card\DTOs\CardIssueRequest;
 use App\Card\DTOs\ProviderHealth;
-use App\Card\Enums\CardProviderDriver;
 use App\Card\DTOs\SpendControlData;
+use App\Card\Enums\CardProviderDriver;
 use App\Card\Enums\ProviderCapability;
+use App\Card\Exceptions\CardProviderException;
 use App\Card\Exceptions\FeatureNotSupportedException;
 use App\Card\Support\CardholderMapper;
 use App\Card\Support\ProviderLogger;
@@ -218,8 +219,10 @@ class CardService
     {
         try {
             $fn($this->forCard($card));
-        } catch (FeatureNotSupportedException) {
-            //
+        } catch (CardProviderException) {
+            // Best-effort provider sync: an unsupported op or a provider-side state
+            // error (e.g. "card is canceled") must not break the local operation —
+            // our card/ledger state stays authoritative.
         }
     }
 }

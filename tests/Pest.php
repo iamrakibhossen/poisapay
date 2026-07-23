@@ -9,6 +9,7 @@ use App\Domain\Ledger\LedgerService;
 use App\Enums\LedgerAccountType;
 use App\Models\Asset;
 use App\Models\Chain;
+use App\Models\Currency;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -26,7 +27,7 @@ function testAsset(string $symbol = 'USDT', int $decimals = 6, string $chainKey 
         ['name' => ucfirst($chainKey), 'native_symbol' => 'TRX', 'min_confirmations' => 19, 'is_evm' => false],
     );
 
-    $currency = App\Models\Currency::firstOrCreate(
+    $currency = Currency::firstOrCreate(
         ['symbol' => $symbol],
         ['name' => $symbol, 'kind' => 'crypto', 'is_stablecoin' => $symbol === 'USDT', 'is_active' => true],
     );

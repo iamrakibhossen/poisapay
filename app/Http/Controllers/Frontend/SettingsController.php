@@ -8,6 +8,7 @@ use App\Domain\Audit\ActivityLogger;
 use App\Domain\Auth\DeviceService;
 use App\Domain\Auth\OtpService;
 use App\Domain\Auth\TwoFactorService;
+use App\Domain\Security\AddressBookService;
 use App\Enums\KycStatus;
 use App\Http\Controllers\Controller;
 use App\Models\UserDevice;
@@ -15,6 +16,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -30,7 +32,7 @@ class SettingsController extends Controller
     public function index(Request $request, ?string $tab = null): View
     {
         $user = $request->user();
-        $tabs = ['profile', 'security', 'verification', 'devices', 'preferences', 'sessions'];
+        $tabs = ['profile', 'security', 'password', 'verification', 'devices', 'preferences', 'sessions'];
         $activeTab = in_array($tab, $tabs, true) ? $tab : 'profile';
         $currentFingerprint = DeviceService::fingerprint($request);
 
@@ -56,6 +58,10 @@ class SettingsController extends Controller
 
         $kycStatus = $user->kyc_status;
 
+        // Security-centre data (folded in from the former standalone /security page).
+        $addressBook = app(AddressBookService::class);
+        $addressBook->promoteMatured($user);
+
         return view('frontend.settings', [
             'profile' => [
                 'name' => (string) $user->name,
@@ -72,6 +78,13 @@ class SettingsController extends Controller
             'kyc' => ['key' => $kycStatus->value, 'label' => $kycStatus->label(), 'color' => $kycStatus->color()],
             'canApplyKyc' => in_array($kycStatus, [KycStatus::None, KycStatus::Rejected], true),
             'activeTab' => $activeTab,
+            // Security centre (now part of the Security + Sessions tabs).
+            'addresses' => $user->addressBook()->get(),
+            'whitelistEnforced' => $addressBook->whitelistEnforced(),
+            'cooldownHours' => $addressBook->cooldownHours(),
+            'antiPhishing' => (string) $user->anti_phishing_code,
+            'securityEvents' => $user->securityEvents()->limit(20)->get(),
+            'loginHistory' => $user->loginHistories()->limit(20)->get(),
         ]);
     }
 
@@ -92,6 +105,19 @@ class SettingsController extends Controller
         $user->save();
 
         return redirect()->route('settings', ['tab' => 'profile'])->with('success', 'Profile updated.');
+    }
+
+    public function updatePassword(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'current_password' => ['required', 'current_password'],
+            'password' => ['required', 'string', 'min:8', 'confirmed', 'different:current_password'],
+        ]);
+
+        $request->user()->update(['password' => Hash::make($validated['password'])]);
+        ActivityLogger::log('security.password.updated', null, [], actor: $request->user());
+
+        return redirect()->route('settings', ['tab' => 'password'])->with('success', 'Password updated.');
     }
 
     public function enableTwoFactor(Request $request, TwoFactorService $twoFactor): RedirectResponse

@@ -13,7 +13,7 @@ class NotificationPreference extends Model
     use HasUuids;
 
     protected $fillable = [
-        'user_id', 'category', 'in_app', 'email', 'sms', 'push',
+        'user_id', 'category', 'in_app', 'email', 'sms', 'push', 'whatsapp', 'telegram',
     ];
 
     protected function casts(): array
@@ -23,6 +23,8 @@ class NotificationPreference extends Model
             'email' => 'boolean',
             'sms' => 'boolean',
             'push' => 'boolean',
+            'whatsapp' => 'boolean',
+            'telegram' => 'boolean',
         ];
     }
 

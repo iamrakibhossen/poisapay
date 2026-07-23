@@ -36,5 +36,6 @@
         <env name="NIGHTWATCH_ENABLED" value="false"/>
         <env name="POISAPAY_DEPOSIT_FEE_PERCENT" value="0"/>
         <env name="POISAPAY_WITHDRAWAL_FEE_PERCENT" value="0"/>
+        <env name="RATES_DRIVER" value="stub"/>
     </php>
 </phpunit>

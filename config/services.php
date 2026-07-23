@@ -35,4 +35,21 @@ return [
         ],
     ],
 
+    // Notification transports (Wave 6). Credentials only; the active driver per
+    // channel is chosen in config/providers.php (defaults to the log stub).
+    'twilio' => [
+        'sid' => env('TWILIO_SID'),
+        'token' => env('TWILIO_TOKEN'),
+        'from' => env('TWILIO_FROM'),               // SMS sender number
+        'whatsapp_from' => env('TWILIO_WHATSAPP_FROM'), // e.g. whatsapp:+14155238886
+    ],
+
+    'fcm' => [
+        'key' => env('FCM_SERVER_KEY'),             // Firebase Cloud Messaging server key
+    ],
+
+    'telegram' => [
+        'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+    ],
+
 ];

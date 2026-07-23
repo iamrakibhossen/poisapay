@@ -10,6 +10,8 @@
         ['heading' => 'Compliance', 'items' => [
             ['label' => 'KYC Queue', 'icon' => 'heroicon-o-identification', 'route' => 'admin.kyc', 'perm' => 'review-kyc'],
             ['label' => 'Cases & Alerts', 'icon' => 'heroicon-o-shield-exclamation', 'route' => 'admin.compliance', 'perm' => 'view-compliance'],
+            ['label' => 'Security', 'icon' => 'heroicon-o-lock-closed', 'route' => 'admin.security', 'perm' => 'view-compliance'],
+            ['label' => 'Sanctions Lists', 'icon' => 'heroicon-o-no-symbol', 'route' => 'admin.compliance-lists', 'perm' => 'view-compliance'],
         ]],
 
         ['heading' => 'Money Movement', 'items' => [
@@ -43,10 +45,15 @@
 
         ['heading' => 'Commerce', 'items' => [
             ['label' => 'Merchants', 'icon' => 'heroicon-o-building-storefront', 'route' => 'admin.merchants', 'perm' => 'view-merchants'],
+            ['label' => 'P2P Orders', 'icon' => 'heroicon-o-user-group', 'route' => 'admin.p2p', 'perm' => 'view-p2p'],
+            ['label' => 'P2P Disputes', 'icon' => 'heroicon-o-scale', 'route' => 'admin.p2p-disputes', 'perm' => 'view-p2p'],
+            ['label' => 'P2P Methods', 'icon' => 'heroicon-o-credit-card', 'route' => 'admin.p2p-payment-methods', 'perm' => 'manage-p2p'],
             ['label' => 'Rewards', 'icon' => 'heroicon-o-gift', 'route' => 'admin.rewards', 'perm' => 'view-rewards'],
+            ['label' => 'Support', 'icon' => 'heroicon-o-lifebuoy', 'route' => 'admin.support', 'perm' => 'view-support'],
         ]],
 
         ['heading' => 'Blockchain', 'items' => [
+            ['label' => 'Custody Wallets', 'icon' => 'heroicon-o-wallet', 'route' => 'admin.wallets', 'perm' => 'view-treasury'],
             ['label' => 'Chain Health', 'icon' => 'heroicon-o-signal', 'route' => 'admin.blockchain-health', 'perm' => 'view-treasury'],
             ['label' => 'RPC Endpoints', 'icon' => 'heroicon-o-server-stack', 'route' => 'admin.rpc-endpoints', 'perm' => 'manage-assets'],
             ['label' => 'Custody & Xpubs', 'icon' => 'heroicon-o-key', 'route' => 'admin.custody', 'perm' => 'manage-assets'],
@@ -70,6 +77,7 @@
             ['label' => 'Activity Logs', 'icon' => 'heroicon-o-clipboard-document-list', 'route' => 'admin.activity-logs', 'perm' => 'view-activity-logs'],
             ['label' => 'Simulation', 'icon' => 'heroicon-o-beaker', 'route' => 'admin.simulation'],
             ['label' => 'Settings', 'icon' => 'heroicon-o-cog-6-tooth', 'route' => 'admin.settings', 'perm' => 'manage-settings'],
+            ['label' => 'Feature Flags', 'icon' => 'heroicon-o-flag', 'route' => 'admin.feature-flags', 'perm' => 'manage-feature-flags'],
         ]],
     ];
 

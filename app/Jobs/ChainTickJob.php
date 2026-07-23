@@ -55,7 +55,7 @@ class ChainTickJob implements ShouldQueue
             ->limit(50)
             ->get()
             ->each(function (Deposit $deposit) use ($sweep) {
-                if (! $deposit->depositAddress || ! $deposit->asset) {
+                if (! $deposit->depositAddress) {
                     return;
                 }
                 $sweep->execute(

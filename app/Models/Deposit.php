@@ -10,6 +10,18 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property string $id
+ * @property string $user_id
+ * @property int $asset_id
+ * @property string $amount
+ * @property string|null $fee
+ * @property int $confirmations
+ * @property int $required_confirmations
+ * @property DepositStatus $status
+ * @property-read Asset $asset
+ * @property-read OnchainTx|null $onchainTx
+ */
 class Deposit extends Model
 {
     use HasUuids;

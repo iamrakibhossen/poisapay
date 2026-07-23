@@ -12,6 +12,7 @@ use App\Models\CardAuthorization;
 use App\Models\CardProvider;
 use App\Models\CardWebhook;
 use App\Models\User;
+use Illuminate\Testing\TestResponse;
 
 function mockProvider(): CardProvider
 {
@@ -30,7 +31,7 @@ function activeCard(User $user, CardProvider $provider): Card
 }
 
 /** Sign a body with the mock provider and POST it as a raw request. */
-function postSigned(string $uri, array $body): \Illuminate\Testing\TestResponse
+function postSigned(string $uri, array $body): TestResponse
 {
     $raw = json_encode($body);
     $sig = app(CardManager::class)->driver('mock')->sign($raw);

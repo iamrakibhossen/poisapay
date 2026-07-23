@@ -12,6 +12,7 @@ use App\Enums\LedgerAccountType;
 use App\Enums\RevenueWithdrawalStatus;
 use App\Jobs\BroadcastRevenueWithdrawalJob;
 use App\Models\Admin;
+use App\Models\Asset;
 use App\Models\ProfitPayout;
 use App\Models\RevenueWithdrawal;
 use App\Support\Money;
@@ -78,7 +79,7 @@ it('records a profit payout and posts the ledger', function () {
 });
 
 it('rejects the on-chain approval flow for fiat revenue', function () {
-    $bdt = App\Models\Asset::firstOrCreate(
+    $bdt = Asset::firstOrCreate(
         ['symbol' => 'BDT', 'chain_id' => null, 'contract_address' => null],
         ['name' => 'Taka', 'kind' => 'fiat', 'currency_code' => 'BDT', 'decimals' => 2, 'is_active' => true],
     );

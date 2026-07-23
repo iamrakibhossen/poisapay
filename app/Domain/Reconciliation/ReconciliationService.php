@@ -8,7 +8,9 @@ use App\Enums\LedgerAccountType;
 use App\Models\Asset;
 use App\Models\LedgerLine;
 use App\Models\ReconciliationRun;
+use App\Models\SecurityEvent;
 use Brick\Math\BigInteger;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Solvency reconciliation (TDD §5.4). For each asset, prove:
@@ -34,7 +36,7 @@ class ReconciliationService
         $drift = $treasury->minus($liability);
         $solvent = $treasury->isGreaterThanOrEqualTo($liability);
 
-        return ReconciliationRun::create([
+        $run = ReconciliationRun::create([
             'asset_id' => $asset->id,
             'onchain_controlled' => '0', // populated by the monitor in production
             'ledger_treasury' => (string) $treasury,
@@ -43,6 +45,42 @@ class ReconciliationService
             'is_solvent' => $solvent,
             'status' => $solvent ? 'ok' : 'insolvent',
         ]);
+
+        if (! $solvent) {
+            $this->alertInsolvency($asset, (string) $drift);
+        }
+
+        return $run;
+    }
+
+    /**
+     * Insolvency is a page-on-call event: record a durable critical security signal,
+     * fan an operator notification, and log at critical so the alerting pipeline
+     * (Slack/Sentry) escalates it. Never throws — alerting must not block the run.
+     */
+    private function alertInsolvency(Asset $asset, string $drift): void
+    {
+        try {
+            SecurityEvent::create([
+                'type' => 'insolvency',
+                'severity' => 'critical',
+                'risk_score' => 100,
+                'metadata' => ['asset_id' => $asset->id, 'symbol' => $asset->symbol, 'drift' => $drift],
+            ]);
+
+            Log::critical('Solvency invariant breached', [
+                'asset' => $asset->symbol, 'asset_id' => $asset->id, 'drift' => $drift,
+            ]);
+
+            notifyAdmins(
+                'Insolvency detected',
+                "Ledger treasury is below user liability for {$asset->symbol} (drift {$drift}). Freeze withdrawals and investigate immediately.",
+                null,
+                'security',
+            );
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     /** Run reconciliation once per coin (representative asset per currency). */

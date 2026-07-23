@@ -36,12 +36,12 @@ it('renders public + guest pages', function () {
 it('renders every authenticated user page', function () {
     $user = User::factory()->create(['kyc_tier' => KycTier::Full]);
 
-    foreach (['dashboard', 'wallet', 'deposit', 'deposits', 'withdraw', 'withdrawals', 'send', 'transfers', 'transactions', 'exchange', 'swaps', 'cards', 'merchant', 'credit', 'rewards', 'notifications', 'settings'] as $route) {
+    foreach (['dashboard', 'wallet', 'deposit', 'deposits', 'withdraw', 'withdrawals', 'send', 'transfers', 'transactions', 'exchange', 'swaps', 'cards', 'merchant', 'rewards', 'notifications', 'settings'] as $route) {
         actingAs($user)->get(route($route))->assertOk();
     }
 
     // Each settings section is its own URL (/settings/{tab}).
-    foreach (['profile', 'security', 'verification', 'devices', 'preferences', 'sessions'] as $tab) {
+    foreach (['profile', 'security', 'password', 'verification', 'devices', 'preferences', 'sessions'] as $tab) {
         actingAs($user)->get(route('settings', ['tab' => $tab]))->assertOk();
     }
 

@@ -45,16 +45,33 @@ class ComplianceCaseService
         return $alert->refresh();
     }
 
-    /** File a Suspicious Activity Report against the case. */
-    public function fileSar(ComplianceCase $case, Admin $by, string $reference, ?string $summary = null): ComplianceCase
-    {
+    /**
+     * File a Suspicious Activity Report against the case. Structured fields
+     * (activity type, narrative, subject amount) are optional and backward
+     * compatible with the original free-text reference + summary call.
+     */
+    public function fileSar(
+        ComplianceCase $case,
+        Admin $by,
+        string $reference,
+        ?string $summary = null,
+        ?string $activityType = null,
+        ?string $narrative = null,
+        ?string $amount = null,
+    ): ComplianceCase {
         $case->update([
             'sar_filed' => true,
             'sar_reference' => $reference,
+            'sar_activity_type' => $activityType,
+            'sar_narrative' => $narrative,
+            'sar_amount' => $amount,
+            'sar_filed_at' => now(),
             'summary' => $summary ?? $case->summary,
             'status' => CaseStatus::Investigating,
         ]);
-        ActivityLogger::log('compliance.sar.filed', $case, ['reference' => $reference, 'by' => $by->id]);
+        ActivityLogger::log('compliance.sar.filed', $case, [
+            'reference' => $reference, 'activity_type' => $activityType, 'by' => $by->id,
+        ]);
 
         return $case->refresh();
     }

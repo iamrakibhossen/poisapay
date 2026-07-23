@@ -58,14 +58,14 @@ class SimulateCardPurchase extends Command
 
         $minor = (string) (int) round(((float) $this->argument('amount')) * 100);
         $usdt = Asset::where('symbol', 'USDT')->where('is_active', true)->first();
-        $balance = fn() => $usdt ? $ledger->availableBalance($card->user_id, $usdt->id)->toDecimal() : 'n/a';
+        $balance = fn () => $usdt ? $ledger->availableBalance($card->user_id, $usdt->id)->toDecimal() : 'n/a';
 
         $this->line("Card ····{$card->last4}  ·  holder {$card->user?->email}");
-        $this->line('USDT available before: ' . $balance());
+        $this->line('USDT available before: '.$balance());
 
         $result = $authorize->authorize(new CardAuthorizationRequest(
             cardRef: $card->issuer_card_ref,
-            networkAuthId: 'sim_' . Str::lower(Str::random(20)),
+            networkAuthId: 'sim_'.Str::lower(Str::random(20)),
             amountMinor: $minor,
             currency: $card->settlement_currency,
             mcc: (string) $this->option('mcc'),
@@ -74,14 +74,14 @@ class SimulateCardPurchase extends Command
 
         if (! $result->approved) {
             $this->error("DECLINED: {$result->reason}");
-            $this->line('USDT available: ' . $balance());
+            $this->line('USDT available: '.$balance());
 
             return self::FAILURE;
         }
 
         $auth = $result->authorization;
         $this->info("✔ Authorized — hold placed. auth={$auth->id}");
-        $this->line('USDT available (held): ' . $balance());
+        $this->line('USDT available (held): '.$balance());
 
         if ($this->option('auth-only')) {
             $this->comment('Auth-only: hold placed, not settled. Reverse it via the webhook pipeline or settle later.');
@@ -97,7 +97,7 @@ class SimulateCardPurchase extends Command
             $this->info("✔ Refunded — status={$auth->status->value}.");
         }
 
-        $this->line('USDT available after: ' . $balance());
+        $this->line('USDT available after: '.$balance());
         $this->newLine();
         $this->line('Now check → /transactions (Cards tab) · /notifications · Admin → Cards.');
         $this->comment('Note: the notification is queued (Redis) — a `php artisan queue:work` must be running to deliver it.');

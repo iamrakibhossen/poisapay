@@ -11,7 +11,6 @@ use App\Card\DTOs\CardholderResult;
 use App\Card\DTOs\CardIssueRequest;
 use App\Card\DTOs\NormalizedWebhookEvent;
 use App\Card\DTOs\ProviderHealth;
-use App\Card\DTOs\ProviderTransactionData;
 use App\Card\DTOs\SpendControlData;
 use App\Card\Enums\ProviderCapability;
 use App\Card\Exceptions\FeatureNotSupportedException;

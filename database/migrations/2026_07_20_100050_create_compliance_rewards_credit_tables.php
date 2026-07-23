@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-/** KYC/AML (§10), rewards/referral (§F5), crypto-backed credit (§F6). */
+/** KYC/AML (§10), rewards/referral (§F5). */
 return new class extends Migration
 {
     public function up(): void
@@ -72,31 +72,10 @@ return new class extends Migration
 
             $table->foreign('entry_id')->references('id')->on('journal_entries')->nullOnDelete();
         });
-
-        // §F6
-        Schema::create('credit_lines', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('collateral_asset_id')->constrained('assets');
-            $table->foreignId('principal_asset_id')->constrained('assets');
-            $table->decimal('collateral_amount', 78, 0)->default(0);
-            $table->decimal('principal_drawn', 78, 0)->default(0);
-            $table->decimal('accrued_fee', 78, 0)->default(0);
-            $table->unsignedSmallInteger('ltv_bps')->default(5000);       // current LTV
-            $table->unsignedSmallInteger('max_ltv_bps')->default(6000);
-            $table->unsignedSmallInteger('liquidation_ltv_bps')->default(8500);
-            $table->decimal('interest_apr_bps', 10, 0)->default(1200);
-            $table->string('status', 16)->default('active');
-            $table->timestamp('last_accrued_at')->nullable();
-            $table->timestamps();
-
-            $table->index(['user_id', 'status']);
-        });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('credit_lines');
         Schema::dropIfExists('reward_grants');
         Schema::dropIfExists('referrals');
         Schema::dropIfExists('screening_results');

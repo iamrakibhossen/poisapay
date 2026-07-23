@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Domain\Auth\DeviceService;
 use App\Domain\Auth\TwoFactorService;
+use App\Domain\Security\SuspiciousLoginDetector;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -82,6 +83,9 @@ class LoginController extends Controller
     private function complete(Request $request, User $user, bool $remember): RedirectResponse
     {
         Auth::login($user, $remember);
+        // Suspicious-login detection MUST run before the device is recorded, so a
+        // new device is judged against the devices that existed prior to this login.
+        app(SuspiciousLoginDetector::class)->inspect($user, $request);
         app(DeviceService::class)->record($user, $request);
         $request->session()->regenerate();
 
