@@ -10,6 +10,7 @@ use App\Enums\ChainType;
 use App\Enums\LedgerAccountType;
 use App\Models\Chain;
 use App\Models\CustodyXpub;
+use App\Models\TreasuryMove;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
@@ -73,4 +74,12 @@ it('does nothing when the flag is off', function () {
     fakeMove(null);
 
     expect(app(TronHotColdMoveAction::class)->execute($this->asset))->toBeNull();
+});
+
+it('the rebalance command broadcasts a move when over the watermark', function () {
+    fakeMove(null);
+
+    $this->artisan('poisapay:rebalance')->assertSuccessful();
+
+    expect(TreasuryMove::where('asset_id', $this->asset->id)->where('status', 'broadcast')->exists())->toBeTrue();
 });
