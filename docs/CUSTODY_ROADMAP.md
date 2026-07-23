@@ -24,6 +24,8 @@ RedotPay-grade custody). Read this first when resuming.
 | `b5d2bfe` | TRON hot→cold on-chain execution (opt-in) |
 | `4e5bfd3` | EVM hot→cold on-chain execution (parity) |
 | `0da8ef8` | `poisapay:rebalance` command (hot→cold trigger, TRON + EVM) |
+| `b55fd13` | Cold→hot refill workflow (request + settle, offline-signed) |
+| `e16f83b` | End-to-end custody validation (sweep → settle → reconcile) |
 
 ### Design invariants now enforced
 - **Ledger follows the chain, never leads it** — sweep/settle post `treasury:pending → treasury:hot` ONLY after on-chain confirmation.
@@ -56,16 +58,27 @@ Watermarks: settings `custody.watermark.high.<SYMBOL>` / `.low.<SYMBOL>` (base u
 - **Shipped** (`b5d2bfe`, `4e5bfd3`, `0da8ef8`): `TronHotColdMoveAction`/`EvmHotColdMoveAction` broadcast a hot→cold transfer (hot key → cold-watch xpub's derived address; EVM scales decimals + shared `NonceManager`); `Settle{Tron,Evm}HotColdMovesAction` post `treasury:hot → treasury:cold` (debit cold / credit hot) ONLY after confirmation. `treasury_moves` table (idempotent, one in-flight move per asset). Excess = `treasury:hot` − `custody.watermark.high.<SYMBOL>`. `poisapay:rebalance` command triggers it (opt-in, not scheduled). Behind `hot_cold_move_enabled` (default OFF).
 - **⚠️ Before enabling in prod:** VERIFY the derived cold address matches the offline wallet (`AddressDeriver::derive(chain, coldXpub, 0)` vs the cold device) — a wrong cold address is irrecoverable.
 
-### 3. Cold → Hot refill workflow
-- **Objective:** when the monitor flags `under`, drive an operator-approved, offline-signed refill from cold.
-- **Architecture:** CANNOT be fully automated — the cold key is offline by design. Build a request/approval record (`cold_refill_requests`): monitor creates a `requested` row + alert; admin approves; an unsigned tx is built online, carried to the air-gapped/MPC signer, signed offline, pasted back; a `broadcast + settle` step posts `treasury:cold → treasury:hot` after confirmation. This is mostly workflow/UI + a settle action; the signing is external (MPC/HSM).
-- **Risks:** 🟡 process/human-in-the-loop; ensure dual-control + audit. Low code risk.
-- **Dependencies:** #2's settle machinery; ties into MPC/HSM (infra) for the offline signature.
-- **Rollback:** the request/approval is inert until an operator acts.
+### 3. Cold → Hot refill workflow — ✅ DONE (code core; signing is external by design)
+- **Shipped** (`b55fd13`): `cold_refill_requests` table + `RequestColdRefillAction` (raises a `requested` row + alert when treasury:hot < low-watermark; amount tops hot up to high-watermark; idempotent one-per-asset) + `SettleColdRefillAction` (posts `treasury:cold → treasury:hot` after the operator's offline-signed tx confirms; routes TRON/EVM; reverted → back to `approved`). Wired into `poisapay:rebalance`. Behind `hot_cold_refill_enabled` (default OFF).
+- **Remaining = NON-CODE (by design):** the offline/MPC/air-gapped signing of the cold→hot tx, and an admin approval UI to move `requested → approved → broadcast` + record the tx hash. Both are ops/infra, not custody logic.
 
-### 4. Final end-to-end integration test + production-readiness review
-- Full flow on testnet: deposit → sweep (gas-sponsored) → withdrawal (batched) → hot→cold → reconcile clean.
-- Verify every reconciliation invariant holds end-to-end; chaos-test worker/RPC failure; confirm all flags flip cleanly; load profile.
+### 4. E2E integration + reconciliation validation — ✅ DONE (test); readiness review below
+- **Shipped** (`e16f83b`): end-to-end test — sweep broadcasts, settles to the ledger only after confirmation, reconciler confirms on-chain hot == ledger treasury:hot (zero drift).
+- **Failure-recovery covered by unit tests:** reverted sweep/move/refill → `failed`/reset; RBF replaces stuck tx; DLQ after exhaustion; reconciler flags drift + insolvency.
+- **Remaining validation = ops:** run the full flow on **live testnet** with flags on (real nodes), chaos-test worker/RPC outage, load-profile — needs infra (nodes), not code.
+
+---
+
+## Production-readiness / enablement runbook (flip flags in THIS order, one asset at a time)
+All money paths are OFF by default. To go live, per chain/asset, smallest amounts first:
+1. **Reconciliation is already live** (scheduled) — watch it clean for the asset before anything else.
+2. **Verify the hot & cold addresses** on-chain match the offline/hardware wallets (`AddressDeriver::derive`). A wrong address is irrecoverable.
+3. **Fund the hot wallet** with native gas (TRX/ETH) → enable `gas_sponsoring_enabled` → watch a `gas_sponsorships` row fund + confirm.
+4. **Enable `onchain_sweep_enabled`** → run `poisapay:sweep` for one small deposit → confirm the sweep settles and the reconciler stays zero-drift.
+5. **Enable `withdrawal_batching_enabled`** (RBF/DLQ) once withdrawals broadcast cleanly.
+6. **Set `custody.watermark.high/low.<SYMBOL>`**, seed cold, enable `hot_cold_move_enabled` → run `poisapay:rebalance` → confirm the move settles to `treasury:cold`.
+7. **Enable `hot_cold_refill_enabled`** → confirm an under-watermark raises a request + alert; wire the offline-signing/approval ops process.
+- **Kill-switch:** flip any flag OFF to halt that path instantly; the reconciler keeps watching. A drift/insolvency alert should trigger an immediate freeze + investigation.
 
 ---
 
