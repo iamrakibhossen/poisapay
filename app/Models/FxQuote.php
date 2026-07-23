@@ -15,13 +15,14 @@ class FxQuote extends Model
 
     protected $fillable = [
         'user_id', 'from_asset_id', 'to_asset_id', 'from_amount', 'to_amount',
-        'rate', 'spread_bps', 'source', 'context', 'expires_at',
+        'rate', 'market_rate', 'spread_bps', 'fee_bps', 'source', 'context', 'expires_at',
     ];
 
     protected function casts(): array
     {
         return [
             'spread_bps' => 'integer',
+            'fee_bps' => 'integer',
             'context' => ConversionContext::class,
             'expires_at' => 'datetime',
         ];

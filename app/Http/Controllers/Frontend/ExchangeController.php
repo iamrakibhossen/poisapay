@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Frontend;
 
 use App\Domain\Exchange\ExchangeService;
+use App\Domain\Exchange\ExecuteSwapAction;
+use App\Domain\Exchange\SwapPolicy;
 use App\Domain\Ledger\LedgerService;
 use App\Enums\ConversionContext;
 use App\Http\Controllers\Controller;
@@ -16,7 +18,6 @@ use App\Support\Money;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -102,7 +103,7 @@ class ExchangeController extends Controller
         return view('frontend.swaps', ['swaps' => $swaps]);
     }
 
-    public function quote(Request $request, ExchangeService $exchange): RedirectResponse
+    public function quote(Request $request, ExchangeService $exchange, SwapPolicy $policy): RedirectResponse
     {
         $validated = $request->validate([
             'fromAssetId' => ['required', 'integer'],
@@ -130,7 +131,11 @@ class ExchangeController extends Controller
             throw ValidationException::withMessages(['fromAmount' => 'Amount must be greater than zero.']);
         }
 
+        // Fail fast on eligibility/limits before pricing (authoritative re-check
+        // happens again on confirm inside ExecuteSwapAction).
         try {
+            $policy->assertEligible($request->user());
+            $policy->assertWithinDailyLimit($request->user(), $from, $amount);
             $quote = $exchange->quote($request->user(), $from, $to, $amount, ConversionContext::Swap);
         } catch (\Throwable $e) {
             throw ValidationException::withMessages(['fromAmount' => $e->getMessage()]);
@@ -141,7 +146,7 @@ class ExchangeController extends Controller
             ->withInput();
     }
 
-    public function confirm(Request $request, ExchangeService $exchange): RedirectResponse
+    public function confirm(Request $request, ExecuteSwapAction $action): RedirectResponse
     {
         $validated = $request->validate(['quoteId' => ['required', 'string']]);
 
@@ -154,8 +159,10 @@ class ExchangeController extends Controller
             throw ValidationException::withMessages(['quoteId' => 'Quote expired. Please request a new quote.']);
         }
 
+        // Idempotent by the quote itself — a double-submit returns the same
+        // conversion instead of swapping twice (the Action derives the key).
         try {
-            $exchange->execute($request->user(), $quote, Str::uuid()->toString());
+            $action->execute($request->user(), $quote);
         } catch (\Throwable $e) {
             throw ValidationException::withMessages(['quoteId' => $e->getMessage()]);
         }
@@ -179,9 +186,13 @@ class ExchangeController extends Controller
             'toAmount' => Money::ofBase($quote->to_amount, $to->decimals, $to->symbol)->format(),
             'fromAmount' => Money::ofBase($quote->from_amount, $from->decimals, $from->symbol)->format(),
             'rate' => rtrim(rtrim(number_format((float) $quote->rate, 8, '.', ''), '0'), '.'),
+            'marketRate' => $quote->market_rate
+                ? rtrim(rtrim(number_format((float) $quote->market_rate, 8, '.', ''), '0'), '.')
+                : null,
             'fromSymbol' => $from->symbol,
             'toSymbol' => $to->symbol,
             'spread' => number_format($quote->spread_bps / 100, 2),
+            'fee' => number_format($quote->fee_bps / 100, 2),
             'expiresAt' => $quote->expires_at->timestamp,
             'expired' => $quote->expires_at->isPast(),
         ];

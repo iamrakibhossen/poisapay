@@ -15,12 +15,14 @@ class Conversion extends Model
 
     protected $fillable = [
         'user_id', 'quote_id', 'context', 'entry_id', 'idempotency_key',
+        'status', 'completed_at', 'spread_amount', 'fee_amount', 'gross_amount', 'notional_usd',
     ];
 
     protected function casts(): array
     {
         return [
             'context' => ConversionContext::class,
+            'completed_at' => 'datetime',
         ];
     }
 

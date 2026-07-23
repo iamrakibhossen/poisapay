@@ -65,8 +65,14 @@ class ExchangeService
         }
 
         $spreadBps = $pair?->spread_bps ?? (int) getSetting('exchange_spread_bps', config('poisapay.default_spread_bps', 75));
-        // Charge the spread by giving the user slightly less of the target asset.
-        $effective = $mid->multipliedBy(BigDecimal::of(10_000 - $spreadBps))->dividedBy(10_000, 18, RoundingMode::DOWN);
+        // Optional explicit platform fee on top of the spread — user-initiated
+        // swaps only (ramp/card settlement price at the spread alone).
+        $feeBps = $context === ConversionContext::Swap
+            ? (int) getSetting('exchange_fee_bps', config('poisapay.default_fee_bps', 0))
+            : 0;
+
+        // Charge spread + fee by giving the user slightly less of the target asset.
+        $effective = $mid->multipliedBy(BigDecimal::of(10_000 - $spreadBps - $feeBps))->dividedBy(10_000, 18, RoundingMode::DOWN);
 
         // Convert base->base honouring both assets' decimals.
         $fromWhole = BigDecimal::ofUnscaledValue($fromAmount->baseString(), $from->decimals);
@@ -80,7 +86,9 @@ class ExchangeService
             'from_amount' => $fromAmount->baseString(),
             'to_amount' => (string) $toBase,
             'rate' => (string) $effective,
+            'market_rate' => (string) $mid,
             'spread_bps' => $spreadBps,
+            'fee_bps' => $feeBps,
             'source' => 'reference',
             'context' => $context,
             'expires_at' => now()->addSeconds(30),
@@ -122,13 +130,14 @@ class ExchangeService
                 throw new RuntimeException('Insufficient balance for conversion.');
             }
 
-            // The platform's profit is the spread, booked explicitly (in the
-            // from-asset) to fx:spread_income so it surfaces in the revenue
-            // wallet — the rest of the from-amount backs the to-payout.
-            $spread = BigInteger::of($fromAmount->baseString())
-                ->multipliedBy($quote->spread_bps)
-                ->dividedBy(10_000, RoundingMode::DOWN);
-            $treasuryPortion = BigInteger::of($fromAmount->baseString())->minus($spread);
+            // The platform's profit is the spread (and optional platform fee),
+            // booked explicitly in the from-asset to the revenue accounts so it
+            // surfaces in the revenue wallet — the rest of the from-amount backs
+            // the to-payout. treasury stays flat at mid; all margin is income.
+            $fromBase = BigInteger::of($fromAmount->baseString());
+            $spread = $fromBase->multipliedBy($quote->spread_bps)->dividedBy(10_000, RoundingMode::DOWN);
+            $fee = $fromBase->multipliedBy($quote->fee_bps)->dividedBy(10_000, RoundingMode::DOWN);
+            $treasuryPortion = $fromBase->minus($spread)->minus($fee);
 
             $lines = [
                 // User surrenders the from-asset.
@@ -139,10 +148,15 @@ class ExchangeService
                 PostingLine::credit($toAvailable->id, $to->id, $toAmount),
             ];
 
-            // Only book a spread line when there is a positive spread (amount > 0).
+            // Only book revenue lines when the amount is positive (keeps the
+            // entry minimal and identical to before when fee_bps = 0).
             if ($spread->isPositive()) {
                 $spreadIncome = $this->accounts->system(LedgerAccountType::FxSpreadIncome, $from->id);
                 $lines[] = PostingLine::credit($spreadIncome->id, $from->id, (string) $spread);
+            }
+            if ($fee->isPositive()) {
+                $feeIncome = $this->accounts->system(LedgerAccountType::FeeIncome, $from->id);
+                $lines[] = PostingLine::credit($feeIncome->id, $from->id, (string) $fee);
             }
 
             $entry = $this->ledger->post(new EntryData(
@@ -150,8 +164,14 @@ class ExchangeService
                 idempotencyKey: 'entry:'.$idempotencyKey,
                 lines: $lines,
                 memo: "Convert {$from->symbol} -> {$to->symbol}",
-                metadata: ['quote_id' => $quote->id, 'spread' => (string) $spread],
+                metadata: ['quote_id' => $quote->id, 'spread' => (string) $spread, 'fee' => (string) $fee],
             ));
+
+            // Gross (pre-spread/fee) to-amount at the market rate — a record-only
+            // figure so the conversion is a self-contained swap receipt.
+            $grossBase = BigDecimal::ofUnscaledValue($fromAmount->baseString(), $from->decimals)
+                ->multipliedBy(BigDecimal::of($quote->market_rate ?: $quote->rate))
+                ->withPointMovedRight($to->decimals)->toScale(0, RoundingMode::DOWN)->toBigInteger();
 
             return Conversion::create([
                 'user_id' => $user->id,
@@ -159,6 +179,11 @@ class ExchangeService
                 'context' => $quote->context,
                 'entry_id' => $entry->id,
                 'idempotency_key' => $idempotencyKey,
+                'status' => 'completed',
+                'completed_at' => now(),
+                'spread_amount' => (string) $spread,
+                'fee_amount' => (string) $fee,
+                'gross_amount' => (string) $grossBase,
             ]);
         });
     }

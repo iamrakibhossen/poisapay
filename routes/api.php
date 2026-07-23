@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\DepositController;
 use App\Http\Controllers\Api\V1\ReferenceController;
 use App\Http\Controllers\Api\V1\SecurityController;
+use App\Http\Controllers\Api\V1\SwapController;
 use App\Http\Controllers\Api\V1\TransferController;
 use App\Http\Controllers\Api\V1\WalletController;
 use App\Http\Controllers\Card\CardInboundController;
@@ -74,6 +75,14 @@ Route::prefix('v1')->group(function () {
         Route::controller(TransferController::class)->group(function () {
             Route::post('transfers', 'store')->middleware('throttle:30,1');
             Route::get('transfers', 'index');
+        });
+
+        // Swap / exchange (§F2). Execution is idempotent via the Idempotency-Key
+        // header (falls back to the quote id) — a retry never swaps twice.
+        Route::controller(SwapController::class)->group(function () {
+            Route::post('swaps/quote', 'quote')->middleware('throttle:60,1');
+            Route::post('swaps', 'store')->middleware('throttle:30,1');
+            Route::get('swaps', 'index');
         });
 
         // Security centre (Wave 4).

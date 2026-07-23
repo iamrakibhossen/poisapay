@@ -106,6 +106,17 @@ return [
     // Default exchange spread applied to quotes, in basis points (§F2.1).
     'default_spread_bps' => (int) env('POISAPAY_DEFAULT_SPREAD_BPS', 75),
 
+    // Optional explicit platform swap fee (bps), booked to fee:income on top of
+    // the spread. 0 = spread-only (unchanged behaviour); admin overrides live.
+    'default_fee_bps' => (int) env('POISAPAY_DEFAULT_FEE_BPS', 0),
+
+    // Per-user swap guardrails (user-initiated Swap context only; ramp/card are
+    // exempt). Defaults are permissive so nothing changes until an admin opts in:
+    // min KYC tier to swap, and rolling-24h swap notional ceiling in whole USD
+    // (0 = unlimited). Overridden live via Settings.
+    'swap_min_kyc' => env('POISAPAY_SWAP_MIN_KYC', 'unverified'),
+    'swap_daily_limit_usd' => (int) env('POISAPAY_SWAP_DAILY_LIMIT_USD', 0),
+
     // Platform percentage fees (the admin's cut) booked to fee:income. These are
     // the fallback defaults; the admin overrides them live via Settings. Deposits
     // credit the user net of the fee; withdrawals add it on top of the rail fee.

@@ -45,6 +45,7 @@ class SettingsSeeder extends Seeder
             ],
             'fees' => [
                 'exchange_spread_bps' => 75,
+                'exchange_fee_bps' => 0,   // optional platform swap fee on top of spread (0 = spread-only)
                 'withdrawal_auto_approve_limit' => 50000,
                 'card_fee_bps' => 100,
                 'merchant_fee_bps' => 100,
@@ -70,6 +71,10 @@ class SettingsSeeder extends Seeder
             'limits' => [
                 'min_withdrawal_usd' => 1,
                 'daily_withdrawal_count' => 10,
+                // Swap guardrails (user-initiated only). Permissive defaults:
+                // 'unverified' = no KYC gate, 0 = unlimited daily swap notional.
+                'exchange_min_kyc' => 'unverified',
+                'exchange_daily_limit_usd' => 0,
             ],
             'announcement' => [
                 'header_announcement_enabled' => false,
