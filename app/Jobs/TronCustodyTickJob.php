@@ -6,6 +6,7 @@ namespace App\Jobs;
 
 use App\Domain\Chain\Tron\AdvanceTronDepositsAction;
 use App\Domain\Chain\Tron\ScanTronDepositsAction;
+use App\Domain\Chain\Tron\SettleTronSweepsAction;
 use App\Domain\Withdrawal\Tron\AdvanceTronWithdrawalsAction;
 use App\Domain\Withdrawal\Tron\TronWithdrawalSigner;
 use App\Enums\WithdrawalStatus;
@@ -32,6 +33,7 @@ class TronCustodyTickJob implements ShouldQueue
         AdvanceTronDepositsAction $advanceDeposits,
         TronWithdrawalSigner $signer,
         AdvanceTronWithdrawalsAction $advanceWithdrawals,
+        SettleTronSweepsAction $settleSweeps,
     ): void {
         if (config('poisapay.custody_simulated')) {
             return;
@@ -39,6 +41,12 @@ class TronCustodyTickJob implements ShouldQueue
 
         $scan->execute();
         $advanceDeposits->execute();
+
+        // Settle any auto-sweeps broadcast on deposit credit, once confirmed (idempotent no-op
+        // when there are none). Broadcasting stays flag-gated in the sweep action / SweepDepositJob.
+        if (feature('onchain_sweep_enabled', false)) {
+            $settleSweeps->execute();
+        }
 
         Withdrawal::where('status', WithdrawalStatus::Approved->value)
             ->whereHas('asset.chain', fn ($q) => $q->where('key', 'tron'))

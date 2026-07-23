@@ -13,6 +13,7 @@ use App\Domain\Ledger\LedgerService;
 use App\Enums\DepositStatus;
 use App\Enums\LedgerAccountType;
 use App\Events\DepositCredited;
+use App\Jobs\SweepDepositJob;
 use App\Models\Deposit;
 use Brick\Math\BigInteger;
 use Illuminate\Support\Facades\DB;
@@ -36,7 +37,7 @@ class CreditDepositAction
             return $deposit; // already credited
         }
 
-        return DB::transaction(function () use ($deposit): Deposit {
+        $credited = DB::transaction(function () use ($deposit): Deposit {
             $deposit->loadMissing('onchainTx', 'asset');
 
             $treasury = $this->accounts->system(LedgerAccountType::TreasuryPending, $deposit->asset_id);
@@ -82,5 +83,17 @@ class CreditDepositAction
 
             return $deposit->refresh();
         });
+
+        // RedotPay-style immediate consolidation: sweep the deposit address into the hot
+        // wallet as soon as the balance is credited. Opt-in (default OFF); the broadcast is
+        // still gated by onchain_sweep_enabled inside the job's sweep action.
+        if (feature('auto_sweep_on_confirm', false)) {
+            $credited->loadMissing('asset');
+            if ($credited->asset->contract_address !== null) {
+                SweepDepositJob::dispatch($credited->deposit_address_id, $credited->asset_id);
+            }
+        }
+
+        return $credited;
     }
 }

@@ -8,6 +8,7 @@ use App\Domain\Chain\Evm\AdvanceEvmDepositsAction;
 use App\Domain\Chain\Evm\Contracts\BlockchainProvider;
 use App\Domain\Chain\Evm\HotWalletManager;
 use App\Domain\Chain\Evm\ScanEvmDepositsAction;
+use App\Domain\Chain\Evm\SettleEvmSweepsAction;
 use App\Domain\Withdrawal\Evm\AdvanceEvmWithdrawalsAction;
 use App\Domain\Withdrawal\Evm\EvmWithdrawalSigner;
 use App\Domain\Withdrawal\Evm\RebroadcastStuckWithdrawalsAction;
@@ -46,9 +47,16 @@ class EvmCustodyTickJob implements ShouldQueue
         AdvanceEvmWithdrawalsAction $advanceWithdrawals,
         HotWalletManager $hotWallet,
         RebroadcastStuckWithdrawalsAction $rbf,
+        SettleEvmSweepsAction $settleSweeps,
     ): void {
         if (config('poisapay.custody_simulated')) {
             return; // live-custody only
+        }
+
+        // Settle any auto-sweeps broadcast on deposit credit, once confirmed (idempotent no-op
+        // when there are none). Broadcasting stays flag-gated in the sweep action / SweepDepositJob.
+        if (feature('onchain_sweep_enabled', false)) {
+            $settleSweeps->execute();
         }
 
         foreach (Chain::where('is_evm', true)->where('is_active', true)->get() as $chain) {
