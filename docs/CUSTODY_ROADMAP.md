@@ -17,6 +17,10 @@ RedotPay-grade custody). Read this first when resuming.
 | `61828f8` | Chain-agnostic gas/energy sponsoring engine (TRON) |
 | `af88b21` | EVM sweep parity (sweep + gas sponsor + settle) |
 | `2994152` | Hot-wallet watermark monitor (hot↔cold decision layer) |
+| `1c72c37` | Persist withdrawal broadcast nonce/block/attempts (RBF foundation) |
+| `13502bf` | Replace-By-Fee for stuck EVM withdrawals (opt-in) |
+| `50c80ce` | Dead-letter queue for stuck withdrawals after RBF exhaustion |
+| `2d4af55` | Wire RBF/DLQ into `EvmCustodyTickJob` (flag-gated) |
 
 ### Design invariants now enforced
 - **Ledger follows the chain, never leads it** — sweep/settle post `treasury:pending → treasury:hot` ONLY after on-chain confirmation.
@@ -38,13 +42,12 @@ Watermarks: settings `custody.watermark.high.<SYMBOL>` / `.low.<SYMBOL>` (base u
 
 ## Remaining CODE work — implement in THIS order
 
-### 1. Withdrawal batching + RBF + dead-letter queue
-- **Objective:** aggregate approved outbound withdrawals into fewer txs; replace stuck txs; dead-letter unrecoverable ones.
-- **Architecture:** a `WithdrawalBatcher` selecting Approved withdrawals per (chain, asset); EVM → multicall/multisend or sequential strict-nonce sends via `NonceManager`; TRON → sequential. RBF: on a stuck EVM tx (pending past N blocks) rebroadcast with higher `maxFeePerGas` (reuse `GasEstimationService`, bump tip). DLQ: after K attempts → `Failed` + operator alert + (reuse the `reserve_released_at` verify-then-release path once absence confirmed). Reuse `EvmWithdrawalSigner`/`TronWithdrawalSigner` per-item; the batcher orchestrates.
-- **Risks:** 🔴 nonce gaps/collisions (the gas sponsor + withdrawals both send from the hot wallet — MUST share `NonceManager` allocation); double-broadcast on RBF; partial-batch failure. Idempotency per withdrawal id.
-- **Dependencies:** `NonceManager` (exists), signers (exist). Add a `batch_id`/attempt columns to `withdrawals` (additive migration).
-- **Rollback:** flag `withdrawal_batching_enabled` (default off) → falls back to the current one-at-a-time signer path.
-- **Tests:** batch of N settles; stuck tx → RBF replaces; K failures → DLQ + reserve released only after confirmed absence.
+### 1. Withdrawal batching + RBF + dead-letter queue — ✅ DONE (RBF + DLQ); multisend deferred
+- **Shipped** (`1c72c37`, `13502bf`, `50c80ce`, `2d4af55`): broadcast nonce/block/attempts persisted; `RebroadcastStuckWithdrawalsAction` does RBF (same recorded nonce + fee bumped 25%/attempt) up to `withdrawal_max_broadcast_attempts`, then dead-letters (Failed + alert, funds stay locked for reconciliation); wired into `EvmCustodyTickJob`, all behind `withdrawal_batching_enabled` (default OFF).
+- **Nonce risk resolved:** `NonceManager` is already a DB-locked per-`(chain, hot-address)` monotonic allocator shared by the gas sponsor + withdrawal signer — RBF reuses the recorded nonce, so no collision.
+- **Config:** `poisapay.custody.withdrawal_stuck_blocks` (default 30), `withdrawal_max_broadcast_attempts` (default 3).
+- **DEFERRED — true multisend batching (fewer txs / less gas):** needs a deployed multisend/disperse contract (an on-chain **infra** step + a contract address in config). The reliability layer (coordinated shared-nonce sequencing + RBF + DLQ) is done; the gas-saving aggregation is an infra follow-up, not blocking.
+- **TODO (nice-to-have):** TRON RBF equivalent (rebroadcast the same ref-block tx) — lower priority; TRON txs rarely stick.
 
 ### 2. Hot → Cold on-chain execution
 - **Objective:** when the watermark monitor flags `over`, actually move the excess `treasury:hot` to cold on-chain.
