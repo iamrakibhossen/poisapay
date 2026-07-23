@@ -22,6 +22,8 @@ RedotPay-grade custody). Read this first when resuming.
 | `50c80ce` | Dead-letter queue for stuck withdrawals after RBF exhaustion |
 | `2d4af55` | Wire RBF/DLQ into `EvmCustodyTickJob` (flag-gated) |
 | `b5d2bfe` | TRON hot→cold on-chain execution (opt-in) |
+| `4e5bfd3` | EVM hot→cold on-chain execution (parity) |
+| `0da8ef8` | `poisapay:rebalance` command (hot→cold trigger, TRON + EVM) |
 
 ### Design invariants now enforced
 - **Ledger follows the chain, never leads it** — sweep/settle post `treasury:pending → treasury:hot` ONLY after on-chain confirmation.
@@ -50,13 +52,9 @@ Watermarks: settings `custody.watermark.high.<SYMBOL>` / `.low.<SYMBOL>` (base u
 - **DEFERRED — true multisend batching (fewer txs / less gas):** needs a deployed multisend/disperse contract (an on-chain **infra** step + a contract address in config). The reliability layer (coordinated shared-nonce sequencing + RBF + DLQ) is done; the gas-saving aggregation is an infra follow-up, not blocking.
 - **TODO (nice-to-have):** TRON RBF equivalent (rebroadcast the same ref-block tx) — lower priority; TRON txs rarely stick.
 
-### 2. Hot → Cold on-chain execution — 🟡 TRON DONE (`b5d2bfe`); EVM parity + trigger-wiring remain
-- **Shipped (TRON):** `TronHotColdMoveAction` broadcasts a TRC20 transfer hot→cold (hot key → cold-watch xpub's derived address); `SettleTronHotColdMovesAction` posts `treasury:hot → treasury:cold` (debit cold / credit hot) ONLY after confirmation. New `treasury_moves` table (idempotent, one in-flight move per asset). Excess = `treasury:hot` − `custody.watermark.high.<SYMBOL>`. Behind `hot_cold_move_enabled` (default OFF).
-- **REMAINING:**
-  1. **EVM parity** — mirror as `EvmHotColdMoveAction` + `SettleEvmHotColdMovesAction` (EIP-1559 ERC-20 hot→cold, decimal scaling, receipt-depth settle). Direct mirror of the EVM sweep + the TRON move; low risk.
-  2. **Trigger wiring** — call the move action for `over`-watermark assets from the tick/a `poisapay:rebalance` command (flag-gated).
-- **⚠️ Before enabling:** VERIFY the derived cold address matches the offline wallet (`AddressDeriver::derive(chain, coldXpub, 0)` vs the cold device) — a wrong cold address is irrecoverable.
-- **Tests done (TRON):** over-watermark → broadcast; ledger moves to `treasury:cold` only after confirmation; flag-off no-op.
+### 2. Hot → Cold on-chain execution — ✅ DONE (TRON + EVM)
+- **Shipped** (`b5d2bfe`, `4e5bfd3`, `0da8ef8`): `TronHotColdMoveAction`/`EvmHotColdMoveAction` broadcast a hot→cold transfer (hot key → cold-watch xpub's derived address; EVM scales decimals + shared `NonceManager`); `Settle{Tron,Evm}HotColdMovesAction` post `treasury:hot → treasury:cold` (debit cold / credit hot) ONLY after confirmation. `treasury_moves` table (idempotent, one in-flight move per asset). Excess = `treasury:hot` − `custody.watermark.high.<SYMBOL>`. `poisapay:rebalance` command triggers it (opt-in, not scheduled). Behind `hot_cold_move_enabled` (default OFF).
+- **⚠️ Before enabling in prod:** VERIFY the derived cold address matches the offline wallet (`AddressDeriver::derive(chain, coldXpub, 0)` vs the cold device) — a wrong cold address is irrecoverable.
 
 ### 3. Cold → Hot refill workflow
 - **Objective:** when the monitor flags `under`, drive an operator-approved, offline-signed refill from cold.
