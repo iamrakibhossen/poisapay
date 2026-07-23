@@ -50,7 +50,11 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         if (! window.Echo) return;
-        const notify = (type, message) => window.dispatchEvent(new CustomEvent('toast', { detail: { type, message } }));
+        const notify = (type, message) => {
+            window.dispatchEvent(new CustomEvent('toast', { detail: { type, message } }));
+            // Bump the topbar notification badge in realtime.
+            window.dispatchEvent(new CustomEvent('notif-new'));
+        };
         try {
             window.Echo.private('user.{{ auth()->id() }}')
                 .listen('.deposit.credited', () => notify('success', 'Deposit credited to your wallet'))

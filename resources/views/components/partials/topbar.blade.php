@@ -43,11 +43,13 @@
 
         {{-- Notifications --}}
         @php $unreadNotifications = auth()->user()?->unreadNotifications()->count() ?? 0; @endphp
-        <a href="{{ route('notifications.index') }}" class="relative rounded-full p-2 text-neutral-500 hover:bg-neutral-100" aria-label="{{ __('Notifications') }}">
+        <a href="{{ route('notifications.index') }}"
+            x-data="{ count: {{ $unreadNotifications }} }"
+            x-on:notif-new.window="count++"
+            class="relative rounded-full p-2 text-neutral-500 hover:bg-neutral-100" aria-label="{{ __('Notifications') }}">
             <x-heroicon-o-bell class="h-6 w-6" />
-            @if ($unreadNotifications > 0)
-                <span class="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-white">{{ $unreadNotifications > 99 ? '99+' : $unreadNotifications }}</span>
-            @endif
+            <span x-show="count > 0" x-cloak x-text="count > 99 ? '99+' : count"
+                class="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-white"></span>
         </a>
 
         {{-- User dropdown --}}
