@@ -1,13 +1,13 @@
 @php
     // Absolute homepage anchors so the nav works from any page (homepage + auth).
     $home = route('home');
+    $onProduct = fn (string $slug) => request()->routeIs('products.show') && request()->route('product') === $slug;
     $navLinks = [
-        ['href' => $home.'#features', 'label' => __('Features')],
-        ['href' => $home.'#cards', 'label' => __('Cards')],
-        ['href' => $home.'#exchange', 'label' => __('Exchange')],
+        ['href' => route('products.show', 'virtual-card'), 'label' => __('Virtual Cards'), 'active' => $onProduct('virtual-card')],
+        ['href' => route('products.show', 'wallet'), 'label' => __('Wallet'), 'active' => $onProduct('wallet')],
+        ['href' => route('products.show', 'exchange'), 'label' => __('Exchange'), 'active' => $onProduct('exchange')],
         ['href' => route('merchants'), 'label' => __('Merchants'), 'active' => request()->routeIs('merchants')],
-        ['href' => $home.'#security', 'label' => __('Security')],
-        ['href' => route('faqs.public'), 'label' => __('FAQ'), 'active' => request()->routeIs('faqs.public')],
+        ['href' => route('faqs.public'), 'label' => __('Help Center'), 'active' => request()->routeIs('faqs.public')],
     ];
 @endphp
 <header
@@ -32,10 +32,10 @@
 
         <div class="hidden items-center gap-2.5 lg:flex">
             @auth
-                <a href="{{ route('dashboard') }}" class="pp-btn pp-btn-primary pp-btn-sm">{{ __('Dashboard') }}</a>
+                <a href="{{ route('dashboard') }}" class="pp-btn pp-btn-primary pp-btn-md" style="border-radius:5px">{{ __('Dashboard') }}</a>
             @else
-                <a href="{{ route('login') }}" class="pp-btn pp-btn-sm text-slate-600 hover:text-slate-900">{{ __('Log in') }}</a>
-                <a href="{{ route('register') }}" class="pp-btn pp-btn-primary pp-btn-sm">{{ __('Get started') }}</a>
+                <a href="{{ route('login') }}" class="pp-btn pp-btn-ghost pp-btn-md" style="border-radius:5px">{{ __('Log in') }}</a>
+                <a href="{{ route('register') }}" class="pp-btn pp-btn-primary pp-btn-md" style="border-radius:5px">{{ __('Get started') }}</a>
             @endauth
         </div>
 

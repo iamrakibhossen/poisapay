@@ -14,7 +14,7 @@
         ['icon' => 'globe-alt', 'title' => __('Multi-chain'), 'body' => __('Ethereum, BNB Chain and Tron in one place.')],
         ['icon' => 'lock-closed', 'title' => __('Secure wallet'), 'body' => __('Custodial cold storage with 2FA on every action.')],
         ['icon' => 'building-storefront', 'title' => __('Merchant pay'), 'body' => __('Accept payments and settle instantly.')],
-        ['icon' => 'paper-airplane', 'title' => __('Fast transfers'), 'body' => __('Free P2P by handle, email or phone.')],
+        ['icon' => 'paper-airplane', 'title' => __('Fast transfers'), 'body' => __('Free P2P by PoisaPay ID, email or phone.')],
         ['icon' => 'qr-code', 'title' => __('QR pay'), 'body' => __('Scan to pay or get paid in a tap.')],
     ];
 
@@ -381,7 +381,7 @@
                 <p class="mt-4 text-slate-600">{{ __('For more, see our') }} <a href="{{ route('faqs.public') }}" class="font-medium underline-offset-2 hover:underline" style="color:var(--brand)">{{ __('full FAQ') }}</a>.</p>
             </div>
 
-            <div class="reveal mt-10 space-y-3" x-data="{ open: 0 }">
+            <div class="reveal mt-10 space-y-3" x-data="{ open: null }">
                 @foreach ($faqs as $i => $faq)
                     <div class="glass overflow-hidden rounded-2xl">
                         <button @click="open === {{ $i }} ? open = null : open = {{ $i }}" class="flex w-full items-center justify-between gap-4 p-5 text-left" :aria-expanded="open === {{ $i }}">

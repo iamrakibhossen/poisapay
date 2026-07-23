@@ -28,6 +28,7 @@ beforeEach(function () {
 
 it('renders public + guest pages', function () {
     $this->get('/')->assertOk();
+    $this->get(route('status'))->assertOk();
     $this->get('/login')->assertOk();
     $this->get('/register')->assertOk();
     $this->get('/admin/login')->assertOk();

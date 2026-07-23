@@ -1,7 +1,7 @@
 <x-layouts.marketing :title="$page->title" :description="$page->meta_description">
     <div class="mx-auto max-w-3xl px-4 pb-24 pt-6 sm:px-6">
         <article class="glass-card p-8 sm:p-10
-            [&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-slate-900
+            [&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:scroll-mt-24 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-slate-900
             [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-slate-900
             [&_p]:mb-4 [&_p]:leading-relaxed [&_p]:text-slate-600
             [&_ul]:mb-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:text-slate-600

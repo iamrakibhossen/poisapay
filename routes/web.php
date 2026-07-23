@@ -26,7 +26,9 @@ use App\Http\Controllers\Frontend\WalletController;
 use App\Http\Controllers\Frontend\WithdrawController;
 use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\Marketing\ProductController;
 use App\Http\Controllers\Marketing\RatesController;
+use App\Http\Controllers\Marketing\StatusController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
@@ -40,6 +42,8 @@ Route::view('/merchants', 'marketing.merchants')->name('merchants');   // market
 Route::get('/faqs', FaqController::class)->name('faqs.public');
 Route::get('/pages/{slug}', [PageController::class, 'show'])->name('page.show');
 Route::get('/rates', RatesController::class)->name('marketing.rates');  // live crypto→BDT reference rates (display only)
+Route::get('/status', StatusController::class)->name('status');         // live system status (footer)
+Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show'); // product marketing pages
 Route::post('/locale', [LocaleController::class, 'update'])->name('locale.switch');
 
 /*
