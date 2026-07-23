@@ -22,7 +22,7 @@ class KycController extends Controller
 {
     public function index(): RedirectResponse
     {
-        return redirect()->route('settings', ['tab' => 'verification']);
+        return redirect()->route('settings.index', ['tab' => 'verification']);
     }
 
     public function submit(Request $request, SubmitKycAction $action): RedirectResponse
@@ -63,6 +63,6 @@ class KycController extends Controller
             'document_paths' => $paths, // keyed: front / back / selfie
         ]);
 
-        return redirect()->route('settings', ['tab' => 'verification'])->with('success', 'Verification submitted. We\'ll review it shortly.');
+        return redirect()->route('settings.index', ['tab' => 'verification'])->with('success', 'Verification submitted. We\'ll review it shortly.');
     }
 }

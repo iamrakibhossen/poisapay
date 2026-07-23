@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Auth\EmailVerificationController;
+use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\NewPasswordController;
@@ -24,25 +25,28 @@ use App\Http\Controllers\Frontend\TransactionController;
 use App\Http\Controllers\Frontend\WalletController;
 use App\Http\Controllers\Frontend\WithdrawController;
 use App\Http\Controllers\ImpersonationController;
+use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\Marketing\RatesController;
 use App\Http\Controllers\PageController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
+/*
+|--------------------------------------------------------------------------
+| Public (guest-accessible) routes
+|--------------------------------------------------------------------------
+*/
 Route::view('/', 'marketing.home')->name('home');
-
-// Public CMS content (no auth).
+Route::view('/merchants', 'marketing.merchants')->name('merchants');   // marketing (console lives at /merchant, behind auth)
 Route::get('/faqs', FaqController::class)->name('faqs.public');
 Route::get('/p/{slug}', [PageController::class, 'show'])->name('page.show');
+Route::get('/rates', RatesController::class)->name('marketing.rates');  // live crypto→BDT reference rates (display only)
+Route::post('/locale', [LocaleController::class, 'update'])->name('locale.switch');
 
-// Public live crypto→BDT reference rates for the marketing converter (display only).
-Route::get('/rates', RatesController::class)->name('marketing.rates');
-
-// Public merchant marketing page (the console itself lives behind auth at /merchant).
-Route::view('/merchants', 'marketing.merchants')->name('merchants');
-
-// Guest auth (traditional controllers + Blade)
+/*
+|--------------------------------------------------------------------------
+| Guest auth (traditional controllers + Blade)
+|--------------------------------------------------------------------------
+*/
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'create'])->name('login');
     Route::post('/login', [LoginController::class, 'store'])->name('login.attempt');
@@ -54,115 +58,115 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.update');
 });
 
-Route::post('/logout', function () {
-    Auth::logout();
-    request()->session()->invalidate();
-    request()->session()->regenerateToken();
-
-    return redirect()->route('login');
-})->middleware('auth')->name('logout');
-
-// Locale switch (persists to session + the authenticated user's preference).
-Route::post('/locale', function (Request $request) {
-    $locale = in_array($request->input('locale'), ['en', 'bn'], true) ? $request->input('locale') : 'en';
-    session(['locale' => $locale]);
-
-    if ($request->user()) {
-        $request->user()->forceFill(['locale' => $locale])->save();
-    }
-
-    return back();
-})->name('locale.switch');
-
-// Email verification (Laravel standard route names, gated by settings elsewhere).
+/*
+|--------------------------------------------------------------------------
+| Authenticated app
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth')->group(function () {
+    Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+    Route::post('/impersonate/stop', [ImpersonationController::class, 'stop'])->name('impersonate.stop');
+
+    // Email verification (Laravel standard route names, gated by settings elsewhere).
     Route::get('/email/verify', EmailVerificationPromptController::class)->name('verification.notice');
-
     Route::get('/email/verify/{id}/{hash}', EmailVerificationController::class)
-        ->middleware(['signed', 'throttle:6,1'])
-        ->name('verification.verify');
+        ->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+    Route::post('/email/verification-notification', EmailVerificationNotificationController::class)
+        ->middleware('throttle:6,1')->name('verification.send');
 
-    Route::post('/email/verification-notification', function (Request $request) {
-        $request->user()->sendEmailVerificationNotification();
-
-        return back()->with('status', 'verification-link-sent');
-    })->middleware('throttle:6,1')->name('verification.send');
-});
-
-// End an operator impersonation session (the impersonated user is on the web guard).
-Route::post('/impersonate/stop', [ImpersonationController::class, 'stop'])
-    ->middleware('auth')->name('impersonate.stop');
-
-// Authenticated app
-Route::middleware(['auth'])->group(function () {
+    // ── Pages (server-rendered) ──
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/live', [DashboardController::class, 'live'])->name('dashboard.live');
-    Route::get('/wallet/{asset}', [AssetShowController::class, 'index'])->name('wallet.show');
-    Route::get('/deposit', [DepositController::class, 'index'])->name('deposit');
-    Route::get('/deposit/history', [DepositController::class, 'history'])->name('deposits');
-    Route::get('/withdraw', [WithdrawController::class, 'index'])->name('withdraw');
-    Route::get('/withdraw/history', [WithdrawController::class, 'history'])->name('withdrawals');
-    Route::get('/send', [SendController::class, 'index'])->name('send');
-    Route::get('/send/history', [SendController::class, 'history'])->name('transfers');
-    Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions');
     Route::get('/wallet', [WalletController::class, 'index'])->name('wallet');
+    Route::get('/wallet/{asset}', [AssetShowController::class, 'index'])->name('wallet.show');
+    Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions');
     Route::get('/rewards', [RewardsController::class, 'index'])->name('rewards');
 
-    // Frontend mutations — traditional form POST → redirect back with flash (no JSON API).
+    // ── Wallet mutations ──
     Route::post('/wallet/favorite/{asset}', [WalletController::class, 'toggleFavorite'])->name('wallet.favorite');
 
-    Route::post('/send', [SendController::class, 'send'])->name('send.execute');
+    // ── Deposit ──
+    Route::controller(DepositController::class)->prefix('deposit')->name('deposit.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/history', 'history')->name('history');
+        Route::post('/', 'submit')->name('submit');
+    });
 
-    Route::post('/deposit', [DepositController::class, 'submit'])->name('deposit.submit');
+    // ── Withdraw ──
+    Route::controller(WithdrawController::class)->prefix('withdraw')->name('withdraw.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/history', 'history')->name('history');
+        Route::post('/', 'submit')->name('submit');
+        Route::post('/cash', 'submitFiat')->name('fiat');
+        Route::delete('/accounts/{id}', 'deleteAccount')->name('account.delete');
+    });
 
-    Route::post('/withdraw', [WithdrawController::class, 'submit'])->name('withdraw.submit');
-    Route::post('/withdraw/cash', [WithdrawController::class, 'submitFiat'])->name('withdraw.fiat');
-    Route::delete('/withdraw/accounts/{id}', [WithdrawController::class, 'deleteAccount'])->name('withdraw.account.delete');
+    // ── Send ──
+    Route::controller(SendController::class)->prefix('send')->name('send.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/history', 'history')->name('history');
+        Route::post('/', 'send')->name('execute');
+    });
 
-    Route::post('/exchange/quote', [ExchangeController::class, 'quote'])->name('exchange.quote');
-    Route::post('/exchange/confirm', [ExchangeController::class, 'confirm'])->name('exchange.confirm');
+    // ── Exchange ──
+    Route::controller(ExchangeController::class)->prefix('exchange')->name('exchange.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/history', 'history')->name('history');
+        Route::post('/quote', 'quote')->name('quote');
+        Route::post('/confirm', 'confirm')->name('confirm');
+    });
 
-    Route::get('/notifications/preferences', [NotificationController::class, 'preferences'])->name('notifications.preferences');
-    Route::put('/notifications/preferences', [NotificationController::class, 'savePreferences'])->name('notifications.preferences.update');
-    Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
-    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+    // ── Notifications ──
+    Route::controller(NotificationController::class)->prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/preferences', 'preferences')->name('preferences');
+        Route::put('/preferences', 'savePreferences')->name('preferences.update');
+        Route::post('/{id}/read', 'markRead')->name('read');
+        Route::post('/read-all', 'markAllRead')->name('read-all');
+    });
 
-    Route::post('/verification', [KycController::class, 'submit'])->name('kyc.submit');
+    // ── KYC / verification ──
+    Route::controller(KycController::class)->prefix('verification')->name('kyc.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'submit')->name('submit');
+    });
 
-    Route::put('/settings/profile', [SettingsController::class, 'saveProfile'])->name('settings.profile');
-    Route::put('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password');
-    Route::post('/settings/2fa/enable', [SettingsController::class, 'enableTwoFactor'])->name('settings.2fa.enable');
-    Route::post('/settings/2fa/confirm', [SettingsController::class, 'confirmTwoFactor'])->name('settings.2fa.confirm');
-    Route::post('/settings/2fa/disable', [SettingsController::class, 'disableTwoFactor'])->name('settings.2fa.disable');
-    Route::post('/settings/phone/otp', [SettingsController::class, 'sendPhoneOtp'])->name('settings.phone.otp');
-    Route::post('/settings/phone/verify', [SettingsController::class, 'verifyPhone'])->name('settings.phone.verify');
-    Route::delete('/settings/devices/{id}', [SettingsController::class, 'revokeDevice'])->name('settings.device.revoke');
+    // ── Settings ──
+    Route::controller(SettingsController::class)->prefix('settings')->name('settings.')->group(function () {
+        Route::put('/profile', 'saveProfile')->name('profile');
+        Route::put('/password', 'updatePassword')->name('password');
+        Route::post('/2fa/enable', 'enableTwoFactor')->name('2fa.enable');
+        Route::post('/2fa/confirm', 'confirmTwoFactor')->name('2fa.confirm');
+        Route::post('/2fa/disable', 'disableTwoFactor')->name('2fa.disable');
+        Route::post('/phone/otp', 'sendPhoneOtp')->name('phone.otp');
+        Route::post('/phone/verify', 'verifyPhone')->name('phone.verify');
+        Route::delete('/devices/{id}', 'revokeDevice')->name('device.revoke');
+        Route::get('/{tab?}', 'index')->name('index')
+            ->where('tab', 'profile|security|password|verification|devices|preferences|sessions');
+    });
 
-    // Security centre (Wave 4): address whitelist, activity, anti-phishing, sessions.
-    // The page now lives under Settings; keep the /security URL + name as a redirect
-    // for bookmarks and existing links.
-    Route::get('/security', fn () => redirect()->route('settings', ['tab' => 'security']))->name('security');
-    Route::post('/security/addresses', [SecurityController::class, 'addAddress'])->name('security.address.add');
-    Route::delete('/security/addresses/{id}', [SecurityController::class, 'deleteAddress'])->name('security.address.delete');
-    Route::put('/security/anti-phishing', [SecurityController::class, 'saveAntiPhishing'])->name('security.anti-phishing');
-    Route::post('/security/events/{id}/ack', [SecurityController::class, 'acknowledgeEvent'])->name('security.event.ack');
-    Route::post('/security/sessions/logout-others', [SecurityController::class, 'logoutOtherSessions'])->name('security.sessions.logout-others');
+    // ── Security centre (Wave 4). The page now lives under Settings; /security
+    //    stays as a redirect for bookmarks and existing links. ──
+    Route::controller(SecurityController::class)->prefix('security')->name('security.')->group(function () {
+        Route::get('/', 'redirectToSettings')->name('index');
+        Route::post('/addresses', 'addAddress')->name('address.add');
+        Route::delete('/addresses/{id}', 'deleteAddress')->name('address.delete');
+        Route::put('/anti-phishing', 'saveAntiPhishing')->name('anti-phishing');
+        Route::post('/events/{id}/ack', 'acknowledgeEvent')->name('event.ack');
+        Route::post('/sessions/logout-others', 'logoutOtherSessions')->name('sessions.logout-others');
+    });
 
-    // Support centre (Wave 6).
-    Route::get('/support', [SupportController::class, 'index'])->name('support');
-    Route::get('/support/new', [SupportController::class, 'create'])->name('support.create');
-    Route::post('/support', [SupportController::class, 'store'])->name('support.store');
-    Route::get('/support/{id}', [SupportController::class, 'show'])->name('support.show');
-    Route::post('/support/{id}/reply', [SupportController::class, 'reply'])->name('support.reply');
+    // ── Support centre (Wave 6) ──
+    Route::controller(SupportController::class)->prefix('support')->name('support.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/new', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{id}', 'show')->name('show');
+        Route::post('/{id}/reply', 'reply')->name('reply');
+    });
 
-    Route::get('/exchange', [ExchangeController::class, 'index'])->name('exchange');
-    Route::get('/exchange/history', [ExchangeController::class, 'history'])->name('swaps');
-    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
-    Route::get('/verification', [KycController::class, 'index'])->name('kyc');
-    Route::get('/settings/{tab?}', [SettingsController::class, 'index'])->name('settings')
-        ->where('tab', 'profile|security|password|verification|devices|preferences|sessions');
-
-    // Cards and Merchant page groups live in their own files (both page + app-api routes).
+    // Cards, Merchant and P2P page groups live in their own module files
+    // (both page + mutation routes); already inside this auth group.
     require __DIR__.'/frontend/cards.php';
     require __DIR__.'/frontend/merchant.php';
     require __DIR__.'/frontend/p2p.php';

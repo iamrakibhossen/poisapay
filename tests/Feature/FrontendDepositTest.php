@@ -23,21 +23,21 @@ beforeEach(function () {
 });
 
 it('renders the deposit currency grid', function () {
-    actingAs($this->user)->get(route('deposit'))
+    actingAs($this->user)->get(route('deposit.index'))
         ->assertOk()
         ->assertSee('Deposit')
         ->assertSee('USDT');
 });
 
 it('renders the deposit method list for a chosen asset', function () {
-    actingAs($this->user)->get(route('deposit', ['asset' => $this->asset->id]))
+    actingAs($this->user)->get(route('deposit.index', ['asset' => $this->asset->id]))
         ->assertOk()
         ->assertSee('Test Bank')
         ->assertSee('USDT (Tron)');
 });
 
 it('renders a crypto method address with a QR', function () {
-    actingAs($this->user)->get(route('deposit', ['asset' => $this->asset->id, 'method' => $this->crypto->id]))
+    actingAs($this->user)->get(route('deposit.index', ['asset' => $this->asset->id, 'method' => $this->crypto->id]))
         ->assertOk()
         ->assertSee('TCryptoAddr123')
         ->assertSee('<svg', false);
@@ -67,5 +67,5 @@ it('enforces the method minimum on submit', function () {
 });
 
 it('requires authentication for the deposit page', function () {
-    $this->get(route('deposit'))->assertRedirect(route('login'));
+    $this->get(route('deposit.index'))->assertRedirect(route('login'));
 });

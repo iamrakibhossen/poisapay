@@ -1,21 +1,21 @@
-<x-layouts.app :title="'Asset'">
+<x-layouts.app :title="__('Asset')">
     @php
         // Quick actions adapt to the rails this coin actually supports.
         $actions = [];
         if ($canDeposit) {
-            $actions[] = ['route' => route('deposit', ['asset' => $asset['id']]), 'label' => 'Deposit', 'icon' => 'arrow-down-tray'];
+            $actions[] = ['route' => route('deposit.index', ['asset' => $asset['id']]), 'label' => __('Deposit'), 'icon' => 'arrow-down-tray'];
         }
-        $actions[] = ['route' => route('send'), 'label' => 'Send', 'icon' => 'paper-airplane'];
-        $actions[] = ['route' => route('exchange'), 'label' => 'Swap', 'icon' => 'arrows-right-left'];
+        $actions[] = ['route' => route('send.index'), 'label' => __('Send'), 'icon' => 'paper-airplane'];
+        $actions[] = ['route' => route('exchange.index'), 'label' => __('Swap'), 'icon' => 'arrows-right-left'];
         if ($canWithdraw) {
-            $actions[] = ['route' => $asset['is_fiat'] ? route('withdraw', ['cash' => $asset['id']]) : route('withdraw'), 'label' => 'Withdraw', 'icon' => 'arrow-up-tray'];
+            $actions[] = ['route' => $asset['is_fiat'] ? route('withdraw.index', ['cash' => $asset['id']]) : route('withdraw.index'), 'label' => __('Withdraw'), 'icon' => 'arrow-up-tray'];
         }
         $cols = count($actions);
     @endphp
 
     <div class="mx-auto max-w-3xl space-y-5">
         <a href="{{ route('wallet') }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-neutral-500 transition hover:text-neutral-900">
-            <x-heroicon-o-chevron-left class="h-4 w-4" /> Wallet
+            <x-heroicon-o-chevron-left class="h-4 w-4" /> {{ __('Wallet') }}
         </a>
 
         {{-- Balance hero (light-primary, matches the wallet total-balance box) --}}
@@ -33,10 +33,10 @@
                             @if ($asset['chain'])
                                 <x-ui.badge :color="$asset['chain']['color']">{{ $asset['chain']['name'] }}</x-ui.badge>
                             @elseif (! empty($networks))
-                                <x-ui.badge color="gray">{{ count($networks) }} networks</x-ui.badge>
+                                <x-ui.badge color="gray">{{ count($networks) }} {{ __('networks') }}</x-ui.badge>
                             @endif
                             @if ($asset['is_stablecoin'])
-                                <x-ui.badge color="success">Stablecoin</x-ui.badge>
+                                <x-ui.badge color="success">{{ __('Stablecoin') }}</x-ui.badge>
                             @endif
                         </div>
                         <p class="truncate text-sm text-neutral-500">{{ $asset['name'] }}</p>
@@ -45,7 +45,7 @@
 
                 {{-- Balance --}}
                 <div class="mt-6">
-                    <p class="text-xs font-medium uppercase tracking-wide text-brand-700">Available balance</p>
+                    <p class="text-xs font-medium uppercase tracking-wide text-brand-700">{{ __('Available balance') }}</p>
                     <p class="tabular mt-1.5 text-4xl font-bold tracking-tight text-neutral-900">{{ $balance['available'] }}</p>
                     @if ($fiat)
                         <p class="mt-1 text-sm text-neutral-500">≈ {{ $fiat }}</p>
@@ -70,9 +70,9 @@
         <div class="grid grid-cols-3 gap-3">
             @php
                 $breakdown = [
-                    ['label' => 'Available', 'value' => $balance['available'], 'tone' => 'text-neutral-900'],
-                    ['label' => 'Locked', 'value' => $balance['locked'], 'tone' => $balance['locked'] === $balance['total'] ? 'text-neutral-400' : 'text-amber-600'],
-                    ['label' => 'Total', 'value' => $balance['total'], 'tone' => 'text-neutral-900'],
+                    ['label' => __('Available'), 'value' => $balance['available'], 'tone' => 'text-neutral-900'],
+                    ['label' => __('Locked'), 'value' => $balance['locked'], 'tone' => $balance['locked'] === $balance['total'] ? 'text-neutral-400' : 'text-amber-600'],
+                    ['label' => __('Total'), 'value' => $balance['total'], 'tone' => 'text-neutral-900'],
                 ];
             @endphp
             @foreach ($breakdown as $b)
@@ -86,7 +86,7 @@
         {{-- Settlement networks (multi-chain coins) --}}
         @if (count($networks) > 1)
             <div class="pp-card flex flex-wrap items-center gap-2 p-4">
-                <span class="text-xs font-medium text-neutral-500">Settles on</span>
+                <span class="text-xs font-medium text-neutral-500">{{ __('Settles on') }}</span>
                 @foreach ($networks as $n)
                     <span class="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-xs font-medium text-neutral-700">
                         <span class="h-1.5 w-1.5 rounded-full bg-brand-400"></span>{{ $n['chain'] }}
@@ -97,16 +97,16 @@
 
         {{-- Activity --}}
         <div>
-            <h2 class="mb-3 px-1 text-sm font-semibold text-neutral-900">Activity</h2>
+            <h2 class="mb-3 px-1 text-sm font-semibold text-neutral-900">{{ __('Activity') }}</h2>
             @if (count($transactions))
                 <div class="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-[var(--shadow-card)]">
                     <table class="min-w-full text-sm">
                         <thead>
                             <tr class="border-b border-neutral-200 bg-neutral-50/60 text-[11px] uppercase tracking-wider text-neutral-400">
-                                <th class="px-5 py-3 text-left font-semibold">Date</th>
-                                <th class="px-5 py-3 text-left font-semibold">Transaction</th>
-                                <th class="px-5 py-3 text-left font-semibold">Status</th>
-                                <th class="px-5 py-3 text-right font-semibold">Amount</th>
+                                <th class="px-5 py-3 text-left font-semibold">{{ __('Date') }}</th>
+                                <th class="px-5 py-3 text-left font-semibold">{{ __('Transaction') }}</th>
+                                <th class="px-5 py-3 text-left font-semibold">{{ __('Status') }}</th>
+                                <th class="px-5 py-3 text-right font-semibold">{{ __('Amount') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-neutral-100">
@@ -144,8 +144,8 @@
                 </div>
             @else
                 <div class="pp-card">
-                    <x-ui.empty-state icon="clock" title="No activity"
-                        description="Deposits, withdrawals and transfers for this asset will appear here." />
+                    <x-ui.empty-state icon="clock" :title="__('No activity')"
+                        :description="__('Deposits, withdrawals and transfers for this asset will appear here.')" />
                 </div>
             @endif
         </div>

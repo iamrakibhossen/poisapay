@@ -115,7 +115,7 @@ class SendController extends Controller
             throw ValidationException::withMessages(['amount' => $e->getMessage()]);
         }
 
-        return redirect()->route('send')
+        return redirect()->route('send.index')
             ->with('success', 'Sent '.$money->format().' to '.($recipient->handle ? '@'.$recipient->handle : $recipient->name).'.');
     }
 

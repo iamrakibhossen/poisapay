@@ -1,6 +1,6 @@
-<x-layouts.admin :title="'Activity Logs'">
+<x-layouts.admin :title="__('Activity Logs')">
     <div class="space-y-6" x-data="{ expanded: null }">
-        <x-ui.page-header title="Activity Logs" subtitle="Immutable audit trail of operator, user and system actions across the platform." />
+        <x-ui.page-header :title="__('Activity Logs')" :subtitle="__('Immutable audit trail of operator, user and system actions across the platform.')" />
 
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             {{-- Actor-type tabs (query-string filter) --}}
@@ -20,11 +20,11 @@
 
             <form method="GET" action="{{ route('admin.activity-logs') }}" class="w-full sm:w-72">
                 <input type="hidden" name="actorType" value="{{ $actorType }}">
-                <x-ui.input name="search" :value="$search" icon="magnifying-glass" placeholder="Search action, description, actor…" />
+                <x-ui.input name="search" :value="$search" icon="magnifying-glass" :placeholder="__('Search action, description, actor…')" />
             </form>
         </div>
 
-        <x-ui.table :headers="['When', 'Actor', 'Action', 'Description', 'IP', '']">
+        <x-ui.table :headers="[__('When'), __('Actor'), __('Action'), __('Description'), __('IP'), '']">
             @forelse ($logs as $log)
                 @php
                     $actorColor = match ($log->actor_type) {
@@ -67,7 +67,7 @@
                     </tr>
                 @endif
             @empty
-                <tr><td colspan="6"><x-ui.empty-state icon="clipboard-document-list" title="No activity" description="No audit entries match this view yet." /></td></tr>
+                <tr><td colspan="6"><x-ui.empty-state icon="clipboard-document-list" :title="__('No activity')" :description="__('No audit entries match this view yet.')" /></td></tr>
             @endforelse
         </x-ui.table>
 

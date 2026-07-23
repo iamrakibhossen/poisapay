@@ -1,8 +1,8 @@
-<x-layouts.app :title="'Swap history'">
+<x-layouts.app :title="__('Swap history')">
     <div class="mx-auto max-w-4xl space-y-5">
-        <x-ui.page-header title="Swap history" subtitle="Every coin-to-coin exchange on your account.">
+        <x-ui.page-header :title="__('Swap history')" :subtitle="__('Every coin-to-coin exchange on your account.')">
             <x-slot:actions>
-                <x-ui.button href="{{ route('exchange') }}" icon="plus" size="sm">New swap</x-ui.button>
+                <x-ui.button href="{{ route('exchange.index') }}" icon="plus" size="sm">{{ __('New swap') }}</x-ui.button>
             </x-slot:actions>
         </x-ui.page-header>
 
@@ -11,10 +11,10 @@
                 <table class="min-w-full text-sm">
                     <thead>
                         <tr class="border-b border-neutral-200 bg-neutral-50/60 text-[11px] uppercase tracking-wider text-neutral-400">
-                            <th class="px-5 py-3 text-left font-semibold">Date</th>
-                            <th class="px-5 py-3 text-left font-semibold">Swap</th>
-                            <th class="px-5 py-3 text-right font-semibold">Paid</th>
-                            <th class="px-5 py-3 text-right font-semibold">Received</th>
+                            <th class="px-5 py-3 text-left font-semibold">{{ __('Date') }}</th>
+                            <th class="px-5 py-3 text-left font-semibold">{{ __('Swap') }}</th>
+                            <th class="px-5 py-3 text-right font-semibold">{{ __('Paid') }}</th>
+                            <th class="px-5 py-3 text-right font-semibold">{{ __('Received') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-neutral-100">
@@ -49,33 +49,33 @@
                 <div class="flex items-center justify-between text-sm">
                     @if ($swaps->onFirstPage())
                         <span class="inline-flex items-center gap-1.5 rounded-lg border border-neutral-100 px-3 py-1.5 font-medium text-neutral-300">
-                            <x-heroicon-o-chevron-left class="h-4 w-4" /> Previous
+                            <x-heroicon-o-chevron-left class="h-4 w-4" /> {{ __('Previous') }}
                         </span>
                     @else
                         <a href="{{ $swaps->previousPageUrl() }}"
                             class="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 font-medium text-neutral-700 transition hover:bg-neutral-50">
-                            <x-heroicon-o-chevron-left class="h-4 w-4" /> Previous
+                            <x-heroicon-o-chevron-left class="h-4 w-4" /> {{ __('Previous') }}
                         </a>
                     @endif
-                    <span class="text-neutral-500">Page {{ $swaps->currentPage() }} of {{ $swaps->lastPage() }}</span>
+                    <span class="text-neutral-500">{{ __('Page :current of :last', ['current' => $swaps->currentPage(), 'last' => $swaps->lastPage()]) }}</span>
                     @if ($swaps->hasMorePages())
                         <a href="{{ $swaps->nextPageUrl() }}"
                             class="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 font-medium text-neutral-700 transition hover:bg-neutral-50">
-                            Next <x-heroicon-o-chevron-right class="h-4 w-4" />
+                            {{ __('Next') }} <x-heroicon-o-chevron-right class="h-4 w-4" />
                         </a>
                     @else
                         <span class="inline-flex items-center gap-1.5 rounded-lg border border-neutral-100 px-3 py-1.5 font-medium text-neutral-300">
-                            Next <x-heroicon-o-chevron-right class="h-4 w-4" />
+                            {{ __('Next') }} <x-heroicon-o-chevron-right class="h-4 w-4" />
                         </span>
                     @endif
                 </div>
             @endif
         @else
             <div class="pp-card">
-                <x-ui.empty-state icon="arrows-right-left" title="No swaps yet"
-                    description="Your completed swaps will appear here.">
+                <x-ui.empty-state icon="arrows-right-left" :title="__('No swaps yet')"
+                    :description="__('Your completed swaps will appear here.')">
                     <x-slot:action>
-                        <x-ui.button href="{{ route('exchange') }}" icon="plus" size="sm">Make a swap</x-ui.button>
+                        <x-ui.button href="{{ route('exchange.index') }}" icon="plus" size="sm">{{ __('Make a swap') }}</x-ui.button>
                     </x-slot:action>
                 </x-ui.empty-state>
             </div>

@@ -46,7 +46,7 @@ it('shows the txid + explorer link on deposit history', function () {
     $fake->setBlock(ChainType::Ethereum, 100 + 12);
     app(AdvanceEvmDepositsAction::class)->execute(ChainType::Ethereum);
 
-    actingAs($user)->get(route('deposits'))
+    actingAs($user)->get(route('deposit.history'))
         ->assertOk()
         ->assertSee('https://etherscan.io/tx/'.$txHash, false) // explorer link
         ->assertSee(substr($txHash, 0, 10), false);            // shortened txid

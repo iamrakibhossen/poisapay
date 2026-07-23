@@ -39,7 +39,7 @@ it('renders the user support index and ticket pages', function () {
     $user = User::factory()->create();
     $ticket = app(SupportTicketService::class)->open($user, 'Help', 'general', 'normal', 'hello');
 
-    actingAs($user)->get(route('support'))->assertOk()->assertSee('Help');
+    actingAs($user)->get(route('support.index'))->assertOk()->assertSee('Help');
     actingAs($user)->get(route('support.show', $ticket->id))->assertOk()->assertSee('hello');
 });
 

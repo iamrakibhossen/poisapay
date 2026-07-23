@@ -36,17 +36,17 @@ it('renders public + guest pages', function () {
 it('renders every authenticated user page', function () {
     $user = User::factory()->create(['kyc_tier' => KycTier::Full]);
 
-    foreach (['dashboard', 'wallet', 'deposit', 'deposits', 'withdraw', 'withdrawals', 'send', 'transfers', 'transactions', 'exchange', 'swaps', 'cards', 'merchant', 'rewards', 'notifications', 'settings'] as $route) {
+    foreach (['dashboard', 'wallet', 'deposit.index', 'deposit.history', 'withdraw.index', 'withdraw.history', 'send.index', 'send.history', 'transactions', 'exchange.index', 'exchange.history', 'cards', 'merchant', 'rewards', 'notifications.index', 'settings.index'] as $route) {
         actingAs($user)->get(route($route))->assertOk();
     }
 
     // Each settings section is its own URL (/settings/{tab}).
     foreach (['profile', 'security', 'password', 'verification', 'devices', 'preferences', 'sessions'] as $tab) {
-        actingAs($user)->get(route('settings', ['tab' => $tab]))->assertOk();
+        actingAs($user)->get(route('settings.index', ['tab' => $tab]))->assertOk();
     }
 
     // Verification now lives in the Settings "Verification" section.
-    actingAs($user)->get(route('kyc'))->assertRedirect(route('settings', ['tab' => 'verification']));
+    actingAs($user)->get(route('kyc.index'))->assertRedirect(route('settings.index', ['tab' => 'verification']));
 });
 
 it('renders the per-card management page for its owner', function () {

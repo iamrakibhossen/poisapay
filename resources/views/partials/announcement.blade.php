@@ -22,7 +22,7 @@
                 type="button"
                 @click="show = false; localStorage.setItem('{{ $announcementKey }}', '1')"
                 class="absolute inset-y-0 right-2 my-auto grid h-6 w-6 place-items-center rounded-md text-ink-900/70 hover:bg-black/10 hover:text-ink-900"
-                aria-label="Dismiss announcement"
+                aria-label="{{ __('Dismiss announcement') }}"
             >
                 <x-heroicon-o-x-mark class="h-4 w-4" />
             </button>

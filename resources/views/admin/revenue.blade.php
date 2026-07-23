@@ -1,4 +1,4 @@
-<x-layouts.admin :title="'Revenue'">
+<x-layouts.admin :title="__('Revenue')">
     <div class="space-y-6"
         x-data="{
             tab: '{{ old('revwd_id') ? 'approvals' : 'payouts' }}',
@@ -12,31 +12,31 @@
             closeApprove() { this.approveId = null; },
         }"
     >
-        <x-ui.page-header title="Revenue" subtitle="Your platform earnings — fees, spread and card revenue. Separate from user funds." />
+        <x-ui.page-header :title="__('Revenue')" :subtitle="__('Your platform earnings — fees, spread and card revenue. Separate from user funds.')" />
 
         <x-ui.alert type="info">
-            Withdrawing profit moves the backing crypto out of the treasury and broadcasts it (simulated on testnet) with a tx hash.
-            Use <span class="font-semibold">Request approval</span> for a second operator to sign off on large payouts.
+            {{ __('Withdrawing profit moves the backing crypto out of the treasury and broadcasts it (simulated on testnet) with a tx hash.') }}
+            {{ __('Use') }} <span class="font-semibold">{{ __('Request approval') }}</span> {{ __('for a second operator to sign off on large payouts.') }}
         </x-ui.alert>
 
         {{-- Earnings dashboard (primary asset) --}}
         @if ($stats)
             <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                <x-ui.stat-card label="Today ({{ $primarySymbol }})" :value="$stats['today']->format()" icon="sun" accent="emerald" />
-                <x-ui.stat-card label="This week" :value="$stats['week']->format()" icon="calendar-days" accent="brand" />
-                <x-ui.stat-card label="This month" :value="$stats['month']->format()" icon="calendar" accent="amber" />
-                <x-ui.stat-card label="Lifetime" :value="$stats['lifetime']->format()" icon="banknotes" accent="emerald" />
+                <x-ui.stat-card :label="__('Today (:symbol)', ['symbol' => $primarySymbol])" :value="$stats['today']->format()" icon="sun" accent="emerald" />
+                <x-ui.stat-card :label="__('This week')" :value="$stats['week']->format()" icon="calendar-days" accent="brand" />
+                <x-ui.stat-card :label="__('This month')" :value="$stats['month']->format()" icon="calendar" accent="amber" />
+                <x-ui.stat-card :label="__('Lifetime')" :value="$stats['lifetime']->format()" icon="banknotes" accent="emerald" />
             </div>
 
             <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
                 <div class="pp-card p-5">
-                    <h2 class="mb-1 text-sm font-semibold text-neutral-900">Daily revenue <span class="font-normal text-neutral-400">· {{ $primarySymbol }} · 14 days</span></h2>
+                    <h2 class="mb-1 text-sm font-semibold text-neutral-900">{{ __('Daily revenue') }} <span class="font-normal text-neutral-400">· {{ $primarySymbol }} · {{ __('14 days') }}</span></h2>
                     <div x-data="{ init() { window.ppChart(this.$refs.canvas, { type: 'line', data: { labels: @js($dailyLabels), datasets: [{ label: 'Revenue', data: @js($dailyValues), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.12)', fill: true, tension: 0.3, borderWidth: 2, pointRadius: 0, pointHoverRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#9ca3af', maxRotation: 0, autoSkip: true } }, y: { beginAtZero: true, grid: { color: 'rgba(148,163,184,0.15)' }, ticks: { color: '#9ca3af' } } } } }); } }" class="mt-2 h-[240px]">
                         <canvas x-ref="canvas"></canvas>
                     </div>
                 </div>
                 <div class="pp-card p-5">
-                    <h2 class="mb-1 text-sm font-semibold text-neutral-900">Monthly revenue <span class="font-normal text-neutral-400">· {{ $primarySymbol }} · 6 months</span></h2>
+                    <h2 class="mb-1 text-sm font-semibold text-neutral-900">{{ __('Monthly revenue') }} <span class="font-normal text-neutral-400">· {{ $primarySymbol }} · {{ __('6 months') }}</span></h2>
                     <div x-data="{ init() { window.ppChart(this.$refs.canvas, { type: 'bar', data: { labels: @js($monthlyLabels), datasets: [{ label: 'Revenue', data: @js($monthlyValues), backgroundColor: 'rgba(217,164,65,0.55)', borderColor: '#d9a441', borderWidth: 1, borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#9ca3af' } }, y: { beginAtZero: true, grid: { color: 'rgba(148,163,184,0.15)' }, ticks: { color: '#9ca3af' } } } } }); } }" class="mt-2 h-[240px]">
                         <canvas x-ref="canvas"></canvas>
                     </div>
@@ -46,8 +46,8 @@
 
         {{-- Profit by coin --}}
         <div class="space-y-3">
-            <h3 class="text-base font-semibold text-neutral-900">Profit by coin</h3>
-            <x-ui.table :headers="['Coin / network', 'Available profit', 'Total withdrawn', '']">
+            <h3 class="text-base font-semibold text-neutral-900">{{ __('Profit by coin') }}</h3>
+            <x-ui.table :headers="[__('Coin / network'), __('Available profit'), __('Total withdrawn'), '']">
                 @forelse ($coins as $coin)
                     <tr class="border-t border-neutral-200 bg-neutral-50/70">
                         <td class="px-4 py-2.5" colspan="2">
@@ -58,7 +58,7 @@
                             </div>
                         </td>
                         <td class="px-4 py-2.5 tabular text-sm font-bold text-emerald-600">{{ $coin['available'] }}</td>
-                        <td class="px-4 py-2.5 tabular text-right text-sm text-neutral-500">{{ $coin['withdrawn'] }} withdrawn</td>
+                        <td class="px-4 py-2.5 tabular text-right text-sm text-neutral-500">{{ $coin['withdrawn'] }} {{ __('withdrawn') }}</td>
                     </tr>
                     @foreach ($coin['networks'] as $n)
                         <tr class="hover:bg-neutral-50">
@@ -73,7 +73,7 @@
                             <td class="px-4 py-3 text-right">
                                 @if ($canWithdraw && $n['availablePositive'])
                                     <x-ui.button type="button" size="sm" icon="banknotes"
-                                        x-on:click="openWithdraw({{ $n['id'] }}, {{ \Illuminate\Support\Js::from($coin['symbol']) }}, {{ \Illuminate\Support\Js::from($n['available']) }}, {{ $coin['isFiat'] ? 'true' : 'false' }})">Withdraw</x-ui.button>
+                                        x-on:click="openWithdraw({{ $n['id'] }}, {{ \Illuminate\Support\Js::from($coin['symbol']) }}, {{ \Illuminate\Support\Js::from($n['available']) }}, {{ $coin['isFiat'] ? 'true' : 'false' }})">{{ __('Withdraw') }}</x-ui.button>
                                 @else
                                     <span class="text-xs text-neutral-400">—</span>
                                 @endif
@@ -81,8 +81,8 @@
                         </tr>
                     @endforeach
                 @empty
-                    <tr><td colspan="4"><x-ui.empty-state icon="banknotes" title="No profit yet"
-                        description="Fees from swaps, cards, deposits and withdrawals will show up here as revenue." /></td></tr>
+                    <tr><td colspan="4"><x-ui.empty-state icon="banknotes" :title="__('No profit yet')"
+                        :description="__('Fees from swaps, cards, deposits and withdrawals will show up here as revenue.')" /></td></tr>
                 @endforelse
             </x-ui.table>
         </div>
@@ -91,7 +91,7 @@
         <div>
             <div class="mb-3 flex flex-wrap gap-1 rounded-xl bg-neutral-100 p-1">
                 @php
-                    $tabs = ['payouts' => 'Payout history', 'transactions' => 'Fee transactions', 'approvals' => 'Pending approvals'];
+                    $tabs = ['payouts' => __('Payout history'), 'transactions' => __('Fee transactions'), 'approvals' => __('Pending approvals')];
                 @endphp
                 @foreach ($tabs as $key => $label)
                     <button type="button" x-on:click="tab = '{{ $key }}'"
@@ -107,7 +107,7 @@
 
             {{-- Payout history --}}
             <div x-show="tab === 'payouts'" x-cloak>
-                <x-ui.table :headers="['Amount', 'Asset', 'Network', 'Destination', 'Tx', 'Status', 'By', 'When']">
+                <x-ui.table :headers="[__('Amount'), __('Asset'), __('Network'), __('Destination'), __('Tx'), __('Status'), __('By'), __('When')]">
                     @forelse ($payouts as $payout)
                         <tr class="border-b border-gray-200 hover:bg-gray-100">
                             <td class="px-4 py-3 tabular text-sm font-semibold text-neutral-900">{{ $payout->money()->format() }}</td>
@@ -126,7 +126,7 @@
                             <td class="px-4 py-3 text-xs text-neutral-500">{{ $payout->created_at?->diffForHumans() }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="8"><x-ui.empty-state icon="clock" title="No payouts yet" description="Recorded profit withdrawals will appear here." /></td></tr>
+                        <tr><td colspan="8"><x-ui.empty-state icon="clock" :title="__('No payouts yet')" :description="__('Recorded profit withdrawals will appear here.')" /></td></tr>
                     @endforelse
                 </x-ui.table>
             </div>
@@ -134,26 +134,26 @@
             {{-- Fee transactions --}}
             <div x-show="tab === 'transactions'" x-cloak>
                 <div class="mb-2 flex justify-end">
-                    <x-ui.button href="{{ route('admin.revenue-transactions.export') }}" variant="secondary" size="sm" icon="arrow-down-tray">Export CSV</x-ui.button>
+                    <x-ui.button href="{{ route('admin.revenue-transactions.export') }}" variant="secondary" size="sm" icon="arrow-down-tray">{{ __('Export CSV') }}</x-ui.button>
                 </div>
-                <x-ui.table :headers="['Fee type', 'Source', 'User', 'Amount', 'When']">
+                <x-ui.table :headers="[__('Fee type'), __('Source'), __('User'), __('Amount'), __('When')]">
                     @forelse ($transactions as $row)
                         <tr class="border-b border-gray-200 hover:bg-gray-100">
                             <td class="px-4 py-3 text-sm font-medium text-neutral-800">{{ $feeTypeLabel($row->account_type, $row->entry_type) }}</td>
                             <td class="px-4 py-3 text-sm text-neutral-500">{{ \Illuminate\Support\Str::headline((string) $row->entry_type) }}</td>
-                            <td class="px-4 py-3 text-sm text-neutral-600">{{ $row->user_name ?? 'System' }}</td>
+                            <td class="px-4 py-3 text-sm text-neutral-600">{{ $row->user_name ?? __('System') }}</td>
                             <td class="px-4 py-3 tabular text-sm font-semibold text-emerald-600">+{{ \App\Support\Money::ofBase($row->amount, $row->decimals, $row->symbol)->format() }}</td>
                             <td class="px-4 py-3 text-xs text-neutral-500">{{ \Illuminate\Support\Carbon::parse($row->created_at)->diffForHumans() }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="5"><x-ui.empty-state icon="receipt-percent" title="No fee income yet" description="Every fee credit will be listed here." /></td></tr>
+                        <tr><td colspan="5"><x-ui.empty-state icon="receipt-percent" :title="__('No fee income yet')" :description="__('Every fee credit will be listed here.')" /></td></tr>
                     @endforelse
                 </x-ui.table>
             </div>
 
             {{-- Pending approvals (2-operator withdrawals) --}}
             <div x-show="tab === 'approvals'" x-cloak>
-                <x-ui.table :headers="['Amount', 'Asset', 'Network', 'Destination', 'Status', 'Requested by', '']">
+                <x-ui.table :headers="[__('Amount'), __('Asset'), __('Network'), __('Destination'), __('Status'), __('Requested by'), '']">
                     @forelse ($approvals as $w)
                         <tr class="border-b border-gray-200 hover:bg-gray-100">
                             <td class="px-4 py-3 tabular text-sm font-semibold text-neutral-900">{{ $w->money()->format() }}</td>
@@ -165,14 +165,14 @@
                             <td class="px-4 py-3 text-right">
                                 @if ($canApprove && $w->status === \App\Enums\RevenueWithdrawalStatus::Pending)
                                     <x-ui.button type="button" variant="success" size="sm" icon="check"
-                                        x-on:click="openApprove({{ \Illuminate\Support\Js::from((string) $w->id) }}, {{ \Illuminate\Support\Js::from($w->money()->format()) }})">Approve</x-ui.button>
+                                        x-on:click="openApprove({{ \Illuminate\Support\Js::from((string) $w->id) }}, {{ \Illuminate\Support\Js::from($w->money()->format()) }})">{{ __('Approve') }}</x-ui.button>
                                 @else
                                     <span class="text-xs text-neutral-400">—</span>
                                 @endif
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="7"><x-ui.empty-state icon="shield-check" title="No withdrawal requests" description="Approval-required payouts will appear here." /></td></tr>
+                        <tr><td colspan="7"><x-ui.empty-state icon="shield-check" :title="__('No withdrawal requests')" :description="__('Approval-required payouts will appear here.')" /></td></tr>
                     @endforelse
                 </x-ui.table>
             </div>
@@ -184,13 +184,13 @@
                 <div class="fixed inset-0 bg-gray-500/60" x-on:click="closeWithdraw()"></div>
                 <div class="relative w-full max-w-md pp-card p-6">
                     <div class="mb-4 flex items-start justify-between">
-                        <h3 class="text-lg font-semibold text-neutral-900">Withdraw <span x-text="assetSymbol"></span> profit</h3>
+                        <h3 class="text-lg font-semibold text-neutral-900">{{ __('Withdraw') }} <span x-text="assetSymbol"></span> {{ __('profit') }}</h3>
                         <button type="button" x-on:click="closeWithdraw()" class="rounded-lg p-1 text-neutral-400 hover:bg-neutral-100"><x-heroicon-o-x-mark class="h-5 w-5" /></button>
                     </div>
-                    <p class="mb-4 text-sm text-neutral-500">Available: <span class="tabular font-semibold text-emerald-600" x-text="available"></span></p>
+                    <p class="mb-4 text-sm text-neutral-500">{{ __('Available') }}: <span class="tabular font-semibold text-emerald-600" x-text="available"></span></p>
 
                     <p x-show="isFiat" x-cloak class="mb-4 rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-500">
-                        <span x-text="assetSymbol"></span> is fiat — there's no blockchain send. This <span class="font-medium">records</span> the payout from your business float; move the cash to your bank yourself.
+                        <span x-text="assetSymbol"></span> {{ __('is fiat — there\'s no blockchain send. This') }} <span class="font-medium">{{ __('records') }}</span> {{ __('the payout from your business float; move the cash to your bank yourself.') }}
                     </p>
 
                     {{-- Mode toggle (approval flow is on-chain — crypto only) --}}
@@ -198,10 +198,10 @@
                         <div class="mb-4 grid grid-cols-2 gap-2" x-show="! isFiat" x-cloak>
                             <button type="button" x-on:click="mode = 'instant'"
                                 :class="mode === 'instant' ? 'border-brand-500 bg-brand-50 text-brand-700 ring-1 ring-brand-500' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'"
-                                class="rounded-lg border px-3 py-2 text-sm font-semibold transition">Instant</button>
+                                class="rounded-lg border px-3 py-2 text-sm font-semibold transition">{{ __('Instant') }}</button>
                             <button type="button" x-on:click="mode = 'request'"
                                 :class="mode === 'request' ? 'border-brand-500 bg-brand-50 text-brand-700 ring-1 ring-brand-500' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50'"
-                                class="rounded-lg border px-3 py-2 text-sm font-semibold transition">Request approval</button>
+                                class="rounded-lg border px-3 py-2 text-sm font-semibold transition">{{ __('Request approval') }}</button>
                         </div>
                     @endif
 
@@ -210,16 +210,16 @@
                         <form method="POST" action="{{ route('admin.revenue.withdraw') }}" class="space-y-4" x-show="mode === 'instant'">
                             @csrf
                             <input type="hidden" name="asset_id" x-bind:value="assetId">
-                            <x-ui.input label="Amount" name="amount" type="text" inputmode="decimal" placeholder="0.00" :value="old('amount')" :error="$errors->first('amount')" />
+                            <x-ui.input :label="__('Amount')" name="amount" type="text" inputmode="decimal" placeholder="0.00" :value="old('amount')" :error="$errors->first('amount')" />
                             <div>
                                 <label class="pp-label" for="rev-destination"><span x-text="isFiat ? 'Payout reference (bank / mobile)' : 'Destination address'"></span></label>
                                 <x-ui.input id="rev-destination" name="destination" :value="old('destination')" :error="$errors->first('destination')"
                                     x-bind:placeholder="isFiat ? 'e.g. Company bank account' : 'Wallet / exchange deposit address'" />
-                                <p x-show="! isFiat" x-cloak class="mt-1 text-xs text-neutral-400">Broadcasts on the coin's chain (simulated on testnet) and gets a tx hash.</p>
+                                <p x-show="! isFiat" x-cloak class="mt-1 text-xs text-neutral-400">{{ __('Broadcasts on the coin\'s chain (simulated on testnet) and gets a tx hash.') }}</p>
                             </div>
-                            <x-ui.textarea label="Note (optional)" name="note" :rows="2" :error="$errors->first('note')">{{ old('note') }}</x-ui.textarea>
+                            <x-ui.textarea :label="__('Note (optional)')" name="note" :rows="2" :error="$errors->first('note')">{{ old('note') }}</x-ui.textarea>
                             <div class="flex justify-end gap-2 pt-1">
-                                <x-ui.button type="button" variant="secondary" x-on:click="closeWithdraw()">Cancel</x-ui.button>
+                                <x-ui.button type="button" variant="secondary" x-on:click="closeWithdraw()">{{ __('Cancel') }}</x-ui.button>
                                 <x-ui.button type="submit" icon="banknotes"><span x-text="isFiat ? 'Record payout' : 'Withdraw now'"></span></x-ui.button>
                             </div>
                         </form>
@@ -230,14 +230,14 @@
                         <form method="POST" action="{{ route('admin.revenue-wallet.withdraw') }}" class="space-y-4" x-show="mode === 'request' && ! isFiat">
                             @csrf
                             <input type="hidden" name="asset_id" x-bind:value="assetId">
-                            <x-ui.input label="Amount" name="amount" type="text" inputmode="decimal" placeholder="0.00" :value="old('amount')" :error="$errors->first('amount')" />
-                            <x-ui.input label="Destination address" name="destination" placeholder="Wallet / exchange deposit address" :value="old('destination')" :error="$errors->first('destination')" />
-                            <x-ui.input label="Confirm your password" name="password" type="password" placeholder="••••••••" :error="$errors->first('password')" />
-                            <x-ui.textarea label="Note (optional)" name="note" :rows="2" :error="$errors->first('note')">{{ old('note') }}</x-ui.textarea>
-                            <p class="rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-500">Creates a pending request; a second operator approves it under Pending approvals.</p>
+                            <x-ui.input :label="__('Amount')" name="amount" type="text" inputmode="decimal" placeholder="0.00" :value="old('amount')" :error="$errors->first('amount')" />
+                            <x-ui.input :label="__('Destination address')" name="destination" :placeholder="__('Wallet / exchange deposit address')" :value="old('destination')" :error="$errors->first('destination')" />
+                            <x-ui.input :label="__('Confirm your password')" name="password" type="password" placeholder="••••••••" :error="$errors->first('password')" />
+                            <x-ui.textarea :label="__('Note (optional)')" name="note" :rows="2" :error="$errors->first('note')">{{ old('note') }}</x-ui.textarea>
+                            <p class="rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-500">{{ __('Creates a pending request; a second operator approves it under Pending approvals.') }}</p>
                             <div class="flex justify-end gap-2 pt-1">
-                                <x-ui.button type="button" variant="secondary" x-on:click="closeWithdraw()">Cancel</x-ui.button>
-                                <x-ui.button type="submit" icon="shield-check">Request withdrawal</x-ui.button>
+                                <x-ui.button type="button" variant="secondary" x-on:click="closeWithdraw()">{{ __('Cancel') }}</x-ui.button>
+                                <x-ui.button type="submit" icon="shield-check">{{ __('Request withdrawal') }}</x-ui.button>
                             </div>
                         </form>
                     @endif
@@ -251,17 +251,17 @@
                 <div class="fixed inset-0 bg-gray-500/60" x-on:click="closeApprove()"></div>
                 <div class="relative w-full max-w-md pp-card p-6">
                     <div class="mb-4 flex items-start justify-between">
-                        <h3 class="text-lg font-semibold text-neutral-900">Approve payout <span class="tabular" x-text="approveRef"></span></h3>
+                        <h3 class="text-lg font-semibold text-neutral-900">{{ __('Approve payout') }} <span class="tabular" x-text="approveRef"></span></h3>
                         <button type="button" x-on:click="closeApprove()" class="rounded-lg p-1 text-neutral-400 hover:bg-neutral-100"><x-heroicon-o-x-mark class="h-5 w-5" /></button>
                     </div>
                     <form method="POST" x-bind:action="'{{ url('admin/finance/revenue-withdrawals') }}/' + approveId + '/approve'" class="space-y-4">
                         @csrf
                         <input type="hidden" name="revwd_id" x-bind:value="approveId">
-                        <p class="text-sm text-neutral-500">Approving posts the ledger move, sends the crypto out of the treasury and broadcasts it.</p>
-                        <x-ui.input label="Confirm your password" name="password" type="password" placeholder="••••••••" :error="$errors->first('password')" />
+                        <p class="text-sm text-neutral-500">{{ __('Approving posts the ledger move, sends the crypto out of the treasury and broadcasts it.') }}</p>
+                        <x-ui.input :label="__('Confirm your password')" name="password" type="password" placeholder="••••••••" :error="$errors->first('password')" />
                         <div class="flex justify-end gap-2 pt-1">
-                            <x-ui.button type="button" variant="secondary" x-on:click="closeApprove()">Cancel</x-ui.button>
-                            <x-ui.button type="submit" variant="success" icon="check">Approve &amp; send</x-ui.button>
+                            <x-ui.button type="button" variant="secondary" x-on:click="closeApprove()">{{ __('Cancel') }}</x-ui.button>
+                            <x-ui.button type="submit" variant="success" icon="check">{{ __('Approve & send') }}</x-ui.button>
                         </div>
                     </form>
                 </div>

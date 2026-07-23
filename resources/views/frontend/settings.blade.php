@@ -1,15 +1,15 @@
-<x-layouts.app :title="'Settings'">
+<x-layouts.app :title="__('Settings')">
     @php
         $user = auth()->user();
         $twoFactorSetup = session('twoFactorSetup');
         $nav = [
-            'profile' => ['label' => 'Profile', 'icon' => 'user-circle', 'hint' => 'Name, contact & preferences'],
-            'security' => ['label' => 'Security', 'icon' => 'shield-check', 'hint' => '2FA, phone & addresses'],
-            'password' => ['label' => 'Password', 'icon' => 'key', 'hint' => 'Change your password'],
-            'verification' => ['label' => 'Verification', 'icon' => 'identification', 'hint' => 'Identity & KYC'],
-            'devices' => ['label' => 'Devices', 'icon' => 'computer-desktop', 'hint' => 'Signed-in devices'],
-            'preferences' => ['label' => 'Preferences', 'icon' => 'adjustments-horizontal', 'hint' => 'Spending priority'],
-            'sessions' => ['label' => 'Sessions', 'icon' => 'globe-alt', 'hint' => 'Active sessions'],
+            'profile' => ['label' => __('Profile'), 'icon' => 'user-circle', 'hint' => __('Name, contact & preferences')],
+            'security' => ['label' => __('Security'), 'icon' => 'shield-check', 'hint' => __('2FA, phone & addresses')],
+            'password' => ['label' => __('Password'), 'icon' => 'key', 'hint' => __('Change your password')],
+            'verification' => ['label' => __('Verification'), 'icon' => 'identification', 'hint' => __('Identity & KYC')],
+            'devices' => ['label' => __('Devices'), 'icon' => 'computer-desktop', 'hint' => __('Signed-in devices')],
+            'preferences' => ['label' => __('Preferences'), 'icon' => 'adjustments-horizontal', 'hint' => __('Spending priority')],
+            'sessions' => ['label' => __('Sessions'), 'icon' => 'globe-alt', 'hint' => __('Active sessions')],
         ];
         $current = $nav[$activeTab];
         // Each section is its own URL (/settings/{tab}); a full page, not a client tab.
@@ -18,15 +18,15 @@
 
     <div class="mx-auto max-w-5xl">
         <header class="mb-8">
-            <h1 class="text-2xl font-semibold tracking-tight text-neutral-900">Settings</h1>
-            <p class="mt-1 text-sm text-neutral-500">Manage your profile, security and preferences.</p>
+            <h1 class="text-2xl font-semibold tracking-tight text-neutral-900">{{ __('Settings') }}</h1>
+            <p class="mt-1 text-sm text-neutral-500">{{ __('Manage your profile, security and preferences.') }}</p>
         </header>
 
         <div class="grid gap-8 lg:grid-cols-4">
             {{-- Side navigation — real links to each settings sub-page. --}}
             <nav class="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 lg:sticky lg:top-6 lg:col-span-1 lg:mx-0 lg:flex-col lg:self-start lg:overflow-visible lg:px-0 lg:pb-0">
                 @foreach ($nav as $key => $item)
-                    <a href="{{ route('settings', ['tab' => $key]) }}" @class([
+                    <a href="{{ route('settings.index', ['tab' => $key]) }}" @class([
                         'group flex shrink-0 items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition lg:w-full',
                         'bg-neutral-900 font-semibold text-white shadow-sm' => $activeTab === $key,
                         'font-medium text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900' => $activeTab !== $key,

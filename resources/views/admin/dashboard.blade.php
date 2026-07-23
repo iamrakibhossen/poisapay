@@ -1,14 +1,14 @@
-<x-layouts.admin :title="'Admin Dashboard'">
+<x-layouts.admin :title="__('Admin Dashboard')">
     <div class="space-y-6">
         @php
             $hour = now()->hour;
-            $greet = $hour < 12 ? 'Good morning' : ($hour < 17 ? 'Good afternoon' : 'Good evening');
+            $greet = $hour < 12 ? __('Good morning') : ($hour < 17 ? __('Good afternoon') : __('Good evening'));
             $operator = auth('admin')->user();
 
             $attention = [
-                ['label' => 'KYC to review', 'count' => $stats['pendingKyc'], 'route' => route('admin.kyc'), 'icon' => 'identification', 'color' => 'amber', 'cta' => 'Open queue'],
-                ['label' => 'Withdrawals in review', 'count' => $stats['reviewWithdrawals'], 'route' => route('admin.withdrawals'), 'icon' => 'shield-exclamation', 'color' => 'rose', 'cta' => 'Review'],
-                ['label' => 'Pending deposits', 'count' => $stats['pendingDeposits'], 'route' => route('admin.deposits'), 'icon' => 'clock', 'color' => 'sky', 'cta' => 'View'],
+                ['label' => __('KYC to review'), 'count' => $stats['pendingKyc'], 'route' => route('admin.kyc'), 'icon' => 'identification', 'color' => 'amber', 'cta' => __('Open queue')],
+                ['label' => __('Withdrawals in review'), 'count' => $stats['reviewWithdrawals'], 'route' => route('admin.withdrawals'), 'icon' => 'shield-exclamation', 'color' => 'rose', 'cta' => __('Review')],
+                ['label' => __('Pending deposits'), 'count' => $stats['pendingDeposits'], 'route' => route('admin.deposits'), 'icon' => 'clock', 'color' => 'sky', 'cta' => __('View')],
             ];
             $palette = [
                 'amber' => ['ring' => 'ring-amber-200', 'bg' => 'bg-amber-50', 'icon' => 'bg-amber-100 text-amber-600', 'text' => 'text-amber-700'],
@@ -22,7 +22,7 @@
         <div class="flex flex-wrap items-end justify-between gap-3">
             <div>
                 <h1 class="text-xl font-semibold text-neutral-900">{{ $greet }}{{ $operator?->name ? ', '.\Illuminate\Support\Str::before($operator->name, ' ') : '' }}</h1>
-                <p class="mt-0.5 text-sm text-neutral-500">Live operational health across custody, compliance and money movement.</p>
+                <p class="mt-0.5 text-sm text-neutral-500">{{ __('Live operational health across custody, compliance and money movement.') }}</p>
             </div>
             <div class="flex items-center gap-2">
                 <span @class([
@@ -31,7 +31,7 @@
                     'bg-amber-50 text-amber-700' => $totalAttention > 0,
                 ])>
                     <span class="h-1.5 w-1.5 rounded-full {{ $totalAttention === 0 ? 'bg-emerald-500' : 'bg-amber-500' }}"></span>
-                    {{ $totalAttention === 0 ? 'All clear' : $totalAttention.' item'.($totalAttention === 1 ? '' : 's').' need attention' }}
+                    {{ $totalAttention === 0 ? __('All clear') : $totalAttention.' '.($totalAttention === 1 ? __('item needs attention') : __('items need attention')) }}
                 </span>
                 <span class="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-500">{{ now()->format('D, d M Y') }}</span>
             </div>
@@ -58,7 +58,7 @@
                         <p class="tabular mt-0.5 text-2xl font-bold tracking-tight {{ $active ? $p['text'] : 'text-neutral-400' }}">{{ number_format($item['count']) }}</p>
                     </div>
                     <span class="flex items-center gap-1 text-xs font-semibold {{ $active ? $p['text'] : 'text-neutral-400' }}">
-                        <span class="hidden sm:inline">{{ $active ? $item['cta'] : 'Clear' }}</span>
+                        <span class="hidden sm:inline">{{ $active ? $item['cta'] : __('Clear') }}</span>
                         <x-heroicon-o-arrow-right class="h-4 w-4 transition group-hover:translate-x-0.5" />
                     </span>
                 </a>
@@ -67,10 +67,10 @@
 
         {{-- Overview KPIs --}}
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            <x-ui.stat-card label="Total Users" :value="number_format($stats['users'])" icon="users" accent="emerald" />
-            <x-ui.stat-card label="New Users (7d)" :value="number_format($stats['newUsers7d'])" icon="user-plus" accent="brand" />
-            <x-ui.stat-card label="Deposits Today" :value="number_format($stats['depositsToday'])" icon="arrow-down-tray" accent="emerald" />
-            <x-ui.stat-card label="Transfers (24h)" :value="number_format($stats['transfers24h'])" icon="arrows-right-left" accent="brand" />
+            <x-ui.stat-card :label="__('Total Users')" :value="number_format($stats['users'])" icon="users" accent="emerald" />
+            <x-ui.stat-card :label="__('New Users (7d)')" :value="number_format($stats['newUsers7d'])" icon="user-plus" accent="brand" />
+            <x-ui.stat-card :label="__('Deposits Today')" :value="number_format($stats['depositsToday'])" icon="arrow-down-tray" accent="emerald" />
+            <x-ui.stat-card :label="__('Transfers (24h)')" :value="number_format($stats['transfers24h'])" icon="arrows-right-left" accent="brand" />
         </div>
 
         {{-- Chart + KYC queue --}}
@@ -79,11 +79,11 @@
                 <div class="flex items-start justify-between">
                     <h2 class="flex items-center text-md font-semibold text-neutral-900">
                         <x-heroicon-o-arrow-trending-up class="mr-2 inline-block h-6 w-6 text-emerald-500" />
-                        <span>Deposit activity <span class="font-normal text-neutral-400">· last 14 days</span></span>
+                        <span>{{ __('Deposit activity') }} <span class="font-normal text-neutral-400">· {{ __('last 14 days') }}</span></span>
                     </h2>
                     <div class="text-right">
                         <p class="tabular text-lg font-bold text-neutral-900">{{ number_format($chartValues->sum()) }}</p>
-                        <p class="text-[11px] text-neutral-400">{{ number_format($stats['journalLines']) }} ledger lines</p>
+                        <p class="text-[11px] text-neutral-400">{{ number_format($stats['journalLines']) }} {{ __('ledger lines') }}</p>
                     </div>
                 </div>
                 <div x-data="{
@@ -120,21 +120,21 @@
                 <div class="mb-3 flex items-center justify-between">
                     <h2 class="flex items-center text-md font-semibold text-neutral-900">
                         <x-heroicon-o-identification class="mr-2 inline-block h-6 w-6 text-amber-500" />
-                        <span>KYC approval queue</span>
+                        <span>{{ __('KYC approval queue') }}</span>
                     </h2>
-                    <a href="{{ route('admin.kyc') }}" class="text-xs font-semibold text-amber-700 hover:text-amber-800">Open queue →</a>
+                    <a href="{{ route('admin.kyc') }}" class="text-xs font-semibold text-amber-700 hover:text-amber-800">{{ __('Open queue') }} →</a>
                 </div>
                 @forelse ($kycQueue as $profile)
                     <a href="{{ route('admin.kyc') }}" class="-mx-2 flex items-center gap-3 rounded-lg px-2 py-2.5 transition hover:bg-neutral-50 {{ ! $loop->last ? 'border-b border-neutral-100' : '' }}">
                         <x-ui.avatar :name="$profile->user->name" size="sm" />
                         <div class="min-w-0 flex-1">
                             <p class="truncate text-sm font-medium text-neutral-900">{{ $profile->user->name }}</p>
-                            <p class="text-xs text-neutral-500">Requested {{ $profile->requested_tier->label() }} · {{ $profile->created_at->diffForHumans() }}</p>
+                            <p class="text-xs text-neutral-500">{{ __('Requested') }} {{ $profile->requested_tier->label() }} · {{ $profile->created_at->diffForHumans() }}</p>
                         </div>
                         <x-ui.badge :color="$profile->status->color()">{{ $profile->status->label() }}</x-ui.badge>
                     </a>
                 @empty
-                    <x-ui.empty-state icon="check-badge" title="Queue clear" description="No pending verifications." />
+                    <x-ui.empty-state icon="check-badge" :title="__('Queue clear')" :description="__('No pending verifications.')" />
                 @endforelse
             </div>
         </div>
@@ -144,11 +144,11 @@
             <div class="mb-3 flex items-center justify-between">
                 <h2 class="flex items-center text-md font-semibold text-neutral-900">
                     <x-heroicon-o-shield-exclamation class="mr-2 inline-block h-6 w-6 text-rose-500" />
-                    <span>Withdrawal review</span>
+                    <span>{{ __('Withdrawal review') }}</span>
                 </h2>
-                <a href="{{ route('admin.withdrawals') }}" class="text-xs font-semibold text-amber-700 hover:text-amber-800">Review all →</a>
+                <a href="{{ route('admin.withdrawals') }}" class="text-xs font-semibold text-amber-700 hover:text-amber-800">{{ __('Review all') }} →</a>
             </div>
-            <x-ui.table :headers="['User', 'Amount', 'Risk', 'Status', 'Requested']">
+            <x-ui.table :headers="[__('User'), __('Amount'), __('Risk'), __('Status'), __('Requested')]">
                 @forelse ($reviewQueue as $w)
                     <tr class="cursor-pointer border-b border-neutral-100 transition hover:bg-neutral-50" onclick="window.location='{{ route('admin.withdrawals') }}'">
                         <td class="px-4 py-3">
@@ -168,7 +168,7 @@
                         <td class="px-4 py-3 text-sm text-neutral-500">{{ $w->created_at->diffForHumans() }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="5"><x-ui.empty-state icon="shield-check" title="Nothing to review" description="No flagged withdrawals." /></td></tr>
+                    <tr><td colspan="5"><x-ui.empty-state icon="shield-check" :title="__('Nothing to review')" :description="__('No flagged withdrawals.')" /></td></tr>
                 @endforelse
             </x-ui.table>
         </div>

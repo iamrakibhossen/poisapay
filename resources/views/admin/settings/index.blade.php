@@ -1,23 +1,23 @@
 @php
     $sections = [
-        'general' => ['label' => 'General', 'icon' => 'adjustments-vertical'],
-        'branding' => ['label' => 'Branding', 'icon' => 'photo'],
-        'auth' => ['label' => 'Authentication', 'icon' => 'lock-closed'],
-        'deposit' => ['label' => 'Deposit', 'icon' => 'arrow-down-tray'],
-        'withdrawal' => ['label' => 'Withdrawal', 'icon' => 'arrow-up-tray'],
-        'transfer' => ['label' => 'Transfer', 'icon' => 'arrows-right-left'],
-        'exchange' => ['label' => 'Exchange', 'icon' => 'arrow-path-rounded-square'],
-        'cards' => ['label' => 'Cards', 'icon' => 'credit-card'],
-        'merchant' => ['label' => 'Merchant', 'icon' => 'building-storefront'],
-        'p2p' => ['label' => 'P2P', 'icon' => 'user-group'],
-        'rewards' => ['label' => 'Rewards', 'icon' => 'gift'],
-        'compliance' => ['label' => 'Compliance', 'icon' => 'shield-exclamation'],
-        'localization' => ['label' => 'Localization', 'icon' => 'language'],
-        'announcement' => ['label' => 'Announcement', 'icon' => 'megaphone'],
+        'general' => ['label' => __('General'), 'icon' => 'adjustments-vertical'],
+        'branding' => ['label' => __('Branding'), 'icon' => 'photo'],
+        'auth' => ['label' => __('Authentication'), 'icon' => 'lock-closed'],
+        'deposit' => ['label' => __('Deposit'), 'icon' => 'arrow-down-tray'],
+        'withdrawal' => ['label' => __('Withdrawal'), 'icon' => 'arrow-up-tray'],
+        'transfer' => ['label' => __('Transfer'), 'icon' => 'arrows-right-left'],
+        'exchange' => ['label' => __('Exchange'), 'icon' => 'arrow-path-rounded-square'],
+        'cards' => ['label' => __('Cards'), 'icon' => 'credit-card'],
+        'merchant' => ['label' => __('Merchant'), 'icon' => 'building-storefront'],
+        'p2p' => ['label' => __('P2P'), 'icon' => 'user-group'],
+        'rewards' => ['label' => __('Rewards'), 'icon' => 'gift'],
+        'compliance' => ['label' => __('Compliance'), 'icon' => 'shield-exclamation'],
+        'localization' => ['label' => __('Localization'), 'icon' => 'language'],
+        'announcement' => ['label' => __('Announcement'), 'icon' => 'megaphone'],
     ];
 @endphp
 
-<x-layouts.admin :title="'Settings'">
+<x-layouts.admin :title="__('Settings')">
     {{-- Full-bleed split (DollarHub): cancel the main padding so the nav sidebar spans edge-to-edge. --}}
     <div class="-m-4 sm:-m-5 lg:-m-6">
         <div class="grid min-h-[calc(100vh-4rem)] lg:grid-cols-5">

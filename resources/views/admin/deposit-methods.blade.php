@@ -1,4 +1,4 @@
-<x-layouts.admin :title="'Deposit Methods'">
+<x-layouts.admin :title="__('Deposit Methods')">
     @php
         // Repopulate the details repeater from old() on validation error, else start with 4 blank rows.
         $oldDetailKeys = old('details.key');
@@ -46,22 +46,22 @@
                 this.open = true;
             },
         }" class="space-y-6">
-        <x-ui.page-header title="Deposit Methods" subtitle="Configure how each currency can be funded.">
+        <x-ui.page-header :title="__('Deposit Methods')" :subtitle="__('Configure how each currency can be funded.')">
             <x-slot:actions>
-                <x-ui.button x-on:click="create()" icon="plus" size="sm">New method</x-ui.button>
+                <x-ui.button x-on:click="create()" icon="plus" size="sm">{{ __('New method') }}</x-ui.button>
             </x-slot:actions>
         </x-ui.page-header>
 
         {{-- Stat tiles --}}
         <div class="grid gap-4 sm:grid-cols-3">
-            <x-ui.stat-card label="Total methods" :value="$stats['total']" icon="banknotes" accent="brand" />
-            <x-ui.stat-card label="Active methods" :value="$stats['active']" icon="check-badge" accent="emerald" />
-            <x-ui.stat-card label="Deposit-enabled assets" :value="$stats['depositable']" icon="currency-dollar" accent="amber" />
+            <x-ui.stat-card :label="__('Total methods')" :value="$stats['total']" icon="banknotes" accent="brand" />
+            <x-ui.stat-card :label="__('Active methods')" :value="$stats['active']" icon="check-badge" accent="emerald" />
+            <x-ui.stat-card :label="__('Deposit-enabled assets')" :value="$stats['depositable']" icon="currency-dollar" accent="amber" />
         </div>
 
         {{-- Tabs (query-string filter) --}}
         <div class="flex flex-wrap gap-1 rounded-xl bg-neutral-100 p-1">
-            @foreach (['methods' => 'Methods', 'assets' => 'Depositable assets'] as $key => $label)
+            @foreach (['methods' => __('Methods'), 'assets' => __('Depositable assets')] as $key => $label)
                 <a href="{{ route('admin.deposit-methods', ['tab' => $key]) }}"
                     @class([
                         'flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition',
@@ -74,7 +74,7 @@
         </div>
 
         @if ($tab === 'methods')
-            <x-ui.table :headers="['Asset', 'Method', 'Type', 'Min / Max', 'Fee', 'Active', '']">
+            <x-ui.table :headers="[__('Asset'), __('Method'), __('Type'), __('Min / Max'), __('Fee'), __('Active'), '']">
                 @forelse ($methods as $m)
                     <tr class="border-b border-gray-200 hover:bg-gray-100">
                         <td class="px-4 py-3">
@@ -105,22 +105,22 @@
                             <form method="POST" action="{{ route('admin.deposit-methods.toggle', $m->id) }}">
                                 @csrf
                                 <button type="submit" class="inline-flex">
-                                    <x-ui.badge :color="$m->is_active ? 'success' : 'gray'" dot>{{ $m->is_active ? 'Active' : 'Disabled' }}</x-ui.badge>
+                                    <x-ui.badge :color="$m->is_active ? 'success' : 'gray'" dot>{{ $m->is_active ? __('Active') : __('Disabled') }}</x-ui.badge>
                                 </button>
                             </form>
                         </td>
                         <td class="px-4 py-3 text-right">
                             <x-ui.button variant="secondary" size="sm" icon="pencil-square"
-                                x-on:click="edit({{ Illuminate\Support\Js::from(['id' => $m->id, 'asset_id' => $m->asset_id, 'name' => $m->name, 'type' => $m->type->value, 'instructions' => $m->instructions, 'min_amount' => ($m->min_amount !== null && $m->asset) ? $m->asset->money($m->min_amount)->toDecimal() : '', 'max_amount' => ($m->max_amount !== null && $m->asset) ? $m->asset->money($m->max_amount)->toDecimal() : '', 'fixed_fee' => ($m->fixed_fee !== null && $m->asset) ? $m->asset->money($m->fixed_fee)->toDecimal() : '', 'percent_fee_bps' => (string) ($m->percent_fee_bps ?? 0), 'sort' => (string) ($m->sort ?? 0), 'is_active' => (bool) $m->is_active, 'details' => collect($m->details ?? [])->map(fn ($v) => is_scalar($v) ? (string) $v : json_encode($v))->all()]) }})">Edit</x-ui.button>
+                                x-on:click="edit({{ Illuminate\Support\Js::from(['id' => $m->id, 'asset_id' => $m->asset_id, 'name' => $m->name, 'type' => $m->type->value, 'instructions' => $m->instructions, 'min_amount' => ($m->min_amount !== null && $m->asset) ? $m->asset->money($m->min_amount)->toDecimal() : '', 'max_amount' => ($m->max_amount !== null && $m->asset) ? $m->asset->money($m->max_amount)->toDecimal() : '', 'fixed_fee' => ($m->fixed_fee !== null && $m->asset) ? $m->asset->money($m->fixed_fee)->toDecimal() : '', 'percent_fee_bps' => (string) ($m->percent_fee_bps ?? 0), 'sort' => (string) ($m->sort ?? 0), 'is_active' => (bool) $m->is_active, 'details' => collect($m->details ?? [])->map(fn ($v) => is_scalar($v) ? (string) $v : json_encode($v))->all()]) }})">{{ __('Edit') }}</x-ui.button>
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="7"><x-ui.empty-state icon="banknotes" title="No deposit methods" description="Add a method so users can fund an asset." /></td></tr>
+                    <tr><td colspan="7"><x-ui.empty-state icon="banknotes" :title="__('No deposit methods')" :description="__('Add a method so users can fund an asset.')" /></td></tr>
                 @endforelse
             </x-ui.table>
         @else
             {{-- Depositable assets: per-asset deposit toggle --}}
-            <x-ui.table :headers="['Asset', 'Name', 'Deposit enabled', '']">
+            <x-ui.table :headers="[__('Asset'), __('Name'), __('Deposit enabled'), '']">
                 @forelse ($assets as $asset)
                     <tr class="border-b border-gray-200 hover:bg-gray-100">
                         <td class="px-4 py-3">
@@ -131,19 +131,19 @@
                         </td>
                         <td class="px-4 py-3 text-sm text-neutral-600">{{ $asset->name }}</td>
                         <td class="px-4 py-3">
-                            <x-ui.badge :color="$asset->deposit_enabled ? 'success' : 'gray'" dot>{{ $asset->deposit_enabled ? 'Enabled' : 'Disabled' }}</x-ui.badge>
+                            <x-ui.badge :color="$asset->deposit_enabled ? 'success' : 'gray'" dot>{{ $asset->deposit_enabled ? __('Enabled') : __('Disabled') }}</x-ui.badge>
                         </td>
                         <td class="px-4 py-3 text-right">
                             <form method="POST" action="{{ route('admin.deposit-methods.deposit-enabled', $asset->id) }}">
                                 @csrf
                                 <x-ui.button type="submit" variant="secondary" size="sm">
-                                    {{ $asset->deposit_enabled ? 'Disable' : 'Enable' }}
+                                    {{ $asset->deposit_enabled ? __('Disable') : __('Enable') }}
                                 </x-ui.button>
                             </form>
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="4"><x-ui.empty-state icon="currency-dollar" title="No active assets" description="Activate an asset first." /></td></tr>
+                    <tr><td colspan="4"><x-ui.empty-state icon="currency-dollar" :title="__('No active assets')" :description="__('Activate an asset first.')" /></td></tr>
                 @endforelse
             </x-ui.table>
         @endif
@@ -160,52 +160,52 @@
                     @csrf
                     <input type="hidden" name="id" :value="editingId" />
                     <div class="grid gap-4 sm:grid-cols-2">
-                        <x-ui.select label="Asset" name="asset_id" x-model="form.asset_id" :error="$errors->first('asset_id')">
-                            <option value="">Select asset…</option>
+                        <x-ui.select :label="__('Asset')" name="asset_id" x-model="form.asset_id" :error="$errors->first('asset_id')">
+                            <option value="">{{ __('Select asset…') }}</option>
                             @foreach ($assets as $asset)
                                 <option value="{{ $asset->id }}">{{ $asset->symbol }} — {{ $asset->name }}</option>
                             @endforeach
                         </x-ui.select>
-                        <x-ui.select label="Type" name="type" x-model="form.type" :error="$errors->first('type')">
+                        <x-ui.select :label="__('Type')" name="type" x-model="form.type" :error="$errors->first('type')">
                             @foreach ($types as $t)
                                 <option value="{{ $t->value }}">{{ $t->label() }}</option>
                             @endforeach
                         </x-ui.select>
                     </div>
 
-                    <x-ui.input label="Name" name="name" x-model="form.name" placeholder="e.g. ACME Bank Wire" :error="$errors->first('name')" />
+                    <x-ui.input :label="__('Name')" name="name" x-model="form.name" :placeholder="__('e.g. ACME Bank Wire')" :error="$errors->first('name')" />
 
                     {{-- Free-form details key/value rows --}}
                     <div>
-                        <label class="pp-label">Details (field / value)</label>
+                        <label class="pp-label">{{ __('Details (field / value)') }}</label>
                         <div class="mt-1 space-y-2">
                             <template x-for="(row, i) in details" :key="i">
                                 <div class="grid gap-2 sm:grid-cols-2">
-                                    <x-ui.input x-bind:name="'details[key][' + i + ']'" x-model="row.key" placeholder="Field name (e.g. Account no.)" />
-                                    <x-ui.input x-bind:name="'details[value][' + i + ']'" x-model="row.value" placeholder="Value" />
+                                    <x-ui.input x-bind:name="'details[key][' + i + ']'" x-model="row.key" :placeholder="__('Field name (e.g. Account no.)')" />
+                                    <x-ui.input x-bind:name="'details[value][' + i + ']'" x-model="row.value" :placeholder="__('Value')" />
                                 </div>
                             </template>
                         </div>
-                        <button type="button" x-on:click="addDetailRow()" class="mt-2 text-sm font-medium text-amber-600 hover:text-amber-700">+ Add field</button>
+                        <button type="button" x-on:click="addDetailRow()" class="mt-2 text-sm font-medium text-amber-600 hover:text-amber-700">+ {{ __('Add field') }}</button>
                     </div>
 
-                    <x-ui.textarea label="Instructions" name="instructions" x-model="form.instructions" rows="3" placeholder="What the user should do to complete this deposit…" :error="$errors->first('instructions')" />
+                    <x-ui.textarea :label="__('Instructions')" name="instructions" x-model="form.instructions" rows="3" :placeholder="__('What the user should do to complete this deposit…')" :error="$errors->first('instructions')" />
 
                     <div class="grid gap-4 sm:grid-cols-3">
-                        <x-ui.input label="Min amount" name="min_amount" x-model="form.min_amount" placeholder="0.00" :error="$errors->first('min_amount')" />
-                        <x-ui.input label="Max amount (optional)" name="max_amount" x-model="form.max_amount" placeholder="—" :error="$errors->first('max_amount')" />
-                        <x-ui.input label="Fixed fee" name="fixed_fee" x-model="form.fixed_fee" placeholder="0.00" :error="$errors->first('fixed_fee')" />
+                        <x-ui.input :label="__('Min amount')" name="min_amount" x-model="form.min_amount" placeholder="0.00" :error="$errors->first('min_amount')" />
+                        <x-ui.input :label="__('Max amount (optional)')" name="max_amount" x-model="form.max_amount" placeholder="—" :error="$errors->first('max_amount')" />
+                        <x-ui.input :label="__('Fixed fee')" name="fixed_fee" x-model="form.fixed_fee" placeholder="0.00" :error="$errors->first('fixed_fee')" />
                     </div>
 
                     <div class="grid gap-4 sm:grid-cols-2">
-                        <x-ui.input label="Percent fee (bps)" name="percent_fee_bps" x-model="form.percent_fee_bps" type="number" placeholder="0" hint="100 bps = 1%" :error="$errors->first('percent_fee_bps')" />
-                        <x-ui.input label="Sort order" name="sort" x-model="form.sort" type="number" placeholder="0" :error="$errors->first('sort')" />
+                        <x-ui.input :label="__('Percent fee (bps)')" name="percent_fee_bps" x-model="form.percent_fee_bps" type="number" placeholder="0" :hint="__('100 bps = 1%')" :error="$errors->first('percent_fee_bps')" />
+                        <x-ui.input :label="__('Sort order')" name="sort" x-model="form.sort" type="number" placeholder="0" :error="$errors->first('sort')" />
                     </div>
 
-                    <x-ui.checkbox name="is_active" value="1" x-model="form.is_active" label="Active" />
+                    <x-ui.checkbox name="is_active" value="1" x-model="form.is_active" :label="__('Active')" />
 
                     <div class="flex justify-end gap-2 pt-2">
-                        <x-ui.button type="button" variant="secondary" x-on:click="open = false">Cancel</x-ui.button>
+                        <x-ui.button type="button" variant="secondary" x-on:click="open = false">{{ __('Cancel') }}</x-ui.button>
                         <x-ui.button type="submit" x-text="editingId ? 'Save changes' : 'Create method'"></x-ui.button>
                     </div>
                 </form>

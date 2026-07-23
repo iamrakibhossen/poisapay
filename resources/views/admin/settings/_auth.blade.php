@@ -1,14 +1,14 @@
-<x-admin.form-layout title="Authentication" description="Registration and verification requirements." class="!my-0">
+<x-admin.form-layout :title="__('Authentication')" :description="__('Registration and verification requirements.')" class="!my-0">
     <form class="space-y-5" method="POST" action="{{ route('admin.settings.update', 'auth') }}">
         @csrf
         @method('PUT')
 
         @php
             $toggles = [
-                'allow_registration' => ['Allow Registration', 'New users can create an account.', true],
-                'email_verification_required' => ['Require Email Verification', 'Users must verify their email before transacting.', true],
-                'phone_verification_required' => ['Require Phone Verification', 'Users must verify a phone number.', false],
-                'two_factor_required' => ['Require Two-Factor Authentication', 'Force 2FA for all accounts.', false],
+                'allow_registration' => [__('Allow Registration'), __('New users can create an account.'), true],
+                'email_verification_required' => [__('Require Email Verification'), __('Users must verify their email before transacting.'), true],
+                'phone_verification_required' => [__('Require Phone Verification'), __('Users must verify a phone number.'), false],
+                'two_factor_required' => [__('Require Two-Factor Authentication'), __('Force 2FA for all accounts.'), false],
             ];
         @endphp
 

@@ -14,12 +14,12 @@ beforeEach(function () {
 });
 
 it('redirects the legacy verification URL into the settings tab', function () {
-    actingAs($this->user)->get(route('kyc'))
-        ->assertRedirect(route('settings', ['tab' => 'verification']));
+    actingAs($this->user)->get(route('kyc.index'))
+        ->assertRedirect(route('settings.index', ['tab' => 'verification']));
 });
 
 it('renders the verification section inside settings (no Livewire)', function () {
-    actingAs($this->user)->get(route('settings', ['tab' => 'verification']))
+    actingAs($this->user)->get(route('settings.index', ['tab' => 'verification']))
         ->assertOk()
         ->assertSee('Verification')
         ->assertSee('Identity verification');
@@ -37,7 +37,7 @@ it('submits a KYC application with documents and redirects', function () {
         'documentNumber' => 'NID-12345',
         'documentFront' => UploadedFile::fake()->image('front.jpg'),
         'selfie' => UploadedFile::fake()->image('selfie.jpg'),
-    ])->assertRedirect(route('settings', ['tab' => 'verification']))->assertSessionHas('success');
+    ])->assertRedirect(route('settings.index', ['tab' => 'verification']))->assertSessionHas('success');
 
     expect($this->user->fresh()->kyc_status)->toBe(KycStatus::Pending);
 });
@@ -65,5 +65,5 @@ it('blocks a second application while one is in progress', function () {
 });
 
 it('requires authentication for the verification page', function () {
-    $this->get(route('kyc'))->assertRedirect(route('login'));
+    $this->get(route('kyc.index'))->assertRedirect(route('login'));
 });

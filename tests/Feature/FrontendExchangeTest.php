@@ -40,7 +40,7 @@ beforeEach(function () {
 it('renders the exchange page with the swap form', function () {
     creditUser($this->user, $this->usdt, '10000000');
 
-    actingAs($this->user)->get(route('exchange'))
+    actingAs($this->user)->get(route('exchange.index'))
         ->assertOk()
         ->assertSee('Exchange')
         ->assertSee('USDT');
@@ -51,7 +51,7 @@ it('quotes a swap and flashes it to the session', function () {
 
     $res = actingAs($this->user)->post(route('exchange.quote'), [
         'fromAssetId' => $this->usdt->id, 'toAssetId' => $this->trx->id, 'fromAmount' => '10',
-    ])->assertRedirect(route('exchange'))->assertSessionHas('quote');
+    ])->assertRedirect(route('exchange.index'))->assertSessionHas('quote');
 
     $quote = $res->getSession()->get('quote');
     expect($quote['fromSymbol'])->toBe('USDT')
@@ -65,7 +65,7 @@ it('shows the quote details on the page after quoting', function () {
         'fromAssetId' => $this->usdt->id, 'toAssetId' => $this->trx->id, 'fromAmount' => '10',
     ]);
 
-    actingAs($this->user)->get(route('exchange'))
+    actingAs($this->user)->get(route('exchange.index'))
         ->assertOk()
         ->assertSee('Confirm swap')
         ->assertSee('Quote expires in');
@@ -87,7 +87,7 @@ it('confirms a quote and moves both balances', function () {
     ])->getSession()->get('quote')['quoteId'];
 
     actingAs($this->user)->post(route('exchange.confirm'), ['quoteId' => $quoteId])
-        ->assertRedirect(route('exchange'))->assertSessionHas('success');
+        ->assertRedirect(route('exchange.index'))->assertSessionHas('success');
 
     expect($this->ledger->availableBalance($this->user, $this->usdt->id)->baseString())->toBe('0')
         ->and($this->ledger->availableBalance($this->user, $this->trx->id)->isPositive())->toBeTrue();
@@ -118,5 +118,5 @@ it('cannot confirm another user\'s quote', function () {
 });
 
 it('requires authentication for the exchange page', function () {
-    $this->get(route('exchange'))->assertRedirect(route('login'));
+    $this->get(route('exchange.index'))->assertRedirect(route('login'));
 });

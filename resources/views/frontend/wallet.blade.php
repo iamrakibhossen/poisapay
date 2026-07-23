@@ -1,4 +1,4 @@
-<x-layouts.app :title="'Wallet'">
+<x-layouts.app :title="__('Wallet')">
     @php
         $iconBg = fn (string $symbol) => [
             'USDT' => 'bg-emerald-500', 'USDC' => 'bg-sky-500', 'ETH' => 'bg-indigo-500',
@@ -17,7 +17,7 @@
     @endphp
 
     <div class="space-y-6">
-        <x-ui.page-header title="Wallet" subtitle="All your balances across crypto and Taka in one place." />
+        <x-ui.page-header :title="__('Wallet')" :subtitle="__('All your balances across crypto and Taka in one place.')" />
 
         {{-- Portfolio hero with inline quick actions --}}
         <div x-data="{ obscured: $persist(false).as('pp_hide_balance') }"
@@ -28,14 +28,14 @@
             <div class="relative">
                 <div class="flex items-start justify-between">
                     <div>
-                        <p class="text-xs font-medium uppercase tracking-wide text-brand-700">Total balance</p>
+                        <p class="text-xs font-medium uppercase tracking-wide text-brand-700">{{ __('Total balance') }}</p>
                         <div class="mt-1.5">
                             <p class="tabular text-4xl font-bold tracking-tight text-neutral-900" x-show="!obscured">{{ $totalValue }}</p>
                             <p class="text-4xl font-bold tracking-tight text-neutral-900" x-show="obscured" x-cloak>••••••</p>
                         </div>
-                        <p class="mt-2 text-xs text-neutral-500">{{ $fundedCount }} of {{ $totalAssets }} assets funded · estimated value</p>
+                        <p class="mt-2 text-xs text-neutral-500">{{ __(':count of :total assets funded · estimated value', ['count' => $fundedCount, 'total' => $totalAssets]) }}</p>
                     </div>
-                    <button type="button" x-on:click="obscured = !obscured" class="rounded-lg p-1.5 text-neutral-400 transition hover:bg-white/70 hover:text-neutral-700" title="Hide balance">
+                    <button type="button" x-on:click="obscured = !obscured" class="rounded-lg p-1.5 text-neutral-400 transition hover:bg-white/70 hover:text-neutral-700" title="{{ __('Hide balance') }}">
                         <x-heroicon-o-eye x-show="!obscured" class="h-5 w-5" />
                         <x-heroicon-o-eye-slash x-show="obscured" x-cloak class="h-5 w-5" />
                     </button>
@@ -45,10 +45,10 @@
                 <div class="mt-6 grid grid-cols-4 gap-2 sm:mt-7 sm:max-w-md">
                     @php
                         $actions = [
-                            ['route' => route('deposit'), 'label' => 'Deposit', 'icon' => 'arrow-down-tray'],
-                            ['route' => route('withdraw'), 'label' => 'Withdraw', 'icon' => 'arrow-up-tray'],
-                            ['route' => route('send'), 'label' => 'Send', 'icon' => 'paper-airplane'],
-                            ['route' => route('exchange'), 'label' => 'Swap', 'icon' => 'arrows-right-left'],
+                            ['route' => route('deposit.index'), 'label' => __('Deposit'), 'icon' => 'arrow-down-tray'],
+                            ['route' => route('withdraw.index'), 'label' => __('Withdraw'), 'icon' => 'arrow-up-tray'],
+                            ['route' => route('send.index'), 'label' => __('Send'), 'icon' => 'paper-airplane'],
+                            ['route' => route('exchange.index'), 'label' => __('Swap'), 'icon' => 'arrows-right-left'],
                         ];
                     @endphp
                     @foreach ($actions as $a)
@@ -67,10 +67,10 @@
         <div class="grid gap-4 sm:grid-cols-4">
             @php
                 $tiles = [
-                    ['label' => 'Funded assets', 'value' => $fundedCount.' / '.$totalAssets, 'icon' => 'squares-2x2', 'bg' => 'bg-brand-100', 'fg' => 'text-brand-600'],
-                    ['label' => 'Inflow · 30d', 'value' => $analytics['inflow'], 'icon' => 'arrow-down-left', 'bg' => 'bg-emerald-100', 'fg' => 'text-emerald-500'],
-                    ['label' => 'Outflow · 30d', 'value' => $analytics['outflow'], 'icon' => 'arrow-up-right', 'bg' => 'bg-rose-100', 'fg' => 'text-rose-500'],
-                    ['label' => 'Net · 30d', 'value' => $analytics['net'], 'icon' => 'chart-bar', 'bg' => $analytics['netPositive'] ? 'bg-emerald-100' : 'bg-amber-100', 'fg' => $analytics['netPositive'] ? 'text-emerald-500' : 'text-amber-500'],
+                    ['label' => __('Funded assets'), 'value' => $fundedCount.' / '.$totalAssets, 'icon' => 'squares-2x2', 'bg' => 'bg-brand-100', 'fg' => 'text-brand-600'],
+                    ['label' => __('Inflow · 30d'), 'value' => $analytics['inflow'], 'icon' => 'arrow-down-left', 'bg' => 'bg-emerald-100', 'fg' => 'text-emerald-500'],
+                    ['label' => __('Outflow · 30d'), 'value' => $analytics['outflow'], 'icon' => 'arrow-up-right', 'bg' => 'bg-rose-100', 'fg' => 'text-rose-500'],
+                    ['label' => __('Net · 30d'), 'value' => $analytics['net'], 'icon' => 'chart-bar', 'bg' => $analytics['netPositive'] ? 'bg-emerald-100' : 'bg-amber-100', 'fg' => $analytics['netPositive'] ? 'text-emerald-500' : 'text-amber-500'],
                 ];
             @endphp
             @foreach ($tiles as $t)
@@ -89,7 +89,7 @@
         {{-- Holdings: single-line toolbar (filter + search) --}}
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div class="inline-flex rounded-xl bg-neutral-100 p-1">
-                @foreach (['all' => 'All', 'crypto' => 'Crypto', 'fiat' => 'Fiat'] as $key => $label)
+                @foreach (['all' => __('All'), 'crypto' => __('Crypto'), 'fiat' => __('Fiat')] as $key => $label)
                     <a href="{{ route('wallet', array_merge(request()->query(), ['filter' => $key])) }}"
                         class="rounded-lg px-4 py-1.5 text-sm font-medium transition {{ $filter === $key ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-800' }}">
                         {{ $label }}
@@ -99,7 +99,7 @@
             <form method="GET" action="{{ route('wallet') }}" class="relative sm:w-64">
                 <input type="hidden" name="filter" value="{{ $filter }}" />
                 <x-heroicon-o-magnifying-glass class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
-                <input type="search" name="search" value="{{ $search }}" placeholder="Search assets…" class="pp-input w-full !pl-10 text-sm" />
+                <input type="search" name="search" value="{{ $search }}" placeholder="{{ __('Search assets…') }}" class="pp-input w-full !pl-10 text-sm" />
             </form>
         </div>
 
@@ -109,9 +109,9 @@
                 <table class="min-w-full text-sm">
                     <thead>
                         <tr class="border-b border-gray-200 bg-gray-50/60 text-[11px] uppercase tracking-wider text-gray-400">
-                            <th class="px-5 py-3 text-left font-semibold">Asset</th>
-                            <th class="px-5 py-3 text-right font-semibold">Available</th>
-                            <th class="px-5 py-3 text-right font-semibold">Est. value</th>
+                            <th class="px-5 py-3 text-left font-semibold">{{ __('Asset') }}</th>
+                            <th class="px-5 py-3 text-right font-semibold">{{ __('Available') }}</th>
+                            <th class="px-5 py-3 text-right font-semibold">{{ __('Est. value') }}</th>
                             <th class="w-8 px-5 py-3"></th>
                         </tr>
                     </thead>
@@ -122,7 +122,7 @@
                                     <div class="flex items-center gap-3">
                                         <form method="POST" action="{{ route('wallet.favorite', $w['assetId']) }}" onclick="event.stopPropagation()">
                                             @csrf
-                                            <button type="submit" class="block text-neutral-300 transition hover:scale-110 hover:text-brand-500" title="Toggle favorite">
+                                            <button type="submit" class="block text-neutral-300 transition hover:scale-110 hover:text-brand-500" title="{{ __('Toggle favorite') }}">
                                                 @if ($w['favorite'])
                                                     <svg class="h-4 w-4 text-brand-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clip-rule="evenodd" /></svg>
                                                 @else
@@ -138,10 +138,10 @@
                                                     'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium',
                                                     'bg-emerald-50 text-emerald-700' => $w['isFiat'],
                                                     'bg-sky-50 text-sky-700' => ! $w['isFiat'],
-                                                ])>{{ $w['isFiat'] ? 'Fiat' : 'Crypto' }}</span>
+                                                ])>{{ $w['isFiat'] ? __('Fiat') : __('Crypto') }}</span>
                                             </div>
                                             <p class="truncate text-xs text-neutral-500">
-                                                {{ $w['name'] }}@if (($w['networks'] ?? 1) > 1) <span class="text-neutral-400">· {{ $w['networks'] }} networks</span>@endif
+                                                {{ $w['name'] }}@if (($w['networks'] ?? 1) > 1) <span class="text-neutral-400">· {{ $w['networks'] }} {{ __('networks') }}</span>@endif
                                             </p>
                                         </div>
                                     </div>
@@ -149,7 +149,7 @@
                                 <td class="whitespace-nowrap px-5 py-4 text-right align-middle">
                                     <p class="tabular text-sm font-semibold text-neutral-900">{{ $w['available'] }}</p>
                                     @if ($w['locked'])
-                                        <p class="tabular mt-0.5 text-[11px] text-amber-600">{{ $w['locked'] }} locked</p>
+                                        <p class="tabular mt-0.5 text-[11px] text-amber-600">{{ $w['locked'] }} {{ __('locked') }}</p>
                                     @endif
                                 </td>
                                 <td class="tabular whitespace-nowrap px-5 py-4 text-right align-middle text-sm text-neutral-500">{{ $w['fiatValue'] ?? '—' }}</td>
@@ -163,8 +163,8 @@
             </div>
         @else
             <div class="pp-card">
-                <x-ui.empty-state icon="magnifying-glass" title="No assets found"
-                    description="No wallets match your search or filter. Try a different term." />
+                <x-ui.empty-state icon="magnifying-glass" :title="__('No assets found')"
+                    :description="__('No wallets match your search or filter. Try a different term.')" />
             </div>
         @endif
     </div>

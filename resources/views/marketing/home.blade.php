@@ -1,30 +1,30 @@
 @php
     /* ---- Static, mocked marketing data (no backend coupling) ---- */
     $trustBadges = [
-        ['icon' => 'shield-check', 'label' => '100% Secure'],
-        ['icon' => 'check-badge', 'label' => 'KYC Verified'],
-        ['icon' => 'globe-alt', 'label' => 'Multi-chain'],
-        ['icon' => 'bolt', 'label' => 'Instant deposit'],
+        ['icon' => 'shield-check', 'label' => __('100% Secure')],
+        ['icon' => 'check-badge', 'label' => __('KYC Verified')],
+        ['icon' => 'globe-alt', 'label' => __('Multi-chain')],
+        ['icon' => 'bolt', 'label' => __('Instant deposit')],
     ];
 
     $why = [
-        ['icon' => 'arrow-down-tray', 'title' => 'Instant deposit', 'body' => 'On-chain funds land in seconds — no waiting, no holds.'],
-        ['icon' => 'arrow-up-tray', 'title' => 'Instant withdrawal', 'body' => 'Cash out to crypto or Taka whenever you want.'],
-        ['icon' => 'credit-card', 'title' => 'Virtual card', 'body' => 'Spend your balance anywhere Mastercard is accepted.'],
-        ['icon' => 'globe-alt', 'title' => 'Multi-chain', 'body' => 'Ethereum, BNB Chain and Tron in one place.'],
-        ['icon' => 'lock-closed', 'title' => 'Secure wallet', 'body' => 'Custodial cold storage with 2FA on every action.'],
-        ['icon' => 'building-storefront', 'title' => 'Merchant pay', 'body' => 'Accept payments and settle instantly.'],
-        ['icon' => 'paper-airplane', 'title' => 'Fast transfers', 'body' => 'Free P2P by handle, email or phone.'],
-        ['icon' => 'qr-code', 'title' => 'QR pay', 'body' => 'Scan to pay or get paid in a tap.'],
+        ['icon' => 'arrow-down-tray', 'title' => __('Instant deposit'), 'body' => __('On-chain funds land in seconds — no waiting, no holds.')],
+        ['icon' => 'arrow-up-tray', 'title' => __('Instant withdrawal'), 'body' => __('Cash out to crypto or Taka whenever you want.')],
+        ['icon' => 'credit-card', 'title' => __('Virtual card'), 'body' => __('Spend your balance anywhere Mastercard is accepted.')],
+        ['icon' => 'globe-alt', 'title' => __('Multi-chain'), 'body' => __('Ethereum, BNB Chain and Tron in one place.')],
+        ['icon' => 'lock-closed', 'title' => __('Secure wallet'), 'body' => __('Custodial cold storage with 2FA on every action.')],
+        ['icon' => 'building-storefront', 'title' => __('Merchant pay'), 'body' => __('Accept payments and settle instantly.')],
+        ['icon' => 'paper-airplane', 'title' => __('Fast transfers'), 'body' => __('Free P2P by handle, email or phone.')],
+        ['icon' => 'qr-code', 'title' => __('QR pay'), 'body' => __('Scan to pay or get paid in a tap.')],
     ];
 
     $security = [
-        ['icon' => 'lock-closed', 'title' => '256-bit encryption', 'body' => 'Every byte in transit and at rest is encrypted end to end.'],
-        ['icon' => 'cube-transparent', 'title' => 'Cold + hot split', 'body' => 'The vast majority of funds sit offline in segregated custody.'],
-        ['icon' => 'document-check', 'title' => 'AML & KYC', 'body' => 'Continuous monitoring keeps the platform clean and compliant.'],
-        ['icon' => 'credit-card', 'title' => 'PCI-ready', 'body' => 'Card infrastructure built to PCI-DSS standards.'],
-        ['icon' => 'finger-print', 'title' => 'Biometric login', 'body' => 'Face and fingerprint unlock on supported devices.'],
-        ['icon' => 'shield-exclamation', 'title' => 'Fraud protection', 'body' => 'Real-time risk scoring blocks suspicious activity.'],
+        ['icon' => 'lock-closed', 'title' => __('256-bit encryption'), 'body' => __('Every byte in transit and at rest is encrypted end to end.')],
+        ['icon' => 'cube-transparent', 'title' => __('Cold + hot split'), 'body' => __('The vast majority of funds sit offline in segregated custody.')],
+        ['icon' => 'document-check', 'title' => __('AML & KYC'), 'body' => __('Continuous monitoring keeps the platform clean and compliant.')],
+        ['icon' => 'credit-card', 'title' => __('PCI-ready'), 'body' => __('Card infrastructure built to PCI-DSS standards.')],
+        ['icon' => 'finger-print', 'title' => __('Biometric login'), 'body' => __('Face and fingerprint unlock on supported devices.')],
+        ['icon' => 'shield-exclamation', 'title' => __('Fraud protection'), 'body' => __('Real-time risk scoring blocks suspicious activity.')],
     ];
 
     $assets = [
@@ -36,11 +36,11 @@
     ];
 
     $faqs = [
-        ['q' => 'Is PoisaPay available in Bangladesh?', 'a' => 'Yes — PoisaPay is built for Bangladesh, with native Taka support alongside crypto and instant local P2P transfers.'],
-        ['q' => 'Do I need to complete KYC?', 'a' => 'Basic features work right away. Full verification unlocks higher limits, the virtual card and fiat cash-out, and keeps your account compliant.'],
-        ['q' => 'Which networks are supported?', 'a' => 'Ethereum, BNB Smart Chain and Tron today, with Tron-first custody for fast, low-cost transfers. More chains are on the roadmap.'],
-        ['q' => 'How fast can I get a virtual card?', 'a' => 'Once verified, a card is issued in seconds and can be added to Apple Pay or Google Pay right away.'],
-        ['q' => 'How are my funds secured?', 'a' => 'Funds sit in custodial cold storage with 2FA, device controls and continuous monitoring. Every balance is tracked on an exact double-entry ledger.'],
+        ['q' => __('Is PoisaPay available in Bangladesh?'), 'a' => __('Yes — PoisaPay is built for Bangladesh, with native Taka support alongside crypto and instant local P2P transfers.')],
+        ['q' => __('Do I need to complete KYC?'), 'a' => __('Basic features work right away. Full verification unlocks higher limits, the virtual card and fiat cash-out, and keeps your account compliant.')],
+        ['q' => __('Which networks are supported?'), 'a' => __('Ethereum, BNB Smart Chain and Tron today, with Tron-first custody for fast, low-cost transfers. More chains are on the roadmap.')],
+        ['q' => __('How fast can I get a virtual card?'), 'a' => __('Once verified, a card is issued in seconds and can be added to Apple Pay or Google Pay right away.')],
+        ['q' => __('How are my funds secured?'), 'a' => __('Funds sit in custodial cold storage with 2FA, device controls and continuous monitoring. Every balance is tracked on an exact double-entry ledger.')],
     ];
 @endphp
 <!DOCTYPE html>
@@ -74,23 +74,23 @@
             <div class="text-center lg:text-left">
                 <span class="reveal inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium text-slate-700 ring-chip">
                     <span class="h-1.5 w-1.5 rounded-full pp-pulse" style="background:var(--brand)"></span>
-                    Now live · Tron-first custody
+                    {{ __('Now live · Tron-first custody') }}
                 </span>
 
                 <h1 class="reveal mx-auto mt-6 max-w-2xl text-[2.7rem] font-extrabold leading-[1.03] tracking-tight text-slate-900 sm:text-6xl lg:mx-0 lg:text-[4.2rem]" data-d="1">
-                    Spend crypto <br class="hidden sm:block" />like <span class="grad-text-anim">cash.</span>
+                    {{ __('Spend crypto') }} <br class="hidden sm:block" />{{ __('like') }} <span class="grad-text-anim">{{ __('cash.') }}</span>
                 </h1>
 
                 <p class="reveal mx-auto mt-6 max-w-xl text-lg leading-relaxed text-slate-600 lg:mx-0" data-d="2">
-                    A premium crypto wallet with a beautiful virtual card. Hold, send and spend crypto and Taka anywhere — instant deposits, Apple &amp; Google Pay, bank-grade custody.
+                    {{ __('A premium crypto wallet with a beautiful virtual card. Hold, send and spend crypto and Taka anywhere — instant deposits, Apple & Google Pay, bank-grade custody.') }}
                 </p>
 
                 <div class="reveal mt-9 flex flex-wrap items-center justify-center gap-3 lg:justify-start" data-d="3">
                     <a href="{{ route('register') }}" class="pp-btn pp-btn-primary pp-btn-lg">
-                        Get started <x-heroicon-o-arrow-right class="h-5 w-5" />
+                        {{ __('Get started') }} <x-heroicon-o-arrow-right class="h-5 w-5" />
                     </a>
                     <a href="#wallet" class="pp-btn pp-btn-ghost pp-btn-lg">
-                        <x-heroicon-s-play class="h-4 w-4" /> View demo
+                        <x-heroicon-s-play class="h-4 w-4" /> {{ __('View demo') }}
                     </a>
                 </div>
 
@@ -115,7 +115,7 @@
 
         {{-- Logo marquee --}}
         <div class="reveal pp-marquee-mask mx-auto mt-20 max-w-6xl overflow-hidden">
-            <p class="mb-6 text-center text-xs font-medium uppercase tracking-[0.2em] text-slate-400">Works everywhere you already pay</p>
+            <p class="mb-6 text-center text-xs font-medium uppercase tracking-[0.2em] text-slate-400">{{ __('Works everywhere you already pay') }}</p>
             <div class="pp-marquee">
                 @foreach (['Mastercard','Apple Pay','Google Pay','Visa','Tron','Ethereum','BNB Chain','USDT','Tap to Pay','Mastercard','Apple Pay','Google Pay','Visa','Tron','Ethereum','BNB Chain','USDT','Tap to Pay'] as $logo)
                     <span class="whitespace-nowrap text-lg font-semibold text-slate-400">{{ $logo }}</span>
@@ -128,9 +128,9 @@
     <section id="cards" class="relative px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
         <div class="mx-auto max-w-7xl">
             <div class="reveal mx-auto max-w-2xl text-center">
-                <p class="text-sm font-semibold uppercase tracking-[0.18em]" style="color:var(--brand)">The card</p>
-                <h2 class="mt-3 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">One card. <span class="grad-text">Total control.</span></h2>
-                <p class="mt-4 text-lg text-slate-600">A premium virtual Mastercard, funded by your crypto. Freeze it, cap it, and add it to the wallet you already use.</p>
+                <p class="text-sm font-semibold uppercase tracking-[0.18em]" style="color:var(--brand)">{{ __('The card') }}</p>
+                <h2 class="mt-3 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">{{ __('One card.') }} <span class="grad-text">{{ __('Total control.') }}</span></h2>
+                <p class="mt-4 text-lg text-slate-600">{{ __('A premium virtual Mastercard, funded by your crypto. Freeze it, cap it, and add it to the wallet you already use.') }}</p>
             </div>
 
             <div class="mt-14 grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
@@ -147,12 +147,12 @@
                 {{-- Feature grid --}}
                 <div class="reveal" data-d="1">
                     @php $cardFeatures = [
-                        ['icon' => 'pause-circle', 'title' => 'Freeze card', 'body' => 'Lock and unlock instantly from your phone.'],
-                        ['icon' => 'adjustments-horizontal', 'title' => 'Spend limits', 'body' => 'Daily and per-transaction caps you control.'],
-                        ['icon' => 'sparkles', 'title' => 'Apple & Google Pay', 'body' => 'Add to your mobile wallet in a tap.'],
-                        ['icon' => 'wifi', 'title' => 'Tap to pay', 'body' => 'Contactless in stores, worldwide.'],
-                        ['icon' => 'globe-alt', 'title' => 'Online & ATM', 'body' => 'Pay online and withdraw cash anywhere.'],
-                        ['icon' => 'bolt', 'title' => 'Instant funding', 'body' => 'Top up from crypto in seconds.'],
+                        ['icon' => 'pause-circle', 'title' => __('Freeze card'), 'body' => __('Lock and unlock instantly from your phone.')],
+                        ['icon' => 'adjustments-horizontal', 'title' => __('Spend limits'), 'body' => __('Daily and per-transaction caps you control.')],
+                        ['icon' => 'sparkles', 'title' => __('Apple & Google Pay'), 'body' => __('Add to your mobile wallet in a tap.')],
+                        ['icon' => 'wifi', 'title' => __('Tap to pay'), 'body' => __('Contactless in stores, worldwide.')],
+                        ['icon' => 'globe-alt', 'title' => __('Online & ATM'), 'body' => __('Pay online and withdraw cash anywhere.')],
+                        ['icon' => 'bolt', 'title' => __('Instant funding'), 'body' => __('Top up from crypto in seconds.')],
                     ]; @endphp
                     <div class="grid gap-3 sm:grid-cols-2">
                         @foreach ($cardFeatures as $cf)
@@ -168,9 +168,9 @@
                     <div class="mt-6 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
                         <span class="inline-flex items-center gap-1.5 text-sm text-slate-500 sm:mr-auto">
                             <x-heroicon-s-check-badge class="h-4 w-4" style="color:var(--brand)" />
-                            No annual fee · Cancel anytime
+                            {{ __('No annual fee · Cancel anytime') }}
                         </span>
-                        <a href="{{ route('register') }}" class="pp-btn pp-btn-primary pp-btn-lg w-full sm:w-auto">Get your card <x-heroicon-o-arrow-right class="h-5 w-5" /></a>
+                        <a href="{{ route('register') }}" class="pp-btn pp-btn-primary pp-btn-lg w-full sm:w-auto">{{ __('Get your card') }} <x-heroicon-o-arrow-right class="h-5 w-5" /></a>
                     </div>
                 </div>
             </div>
@@ -182,15 +182,15 @@
         <div class="mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-2 lg:gap-16">
             {{-- Copy --}}
             <div class="reveal">
-                <p class="text-sm font-semibold uppercase tracking-[0.18em]" style="color:var(--brand)">The wallet</p>
-                <h2 class="mt-3 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">Your whole portfolio, <span class="grad-text">beautifully clear.</span></h2>
-                <p class="mt-4 text-lg text-slate-600">Hold USDT, BTC, ETH, BNB and TON side by side with your Taka balance. Track allocation, swap instantly, and watch every move in real time.</p>
+                <p class="text-sm font-semibold uppercase tracking-[0.18em]" style="color:var(--brand)">{{ __('The wallet') }}</p>
+                <h2 class="mt-3 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">{{ __('Your whole portfolio,') }} <span class="grad-text">{{ __('beautifully clear.') }}</span></h2>
+                <p class="mt-4 text-lg text-slate-600">{{ __('Hold USDT, BTC, ETH, BNB and TON side by side with your Taka balance. Track allocation, swap instantly, and watch every move in real time.') }}</p>
 
                 @php $walletPoints = [
-                    ['title' => '5+ assets, one balance', 'body' => 'Crypto and Taka together, always in sync.'],
-                    ['title' => 'Instant swaps, 24/7',     'body' => 'Convert between assets at live rates in a tap.'],
-                    ['title' => 'Zero-fee P2P',            'body' => 'Send to any PoisaPay user with no charge.'],
-                    ['title' => 'Real-time tracking',      'body' => 'Allocation and returns update as markets move.'],
+                    ['title' => __('5+ assets, one balance'), 'body' => __('Crypto and Taka together, always in sync.')],
+                    ['title' => __('Instant swaps, 24/7'),    'body' => __('Convert between assets at live rates in a tap.')],
+                    ['title' => __('Zero-fee P2P'),           'body' => __('Send to any PoisaPay user with no charge.')],
+                    ['title' => __('Real-time tracking'),     'body' => __('Allocation and returns update as markets move.')],
                 ]; @endphp
                 <ul class="mt-8 space-y-4">
                     @foreach ($walletPoints as $p)
@@ -206,7 +206,7 @@
                     @endforeach
                 </ul>
 
-                <a href="{{ route('register') }}" class="pp-btn pp-btn-primary pp-btn-lg mt-8 w-full sm:w-auto">Open your wallet <x-heroicon-o-arrow-right class="h-5 w-5" /></a>
+                <a href="{{ route('register') }}" class="pp-btn pp-btn-primary pp-btn-lg mt-8 w-full sm:w-auto">{{ __('Open your wallet') }} <x-heroicon-o-arrow-right class="h-5 w-5" /></a>
             </div>
 
             {{-- Wallet app mock --}}
@@ -219,7 +219,7 @@
                         <span aria-hidden="true" class="card-sheen pointer-events-none absolute inset-0"></span>
                         <div class="relative flex items-start justify-between">
                             <div>
-                                <p class="text-[0.62rem] font-medium uppercase tracking-[0.18em] text-white/70">Total balance</p>
+                                <p class="text-[0.62rem] font-medium uppercase tracking-[0.18em] text-white/70">{{ __('Total balance') }}</p>
                                 <p class="mt-1 text-3xl font-bold tabular" data-count="17980" data-prefix="$" data-dec="2">$17,980.00</p>
                                 <p class="mt-1 inline-flex items-center gap-1 text-sm font-medium tabular text-white/90">
                                     <x-heroicon-s-arrow-trending-up class="h-4 w-4" /> +$412.20 · 2.35% today
@@ -232,9 +232,9 @@
 
                         {{-- Quick actions --}}
                         @php $walletActions = [
-                            ['icon' => 'paper-airplane',  'label' => 'Send'],
-                            ['icon' => 'arrow-down-left',  'label' => 'Receive'],
-                            ['icon' => 'arrows-right-left','label' => 'Swap'],
+                            ['icon' => 'paper-airplane',  'label' => __('Send')],
+                            ['icon' => 'arrow-down-left',  'label' => __('Receive')],
+                            ['icon' => 'arrows-right-left','label' => __('Swap')],
                         ]; @endphp
                         <div class="relative mt-6 grid grid-cols-3 gap-2">
                             @foreach ($walletActions as $act)
@@ -249,8 +249,8 @@
                     {{-- Allocation bar --}}
                     <div class="px-6 pt-5">
                         <div class="flex items-center justify-between text-xs">
-                            <span class="font-medium text-slate-500">Allocation</span>
-                            <span class="text-slate-400">{{ count($assets) }} assets</span>
+                            <span class="font-medium text-slate-500">{{ __('Allocation') }}</span>
+                            <span class="text-slate-400">{{ count($assets) }} {{ __('assets') }}</span>
                         </div>
                         <div class="mt-2 flex h-2 gap-0.5 overflow-hidden rounded-full">
                             @foreach ($assets as $a)
@@ -281,10 +281,10 @@
                     {{-- Footer --}}
                     <div class="flex items-center justify-between border-t border-slate-100 px-6 py-4 text-xs">
                         <span class="inline-flex items-center gap-1.5 text-slate-400">
-                            <span class="h-1.5 w-1.5 rounded-full pp-pulse" style="background:var(--up)"></span> Updated just now
+                            <span class="h-1.5 w-1.5 rounded-full pp-pulse" style="background:var(--up)"></span> {{ __('Updated just now') }}
                         </span>
                         <a href="{{ route('register') }}" class="inline-flex items-center gap-1 font-semibold transition hover:gap-1.5" style="color:var(--brand)">
-                            Open wallet <x-heroicon-o-arrow-right class="h-3.5 w-3.5" />
+                            {{ __('Open wallet') }} <x-heroicon-o-arrow-right class="h-3.5 w-3.5" />
                         </a>
                     </div>
                 </div>
@@ -296,9 +296,9 @@
     <section id="features" class="relative px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
         <div class="mx-auto max-w-7xl">
             <div class="reveal mx-auto max-w-2xl text-center">
-                <p class="text-sm font-semibold uppercase tracking-[0.18em]" style="color:var(--brand)">Why PoisaPay</p>
-                <h2 class="mt-3 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">Everything you need to <span class="grad-text">move money.</span></h2>
-                <p class="mt-4 text-lg text-slate-600">One account for crypto, Taka, transfers, exchange, cards and merchant payments.</p>
+                <p class="text-sm font-semibold uppercase tracking-[0.18em]" style="color:var(--brand)">{{ __('Why PoisaPay') }}</p>
+                <h2 class="mt-3 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">{{ __('Everything you need to') }} <span class="grad-text">{{ __('move money.') }}</span></h2>
+                <p class="mt-4 text-lg text-slate-600">{{ __('One account for crypto, Taka, transfers, exchange, cards and merchant payments.') }}</p>
             </div>
 
             <div class="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -326,18 +326,18 @@
             {{-- Header --}}
             <div class="reveal mx-auto max-w-2xl text-center">
                 <span class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ring-1 ring-slate-200" style="background:rgba(37,99,235,.08);color:var(--brand)">
-                    <x-heroicon-s-shield-check class="h-4 w-4" /> Security
+                    <x-heroicon-s-shield-check class="h-4 w-4" /> {{ __('Security') }}
                 </span>
-                <h2 class="mt-5 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">Protection at <span class="grad-text">every layer.</span></h2>
-                <p class="mt-4 text-lg text-slate-600">PoisaPay is custodial and compliance-first — cold storage, encryption and continuous monitoring on every balance.</p>
+                <h2 class="mt-5 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">{{ __('Protection at') }} <span class="grad-text">{{ __('every layer.') }}</span></h2>
+                <p class="mt-4 text-lg text-slate-600">{{ __('PoisaPay is custodial and compliance-first — cold storage, encryption and continuous monitoring on every balance.') }}</p>
             </div>
 
             {{-- Trust stats --}}
             @php $secStats = [
-                ['value' => '$0',      'label' => 'Funds ever lost'],
-                ['value' => '99.9%',   'label' => 'Held in cold storage'],
-                ['value' => '256-bit', 'label' => 'Encryption'],
-                ['value' => '24/7',    'label' => 'Threat monitoring'],
+                ['value' => '$0',      'label' => __('Funds ever lost')],
+                ['value' => '99.9%',   'label' => __('Held in cold storage')],
+                ['value' => '256-bit', 'label' => __('Encryption')],
+                ['value' => '24/7',    'label' => __('Threat monitoring')],
             ]; @endphp
             <div class="reveal mx-auto mt-12 grid max-w-3xl grid-cols-2 gap-4 sm:grid-cols-4" data-d="1">
                 @foreach ($secStats as $st)
@@ -363,7 +363,7 @@
 
             {{-- Compliance chips --}}
             <div class="reveal mt-10 flex flex-wrap items-center justify-center gap-2.5">
-                @foreach (['SOC 2-ready', 'PCI-DSS', 'AML / KYC', '2FA', 'Cold storage', 'Audited quarterly'] as $chip)
+                @foreach ([__('SOC 2-ready'), __('PCI-DSS'), __('AML / KYC'), __('2FA'), __('Cold storage'), __('Audited quarterly')] as $chip)
                     <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-medium text-slate-600 ring-1 ring-slate-200">
                         <x-heroicon-s-check-circle class="h-3.5 w-3.5" style="color:var(--up)" /> {{ $chip }}
                     </span>
@@ -376,9 +376,9 @@
     <section id="faq" class="relative px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
         <div class="mx-auto max-w-3xl">
             <div class="reveal text-center">
-                <p class="text-sm font-semibold uppercase tracking-[0.18em]" style="color:var(--brand)">FAQ</p>
-                <h2 class="mt-3 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">Questions, <span class="grad-text">answered.</span></h2>
-                <p class="mt-4 text-slate-600">For more, see our <a href="{{ route('faqs.public') }}" class="font-medium underline-offset-2 hover:underline" style="color:var(--brand)">full FAQ</a>.</p>
+                <p class="text-sm font-semibold uppercase tracking-[0.18em]" style="color:var(--brand)">{{ __('FAQ') }}</p>
+                <h2 class="mt-3 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">{{ __('Questions,') }} <span class="grad-text">{{ __('answered.') }}</span></h2>
+                <p class="mt-4 text-slate-600">{{ __('For more, see our') }} <a href="{{ route('faqs.public') }}" class="font-medium underline-offset-2 hover:underline" style="color:var(--brand)">{{ __('full FAQ') }}</a>.</p>
             </div>
 
             <div class="reveal mt-10 space-y-3" x-data="{ open: 0 }">

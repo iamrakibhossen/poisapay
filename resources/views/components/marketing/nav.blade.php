@@ -2,12 +2,12 @@
     // Absolute homepage anchors so the nav works from any page (homepage + auth).
     $home = route('home');
     $navLinks = [
-        ['href' => $home.'#features', 'label' => 'Features'],
-        ['href' => $home.'#cards', 'label' => 'Cards'],
-        ['href' => $home.'#exchange', 'label' => 'Exchange'],
-        ['href' => route('merchants'), 'label' => 'Merchants', 'active' => request()->routeIs('merchants')],
-        ['href' => $home.'#security', 'label' => 'Security'],
-        ['href' => route('faqs.public'), 'label' => 'FAQ', 'active' => request()->routeIs('faqs.public')],
+        ['href' => $home.'#features', 'label' => __('Features')],
+        ['href' => $home.'#cards', 'label' => __('Cards')],
+        ['href' => $home.'#exchange', 'label' => __('Exchange')],
+        ['href' => route('merchants'), 'label' => __('Merchants'), 'active' => request()->routeIs('merchants')],
+        ['href' => $home.'#security', 'label' => __('Security')],
+        ['href' => route('faqs.public'), 'label' => __('FAQ'), 'active' => request()->routeIs('faqs.public')],
     ];
 @endphp
 <header
@@ -32,15 +32,15 @@
 
         <div class="hidden items-center gap-2.5 lg:flex">
             @auth
-                <a href="{{ route('dashboard') }}" class="pp-btn pp-btn-primary pp-btn-sm">Dashboard</a>
+                <a href="{{ route('dashboard') }}" class="pp-btn pp-btn-primary pp-btn-sm">{{ __('Dashboard') }}</a>
             @else
-                <a href="{{ route('login') }}" class="pp-btn pp-btn-sm text-slate-600 hover:text-slate-900">Log in</a>
-                <a href="{{ route('register') }}" class="pp-btn pp-btn-primary pp-btn-sm">Get started</a>
+                <a href="{{ route('login') }}" class="pp-btn pp-btn-sm text-slate-600 hover:text-slate-900">{{ __('Log in') }}</a>
+                <a href="{{ route('register') }}" class="pp-btn pp-btn-primary pp-btn-sm">{{ __('Get started') }}</a>
             @endauth
         </div>
 
         {{-- Mobile toggle --}}
-        <button @click="open = !open" class="grid h-10 w-10 place-items-center rounded-xl text-slate-700 glass lg:hidden" :aria-expanded="open" aria-label="Toggle menu">
+        <button @click="open = !open" class="grid h-10 w-10 place-items-center rounded-xl text-slate-700 glass lg:hidden" :aria-expanded="open" aria-label="{{ __('Toggle menu') }}">
             <x-heroicon-o-bars-3 x-show="!open" class="h-5 w-5" />
             <x-heroicon-o-x-mark x-show="open" x-cloak class="h-5 w-5" />
         </button>
@@ -55,10 +55,10 @@
             @endforeach
             <div class="mt-2 flex gap-2">
                 @auth
-                    <a href="{{ route('dashboard') }}" class="pp-btn pp-btn-primary pp-btn-md flex-1">Dashboard</a>
+                    <a href="{{ route('dashboard') }}" class="pp-btn pp-btn-primary pp-btn-md flex-1">{{ __('Dashboard') }}</a>
                 @else
-                    <a href="{{ route('login') }}" class="pp-btn pp-btn-ghost pp-btn-md flex-1">Log in</a>
-                    <a href="{{ route('register') }}" class="pp-btn pp-btn-primary pp-btn-md flex-1">Get started</a>
+                    <a href="{{ route('login') }}" class="pp-btn pp-btn-ghost pp-btn-md flex-1">{{ __('Log in') }}</a>
+                    <a href="{{ route('register') }}" class="pp-btn pp-btn-primary pp-btn-md flex-1">{{ __('Get started') }}</a>
                 @endauth
             </div>
         </div>

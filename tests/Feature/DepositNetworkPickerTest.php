@@ -15,7 +15,7 @@ beforeEach(function () {
 });
 
 it('shows the coin grid with a merged multi-network USDT entry', function () {
-    actingAs($this->user)->get(route('deposit'))
+    actingAs($this->user)->get(route('deposit.index'))
         ->assertOk()
         ->assertSee('Choose a coin')
         ->assertSee('USDT')
@@ -23,7 +23,7 @@ it('shows the coin grid with a merged multi-network USDT entry', function () {
 });
 
 it('renders the unified network picker for a coin', function () {
-    actingAs($this->user)->get(route('deposit', ['symbol' => 'USDT']))
+    actingAs($this->user)->get(route('deposit.index', ['symbol' => 'USDT']))
         ->assertOk()
         ->assertSee('Deposit USDT')
         ->assertSee('Network')
@@ -37,7 +37,7 @@ it('shows the address panel + EVM shared-address hint once a network is chosen',
     $eth = Chain::where('key', 'ethereum')->first();
     $usdt = Asset::where('chain_id', $eth->id)->where('symbol', 'USDT')->first();
 
-    actingAs($this->user)->get(route('deposit', ['asset' => $usdt->id]))
+    actingAs($this->user)->get(route('deposit.index', ['asset' => $usdt->id]))
         ->assertOk()
         ->assertSee('Deposit USDT')
         ->assertSee('Only send')

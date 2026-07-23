@@ -1,4 +1,4 @@
-<x-layouts.admin :title="'Exchange'">
+<x-layouts.admin :title="__('Exchange')">
     {{-- Alpine is light UI only: modal open/close + prefill for edit. The form POSTs traditionally. --}}
     <div x-data="{
             open: {{ $errors->any() ? 'true' : 'false' }},
@@ -15,25 +15,25 @@
             create() { this.editingId = ''; this.form = { fromAssetId: '', toAssetId: '', spreadBps: '', minAmount: '', maxAmount: '', sort: 0, is_active: true }; this.open = true; },
             edit(p) { this.editingId = p.id; this.form = { fromAssetId: String(p.from_asset_id), toAssetId: String(p.to_asset_id), spreadBps: p.spread_bps, minAmount: p.min_amount, maxAmount: p.max_amount, sort: p.sort, is_active: p.is_active }; this.open = true; },
         }" class="space-y-6">
-        <x-ui.page-header title="Exchange" subtitle="Manage trading pairs and review swap volume (TDD §5 FX).">
+        <x-ui.page-header :title="__('Exchange')" :subtitle="__('Manage trading pairs and review swap volume (TDD §5 FX).')">
             @if ($canManage)
                 <x-slot:actions>
-                    <x-ui.button x-on:click="create()" icon="plus" size="sm">Add pair</x-ui.button>
+                    <x-ui.button x-on:click="create()" icon="plus" size="sm">{{ __('Add pair') }}</x-ui.button>
                 </x-slot:actions>
             @endif
         </x-ui.page-header>
 
         {{-- KPI strip --}}
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <x-ui.stat-card label="Total swaps" :value="number_format($stats['total_swaps'])" icon="arrows-right-left" accent="brand" />
-            <x-ui.stat-card label="Swaps today" :value="number_format($stats['today'])" icon="clock" accent="emerald" />
-            <x-ui.stat-card label="Active pairs" :value="number_format($stats['pairs_traded'])" icon="squares-2x2" accent="amber" />
-            <x-ui.stat-card label="Spread income accounts" :value="number_format($stats['spread_accounts'])" icon="banknotes" accent="rose" />
+            <x-ui.stat-card :label="__('Total swaps')" :value="number_format($stats['total_swaps'])" icon="arrows-right-left" accent="brand" />
+            <x-ui.stat-card :label="__('Swaps today')" :value="number_format($stats['today'])" icon="clock" accent="emerald" />
+            <x-ui.stat-card :label="__('Active pairs')" :value="number_format($stats['pairs_traded'])" icon="squares-2x2" accent="amber" />
+            <x-ui.stat-card :label="__('Spread income accounts')" :value="number_format($stats['spread_accounts'])" icon="banknotes" accent="rose" />
         </div>
 
         @if (! empty($spreadIncome))
             <x-ui.card>
-                <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">Spread income (fx:spread_income)</p>
+                <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{{ __('Spread income (fx:spread_income)') }}</p>
                 <div class="flex flex-wrap gap-2">
                     @foreach ($spreadIncome as $line)
                         <x-ui.badge color="success">{{ $line }}</x-ui.badge>
@@ -44,8 +44,8 @@
 
         {{-- Trading pairs --}}
         <x-ui.card>
-            <h3 class="mb-4 text-sm font-semibold text-neutral-900">Trading pairs</h3>
-            <x-ui.table :headers="['Pair', 'Spread', 'Min', 'Max', 'Active', 'Sort', '']">
+            <h3 class="mb-4 text-sm font-semibold text-neutral-900">{{ __('Trading pairs') }}</h3>
+            <x-ui.table :headers="[__('Pair'), __('Spread'), __('Min'), __('Max'), __('Active'), __('Sort'), '']">
                 @forelse ($pairs as $pair)
                     <tr class="border-b border-gray-200 hover:bg-gray-100">
                         <td class="px-4 py-3">
@@ -58,7 +58,7 @@
                         </td>
                         <td class="px-4 py-3 text-sm text-neutral-600">
                             @if ($pair->spread_bps === null)
-                                <span class="text-neutral-400">default</span>
+                                <span class="text-neutral-400">{{ __('default') }}</span>
                             @else
                                 <span class="tabular">{{ number_format($pair->spread_bps / 100, 2) }}%</span>
                             @endif
@@ -78,11 +78,11 @@
                                 <form method="POST" action="{{ route('admin.exchange.toggle', $pair->id) }}">
                                     @csrf
                                     <button type="submit" class="inline-flex">
-                                        <x-ui.badge :color="$pair->is_active ? 'success' : 'gray'" dot>{{ $pair->is_active ? 'Active' : 'Disabled' }}</x-ui.badge>
+                                        <x-ui.badge :color="$pair->is_active ? 'success' : 'gray'" dot>{{ $pair->is_active ? __('Active') : __('Disabled') }}</x-ui.badge>
                                     </button>
                                 </form>
                             @else
-                                <x-ui.badge :color="$pair->is_active ? 'success' : 'gray'" dot>{{ $pair->is_active ? 'Active' : 'Disabled' }}</x-ui.badge>
+                                <x-ui.badge :color="$pair->is_active ? 'success' : 'gray'" dot>{{ $pair->is_active ? __('Active') : __('Disabled') }}</x-ui.badge>
                             @endif
                         </td>
                         <td class="px-4 py-3 tabular text-sm text-neutral-500">{{ $pair->sort }}</td>
@@ -99,8 +99,8 @@
                                             'max_amount' => $pair->max_amount !== null && $pair->fromAsset ? \App\Support\Money::ofBase($pair->max_amount, $pair->fromAsset->decimals)->toDecimal() : '',
                                             'sort' => (int) $pair->sort,
                                             'is_active' => (bool) $pair->is_active,
-                                        ]) }})">Edit</x-ui.button>
-                                    <form method="POST" action="{{ route('admin.exchange.delete', $pair->id) }}" onsubmit="return confirm('Delete this trading pair?')">
+                                        ]) }})">{{ __('Edit') }}</x-ui.button>
+                                    <form method="POST" action="{{ route('admin.exchange.delete', $pair->id) }}" onsubmit="return confirm('{{ __('Delete this trading pair?') }}')">
                                         @csrf @method('DELETE')
                                         <x-ui.button type="submit" variant="danger" size="sm" icon="trash" />
                                     </form>
@@ -109,15 +109,15 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="7"><x-ui.empty-state icon="squares-2x2" title="No trading pairs" description="Add a pair to enable swaps between two assets." /></td></tr>
+                    <tr><td colspan="7"><x-ui.empty-state icon="squares-2x2" :title="__('No trading pairs')" :description="__('Add a pair to enable swaps between two assets.')" /></td></tr>
                 @endforelse
             </x-ui.table>
         </x-ui.card>
 
         {{-- Exchange history --}}
         <x-ui.card>
-            <h3 class="mb-4 text-sm font-semibold text-neutral-900">Recent swaps</h3>
-            <x-ui.table :headers="['User', 'Pair', 'From', 'To', 'Rate', 'Spread', 'Time']">
+            <h3 class="mb-4 text-sm font-semibold text-neutral-900">{{ __('Recent swaps') }}</h3>
+            <x-ui.table :headers="[__('User'), __('Pair'), __('From'), __('To'), __('Rate'), __('Spread'), __('Time')]">
                 @forelse ($conversions as $c)
                     @php $q = $c->quote; @endphp
                     <tr class="hover:bg-neutral-50">
@@ -153,7 +153,7 @@
                         <td class="px-4 py-3 text-sm text-neutral-500">{{ $c->created_at->diffForHumans() }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="7"><x-ui.empty-state icon="arrows-right-left" title="No swaps yet" description="Completed conversions will appear here." /></td></tr>
+                    <tr><td colspan="7"><x-ui.empty-state icon="arrows-right-left" :title="__('No swaps yet')" :description="__('Completed conversions will appear here.')" /></td></tr>
                 @endforelse
             </x-ui.table>
 
@@ -173,34 +173,34 @@
                         @csrf
                         <input type="hidden" name="id" :value="editingId" />
                         <div class="grid gap-4 sm:grid-cols-2">
-                            <x-ui.select label="From asset" name="fromAssetId" x-model="form.fromAssetId" :error="$errors->first('fromAssetId')">
-                                <option value="">Select…</option>
+                            <x-ui.select :label="__('From asset')" name="fromAssetId" x-model="form.fromAssetId" :error="$errors->first('fromAssetId')">
+                                <option value="">{{ __('Select…') }}</option>
                                 @foreach ($assets as $a)
                                     <option value="{{ $a->id }}">{{ $a->symbol }}</option>
                                 @endforeach
                             </x-ui.select>
-                            <x-ui.select label="To asset" name="toAssetId" x-model="form.toAssetId" :error="$errors->first('toAssetId')">
-                                <option value="">Select…</option>
+                            <x-ui.select :label="__('To asset')" name="toAssetId" x-model="form.toAssetId" :error="$errors->first('toAssetId')">
+                                <option value="">{{ __('Select…') }}</option>
                                 @foreach ($assets as $a)
                                     <option value="{{ $a->id }}">{{ $a->symbol }}</option>
                                 @endforeach
                             </x-ui.select>
                         </div>
 
-                        <x-ui.input label="Spread (bps — blank = global default)" name="spreadBps" x-model="form.spreadBps" type="number" placeholder="75" :error="$errors->first('spreadBps')" />
+                        <x-ui.input :label="__('Spread (bps — blank = global default)')" name="spreadBps" x-model="form.spreadBps" type="number" placeholder="75" :error="$errors->first('spreadBps')" />
 
                         <div class="grid gap-4 sm:grid-cols-2">
-                            <x-ui.input label="Min amount (from units)" name="minAmount" x-model="form.minAmount" placeholder="0.00" :error="$errors->first('minAmount')" />
-                            <x-ui.input label="Max amount (optional)" name="maxAmount" x-model="form.maxAmount" placeholder="0.00" :error="$errors->first('maxAmount')" />
+                            <x-ui.input :label="__('Min amount (from units)')" name="minAmount" x-model="form.minAmount" placeholder="0.00" :error="$errors->first('minAmount')" />
+                            <x-ui.input :label="__('Max amount (optional)')" name="maxAmount" x-model="form.maxAmount" placeholder="0.00" :error="$errors->first('maxAmount')" />
                         </div>
 
                         <div class="grid gap-4 sm:grid-cols-2">
-                            <x-ui.input label="Sort" name="sort" x-model="form.sort" type="number" :error="$errors->first('sort')" />
-                            <x-ui.checkbox name="is_active" value="1" x-model="form.is_active" label="Active" class="flex items-end pb-2" />
+                            <x-ui.input :label="__('Sort')" name="sort" x-model="form.sort" type="number" :error="$errors->first('sort')" />
+                            <x-ui.checkbox name="is_active" value="1" x-model="form.is_active" :label="__('Active')" class="flex items-end pb-2" />
                         </div>
 
                         <div class="flex justify-end gap-2 pt-2">
-                            <x-ui.button type="button" variant="secondary" x-on:click="open = false">Cancel</x-ui.button>
+                            <x-ui.button type="button" variant="secondary" x-on:click="open = false">{{ __('Cancel') }}</x-ui.button>
                             <x-ui.button type="submit" x-text="editingId ? 'Save changes' : 'Add pair'"></x-ui.button>
                         </div>
                     </form>

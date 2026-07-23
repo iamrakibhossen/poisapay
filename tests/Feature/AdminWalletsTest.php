@@ -60,8 +60,8 @@ it('renders the custody wallets page with hot & cold balances', function () {
         ->assertSee('Custody wallets')
         ->assertSee('Hot wallet')
         ->assertSee('Cold storage')
-        ->assertSee('15.000000')  // hot: 25 - 10
-        ->assertSee('10.000000'); // cold
+        ->assertSee('15.00')  // hot: 25 - 10 (trailing zeros trimmed to 2dp)
+        ->assertSee('10.00'); // cold
 });
 
 it('shows registered cold-watch addresses and low-gas warnings', function () {

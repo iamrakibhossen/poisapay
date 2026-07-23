@@ -63,7 +63,7 @@ it('adds a 1% platform fee to a withdrawal', function () {
     // Withdraw 50 USDT via the page.
     actingAs($user)->post(route('withdraw.submit'), [
         'assetId' => $this->asset->id, 'toAddress' => 'TdestFeeAddr', 'amount' => '50',
-    ])->assertRedirect(route('withdraw'))->assertSessionHas('success');
+    ])->assertRedirect(route('withdraw.index'))->assertSessionHas('success');
 
     // Fee = flat (0) + 1% of 50 = 0.5 USDT. Locked = 50.5; available = 100 − 50.5.
     $withdrawal = $user->withdrawals()->latest()->first();

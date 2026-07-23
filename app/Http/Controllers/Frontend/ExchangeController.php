@@ -136,7 +136,7 @@ class ExchangeController extends Controller
             throw ValidationException::withMessages(['fromAmount' => $e->getMessage()]);
         }
 
-        return redirect()->route('exchange')
+        return redirect()->route('exchange.index')
             ->with('quote', $this->quoteView($quote->load(['fromAsset', 'toAsset'])))
             ->withInput();
     }
@@ -160,7 +160,7 @@ class ExchangeController extends Controller
             throw ValidationException::withMessages(['quoteId' => $e->getMessage()]);
         }
 
-        return redirect()->route('exchange')->with('success', 'Swap complete.');
+        return redirect()->route('exchange.index')->with('success', 'Swap complete.');
     }
 
     /**

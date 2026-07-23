@@ -3,7 +3,7 @@
     'label' => null,
     'options' => [],       // [['value'=>, 'label'=>, 'icon'?=>, 'group'?=>], ...]
     'value' => null,       // selected value
-    'placeholder' => 'Select…',
+    'placeholder' => __('Select…'),
     'searchable' => true,
     'clearable' => true,
     'error' => null,
@@ -69,7 +69,7 @@
             <span class="flex-1 truncate" :class="selected ? 'font-medium text-gray-800' : 'text-gray-400'"
                 x-text="selected ? selected.label : '{{ $placeholder }}'"></span>
             @if ($clearable)
-                <span x-show="value" x-cloak x-on:click.stop="clear()" class="rounded p-0.5 text-gray-400 hover:text-gray-600" role="button" aria-label="Clear">
+                <span x-show="value" x-cloak x-on:click.stop="clear()" class="rounded p-0.5 text-gray-400 hover:text-gray-600" role="button" aria-label="{{ __('Clear') }}">
                     <x-heroicon-o-x-mark class="h-4 w-4" />
                 </span>
             @endif
@@ -85,7 +85,7 @@
                 <div class="border-b border-gray-100 p-2">
                     <div class="flex items-center gap-2 rounded-lg bg-gray-50 px-2.5">
                         <x-heroicon-o-magnifying-glass class="h-4 w-4 shrink-0 text-gray-400" />
-                        <input x-ref="search" x-model="query" type="text" placeholder="Search…"
+                        <input x-ref="search" x-model="query" type="text" placeholder="{{ __('Search…') }}"
                             x-on:keydown.arrow-down.prevent="move(1)" x-on:keydown.arrow-up.prevent="move(-1)"
                             x-on:keydown.enter.prevent="pick()"
                             class="w-full border-0 bg-transparent py-2 text-sm focus:outline-none focus:ring-0" />
@@ -104,7 +104,7 @@
                         </button>
                     </div>
                 </template>
-                <p x-show="! filtered.length" class="px-3 py-6 text-center text-sm text-gray-400">No matches.</p>
+                <p x-show="! filtered.length" class="px-3 py-6 text-center text-sm text-gray-400">{{ __('No matches.') }}</p>
             </div>
         </div>
     </div>

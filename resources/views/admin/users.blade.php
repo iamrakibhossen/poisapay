@@ -1,6 +1,6 @@
-<x-layouts.admin :title="'Users'">
+<x-layouts.admin :title="__('Users')">
     <div class="space-y-6">
-        <x-ui.page-header title="Users" subtitle="Manage accounts, KYC tiers and freeze money-movement access." />
+        <x-ui.page-header :title="__('Users')" :subtitle="__('Manage accounts, KYC tiers and freeze money-movement access.')" />
 
         <form method="GET" action="{{ route('admin.users') }}" class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             {{-- Tier tabs (query-string filter) --}}
@@ -19,10 +19,10 @@
             </div>
 
             <input type="hidden" name="tier" value="{{ $tier }}" />
-            <x-ui.input name="search" :value="$search" icon="magnifying-glass" placeholder="Search name, email, phone, handle…" class="w-full sm:w-72" />
+            <x-ui.input name="search" :value="$search" icon="magnifying-glass" placeholder="{{ __('Search name, email, phone, handle…') }}" class="w-full sm:w-72" />
         </form>
 
-        <x-ui.table :headers="['User', 'Phone', 'KYC tier', 'KYC status', 'Joined', '']">
+        <x-ui.table :headers="[__('User'), __('Phone'), __('KYC tier'), __('KYC status'), __('Joined'), '']">
             @forelse ($users as $user)
                 <tr class="hover:bg-neutral-50">
                     <td class="px-4 py-3">
@@ -32,7 +32,7 @@
                                 <p class="flex items-center gap-1.5 truncate text-sm font-medium text-neutral-900">
                                     {{ $user->name }}
                                     @if ($user->is_frozen)
-                                        <x-heroicon-s-lock-closed class="h-3.5 w-3.5 text-rose-500" title="Frozen" />
+                                        <x-heroicon-s-lock-closed class="h-3.5 w-3.5 text-rose-500" title="{{ __('Frozen') }}" />
                                     @endif
                                 </p>
                                 <p class="truncate text-xs text-neutral-500">{{ $user->email }}</p>
@@ -50,18 +50,18 @@
                                     onsubmit="return confirm('{{ $user->is_frozen ? 'Unfreeze '.$user->name.' and restore money movement?' : 'Freeze '.$user->name.' and block money movement?' }}')">
                                     @csrf
                                     @if ($user->is_frozen)
-                                        <x-ui.button type="submit" variant="ghost" size="sm" icon="lock-open">Unfreeze</x-ui.button>
+                                        <x-ui.button type="submit" variant="ghost" size="sm" icon="lock-open">{{ __('Unfreeze') }}</x-ui.button>
                                     @else
-                                        <x-ui.button type="submit" variant="ghost" size="sm" icon="lock-closed">Freeze</x-ui.button>
+                                        <x-ui.button type="submit" variant="ghost" size="sm" icon="lock-closed">{{ __('Freeze') }}</x-ui.button>
                                     @endif
                                 </form>
                             @endif
-                            <x-ui.button href="{{ route('admin.users.show', $user) }}" variant="secondary" size="sm" icon="eye">View</x-ui.button>
+                            <x-ui.button href="{{ route('admin.users.show', $user) }}" variant="secondary" size="sm" icon="eye">{{ __('View') }}</x-ui.button>
                         </div>
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="6"><x-ui.empty-state icon="users" title="No users" description="No accounts match your filters." /></td></tr>
+                <tr><td colspan="6"><x-ui.empty-state icon="users" :title="__('No users')" :description="__('No accounts match your filters.')" /></td></tr>
             @endforelse
         </x-ui.table>
 

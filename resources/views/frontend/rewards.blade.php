@@ -1,4 +1,4 @@
-<x-layouts.app :title="'Rewards & Referrals'">
+<x-layouts.app :title="__('Rewards & Referrals')">
     @php
         $assetBg = fn (string $symbol) => [
             'USDT' => 'bg-emerald-500', 'USDC' => 'bg-sky-500', 'ETH' => 'bg-indigo-500',
@@ -38,31 +38,31 @@
     @endphp
 
     <div class="space-y-6">
-        <x-ui.page-header title="Rewards & Referrals" subtitle="Invite friends and earn together." />
+        <x-ui.page-header :title="__('Rewards & Referrals')" :subtitle="__('Invite friends and earn together.')" />
 
         {{-- Referral hero --}}
         <div class="rounded-[var(--radius-card)] bg-gradient-to-br from-brand-50 to-brand-100 border border-brand-200 p-6 shadow-[var(--shadow-card)]">
             <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                    <p class="text-sm font-medium text-neutral-600">Your referral code</p>
+                    <p class="text-sm font-medium text-neutral-600">{{ __('Your referral code') }}</p>
                     <p class="tabular mt-1 text-3xl font-bold tracking-widest text-neutral-900">{{ $referralCode ?: '—' }}</p>
-                    <p class="mt-2 max-w-md text-sm text-neutral-600">Share your code or link. When friends sign up and get verified, you both earn rewards.</p>
+                    <p class="mt-2 max-w-md text-sm text-neutral-600">{{ __('Share your code or link. When friends sign up and get verified, you both earn rewards.') }}</p>
                 </div>
                 @if ($referralCode)
                     <div class="w-full max-w-md" x-data="{ copied: null }">
-                        <label class="mb-1.5 block text-xs font-medium text-neutral-600">Shareable link</label>
+                        <label class="mb-1.5 block text-xs font-medium text-neutral-600">{{ __('Shareable link') }}</label>
                         <div class="flex items-stretch gap-2">
                             <code class="min-w-0 flex-1 truncate rounded-xl bg-white border border-brand-200 px-3 py-2.5 font-mono text-xs text-neutral-900">{{ $shareLink }}</code>
                             <button type="button"
                                 x-on:click="navigator.clipboard.writeText(@js($shareLink)).then(() => { copied = 'link'; setTimeout(() => copied = null, 2000); })"
                                 class="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-white px-3 text-sm font-medium text-neutral-800 hover:bg-neutral-100">
-                                <span x-text="copied === 'link' ? 'Copied' : 'Copy'">Copy</span>
+                                <span x-text="copied === 'link' ? 'Copied' : 'Copy'">{{ __('Copy') }}</span>
                             </button>
                         </div>
                         <button type="button"
                             x-on:click="navigator.clipboard.writeText(@js($referralCode)).then(() => { copied = 'code'; setTimeout(() => copied = null, 2000); })"
                             class="mt-2 text-xs font-medium text-amber-700 hover:text-amber-800">
-                            <span x-text="copied === 'code' ? 'Code copied!' : 'Copy code only'">Copy code only</span>
+                            <span x-text="copied === 'code' ? 'Code copied!' : 'Copy code only'">{{ __('Copy code only') }}</span>
                         </button>
                     </div>
                 @endif
@@ -76,7 +76,7 @@
                     <x-heroicon-o-gift class="h-6 w-6" />
                 </span>
                 <div class="min-w-0 flex-1">
-                    <p class="truncate text-xs font-semibold uppercase tracking-wide text-neutral-500">Rewards earned</p>
+                    <p class="truncate text-xs font-semibold uppercase tracking-wide text-neutral-500">{{ __('Rewards earned') }}</p>
                     <p class="tabular mt-1 text-2xl font-bold tracking-tight text-neutral-800">{{ $rewardCount }}</p>
                 </div>
             </div>
@@ -85,7 +85,7 @@
                     <x-heroicon-o-user-group class="h-6 w-6" />
                 </span>
                 <div class="min-w-0 flex-1">
-                    <p class="truncate text-xs font-semibold uppercase tracking-wide text-neutral-500">Friends referred</p>
+                    <p class="truncate text-xs font-semibold uppercase tracking-wide text-neutral-500">{{ __('Friends referred') }}</p>
                     <p class="tabular mt-1 text-2xl font-bold tracking-tight text-neutral-800">{{ $referralCount }}</p>
                 </div>
             </div>
@@ -94,7 +94,7 @@
                     <x-heroicon-o-sparkles class="h-6 w-6" />
                 </span>
                 <div class="min-w-0 flex-1">
-                    <p class="truncate text-xs font-semibold uppercase tracking-wide text-neutral-500">Reward types</p>
+                    <p class="truncate text-xs font-semibold uppercase tracking-wide text-neutral-500">{{ __('Reward types') }}</p>
                     <p class="tabular mt-1 text-2xl font-bold tracking-tight text-neutral-800">{{ count($totals) }}</p>
                 </div>
             </div>
@@ -102,7 +102,7 @@
 
         {{-- Total earned by asset --}}
         @if (count($totals))
-            <x-ui.card title="Total earned by asset">
+            <x-ui.card :title="__('Total earned by asset')">
                 <div class="flex flex-wrap gap-2">
                     @foreach ($totals as $t)
                         <span class="inline-flex items-center gap-2 rounded-xl border border-neutral-200 px-3 py-2">
@@ -116,7 +116,7 @@
 
         <div class="grid gap-6 lg:grid-cols-2">
             {{-- Reward history --}}
-            <x-ui.card title="Reward history">
+            <x-ui.card :title="__('Reward history')">
                 @if (count($grants))
                     <div>
                         @foreach ($grants as $i => $g)
@@ -133,13 +133,13 @@
                         @endforeach
                     </div>
                 @else
-                    <x-ui.empty-state icon="gift" title="No rewards yet"
-                        description="Refer friends and complete activities to start earning." />
+                    <x-ui.empty-state icon="gift" :title="__('No rewards yet')"
+                        :description="__('Refer friends and complete activities to start earning.')" />
                 @endif
             </x-ui.card>
 
             {{-- Referrals --}}
-            <x-ui.card title="Your referrals">
+            <x-ui.card :title="__('Your referrals')">
                 @if (count($referrals))
                     <div>
                         @foreach ($referrals as $i => $r)
@@ -158,8 +158,8 @@
                         @endforeach
                     </div>
                 @else
-                    <x-ui.empty-state icon="user-group" title="No referrals yet"
-                        description="Share your link to invite friends to PoisaPay." />
+                    <x-ui.empty-state icon="user-group" :title="__('No referrals yet')"
+                        :description="__('Share your link to invite friends to PoisaPay.')" />
                 @endif
             </x-ui.card>
         </div>

@@ -1,8 +1,8 @@
-<x-layouts.app :title="'Withdrawal history'">
+<x-layouts.app :title="__('Withdrawal history')">
     <div class="mx-auto max-w-4xl space-y-5">
-        <x-ui.page-header title="Withdrawal history" subtitle="Every withdrawal and cash-out from your PoisaPay account.">
+        <x-ui.page-header :title="__('Withdrawal history')" :subtitle="__('Every withdrawal and cash-out from your PoisaPay account.')">
             <x-slot:actions>
-                <x-ui.button href="{{ route('withdraw') }}" icon="plus" size="sm">New withdrawal</x-ui.button>
+                <x-ui.button href="{{ route('withdraw.index') }}" icon="plus" size="sm">{{ __('New withdrawal') }}</x-ui.button>
             </x-slot:actions>
         </x-ui.page-header>
 
@@ -11,11 +11,11 @@
                 <table class="min-w-full text-sm">
                     <thead>
                         <tr class="border-b border-neutral-200 bg-neutral-50/60 text-[11px] uppercase tracking-wider text-neutral-400">
-                            <th class="px-5 py-3 text-left font-semibold">Date</th>
-                            <th class="px-5 py-3 text-left font-semibold">Withdrawal</th>
-                            <th class="px-5 py-3 text-left font-semibold">Destination</th>
-                            <th class="px-5 py-3 text-left font-semibold">Status</th>
-                            <th class="px-5 py-3 text-right font-semibold">Amount</th>
+                            <th class="px-5 py-3 text-left font-semibold">{{ __('Date') }}</th>
+                            <th class="px-5 py-3 text-left font-semibold">{{ __('Withdrawal') }}</th>
+                            <th class="px-5 py-3 text-left font-semibold">{{ __('Destination') }}</th>
+                            <th class="px-5 py-3 text-left font-semibold">{{ __('Status') }}</th>
+                            <th class="px-5 py-3 text-right font-semibold">{{ __('Amount') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-neutral-100">
@@ -59,7 +59,7 @@
                                 <td class="whitespace-nowrap px-5 py-4 text-right align-middle">
                                     <p class="tabular text-sm font-semibold text-neutral-900">-{{ $w['amount'] }}</p>
                                     @if ($w['fee'])
-                                        <p class="tabular mt-0.5 text-[11px] text-neutral-400">fee {{ $w['fee'] }}</p>
+                                        <p class="tabular mt-0.5 text-[11px] text-neutral-400">{{ __('fee') }} {{ $w['fee'] }}</p>
                                     @endif
                                 </td>
                             </tr>
@@ -73,33 +73,33 @@
                 <div class="flex items-center justify-between text-sm">
                     @if ($withdrawals->onFirstPage())
                         <span class="inline-flex items-center gap-1.5 rounded-lg border border-neutral-100 px-3 py-1.5 font-medium text-neutral-300">
-                            <x-heroicon-o-chevron-left class="h-4 w-4" /> Previous
+                            <x-heroicon-o-chevron-left class="h-4 w-4" /> {{ __('Previous') }}
                         </span>
                     @else
                         <a href="{{ $withdrawals->previousPageUrl() }}"
                             class="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 font-medium text-neutral-700 transition hover:bg-neutral-50">
-                            <x-heroicon-o-chevron-left class="h-4 w-4" /> Previous
+                            <x-heroicon-o-chevron-left class="h-4 w-4" /> {{ __('Previous') }}
                         </a>
                     @endif
-                    <span class="text-neutral-500">Page {{ $withdrawals->currentPage() }} of {{ $withdrawals->lastPage() }}</span>
+                    <span class="text-neutral-500">{{ __('Page :page of :last', ['page' => $withdrawals->currentPage(), 'last' => $withdrawals->lastPage()]) }}</span>
                     @if ($withdrawals->hasMorePages())
                         <a href="{{ $withdrawals->nextPageUrl() }}"
                             class="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 font-medium text-neutral-700 transition hover:bg-neutral-50">
-                            Next <x-heroicon-o-chevron-right class="h-4 w-4" />
+                            {{ __('Next') }} <x-heroicon-o-chevron-right class="h-4 w-4" />
                         </a>
                     @else
                         <span class="inline-flex items-center gap-1.5 rounded-lg border border-neutral-100 px-3 py-1.5 font-medium text-neutral-300">
-                            Next <x-heroicon-o-chevron-right class="h-4 w-4" />
+                            {{ __('Next') }} <x-heroicon-o-chevron-right class="h-4 w-4" />
                         </span>
                     @endif
                 </div>
             @endif
         @else
             <div class="pp-card">
-                <x-ui.empty-state icon="arrow-up-tray" title="No withdrawals yet"
-                    description="Your withdrawal requests will appear here.">
+                <x-ui.empty-state icon="arrow-up-tray" :title="__('No withdrawals yet')"
+                    :description="__('Your withdrawal requests will appear here.')">
                     <x-slot:action>
-                        <x-ui.button href="{{ route('withdraw') }}" icon="plus" size="sm">Make a withdrawal</x-ui.button>
+                        <x-ui.button href="{{ route('withdraw.index') }}" icon="plus" size="sm">{{ __('Make a withdrawal') }}</x-ui.button>
                     </x-slot:action>
                 </x-ui.empty-state>
             </div>

@@ -17,7 +17,7 @@ beforeEach(function () {
 it('renders the send page with funded wallets', function () {
     creditUser($this->sender, $this->asset, '3000000');
 
-    actingAs($this->sender)->get(route('send'))
+    actingAs($this->sender)->get(route('send.index'))
         ->assertOk()
         ->assertSee('Send Money')
         ->assertSee('USDT');
@@ -28,7 +28,7 @@ it('executes a transfer and moves funds', function () {
 
     actingAs($this->sender)->post(route('send.execute'), [
         'recipient' => '@alice', 'assetId' => $this->asset->id, 'amount' => '1.2', 'memo' => 'lunch',
-    ])->assertRedirect(route('send'))->assertSessionHas('success');
+    ])->assertRedirect(route('send.index'))->assertSessionHas('success');
 
     expect($this->ledger->availableBalance($this->sender, $this->asset->id)->baseString())->toBe('1800000')
         ->and($this->ledger->availableBalance($this->recipient, $this->asset->id)->baseString())->toBe('1200000');
@@ -62,5 +62,5 @@ it('rejects a transfer that exceeds the balance', function () {
 });
 
 it('requires authentication for the send page', function () {
-    $this->get(route('send'))->assertRedirect(route('login'));
+    $this->get(route('send.index'))->assertRedirect(route('login'));
 });

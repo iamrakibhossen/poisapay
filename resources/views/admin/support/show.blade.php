@@ -1,8 +1,8 @@
-<x-layouts.admin :title="'Ticket'">
+<x-layouts.admin :title="__('Ticket')">
     <div class="mx-auto max-w-3xl space-y-6">
         <div>
             <a href="{{ route('admin.support') }}" class="inline-flex items-center gap-1 text-sm font-medium text-neutral-500 hover:text-neutral-800">
-                <x-heroicon-o-arrow-left class="h-4 w-4" /> Back to tickets
+                <x-heroicon-o-arrow-left class="h-4 w-4" /> {{ __('Back to tickets') }}
             </a>
         </div>
 
@@ -17,7 +17,7 @@
             <div class="flex flex-wrap items-center gap-3">
                 <form method="POST" action="{{ route('admin.support.assign', $ticket->id) }}">
                     @csrf
-                    <x-ui.button type="submit" variant="secondary" size="sm" icon="user-plus">Assign to me</x-ui.button>
+                    <x-ui.button type="submit" variant="secondary" size="sm" icon="user-plus">{{ __('Assign to me') }}</x-ui.button>
                 </form>
                 <form method="POST" action="{{ route('admin.support.status', $ticket->id) }}" class="flex items-center gap-2">
                     @csrf
@@ -26,10 +26,10 @@
                             <option value="{{ $s }}" @selected($ticket->status->value === $s)>{{ ucfirst($s) }}</option>
                         @endforeach
                     </select>
-                    <x-ui.button type="submit" variant="secondary" size="sm">Set status</x-ui.button>
+                    <x-ui.button type="submit" variant="secondary" size="sm">{{ __('Set status') }}</x-ui.button>
                 </form>
                 @if ($ticket->assignedTo)
-                    <span class="text-xs text-neutral-500">Assigned to {{ $ticket->assignedTo->name }}</span>
+                    <span class="text-xs text-neutral-500">{{ __('Assigned to :name', ['name' => $ticket->assignedTo->name]) }}</span>
                 @endif
             </div>
         </x-ui.card>
@@ -45,7 +45,7 @@
                             'border border-neutral-200 bg-white text-neutral-800' => ! $message->is_staff,
                         ])>
                             <p class="mb-1 text-xs font-semibold {{ $message->is_staff ? 'text-brand-600' : 'text-neutral-500' }}">
-                                {{ $message->is_staff ? ($message->author_name ?? 'Staff') : ($ticket->user?->name ?? 'User') }} · {{ $message->created_at->diffForHumans() }}
+                                {{ $message->is_staff ? ($message->author_name ?? __('Staff')) : ($ticket->user?->name ?? __('User')) }} · {{ $message->created_at->diffForHumans() }}
                             </p>
                             <p class="whitespace-pre-line text-sm">{{ $message->body }}</p>
                         </div>
@@ -56,10 +56,10 @@
             {{-- Staff reply --}}
             <form method="POST" action="{{ route('admin.support.reply', $ticket->id) }}" class="mt-5 border-t border-neutral-100 pt-5">
                 @csrf
-                <textarea name="body" required rows="3" maxlength="5000" placeholder="Reply to the user…"
+                <textarea name="body" required rows="3" maxlength="5000" placeholder="{{ __('Reply to the user…') }}"
                     class="w-full rounded-xl border-neutral-300 text-sm"></textarea>
                 <div class="mt-2 text-right">
-                    <x-ui.button type="submit" variant="primary" size="sm" icon="paper-airplane">Send reply</x-ui.button>
+                    <x-ui.button type="submit" variant="primary" size="sm" icon="paper-airplane">{{ __('Send reply') }}</x-ui.button>
                 </div>
             </form>
         </x-ui.card>

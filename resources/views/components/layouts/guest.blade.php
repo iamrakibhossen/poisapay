@@ -1,4 +1,4 @@
-@props(['title' => 'Welcome'])
+@props(['title' => __('Welcome')])
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full scroll-smooth">

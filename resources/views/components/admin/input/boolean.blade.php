@@ -1,8 +1,8 @@
 @props([
     'name',
     'value' => null,
-    'positiveLabel' => 'Enabled',
-    'negativeLabel' => 'Disabled',
+    'positiveLabel' => __('Enabled'),
+    'negativeLabel' => __('Disabled'),
     'disabled' => false,
 ])
 <div class="flex gap-4">

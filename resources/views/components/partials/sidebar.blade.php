@@ -2,36 +2,36 @@
     // Grouped user navigation — clean sections like the DollarHub admin shell.
     $groups = [
         [
-            'heading' => 'Overview',
+            'heading' => __('Overview'),
             'items' => [
-                ['route' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'home'],
-                ['route' => 'wallet', 'label' => 'Wallet', 'icon' => 'wallet'],
+                ['route' => 'dashboard', 'label' => __('Dashboard'), 'icon' => 'home'],
+                ['route' => 'wallet', 'label' => __('Wallet'), 'icon' => 'wallet'],
             ],
         ],
         [
-            'heading' => 'Money',
+            'heading' => __('Money'),
             'items' => [
-                ['route' => 'send', 'label' => 'Send Money', 'icon' => 'paper-airplane'],
-                ['route' => 'deposit', 'label' => 'Deposit', 'icon' => 'arrow-down-tray'],
-                ['route' => 'withdraw', 'label' => 'Withdraw', 'icon' => 'arrow-up-tray'],
-                ['route' => 'exchange', 'label' => 'Exchange', 'icon' => 'arrows-right-left'],
-                ['route' => 'transactions', 'label' => 'Transactions', 'icon' => 'receipt-percent'],
+                ['route' => 'send.index', 'label' => __('Send Money'), 'icon' => 'paper-airplane'],
+                ['route' => 'deposit.index', 'label' => __('Deposit'), 'icon' => 'arrow-down-tray'],
+                ['route' => 'withdraw.index', 'label' => __('Withdraw'), 'icon' => 'arrow-up-tray'],
+                ['route' => 'exchange.index', 'label' => __('Exchange'), 'icon' => 'arrows-right-left'],
+                ['route' => 'transactions', 'label' => __('Transactions'), 'icon' => 'receipt-percent'],
             ],
         ],
         [
-            'heading' => 'Products',
+            'heading' => __('Products'),
             'items' => array_values(array_filter([
-                ['route' => 'cards', 'label' => 'Cards', 'icon' => 'credit-card'],
-                ['route' => 'rewards', 'label' => 'Rewards', 'icon' => 'gift'],
-                ['route' => 'merchant', 'label' => 'Merchant', 'icon' => 'building-storefront'],
+                ['route' => 'cards', 'label' => __('Cards'), 'icon' => 'credit-card'],
+                ['route' => 'rewards', 'label' => __('Rewards'), 'icon' => 'gift'],
+                ['route' => 'merchant', 'label' => __('Merchant'), 'icon' => 'building-storefront'],
                 feature('p2p_enabled', false) ? ['route' => 'p2p', 'label' => 'P2P', 'icon' => 'user-group'] : null,
             ])),
         ],
         [
-            'heading' => 'Account',
+            'heading' => __('Account'),
             'items' => [
                 // Security lives under Settings › Security; Support is in the header user menu.
-                ['route' => 'settings', 'label' => 'Settings', 'icon' => 'cog-6-tooth'],
+                ['route' => 'settings.index', 'label' => __('Settings'), 'icon' => 'cog-6-tooth'],
             ],
         ],
     ];

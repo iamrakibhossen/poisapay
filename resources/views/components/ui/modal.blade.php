@@ -52,12 +52,12 @@
                         <p class="mt-1 text-sm text-slate-500">{{ $subtitle }}</p>
                     @endif
                 </div>
-                <button type="button" x-on:click="open = false" class="-me-2 -mt-1 rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 cursor-pointer" aria-label="Close">
+                <button type="button" x-on:click="open = false" class="-me-2 -mt-1 rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 cursor-pointer" aria-label="{{ __('Close') }}">
                     <x-heroicon-o-x-mark class="h-5 w-5" />
                 </button>
             </div>
         @else
-            <button type="button" x-on:click="open = false" class="absolute end-5 top-5 z-10 rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 cursor-pointer" aria-label="Close">
+            <button type="button" x-on:click="open = false" class="absolute end-5 top-5 z-10 rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 cursor-pointer" aria-label="{{ __('Close') }}">
                 <x-heroicon-o-x-mark class="h-5 w-5" />
             </button>
         @endif

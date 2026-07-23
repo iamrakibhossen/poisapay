@@ -1,4 +1,4 @@
-@props(['title' => 'Admin'])
+@props(['title' => __('Admin')])
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="light h-full">

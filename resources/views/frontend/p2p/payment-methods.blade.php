@@ -1,8 +1,8 @@
-<x-layouts.app :title="'Payment accounts'">
+<x-layouts.app :title="__('Payment accounts')">
     <div class="mx-auto max-w-3xl space-y-6">
-        <x-ui.page-header title="Payment accounts" subtitle="Save the accounts you receive fiat into. Buyers see these only after an order against your ad is open.">
+        <x-ui.page-header :title="__('Payment accounts')" :subtitle="__('Save the accounts you receive fiat into. Buyers see these only after an order against your ad is open.')">
             <x-slot:actions>
-                <a href="{{ route('p2p.ads') }}"><x-ui.button variant="secondary" icon="arrow-left">My ads</x-ui.button></a>
+                <a href="{{ route('p2p.ads') }}"><x-ui.button variant="secondary" icon="arrow-left">{{ __('My ads') }}</x-ui.button></a>
             </x-slot:actions>
         </x-ui.page-header>
 
@@ -19,7 +19,7 @@
                     </span>
                     <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-2">
-                            <p class="text-sm font-semibold text-neutral-900">{{ $acc->method->name ?? 'Account' }}</p>
+                            <p class="text-sm font-semibold text-neutral-900">{{ $acc->method->name ?? __('Account') }}</p>
                             @if ($acc->label)<span class="text-xs text-neutral-400">· {{ $acc->label }}</span>@endif
                         </div>
                         <dl class="mt-1 grid gap-x-6 gap-y-0.5 text-sm sm:grid-cols-2">
@@ -35,19 +35,19 @@
                     </div>
                     <form method="POST" action="{{ route('p2p.payment-methods.destroy', $acc) }}">
                         @csrf @method('DELETE')
-                        <x-ui.button type="submit" size="sm" variant="ghost" icon="trash" aria-label="Remove account" />
+                        <x-ui.button type="submit" size="sm" variant="ghost" icon="trash" aria-label="{{ __('Remove account') }}" />
                     </form>
                 </div>
             @empty
                 <x-ui.card>
-                    <x-ui.empty-state icon="credit-card" title="No payment accounts yet"
-                        description="Add the accounts buyers should pay into. Without one, buyers have to ask for your details in chat." />
+                    <x-ui.empty-state icon="credit-card" :title="__('No payment accounts yet')"
+                        :description="__('Add the accounts buyers should pay into. Without one, buyers have to ask for your details in chat.')" />
                 </x-ui.card>
             @endforelse
         </div>
 
         {{-- Add account — fields adapt to the chosen method --}}
-        <x-ui.card title="Add a payment account">
+        <x-ui.card :title="__('Add a payment account')">
             <form method="POST" action="{{ route('p2p.payment-methods.store') }}" class="space-y-5"
                   x-data="{
                       method: @js(old('payment_method_id', '')),
@@ -57,9 +57,9 @@
                   }">
                 @csrf
                 <div>
-                    <label class="pp-label">Payment method</label>
+                    <label class="pp-label">{{ __('Payment method') }}</label>
                     <select name="payment_method_id" x-model="method" class="pp-input" required>
-                        <option value="" disabled>Choose a method…</option>
+                        <option value="" disabled>{{ __('Choose a method…') }}</option>
                         @foreach ($methods as $m)
                             <option value="{{ $m->id }}">{{ $m->name }}</option>
                         @endforeach
@@ -83,10 +83,10 @@
                     <p class="text-xs text-red-600">{{ $msgs[0] }}</p>
                 @endforeach
 
-                <x-ui.input name="label" label="Label (optional)" :value="old('label')" placeholder="e.g. Personal bKash" :error="$errors->first('label')" />
+                <x-ui.input name="label" :label="__('Label (optional)')" :value="old('label')" placeholder="{{ __('e.g. Personal bKash') }}" :error="$errors->first('label')" />
 
                 <div class="flex justify-end">
-                    <x-ui.button type="submit" icon="plus" x-bind:disabled="!method">Add account</x-ui.button>
+                    <x-ui.button type="submit" icon="plus" x-bind:disabled="!method">{{ __('Add account') }}</x-ui.button>
                 </div>
             </form>
         </x-ui.card>

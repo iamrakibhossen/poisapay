@@ -21,6 +21,12 @@ use Illuminate\Support\Facades\DB;
  */
 class SecurityController extends Controller
 {
+    /** Legacy /security URL — the page moved under Settings › Security. */
+    public function redirectToSettings(): RedirectResponse
+    {
+        return redirect()->route('settings.index', ['tab' => 'security']);
+    }
+
     public function addAddress(Request $request, AddressBookService $addresses): RedirectResponse
     {
         $data = $request->validate([

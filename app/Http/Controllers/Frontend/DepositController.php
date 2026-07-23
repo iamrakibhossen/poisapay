@@ -151,7 +151,7 @@ class DepositController extends Controller
             throw ValidationException::withMessages(['amount' => $e->getMessage()]);
         }
 
-        return redirect()->route('deposit', ['asset' => $asset->id, 'method' => $method->id])
+        return redirect()->route('deposit.index', ['asset' => $asset->id, 'method' => $method->id])
             ->with('success', 'Deposit submitted for review.');
     }
 

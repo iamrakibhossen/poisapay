@@ -1,4 +1,4 @@
-@props(['title' => 'Operator Sign-in'])
+@props(['title' => __('Operator Sign-in')])
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
@@ -17,12 +17,12 @@
         <div class="mb-8 flex flex-col items-center text-center">
             <span class="grid h-12 w-12 place-items-center rounded-2xl bg-brand-500 text-ink-900 shadow-lg"><x-heroicon-s-bolt class="h-6 w-6" /></span>
             <h1 class="mt-4 text-lg font-bold text-neutral-900">PoisaPay</h1>
-            <p class="text-xs font-medium uppercase tracking-widest text-amber-700">Operator Console</p>
+            <p class="text-xs font-medium uppercase tracking-widest text-amber-700">{{ __('Operator Console') }}</p>
         </div>
         <div class="pp-card p-6">
             {{ $slot }}
         </div>
-        <p class="mt-6 text-center text-xs text-neutral-400">Authorised operators only · all actions are audit-logged</p>
+        <p class="mt-6 text-center text-xs text-neutral-400">{{ __('Authorised operators only · all actions are audit-logged') }}</p>
     </div>
 </div>
 </body>

@@ -1,7 +1,7 @@
 @props([
     'text' => '',
-    'label' => 'Copy',
-    'success' => 'Copied!',
+    'label' => __('Copy'),
+    'success' => __('Copied!'),
 ])
 
 <div x-data="{
@@ -24,7 +24,7 @@
         <x-heroicon-o-clipboard-document
             x-bind:class="copied ? 'text-amber-700' : 'text-gray-500 hover:text-gray-700'"
             class="h-5 w-5 cursor-pointer transition hover:text-gray-700"
-            @click="copyText" role="button" aria-label="Copy to clipboard" x-show="!copied" />
+            @click="copyText" role="button" aria-label="{{ __('Copy to clipboard') }}" x-show="!copied" />
         <x-heroicon-o-clipboard-document-check class="w-5 h-5 text-amber-700 transition" x-show="copied" />
     </x-ui.tooltip>
 

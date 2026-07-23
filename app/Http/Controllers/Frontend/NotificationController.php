@@ -111,7 +111,7 @@ class NotificationController extends Controller
             return redirect()->to($url);
         }
 
-        return redirect()->route('notifications');
+        return redirect()->route('notifications.index');
     }
 
     /** Whether a stored deep link is a same-site path or URL (never off-host). */
@@ -131,7 +131,7 @@ class NotificationController extends Controller
     {
         $request->user()->unreadNotifications->markAsRead();
 
-        return redirect()->route('notifications')->with('success', 'All notifications marked as read.');
+        return redirect()->route('notifications.index')->with('success', 'All notifications marked as read.');
     }
 
     public function savePreferences(Request $request): RedirectResponse

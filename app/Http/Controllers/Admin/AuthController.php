@@ -92,6 +92,15 @@ class AuthController extends Controller
         return redirect()->intended(route('admin.dashboard'));
     }
 
+    /** Sign the operator out of the admin guard. */
+    public function logout(Request $request): RedirectResponse
+    {
+        Auth::guard('admin')->logout();
+        $request->session()->regenerate();
+
+        return redirect()->route('admin.login');
+    }
+
     // ── Password reset (operators; uses the dedicated `admins` broker) ──
 
     public function forgotForm(): View

@@ -21,7 +21,7 @@
     @endif
     class="pp-card3d card-{{ $finish }} group relative aspect-[1.586/1] w-full select-none overflow-hidden rounded-[1.5rem] p-6 text-white shadow-2xl"
     role="img"
-    aria-label="PoisaPay virtual {{ $finish }} card ending {{ $number }}, balance {{ $balance }}"
+    aria-label="{{ __('PoisaPay virtual :finish card ending :number, balance :balance', ['finish' => $finish, 'number' => $number, 'balance' => $balance]) }}"
 >
     {{-- Holographic sheen --}}
     @if ($shine)
@@ -51,7 +51,7 @@
         <div class="flex items-end justify-between">
             <div>
                 <span aria-hidden="true" class="card-chip block h-8 w-11 rounded-md"></span>
-                <p class="mt-3 text-[0.62rem] uppercase tracking-[0.16em] text-white/55">Balance</p>
+                <p class="mt-3 text-[0.62rem] uppercase tracking-[0.16em] text-white/55">{{ __('Balance') }}</p>
                 <p class="text-lg font-bold tabular tracking-tight">{{ $balance }}</p>
             </div>
         </div>
@@ -63,11 +63,11 @@
             </p>
             <div class="mt-3 flex items-end justify-between">
                 <div class="leading-tight">
-                    <p class="text-[0.55rem] uppercase tracking-[0.16em] text-white/50">Card holder</p>
+                    <p class="text-[0.55rem] uppercase tracking-[0.16em] text-white/50">{{ __('Card holder') }}</p>
                     <p class="text-[0.8rem] font-semibold tracking-wide">{{ $holder }}</p>
                 </div>
                 <div class="text-right leading-tight">
-                    <p class="text-[0.55rem] uppercase tracking-[0.16em] text-white/50">Expires</p>
+                    <p class="text-[0.55rem] uppercase tracking-[0.16em] text-white/50">{{ __('Expires') }}</p>
                     <p class="text-[0.8rem] font-semibold tabular tracking-wide">{{ $expiry }}</p>
                 </div>
                 @if ($network === 'visa')

@@ -34,7 +34,7 @@
     >
         <div class="flex shrink-0 items-center justify-between gap-4 border-b border-gray-100 px-6 py-4">
             <h3 class="text-base font-semibold text-gray-900">{{ $title }}</h3>
-            <button type="button" x-on:click="open = false" class="-me-1 rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600" aria-label="Close">
+            <button type="button" x-on:click="open = false" class="-me-1 rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600" aria-label="{{ __('Close') }}">
                 <x-heroicon-o-x-mark class="h-5 w-5" />
             </button>
         </div>

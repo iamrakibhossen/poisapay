@@ -31,7 +31,7 @@ function seedNotification(User $user, array $overrides = [])
 it('renders the notifications page via a controller (no Livewire)', function () {
     seedNotification($this->user);
 
-    actingAs($this->user)->get(route('notifications'))
+    actingAs($this->user)->get(route('notifications.index'))
         ->assertOk()
         ->assertSee('Notifications')
         ->assertSee('Deposit confirmed')
@@ -43,7 +43,7 @@ it('marks a single notification read (scoped to the user)', function () {
     $note = seedNotification($this->user);
 
     actingAs($this->user)->post(route('notifications.read', $note->id))
-        ->assertRedirect(route('notifications'));
+        ->assertRedirect(route('notifications.index'));
 
     expect($note->fresh()->read_at)->not->toBeNull();
 });
@@ -63,7 +63,7 @@ it('marks all notifications read', function () {
     seedNotification($this->user, ['title' => 'Second']);
 
     actingAs($this->user)->post(route('notifications.read-all'))
-        ->assertRedirect(route('notifications'))->assertSessionHas('success');
+        ->assertRedirect(route('notifications.index'))->assertSessionHas('success');
 
     expect($this->user->unreadNotifications()->count())->toBe(0);
 });
@@ -128,9 +128,9 @@ it('ignores a non-local deep link and returns to the feed', function () {
     $note = seedNotification($this->user, ['url' => 'https://evil.example/phish']);
 
     actingAs($this->user)->post(route('notifications.read', $note->id))
-        ->assertRedirect(route('notifications'));
+        ->assertRedirect(route('notifications.index'));
 });
 
 it('requires authentication for the notifications page', function () {
-    $this->get(route('notifications'))->assertRedirect(route('login'));
+    $this->get(route('notifications.index'))->assertRedirect(route('login'));
 });

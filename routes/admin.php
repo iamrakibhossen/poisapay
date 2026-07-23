@@ -48,7 +48,6 @@ use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Admin\WalletsController;
 use App\Http\Controllers\Admin\WithdrawalsController;
 use App\Http\Controllers\ImpersonationController;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -62,211 +61,287 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('admin')->name('admin.')->group(function () {
-    // Public operator auth
-    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login'])->name('login.attempt');
-    Route::get('/forgot-password', [AuthController::class, 'forgotForm'])->name('password.request');
-    Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email');
-    Route::get('/reset-password/{token}', [AuthController::class, 'resetForm'])->name('password.reset');
-    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
+    // Public operator auth.
+    Route::controller(AuthController::class)->group(function () {
+        Route::get('/login', 'showLogin')->name('login');
+        Route::post('/login', 'login')->name('login.attempt');
+        Route::get('/forgot-password', 'forgotForm')->name('password.request');
+        Route::post('/forgot-password', 'sendResetLink')->name('password.email');
+        Route::get('/reset-password/{token}', 'resetForm')->name('password.reset');
+        Route::post('/reset-password', 'resetPassword')->name('password.update');
+        Route::post('/logout', 'logout')->name('logout');
+    });
 
-    Route::post('/logout', function () {
-        Auth::guard('admin')->logout();
-        request()->session()->regenerate();
-
-        return redirect()->route('admin.login');
-    })->name('logout');
-
-    // Guarded console
+    // Guarded console.
     Route::middleware('operator')->group(function () {
-        // ── Converted to controllers (Batch A: read/simple) ──
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs');
-        Route::get('/treasury', [TreasuryController::class, 'index'])->name('treasury');
-        Route::post('/treasury/reconcile', [TreasuryController::class, 'reconcile'])->name('treasury.reconcile');
-        Route::get('/reports', [FinancialReportController::class, 'index'])->name('reports');
-        Route::get('/reports/export', [FinancialReportController::class, 'export'])->name('reports.export');
-        Route::get('/wallets', [WalletsController::class, 'index'])->name('wallets');
-        Route::get('/blockchain-health', [BlockchainHealthController::class, 'index'])->name('blockchain-health');
-        Route::post('/blockchain-health/check', [BlockchainHealthController::class, 'runHealthCheck'])->name('blockchain-health.check');
-        Route::post('/blockchain-health/tick', [BlockchainHealthController::class, 'runMonitorTick'])->name('blockchain-health.tick');
-        Route::post('/blockchain-health/reconcile', [BlockchainHealthController::class, 'runReconciliation'])->name('blockchain-health.reconcile');
-        Route::get('/simulation', [SimulationController::class, 'index'])->name('simulation');
-        Route::post('/simulation/tick', [SimulationController::class, 'runChainTick'])->name('simulation.tick');
-        Route::post('/simulation/deposit', [SimulationController::class, 'simulateDeposit'])->name('simulation.deposit');
-        Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('notifications');
-        Route::post('/notifications/{id}/read', [AdminNotificationController::class, 'markRead'])->name('notifications.read');
-        Route::post('/notifications/read-all', [AdminNotificationController::class, 'markAllRead'])->name('notifications.read-all');
-
-        // ── Converted to controllers (Batch B: queues) ──
-        Route::get('/kyc', [KycQueueController::class, 'index'])->name('kyc');
-        Route::get('/kyc/{id}', [KycQueueController::class, 'show'])->name('kyc.show');
-        Route::get('/kyc/{id}/file/{slot}', [KycQueueController::class, 'file'])->name('kyc.file');
-        Route::post('/kyc/{id}/approve', [KycQueueController::class, 'approve'])->name('kyc.approve');
-        Route::post('/kyc/{id}/reject', [KycQueueController::class, 'reject'])->name('kyc.reject');
-        Route::get('/withdrawals', [WithdrawalsController::class, 'index'])->name('withdrawals');
-        Route::post('/withdrawals/{id}/approve', [WithdrawalsController::class, 'approve'])->name('withdrawals.approve');
-        Route::post('/withdrawals/{id}/cancel', [WithdrawalsController::class, 'cancel'])->name('withdrawals.cancel');
-        Route::get('/ledger', [LedgerController::class, 'index'])->name('ledger');
-        Route::post('/ledger/{id}/reverse', [LedgerController::class, 'reverse'])->name('ledger.reverse');
         Route::get('/transfers', [TransfersController::class, 'index'])->name('transfers');
 
+        // ── Treasury / reports / wallets ──
+        Route::controller(TreasuryController::class)->group(function () {
+            Route::get('/treasury', 'index')->name('treasury');
+            Route::post('/treasury/reconcile', 'reconcile')->name('treasury.reconcile');
+        });
+        Route::controller(FinancialReportController::class)->group(function () {
+            Route::get('/reports', 'index')->name('reports');
+            Route::get('/reports/export', 'export')->name('reports.export');
+        });
+        Route::get('/wallets', [WalletsController::class, 'index'])->name('wallets');
+
+        // ── Ops: blockchain health + simulation ──
+        Route::controller(BlockchainHealthController::class)->group(function () {
+            Route::get('/blockchain-health', 'index')->name('blockchain-health');
+            Route::post('/blockchain-health/check', 'runHealthCheck')->name('blockchain-health.check');
+            Route::post('/blockchain-health/tick', 'runMonitorTick')->name('blockchain-health.tick');
+            Route::post('/blockchain-health/reconcile', 'runReconciliation')->name('blockchain-health.reconcile');
+        });
+        Route::controller(SimulationController::class)->group(function () {
+            Route::get('/simulation', 'index')->name('simulation');
+            Route::post('/simulation/tick', 'runChainTick')->name('simulation.tick');
+            Route::post('/simulation/deposit', 'simulateDeposit')->name('simulation.deposit');
+        });
+
+        // ── Notifications ──
+        Route::controller(AdminNotificationController::class)->group(function () {
+            Route::get('/notifications', 'index')->name('notifications');
+            Route::post('/notifications/{id}/read', 'markRead')->name('notifications.read');
+            Route::post('/notifications/read-all', 'markAllRead')->name('notifications.read-all');
+        });
+
+        // ── KYC queue ──
+        Route::controller(KycQueueController::class)->group(function () {
+            Route::get('/kyc', 'index')->name('kyc');
+            Route::get('/kyc/{id}', 'show')->name('kyc.show');
+            Route::get('/kyc/{id}/file/{slot}', 'file')->name('kyc.file');
+            Route::post('/kyc/{id}/approve', 'approve')->name('kyc.approve');
+            Route::post('/kyc/{id}/reject', 'reject')->name('kyc.reject');
+        });
+
+        // ── Withdrawals / ledger ──
+        Route::controller(WithdrawalsController::class)->group(function () {
+            Route::get('/withdrawals', 'index')->name('withdrawals');
+            Route::post('/withdrawals/{id}/approve', 'approve')->name('withdrawals.approve');
+            Route::post('/withdrawals/{id}/cancel', 'cancel')->name('withdrawals.cancel');
+        });
+        Route::controller(LedgerController::class)->group(function () {
+            Route::get('/ledger', 'index')->name('ledger');
+            Route::post('/ledger/{id}/reverse', 'reverse')->name('ledger.reverse');
+        });
+
         // ── Compliance lists + exports (Wave 5) ──
-        Route::get('/compliance/export/cases', [ComplianceExportController::class, 'cases'])->name('compliance.export.cases');
-        Route::get('/compliance/export/alerts', [ComplianceExportController::class, 'alerts'])->name('compliance.export.alerts');
-        Route::get('/compliance-lists', [ComplianceListController::class, 'index'])->name('compliance-lists');
-        Route::post('/compliance-lists', [ComplianceListController::class, 'store'])->name('compliance-lists.store');
-        Route::delete('/compliance-lists/{id}', [ComplianceListController::class, 'destroy'])->name('compliance-lists.destroy');
+        Route::controller(ComplianceExportController::class)->group(function () {
+            Route::get('/compliance/export/cases', 'cases')->name('compliance.export.cases');
+            Route::get('/compliance/export/alerts', 'alerts')->name('compliance.export.alerts');
+        });
+        Route::controller(ComplianceListController::class)->group(function () {
+            Route::get('/compliance-lists', 'index')->name('compliance-lists');
+            Route::post('/compliance-lists', 'store')->name('compliance-lists.store');
+            Route::delete('/compliance-lists/{id}', 'destroy')->name('compliance-lists.destroy');
+        });
 
         // ── Feature flags (Wave 6) ──
-        Route::get('/feature-flags', [FeatureFlagController::class, 'index'])->name('feature-flags');
-        Route::post('/feature-flags/toggle', [FeatureFlagController::class, 'toggle'])->name('feature-flags.toggle');
+        Route::controller(FeatureFlagController::class)->group(function () {
+            Route::get('/feature-flags', 'index')->name('feature-flags');
+            Route::post('/feature-flags/toggle', 'toggle')->name('feature-flags.toggle');
+        });
 
         // ── Support tickets (Wave 6) ──
-        Route::get('/support', [SupportController::class, 'index'])->name('support');
-        Route::get('/support/{id}', [SupportController::class, 'show'])->name('support.show');
-        Route::post('/support/{id}/reply', [SupportController::class, 'reply'])->name('support.reply');
-        Route::post('/support/{id}/status', [SupportController::class, 'updateStatus'])->name('support.status');
-        Route::post('/support/{id}/assign', [SupportController::class, 'assign'])->name('support.assign');
+        Route::controller(SupportController::class)->group(function () {
+            Route::get('/support', 'index')->name('support');
+            Route::get('/support/{id}', 'show')->name('support.show');
+            Route::post('/support/{id}/reply', 'reply')->name('support.reply');
+            Route::post('/support/{id}/status', 'updateStatus')->name('support.status');
+            Route::post('/support/{id}/assign', 'assign')->name('support.assign');
+        });
 
         // ── Security monitoring (Wave 4) ──
-        Route::get('/security', [SecurityController::class, 'index'])->name('security');
-        Route::post('/security/flag', [SecurityController::class, 'toggleFlag'])->name('security.flag');
-        Route::post('/security/ip-denylist', [SecurityController::class, 'saveIpDenylist'])->name('security.ip-denylist');
-        Route::post('/security/verify-chain', [SecurityController::class, 'verifyChain'])->name('security.verify-chain');
+        Route::controller(SecurityController::class)->group(function () {
+            Route::get('/security', 'index')->name('security');
+            Route::post('/security/flag', 'toggleFlag')->name('security.flag');
+            Route::post('/security/ip-denylist', 'saveIpDenylist')->name('security.ip-denylist');
+            Route::post('/security/verify-chain', 'verifyChain')->name('security.verify-chain');
+        });
 
-        // ── Converted to controllers (Batch C: config CRUD) ──
-        Route::get('/assets', [AssetsController::class, 'index'])->name('assets');
-        Route::post('/currencies', [AssetsController::class, 'saveCurrency'])->name('currencies.save');
-        Route::post('/currencies/{id}/toggle', [AssetsController::class, 'toggleCurrency'])->name('currencies.toggle');
-        Route::post('/assets', [AssetsController::class, 'saveNetwork'])->name('assets.save');
-        Route::post('/assets/{id}/toggle', [AssetsController::class, 'toggleActive'])->name('assets.toggle');
+        // ── Config CRUD: assets / currencies ──
+        Route::controller(AssetsController::class)->group(function () {
+            Route::get('/assets', 'index')->name('assets');
+            Route::post('/currencies', 'saveCurrency')->name('currencies.save');
+            Route::post('/currencies/{id}/toggle', 'toggleCurrency')->name('currencies.toggle');
+            Route::post('/assets', 'saveNetwork')->name('assets.save');
+            Route::post('/assets/{id}/toggle', 'toggleActive')->name('assets.toggle');
+        });
 
-        Route::get('/deposit-methods', [DepositMethodsController::class, 'index'])->name('deposit-methods');
-        Route::post('/deposit-methods', [DepositMethodsController::class, 'save'])->name('deposit-methods.save');
-        Route::post('/deposit-methods/{id}/toggle', [DepositMethodsController::class, 'toggleActive'])->name('deposit-methods.toggle');
-        Route::post('/deposit-methods/{id}/deposit-enabled', [DepositMethodsController::class, 'toggleDepositEnabled'])->name('deposit-methods.deposit-enabled');
+        Route::controller(DepositMethodsController::class)->group(function () {
+            Route::get('/deposit-methods', 'index')->name('deposit-methods');
+            Route::post('/deposit-methods', 'save')->name('deposit-methods.save');
+            Route::post('/deposit-methods/{id}/toggle', 'toggleActive')->name('deposit-methods.toggle');
+            Route::post('/deposit-methods/{id}/deposit-enabled', 'toggleDepositEnabled')->name('deposit-methods.deposit-enabled');
+        });
 
-        Route::get('/withdrawal-methods', [AdminWithdrawalMethodsController::class, 'index'])->name('withdrawal-methods');
-        Route::post('/withdrawal-methods', [AdminWithdrawalMethodsController::class, 'save'])->name('withdrawal-methods.save');
-        Route::post('/withdrawal-methods/{id}/toggle', [AdminWithdrawalMethodsController::class, 'toggleActive'])->name('withdrawal-methods.toggle');
+        Route::controller(AdminWithdrawalMethodsController::class)->group(function () {
+            Route::get('/withdrawal-methods', 'index')->name('withdrawal-methods');
+            Route::post('/withdrawal-methods', 'save')->name('withdrawal-methods.save');
+            Route::post('/withdrawal-methods/{id}/toggle', 'toggleActive')->name('withdrawal-methods.toggle');
+        });
 
-        Route::get('/card-providers', [CardProvidersController::class, 'index'])->name('card-providers');
-        Route::post('/card-providers', [CardProvidersController::class, 'save'])->name('card-providers.save');
-        Route::post('/card-providers/{id}/toggle', [CardProvidersController::class, 'toggleActive'])->name('card-providers.toggle');
+        Route::controller(CardProvidersController::class)->group(function () {
+            Route::get('/card-providers', 'index')->name('card-providers');
+            Route::post('/card-providers', 'save')->name('card-providers.save');
+            Route::post('/card-providers/{id}/toggle', 'toggleActive')->name('card-providers.toggle');
+        });
 
-        Route::get('/rpc-endpoints', [RpcEndpointsController::class, 'index'])->name('rpc-endpoints');
-        Route::post('/rpc-endpoints', [RpcEndpointsController::class, 'save'])->name('rpc-endpoints.save');
-        Route::post('/rpc-endpoints/{id}/toggle', [RpcEndpointsController::class, 'toggleActive'])->name('rpc-endpoints.toggle');
-        Route::delete('/rpc-endpoints/{id}', [RpcEndpointsController::class, 'destroy'])->name('rpc-endpoints.delete');
+        Route::controller(RpcEndpointsController::class)->group(function () {
+            Route::get('/rpc-endpoints', 'index')->name('rpc-endpoints');
+            Route::post('/rpc-endpoints', 'save')->name('rpc-endpoints.save');
+            Route::post('/rpc-endpoints/{id}/toggle', 'toggleActive')->name('rpc-endpoints.toggle');
+            Route::delete('/rpc-endpoints/{id}', 'destroy')->name('rpc-endpoints.delete');
+        });
 
-        Route::get('/custody', [CustodyController::class, 'index'])->name('custody');
-        Route::post('/custody', [CustodyController::class, 'save'])->name('custody.save');
-        Route::post('/custody/{id}/toggle', [CustodyController::class, 'toggleActive'])->name('custody.toggle');
-        Route::delete('/custody/{id}', [CustodyController::class, 'destroy'])->name('custody.delete');
+        Route::controller(CustodyController::class)->group(function () {
+            Route::get('/custody', 'index')->name('custody');
+            Route::post('/custody', 'save')->name('custody.save');
+            Route::post('/custody/{id}/toggle', 'toggleActive')->name('custody.toggle');
+            Route::delete('/custody/{id}', 'destroy')->name('custody.delete');
+        });
 
-        Route::get('/exchange', [AdminExchangeController::class, 'index'])->name('exchange');
-        Route::post('/exchange', [AdminExchangeController::class, 'save'])->name('exchange.save');
-        Route::post('/exchange/{id}/toggle', [AdminExchangeController::class, 'toggleActive'])->name('exchange.toggle');
-        Route::delete('/exchange/{id}', [AdminExchangeController::class, 'destroy'])->name('exchange.delete');
+        Route::controller(AdminExchangeController::class)->group(function () {
+            Route::get('/exchange', 'index')->name('exchange');
+            Route::post('/exchange', 'save')->name('exchange.save');
+            Route::post('/exchange/{id}/toggle', 'toggleActive')->name('exchange.toggle');
+            Route::delete('/exchange/{id}', 'destroy')->name('exchange.delete');
+        });
 
-        Route::get('/faqs', [FaqsController::class, 'index'])->name('faqs');
-        Route::post('/faqs', [FaqsController::class, 'save'])->name('faqs.save');
-        Route::delete('/faqs/{id}', [FaqsController::class, 'destroy'])->name('faqs.delete');
+        Route::controller(FaqsController::class)->group(function () {
+            Route::get('/faqs', 'index')->name('faqs');
+            Route::post('/faqs', 'save')->name('faqs.save');
+            Route::delete('/faqs/{id}', 'destroy')->name('faqs.delete');
+        });
 
-        Route::get('/pages', [PagesController::class, 'index'])->name('pages');
-        Route::post('/pages', [PagesController::class, 'save'])->name('pages.save');
-        Route::delete('/pages/{id}', [PagesController::class, 'destroy'])->name('pages.delete');
+        Route::controller(PagesController::class)->group(function () {
+            Route::get('/pages', 'index')->name('pages');
+            Route::post('/pages', 'save')->name('pages.save');
+            Route::delete('/pages/{id}', 'destroy')->name('pages.delete');
+        });
 
-        // ── Converted to controllers (Batch D: revenue / cards / merchants / users) ──
-        Route::get('/deposits', [DepositsController::class, 'index'])->name('deposits');
-        Route::post('/deposits/{id}/approve', [DepositsController::class, 'approve'])->name('deposits.approve');
-        Route::post('/deposits/{id}/reject', [DepositsController::class, 'reject'])->name('deposits.reject');
+        // ── Deposits queue ──
+        Route::controller(DepositsController::class)->group(function () {
+            Route::get('/deposits', 'index')->name('deposits');
+            Route::post('/deposits/{id}/approve', 'approve')->name('deposits.approve');
+            Route::post('/deposits/{id}/reject', 'reject')->name('deposits.reject');
+        });
 
-        // Unified Revenue page (dashboard + profit-by-coin + payouts/transactions/approvals tabs).
-        Route::get('/revenue', [RevenueController::class, 'index'])->name('revenue');
-        Route::post('/revenue/withdraw', [RevenueController::class, 'withdraw'])->name('revenue.withdraw');
-
-        // The old standalone finance pages are merged into /revenue — redirect for any bookmarks.
+        // ── Revenue (unified page + legacy redirects to it) ──
+        Route::controller(RevenueController::class)->group(function () {
+            Route::get('/revenue', 'index')->name('revenue');
+            Route::post('/revenue/withdraw', 'withdraw')->name('revenue.withdraw');
+        });
         Route::redirect('/finance/revenue-wallet', '/admin/revenue')->name('revenue-wallet');
         Route::post('/finance/revenue-wallet/withdraw', [RevenueWalletController::class, 'withdraw'])->name('revenue-wallet.withdraw');
-
         Route::redirect('/finance/revenue-withdrawals', '/admin/revenue')->name('revenue-withdrawals');
         Route::post('/finance/revenue-withdrawals/{id}/approve', [RevenueWithdrawalsController::class, 'approve'])->name('revenue-withdrawals.approve');
-
         Route::redirect('/finance/revenue-transactions', '/admin/revenue')->name('revenue-transactions');
         Route::get('/finance/revenue-transactions/export', [RevenueTransactionsController::class, 'export'])->name('revenue-transactions.export');
 
-        Route::get('/users', [UsersController::class, 'index'])->name('users');
-        Route::get('/users/{user}', [UsersController::class, 'show'])->name('users.show');
-        Route::get('/users/{user}/edit', [UsersController::class, 'edit'])->name('users.edit');
-        Route::put('/users/{user}', [UsersController::class, 'update'])->name('users.update');
-        Route::post('/users/{user}/balance', [UsersController::class, 'adjustBalance'])->name('users.balance');
-        Route::post('/users/{id}/freeze', [UsersController::class, 'toggleFreeze'])->name('users.freeze');
+        // ── Users + impersonation ──
+        Route::controller(UsersController::class)->group(function () {
+            Route::get('/users', 'index')->name('users');
+            Route::get('/users/{user}', 'show')->name('users.show');
+            Route::get('/users/{user}/edit', 'edit')->name('users.edit');
+            Route::put('/users/{user}', 'update')->name('users.update');
+            Route::post('/users/{user}/balance', 'adjustBalance')->name('users.balance');
+            Route::post('/users/{id}/freeze', 'toggleFreeze')->name('users.freeze');
+        });
         Route::post('/impersonate/{user}', [ImpersonationController::class, 'start'])->name('impersonate');
 
-        Route::get('/cards', [CardsController::class, 'index'])->name('cards');
-        Route::post('/cards/{id}/freeze', [CardsController::class, 'toggleFreeze'])->name('cards.freeze');
-        Route::post('/cards/{id}/refund', [CardsController::class, 'refund'])->name('cards.refund');
+        // ── Cards ──
+        Route::controller(CardsController::class)->group(function () {
+            Route::get('/cards', 'index')->name('cards');
+            Route::post('/cards/{id}/freeze', 'toggleFreeze')->name('cards.freeze');
+            Route::post('/cards/{id}/refund', 'refund')->name('cards.refund');
+        });
+        Route::controller(CardDisputesController::class)->group(function () {
+            Route::get('/card-disputes', 'index')->name('card-disputes');
+            Route::post('/card-disputes/{id}/resolve', 'resolve')->name('card-disputes.resolve');
+        });
+        Route::controller(CardMonitorController::class)->group(function () {
+            Route::get('/card-logs', 'logs')->name('card-logs');
+            Route::get('/card-webhooks', 'webhooks')->name('card-webhooks');
+            Route::post('/card-webhooks/{id}/retry', 'retryWebhook')->name('card-webhooks.retry');
+            Route::get('/card-health', 'health')->name('card-health');
+        });
 
-        Route::get('/card-disputes', [CardDisputesController::class, 'index'])->name('card-disputes');
-        Route::post('/card-disputes/{id}/resolve', [CardDisputesController::class, 'resolve'])->name('card-disputes.resolve');
+        // ── Merchants ──
+        Route::controller(MerchantsController::class)->group(function () {
+            Route::get('/merchants', 'index')->name('merchants');
+            Route::post('/merchants/{id}/approve', 'approve')->name('merchants.approve');
+            Route::post('/merchants/{id}/reactivate', 'reactivate')->name('merchants.reactivate');
+            Route::post('/merchants/{id}/suspend', 'suspend')->name('merchants.suspend');
+            Route::post('/merchants/{id}/fee', 'saveFee')->name('merchants.fee');
+        });
 
-        Route::get('/card-logs', [CardMonitorController::class, 'logs'])->name('card-logs');
-        Route::get('/card-webhooks', [CardMonitorController::class, 'webhooks'])->name('card-webhooks');
-        Route::post('/card-webhooks/{id}/retry', [CardMonitorController::class, 'retryWebhook'])->name('card-webhooks.retry');
-        Route::get('/card-health', [CardMonitorController::class, 'health'])->name('card-health');
+        // ── Compliance cases + alerts (Wave 5, RBAC) ──
+        Route::controller(ComplianceController::class)->group(function () {
+            Route::get('/compliance', 'index')->name('compliance');
+            Route::post('/compliance/alerts/{id}/clear', 'clearAlert')->name('compliance.alert.clear');
+            Route::post('/compliance/alerts/{id}/escalate', 'escalateAlert')->name('compliance.alert.escalate');
+            Route::post('/compliance/alerts/{id}/assign', 'assignAlert')->name('compliance.alert.assign');
+            Route::post('/compliance/cases/{id}/sar', 'fileSar')->name('compliance.case.sar');
+            Route::post('/compliance/cases/{id}/close', 'closeCase')->name('compliance.case.close');
+        });
 
-        Route::get('/merchants', [MerchantsController::class, 'index'])->name('merchants');
-        Route::post('/merchants/{id}/approve', [MerchantsController::class, 'approve'])->name('merchants.approve');
-        Route::post('/merchants/{id}/reactivate', [MerchantsController::class, 'reactivate'])->name('merchants.reactivate');
-        Route::post('/merchants/{id}/suspend', [MerchantsController::class, 'suspend'])->name('merchants.suspend');
-        Route::post('/merchants/{id}/fee', [MerchantsController::class, 'saveFee'])->name('merchants.fee');
+        // ── Messaging ──
+        Route::controller(MessagingController::class)->group(function () {
+            Route::get('/messaging', 'index')->name('messaging');
+            Route::post('/messaging/templates', 'saveTemplate')->name('messaging.template.save');
+            Route::post('/messaging/templates/{id}/toggle', 'toggleTemplate')->name('messaging.template.toggle');
+            Route::post('/messaging/announcement', 'sendAnnouncement')->name('messaging.announcement.send');
+        });
 
-        // ── Converted to controllers (Batch E — complex + RBAC) ──
-        Route::get('/compliance', [ComplianceController::class, 'index'])->name('compliance');
-        Route::post('/compliance/alerts/{id}/clear', [ComplianceController::class, 'clearAlert'])->name('compliance.alert.clear');
-        Route::post('/compliance/alerts/{id}/escalate', [ComplianceController::class, 'escalateAlert'])->name('compliance.alert.escalate');
-        Route::post('/compliance/alerts/{id}/assign', [ComplianceController::class, 'assignAlert'])->name('compliance.alert.assign');
-        Route::post('/compliance/cases/{id}/sar', [ComplianceController::class, 'fileSar'])->name('compliance.case.sar');
-        Route::post('/compliance/cases/{id}/close', [ComplianceController::class, 'closeCase'])->name('compliance.case.close');
+        // ── Rewards ──
+        Route::controller(AdminRewardsController::class)->group(function () {
+            Route::get('/rewards', 'index')->name('rewards');
+            Route::post('/rewards/campaigns', 'saveCampaign')->name('rewards.campaign.save');
+            Route::post('/rewards/campaigns/{id}/toggle', 'toggleCampaign')->name('rewards.campaign.toggle');
+            Route::post('/rewards/grant', 'grant')->name('rewards.grant');
+        });
 
-        Route::get('/messaging', [MessagingController::class, 'index'])->name('messaging');
-        Route::post('/messaging/templates', [MessagingController::class, 'saveTemplate'])->name('messaging.template.save');
-        Route::post('/messaging/templates/{id}/toggle', [MessagingController::class, 'toggleTemplate'])->name('messaging.template.toggle');
-        Route::post('/messaging/announcement', [MessagingController::class, 'sendAnnouncement'])->name('messaging.announcement.send');
+        // ── Roles + administrators (RBAC) ──
+        Route::controller(RolesController::class)->group(function () {
+            Route::get('/roles', 'index')->name('roles');
+            Route::post('/roles', 'save')->name('roles.save');
+            Route::delete('/roles/{id}', 'destroy')->name('roles.delete');
+        });
+        Route::controller(AdministratorsController::class)->group(function () {
+            Route::get('/administrators', 'index')->name('administrators');
+            Route::post('/administrators', 'save')->name('administrators.save');
+            Route::post('/administrators/{id}/toggle', 'toggleActive')->name('administrators.toggle');
+            Route::delete('/administrators/{id}', 'destroy')->name('administrators.delete');
+        });
 
-        Route::get('/rewards', [AdminRewardsController::class, 'index'])->name('rewards');
-        Route::post('/rewards/campaigns', [AdminRewardsController::class, 'saveCampaign'])->name('rewards.campaign.save');
-        Route::post('/rewards/campaigns/{id}/toggle', [AdminRewardsController::class, 'toggleCampaign'])->name('rewards.campaign.toggle');
-        Route::post('/rewards/grant', [AdminRewardsController::class, 'grant'])->name('rewards.grant');
-
-        Route::get('/roles', [RolesController::class, 'index'])->name('roles');
-        Route::post('/roles', [RolesController::class, 'save'])->name('roles.save');
-        Route::delete('/roles/{id}', [RolesController::class, 'destroy'])->name('roles.delete');
-
-        Route::get('/administrators', [AdministratorsController::class, 'index'])->name('administrators');
-        Route::post('/administrators', [AdministratorsController::class, 'save'])->name('administrators.save');
-        Route::post('/administrators/{id}/toggle', [AdministratorsController::class, 'toggleActive'])->name('administrators.toggle');
-        Route::delete('/administrators/{id}', [AdministratorsController::class, 'destroy'])->name('administrators.delete');
-        // P2P marketplace — order monitoring + dispute adjudication.
-        Route::get('/p2p/orders', [P2pController::class, 'orders'])->name('p2p');
-        Route::get('/p2p/disputes', [P2pController::class, 'disputes'])->name('p2p-disputes');
-        Route::get('/p2p/disputes/{dispute}', [P2pController::class, 'dispute'])->name('p2p-disputes.show');
-        Route::post('/p2p/disputes/{dispute}/assign', [P2pController::class, 'assign'])->name('p2p-disputes.assign');
-        Route::post('/p2p/disputes/{dispute}/resolve', [P2pController::class, 'resolve'])->name('p2p-disputes.resolve');
-        Route::get('/p2p/dispute-evidence/{evidence}', [P2pController::class, 'disputeEvidence'])->name('p2p-disputes.evidence');
+        // ── P2P marketplace: order monitoring + dispute adjudication ──
+        Route::controller(P2pController::class)->group(function () {
+            Route::get('/p2p/orders', 'orders')->name('p2p');
+            Route::get('/p2p/disputes', 'disputes')->name('p2p-disputes');
+            Route::get('/p2p/disputes/{dispute}', 'dispute')->name('p2p-disputes.show');
+            Route::post('/p2p/disputes/{dispute}/assign', 'assign')->name('p2p-disputes.assign');
+            Route::post('/p2p/disputes/{dispute}/resolve', 'resolve')->name('p2p-disputes.resolve');
+            Route::get('/p2p/dispute-evidence/{evidence}', 'disputeEvidence')->name('p2p-disputes.evidence');
+        });
         // P2P payment-method catalog + per-method field schemas.
-        Route::get('/p2p/payment-methods', [P2pPaymentMethodController::class, 'index'])->name('p2p-payment-methods');
-        Route::get('/p2p/payment-methods/{method}', [P2pPaymentMethodController::class, 'show'])->name('p2p-payment-methods.show');
-        Route::post('/p2p/payment-methods', [P2pPaymentMethodController::class, 'store'])->name('p2p-payment-methods.store');
-        Route::put('/p2p/payment-methods/{method}', [P2pPaymentMethodController::class, 'update'])->name('p2p-payment-methods.update');
-        Route::delete('/p2p/payment-methods/{method}', [P2pPaymentMethodController::class, 'destroy'])->name('p2p-payment-methods.delete');
+        Route::controller(P2pPaymentMethodController::class)->group(function () {
+            Route::get('/p2p/payment-methods', 'index')->name('p2p-payment-methods');
+            Route::get('/p2p/payment-methods/{method}', 'show')->name('p2p-payment-methods.show');
+            Route::post('/p2p/payment-methods', 'store')->name('p2p-payment-methods.store');
+            Route::put('/p2p/payment-methods/{method}', 'update')->name('p2p-payment-methods.update');
+            Route::delete('/p2p/payment-methods/{method}', 'destroy')->name('p2p-payment-methods.delete');
+        });
 
-        // Platform settings — DollarHub-style controller + Blade forms (not Livewire).
-        Route::get('/settings/{section?}', [SettingController::class, 'index'])
-            ->where('section', 'general|branding|auth|deposit|withdrawal|transfer|exchange|cards|merchant|p2p|credit|rewards|compliance|localization|announcement')->name('settings');
-        Route::put('/settings/{section}', [SettingController::class, 'update'])
-            ->where('section', 'general|branding|auth|deposit|withdrawal|transfer|exchange|cards|merchant|p2p|credit|rewards|compliance|localization|announcement')->name('settings.update');
+        // ── Platform settings (controller + Blade forms, not Livewire) ──
+        Route::controller(SettingController::class)->group(function () {
+            $sections = 'general|branding|auth|deposit|withdrawal|transfer|exchange|cards|merchant|p2p|credit|rewards|compliance|localization|announcement';
+            Route::get('/settings/{section?}', 'index')->where('section', $sections)->name('settings');
+            Route::put('/settings/{section}', 'update')->where('section', $sections)->name('settings.update');
+        });
     });
 });

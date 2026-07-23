@@ -3,7 +3,7 @@
 {{-- DollarHub frontend header — full width across the top, logo left, actions right. --}}
 <header class="relative flex h-16 items-center justify-between border-b border-neutral-200 bg-white px-4 sm:px-6">
     <div class="flex items-center gap-4">
-        <button class="lg:hidden text-neutral-500 hover:text-neutral-900" @click="sidebar = !sidebar" aria-label="Menu">
+        <button class="lg:hidden text-neutral-500 hover:text-neutral-900" @click="sidebar = !sidebar" aria-label="{{ __('Menu') }}">
             <x-heroicon-o-bars-3 class="h-6 w-6" />
         </button>
         <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5">
@@ -31,7 +31,7 @@
         <div x-data="{ open: false }" class="relative" @keydown.escape="open = false">
             <button type="button" @click="open = !open"
                     class="flex h-9 items-center gap-1.5 rounded-lg border border-neutral-200 px-2.5 text-sm font-medium text-neutral-600 hover:bg-neutral-50"
-                    aria-label="{{ __('app.language') }}">
+                    aria-label="{{ __('Language') }}">
                 <x-heroicon-o-language class="h-4 w-4" />
                 <span>{{ app()->getLocale() === 'bn' ? 'বাংলা' : 'EN' }}</span>
             </button>
@@ -55,7 +55,7 @@
 
         {{-- Notifications --}}
         @php $unreadNotifications = auth()->user()?->unreadNotifications()->count() ?? 0; @endphp
-        <a href="{{ route('notifications') }}" class="relative rounded-full p-2 text-neutral-500 hover:bg-neutral-100" aria-label="Notifications">
+        <a href="{{ route('notifications.index') }}" class="relative rounded-full p-2 text-neutral-500 hover:bg-neutral-100" aria-label="{{ __('Notifications') }}">
             <x-heroicon-o-bell class="h-6 w-6" />
             @if ($unreadNotifications > 0)
                 <span class="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-white">{{ $unreadNotifications > 99 ? '99+' : $unreadNotifications }}</span>
@@ -77,12 +77,12 @@
                     </x-ui.user>
                 </div>
                 <div class="border-t border-neutral-100"></div>
-                <a href="{{ route('settings') }}" class="flex items-center gap-2 px-4 py-3 text-sm text-neutral-700 hover:bg-neutral-100"><x-heroicon-o-user class="h-5 w-5" /> Profile &amp; Security</a>
-                <a href="{{ route('support') }}" class="flex items-center gap-2 px-4 py-3 text-sm text-neutral-700 hover:bg-neutral-100"><x-heroicon-o-lifebuoy class="h-5 w-5" /> Support</a>
+                <a href="{{ route('settings.index') }}" class="flex items-center gap-2 px-4 py-3 text-sm text-neutral-700 hover:bg-neutral-100"><x-heroicon-o-user class="h-5 w-5" /> {{ __('Profile & Security') }}</a>
+                <a href="{{ route('support.index') }}" class="flex items-center gap-2 px-4 py-3 text-sm text-neutral-700 hover:bg-neutral-100"><x-heroicon-o-lifebuoy class="h-5 w-5" /> {{ __('Support') }}</a>
                 <div class="border-t border-neutral-100"></div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" class="flex w-full items-center gap-2 px-4 py-3 text-sm text-rose-600 hover:bg-rose-50"><x-heroicon-o-arrow-right-start-on-rectangle class="h-5 w-5" /> Sign out</button>
+                    <button type="submit" class="flex w-full items-center gap-2 px-4 py-3 text-sm text-rose-600 hover:bg-rose-50"><x-heroicon-o-arrow-right-start-on-rectangle class="h-5 w-5" /> {{ __('Sign out') }}</button>
                 </form>
             </div>
         </div>

@@ -1,6 +1,6 @@
 {{-- Settings › Preferences tab — spending priority order.
      Expects (from the settings view scope): $priorities. --}}
-<x-settings.section title="Spending priority" description="The order assets are used when spending (e.g. with cards).">
+<x-settings.section :title="__('Spending priority')" :description="__('The order assets are used when spending (e.g. with cards).')">
     <div class="space-y-2.5">
         @forelse ($priorities as $i => $p)
             <div class="flex items-center gap-3 rounded-xl border border-neutral-200 p-3">
@@ -11,12 +11,12 @@
                     <p class="truncate text-xs text-neutral-500">{{ $p['name'] }}</p>
                 </div>
                 @if ($i === 0)
-                    <span class="shrink-0 rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-semibold text-brand-700">Used first</span>
+                    <span class="shrink-0 rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-semibold text-brand-700">{{ __('Used first') }}</span>
                 @endif
             </div>
         @empty
-            <x-ui.empty-state icon="adjustments-horizontal" title="No spending order set"
-                description="Your default spending order will be used until you customise it." />
+            <x-ui.empty-state icon="adjustments-horizontal" :title="__('No spending order set')"
+                :description="__('Your default spending order will be used until you customise it.')" />
         @endforelse
     </div>
 </x-settings.section>

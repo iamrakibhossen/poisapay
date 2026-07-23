@@ -1,18 +1,18 @@
-<x-layouts.admin :title="'KYC review'">
+<x-layouts.admin :title="__('KYC review')">
     @php
-        $documents = ['Front side' => 'front', 'Back side' => 'back', 'Selfie' => 'selfie'];
+        $documents = [__('Front side') => 'front', __('Back side') => 'back', __('Selfie') => 'selfie'];
         $isPending = $profile->status->value === 'pending';
     @endphp
 
     <div class="mx-auto max-w-4xl space-y-6" x-data="{ rejecting: {{ $errors->has('rejectReason') ? 'true' : 'false' }} }">
-        <x-ui.page-header title="Identity verification" :subtitle="$profile->full_name ?: $profile->user?->name">
+        <x-ui.page-header :title="__('Identity verification')" :subtitle="$profile->full_name ?: $profile->user?->name">
             <x-slot:actions>
-                <x-ui.button href="{{ route('admin.kyc') }}" variant="ghost" size="sm" icon="arrow-left">Back to queue</x-ui.button>
+                <x-ui.button href="{{ route('admin.kyc') }}" variant="ghost" size="sm" icon="arrow-left">{{ __('Back to queue') }}</x-ui.button>
                 @if ($isPending && (auth('admin')->user()->can('approve-kyc') || auth('admin')->user()->hasRole('super-admin')))
                     <form method="POST" action="{{ route('admin.kyc.approve', $profile->id) }}"
-                        onsubmit="return confirm('Approve this applicant to {{ $profile->requested_tier->label() }}? They will be marked verified.')">
+                        onsubmit="return confirm('{{ __('Approve this applicant to') }} {{ $profile->requested_tier->label() }}? {{ __('They will be marked verified.') }}')">
                         @csrf
-                        <x-ui.button type="submit" icon="check">Approve</x-ui.button>
+                        <x-ui.button type="submit" icon="check">{{ __('Approve') }}</x-ui.button>
                     </form>
                 @endif
             </x-slot:actions>
@@ -23,14 +23,14 @@
             <div class="mb-6 flex items-center justify-between border-b border-neutral-100 pb-4">
                 <div>
                     <h2 class="text-lg font-semibold text-neutral-900">{{ $profile->full_name ?: '—' }}</h2>
-                    <p class="text-sm text-neutral-500">Submitted {{ $profile->created_at->format('M j, Y g:i A') }}</p>
+                    <p class="text-sm text-neutral-500">{{ __('Submitted') }} {{ $profile->created_at->format('M j, Y g:i A') }}</p>
                 </div>
                 <x-ui.badge :color="$profile->status->color()" dot>{{ $profile->status->label() }}</x-ui.badge>
             </div>
 
             <dl class="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
                 <div>
-                    <dt class="text-sm text-neutral-500">User</dt>
+                    <dt class="text-sm text-neutral-500">{{ __('User') }}</dt>
                     <dd class="font-medium">
                         @if ($profile->user)
                             <a href="{{ route('admin.users.show', $profile->user) }}" class="text-brand-700 hover:text-brand-800 hover:underline">{{ $profile->user->name }}</a>
@@ -41,35 +41,35 @@
                     </dd>
                 </div>
                 <div>
-                    <dt class="text-sm text-neutral-500">Requested tier</dt>
+                    <dt class="text-sm text-neutral-500">{{ __('Requested tier') }}</dt>
                     <dd><x-ui.badge color="primary">{{ $profile->requested_tier->label() }}</x-ui.badge></dd>
                 </div>
                 <div>
-                    <dt class="text-sm text-neutral-500">Document type</dt>
+                    <dt class="text-sm text-neutral-500">{{ __('Document type') }}</dt>
                     <dd class="font-medium text-neutral-900">{{ $profile->document_type ? \Illuminate\Support\Str::of($profile->document_type)->replace('_', ' ')->title() : '—' }}</dd>
                 </div>
                 <div>
-                    <dt class="text-sm text-neutral-500">Document number</dt>
+                    <dt class="text-sm text-neutral-500">{{ __('Document number') }}</dt>
                     <dd class="font-mono text-sm font-medium text-neutral-900">{{ $profile->document_number ?: '—' }}</dd>
                 </div>
                 <div>
-                    <dt class="text-sm text-neutral-500">Date of birth</dt>
+                    <dt class="text-sm text-neutral-500">{{ __('Date of birth') }}</dt>
                     <dd class="font-medium text-neutral-900">{{ $profile->date_of_birth?->format('d M Y') ?: '—' }}</dd>
                 </div>
                 <div>
-                    <dt class="text-sm text-neutral-500">Country</dt>
+                    <dt class="text-sm text-neutral-500">{{ __('Country') }}</dt>
                     <dd class="font-medium text-neutral-900">{{ $profile->country ?: '—' }}</dd>
                 </div>
                 <div class="sm:col-span-2">
-                    <dt class="text-sm text-neutral-500">Address</dt>
+                    <dt class="text-sm text-neutral-500">{{ __('Address') }}</dt>
                     <dd class="font-medium text-neutral-900">{{ $profile->address ?: '—' }}</dd>
                 </div>
                 <div>
-                    <dt class="text-sm text-neutral-500">Liveness</dt>
-                    <dd><x-ui.badge :color="$profile->liveness_passed ? 'success' : 'gray'">{{ $profile->liveness_passed ? 'Passed' : 'Not run' }}</x-ui.badge></dd>
+                    <dt class="text-sm text-neutral-500">{{ __('Liveness') }}</dt>
+                    <dd><x-ui.badge :color="$profile->liveness_passed ? 'success' : 'gray'">{{ $profile->liveness_passed ? __('Passed') : __('Not run') }}</x-ui.badge></dd>
                 </div>
                 <div>
-                    <dt class="text-sm text-neutral-500">Reviewed</dt>
+                    <dt class="text-sm text-neutral-500">{{ __('Reviewed') }}</dt>
                     <dd class="font-medium text-neutral-900">
                         @if ($profile->reviewed_at)
                             {{ $profile->reviewed_at->format('M j, Y') }} @if ($profile->reviewedBy)· {{ $profile->reviewedBy->name }}@endif
@@ -82,7 +82,7 @@
 
             @if ($profile->rejection_reason)
                 <div class="mt-6 rounded-lg border border-rose-100 bg-rose-50 p-4">
-                    <p class="mb-1 text-sm font-medium text-rose-700">Rejection reason</p>
+                    <p class="mb-1 text-sm font-medium text-rose-700">{{ __('Rejection reason') }}</p>
                     <p class="whitespace-pre-line text-rose-800">{{ $profile->rejection_reason }}</p>
                 </div>
             @endif
@@ -90,7 +90,7 @@
 
         {{-- Documents --}}
         <div class="pp-card p-6">
-            <h3 class="mb-4 text-sm font-semibold uppercase tracking-wide text-neutral-500">Documents</h3>
+            <h3 class="mb-4 text-sm font-semibold uppercase tracking-wide text-neutral-500">{{ __('Documents') }}</h3>
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 @foreach ($documents as $label => $slot)
                     <div>
@@ -102,7 +102,7 @@
                                     class="h-40 w-full object-cover transition group-hover:opacity-90" />
                             </a>
                         @else
-                            <div class="flex h-40 items-center justify-center rounded-lg border border-dashed border-neutral-200 text-sm text-neutral-400">Not provided</div>
+                            <div class="flex h-40 items-center justify-center rounded-lg border border-dashed border-neutral-200 text-sm text-neutral-400">{{ __('Not provided') }}</div>
                         @endif
                     </div>
                 @endforeach
@@ -113,13 +113,13 @@
         @if ($isPending && (auth('admin')->user()->can('approve-kyc') || auth('admin')->user()->hasRole('super-admin')))
             <div class="pp-card p-6">
                 <button type="button" x-on:click="rejecting = ! rejecting" class="flex items-center gap-2 text-sm font-medium text-rose-600 hover:text-rose-800">
-                    <x-heroicon-o-x-circle class="h-5 w-5" /> Reject this submission
+                    <x-heroicon-o-x-circle class="h-5 w-5" /> {{ __('Reject this submission') }}
                 </button>
                 <form method="POST" action="{{ route('admin.kyc.reject', $profile->id) }}" class="mt-4 space-y-3" x-show="rejecting" x-cloak>
                     @csrf
-                    <x-ui.textarea label="Reason" name="rejectReason" :rows="3" :value="old('rejectReason')"
-                        placeholder="Document unreadable / details mismatch / name doesn't match…" :error="$errors->first('rejectReason')" />
-                    <x-ui.button type="submit" variant="danger" icon="x-mark">Confirm rejection</x-ui.button>
+                    <x-ui.textarea :label="__('Reason')" name="rejectReason" :rows="3" :value="old('rejectReason')"
+                        :placeholder="__('Document unreadable / details mismatch / name doesn\'t match…')" :error="$errors->first('rejectReason')" />
+                    <x-ui.button type="submit" variant="danger" icon="x-mark">{{ __('Confirm rejection') }}</x-ui.button>
                 </form>
             </div>
         @endif

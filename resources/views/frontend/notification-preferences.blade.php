@@ -1,17 +1,17 @@
-<x-layouts.app :title="'Notification preferences'">
+<x-layouts.app :title="__('Notification preferences')">
     @php
         $channels = [
-            ['key' => 'in_app', 'label' => 'In-app'],
-            ['key' => 'email', 'label' => 'Email'],
-            ['key' => 'push', 'label' => 'Push'],
-            ['key' => 'sms', 'label' => 'SMS'],
+            ['key' => 'in_app', 'label' => __('In-app')],
+            ['key' => 'email', 'label' => __('Email')],
+            ['key' => 'push', 'label' => __('Push')],
+            ['key' => 'sms', 'label' => __('SMS')],
         ];
     @endphp
 
     <div class="mx-auto max-w-3xl space-y-6">
-        <x-ui.page-header title="Notification preferences" subtitle="Choose how you'd like to hear from us for each type of notification.">
+        <x-ui.page-header :title="__('Notification preferences')" :subtitle="__('Choose how you\'d like to hear from us for each type of notification.')">
             <x-slot:actions>
-                <x-ui.button href="{{ route('notifications') }}" variant="ghost" size="sm" icon="arrow-left">Back to notifications</x-ui.button>
+                <x-ui.button href="{{ route('notifications.index') }}" variant="ghost" size="sm" icon="arrow-left">{{ __('Back to notifications') }}</x-ui.button>
             </x-slot:actions>
         </x-ui.page-header>
 
@@ -21,11 +21,11 @@
 
                 {{-- Header row (channels) --}}
                 <div class="hidden grid-cols-[1fr_repeat(4,4rem)] items-center gap-2 border-b border-neutral-100 pb-3 text-xs font-semibold uppercase tracking-wide text-neutral-400 sm:grid">
-                    <span>Category</span>
-                    <span class="text-center">In-app</span>
-                    <span class="text-center">Email</span>
-                    <span class="text-center">Push</span>
-                    <span class="text-center">SMS</span>
+                    <span>{{ __('Category') }}</span>
+                    <span class="text-center">{{ __('In-app') }}</span>
+                    <span class="text-center">{{ __('Email') }}</span>
+                    <span class="text-center">{{ __('Push') }}</span>
+                    <span class="text-center">{{ __('SMS') }}</span>
                 </div>
 
                 @foreach ($categories as $cat => $label)
@@ -37,7 +37,7 @@
                             <div>
                                 <p class="text-sm font-semibold text-neutral-900">{{ $label }}</p>
                                 @if ($cat === 'security')
-                                    <p class="text-xs text-neutral-400">Always on for your protection.</p>
+                                    <p class="text-xs text-neutral-400">{{ __('Always on for your protection.') }}</p>
                                 @endif
                             </div>
                         </div>
@@ -68,7 +68,7 @@
                 @error('prefs')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
 
                 <div class="flex justify-end pt-2">
-                    <x-ui.button type="submit" icon="check">Save preferences</x-ui.button>
+                    <x-ui.button type="submit" icon="check">{{ __('Save preferences') }}</x-ui.button>
                 </div>
             </form>
         </x-ui.card>

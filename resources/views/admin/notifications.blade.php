@@ -1,9 +1,9 @@
-<x-layouts.admin :title="'Notifications'">
+<x-layouts.admin :title="__('Notifications')">
     @php
         // Filter chips: All + Unread, then one per category that actually has alerts.
         $chips = [
-            ['key' => 'all', 'label' => 'All', 'count' => $total],
-            ['key' => 'unread', 'label' => 'Unread', 'count' => $unreadCount],
+            ['key' => 'all', 'label' => __('All'), 'count' => $total],
+            ['key' => 'unread', 'label' => __('Unread'), 'count' => $unreadCount],
         ];
         foreach ($categoryMeta as $key => $meta) {
             if (($categoryCounts[$key] ?? 0) > 0) {
@@ -13,12 +13,12 @@
     @endphp
 
     <div class="mx-auto max-w-3xl space-y-6">
-        <x-ui.page-header title="Notifications" subtitle="Operator alerts across the platform.">
+        <x-ui.page-header :title="__('Notifications')" :subtitle="__('Operator alerts across the platform.')">
             <x-slot:actions>
                 @if ($unreadCount > 0)
                     <form method="POST" action="{{ route('admin.notifications.read-all') }}">
                         @csrf
-                        <x-ui.button type="submit" variant="secondary" size="sm" icon="check">Mark all read ({{ $unreadCount }})</x-ui.button>
+                        <x-ui.button type="submit" variant="secondary" size="sm" icon="check">{{ __('Mark all read') }} ({{ $unreadCount }})</x-ui.button>
                     </form>
                 @endif
             </x-slot:actions>
@@ -46,13 +46,13 @@
         @if ($groups->isEmpty())
             <x-ui.card>
                 @if ($total === 0)
-                    <x-ui.empty-state icon="bell" title="No notifications yet"
-                        description="Operator alerts — security, compliance, deposits and more — will show up here." />
+                    <x-ui.empty-state icon="bell" :title="__('No notifications yet')"
+                        :description="__('Operator alerts — security, compliance, deposits and more — will show up here.')" />
                 @else
-                    <x-ui.empty-state icon="funnel" title="Nothing to show"
-                        description="No notifications match this filter.">
+                    <x-ui.empty-state icon="funnel" :title="__('Nothing to show')"
+                        :description="__('No notifications match this filter.')">
                         <x-slot:action>
-                            <x-ui.button href="{{ route('admin.notifications') }}" variant="secondary" size="sm">View all</x-ui.button>
+                            <x-ui.button href="{{ route('admin.notifications') }}" variant="secondary" size="sm">{{ __('View all') }}</x-ui.button>
                         </x-slot:action>
                     </x-ui.empty-state>
                 @endif

@@ -173,8 +173,8 @@ it('builds a verifiable audit hash chain and detects tampering', function () {
 // ---------------------------------------------------------------------------
 it('renders the user security page and manages addresses + anti-phishing', function () {
     // The security centre now lives under Settings › Security; the old URL redirects.
-    actingAs($this->user)->get(route('security'))->assertRedirect(route('settings', ['tab' => 'security']));
-    actingAs($this->user)->get(route('settings', ['tab' => 'security']))->assertOk()->assertSee('Withdrawal addresses');
+    actingAs($this->user)->get(route('security.index'))->assertRedirect(route('settings.index', ['tab' => 'security']));
+    actingAs($this->user)->get(route('settings.index', ['tab' => 'security']))->assertOk()->assertSee('Withdrawal addresses');
 
     actingAs($this->user)->post(route('security.address.add'), ['address' => 'Tuser', 'label' => 'Home'])
         ->assertRedirect();

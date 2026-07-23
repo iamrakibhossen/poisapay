@@ -1,4 +1,4 @@
-<x-layouts.app :title="'Manage Card'">
+<x-layouts.app :title="__('Manage Card')">
     @php
         $badge = fn (string $color) => match ($color) {
             'success' => 'bg-emerald-50 text-emerald-700 border border-emerald-200',
@@ -17,10 +17,10 @@
     @endphp
 
     <div x-data="{ disputingAuthId: null }" class="space-y-6">
-        <x-ui.page-header title="Manage card" subtitle="Manage spend controls, security and statements for this card.">
+        <x-ui.page-header :title="__('Manage card')" :subtitle="__('Manage spend controls, security and statements for this card.')">
             <x-slot:actions>
                 <a href="{{ route('cards') }}">
-                    <x-ui.button variant="secondary" size="sm" icon="arrow-left">Back to cards</x-ui.button>
+                    <x-ui.button variant="secondary" size="sm" icon="arrow-left">{{ __('Back to cards') }}</x-ui.button>
                 </a>
             </x-slot:actions>
         </x-ui.page-header>
@@ -60,11 +60,11 @@
                             <p class="tabular font-mono text-lg tracking-widest">•••• •••• •••• {{ $card->last4 }}</p>
                             <div class="mt-3 flex items-end justify-between gap-2">
                                 <div class="min-w-0">
-                                    <p class="text-[9px] uppercase tracking-wider text-white/50">Card holder</p>
+                                    <p class="text-[9px] uppercase tracking-wider text-white/50">{{ __('Card holder') }}</p>
                                     <p class="truncate text-xs font-medium uppercase tracking-wide text-white/90">{{ $card->nickname ?: $holderName }}</p>
                                 </div>
                                 <div class="shrink-0 text-center">
-                                    <p class="text-[9px] uppercase tracking-wider text-white/50">Valid thru</p>
+                                    <p class="text-[9px] uppercase tracking-wider text-white/50">{{ __('Valid thru') }}</p>
                                     <p class="tabular text-xs font-medium text-white/90">{{ $expiry }}</p>
                                 </div>
                                 <span class="shrink-0 text-lg font-bold italic">{{ $card->network->label() }}</span>
@@ -77,30 +77,30 @@
                 <x-ui.card>
                     <dl class="space-y-3 text-sm">
                         <div class="flex items-center justify-between">
-                            <dt class="text-gray-500">Status</dt>
+                            <dt class="text-gray-500">{{ __('Status') }}</dt>
                             <dd><span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide {{ $badge($card->status->color()) }}">{{ $card->status->label() }}</span></dd>
                         </div>
                         <div class="flex items-center justify-between">
-                            <dt class="text-gray-500">Network</dt>
+                            <dt class="text-gray-500">{{ __('Network') }}</dt>
                             <dd class="font-medium text-gray-900">{{ $card->network->label() }}</dd>
                         </div>
                         <div class="flex items-center justify-between">
-                            <dt class="text-gray-500">Type</dt>
+                            <dt class="text-gray-500">{{ __('Type') }}</dt>
                             <dd class="font-medium text-gray-900">{{ $card->type->label() }}</dd>
                         </div>
                         <div class="flex items-center justify-between">
-                            <dt class="text-gray-500">Expiry</dt>
+                            <dt class="text-gray-500">{{ __('Expiry') }}</dt>
                             <dd class="tabular font-medium text-gray-900">{{ $expiry }}</dd>
                         </div>
                         <div class="flex items-center justify-between">
-                            <dt class="text-gray-500">PIN</dt>
-                            <dd><span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide {{ $badge($card->hasPin() ? 'success' : 'gray') }}">{{ $card->hasPin() ? 'Set' : 'Not set' }}</span></dd>
+                            <dt class="text-gray-500">{{ __('PIN') }}</dt>
+                            <dd><span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide {{ $badge($card->hasPin() ? 'success' : 'gray') }}">{{ $card->hasPin() ? __('Set') : __('Not set') }}</span></dd>
                         </div>
                     </dl>
                 </x-ui.card>
 
                 {{-- Masked card details (no reveal endpoint — masked values only) --}}
-                <x-ui.card title="Card details" subtitle="Sensitive data never touches PoisaPay servers.">
+                <x-ui.card :title="__('Card details')" :subtitle="__('Sensitive data never touches PoisaPay servers.')">
                     <div x-data="{ revealed: false }">
                         <x-ui.button x-on:click="revealed = !revealed" variant="secondary" size="sm" class="w-full">
                             <span x-text="revealed ? 'Hide card details' : 'Reveal card details'"></span>
@@ -108,40 +108,38 @@
 
                         <div x-show="revealed" x-cloak class="mt-4 space-y-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4">
                             <div>
-                                <p class="text-[11px] uppercase tracking-wide text-gray-500">Card number</p>
+                                <p class="text-[11px] uppercase tracking-wide text-gray-500">{{ __('Card number') }}</p>
                                 <p class="font-mono text-lg tracking-widest text-gray-900">•••• •••• •••• {{ $card->last4 }}</p>
                             </div>
                             <div class="flex gap-6">
                                 <div>
-                                    <p class="text-[11px] uppercase tracking-wide text-gray-500">Expiry</p>
+                                    <p class="text-[11px] uppercase tracking-wide text-gray-500">{{ __('Expiry') }}</p>
                                     <p class="font-mono text-gray-900">{{ $expiry }}</p>
                                 </div>
                                 <div>
-                                    <p class="text-[11px] uppercase tracking-wide text-gray-500">CVV</p>
+                                    <p class="text-[11px] uppercase tracking-wide text-gray-500">{{ __('CVV') }}</p>
                                     <p class="font-mono text-gray-900">•••</p>
                                 </div>
                             </div>
                             <x-ui.alert type="info">
-                                In production the full PAN, expiry and CVV are rendered inside the issuer's
-                                PCI-DSS-compliant iframe and are never stored by PoisaPay — we retain only an
-                                opaque issuer token. This masked demo is a security-correct stub.
+                                {{ __('In production the full PAN, expiry and CVV are rendered inside the issuer\'s PCI-DSS-compliant iframe and are never stored by PoisaPay — we retain only an opaque issuer token. This masked demo is a security-correct stub.') }}
                             </x-ui.alert>
                         </div>
                     </div>
                 </x-ui.card>
 
                 {{-- Actions --}}
-                <x-ui.card title="Card actions">
+                <x-ui.card :title="__('Card actions')">
                     <div class="space-y-2">
                         @if ($card->status !== \App\Enums\CardStatus::Closed)
                             <form method="POST" action="{{ route('card.freeze', $card->id) }}">
                                 @csrf
-                                <x-ui.button type="submit" variant="secondary" size="sm" class="w-full">{{ $card->status === \App\Enums\CardStatus::Frozen ? 'Unfreeze card' : 'Freeze card' }}</x-ui.button>
+                                <x-ui.button type="submit" variant="secondary" size="sm" class="w-full">{{ $card->status === \App\Enums\CardStatus::Frozen ? __('Unfreeze card') : __('Freeze card') }}</x-ui.button>
                             </form>
-                            <x-ui.button x-on:click="$dispatch('open-modal', 'replace-card')" variant="secondary" size="sm" icon="arrow-path" class="w-full">Replace card</x-ui.button>
-                            <x-ui.button x-on:click="$dispatch('open-modal', 'close-card')" variant="danger" size="sm" icon="x-circle" class="w-full">Close card</x-ui.button>
+                            <x-ui.button x-on:click="$dispatch('open-modal', 'replace-card')" variant="secondary" size="sm" icon="arrow-path" class="w-full">{{ __('Replace card') }}</x-ui.button>
+                            <x-ui.button x-on:click="$dispatch('open-modal', 'close-card')" variant="danger" size="sm" icon="x-circle" class="w-full">{{ __('Close card') }}</x-ui.button>
                         @else
-                            <x-ui.alert type="danger">This card is closed and can no longer be used.</x-ui.alert>
+                            <x-ui.alert type="danger">{{ __('This card is closed and can no longer be used.') }}</x-ui.alert>
                         @endif
                     </div>
                 </x-ui.card>
@@ -150,10 +148,10 @@
             {{-- Right column --}}
             <div class="space-y-6 lg:col-span-2">
                 {{-- Controls --}}
-                <x-ui.card title="Card nickname" subtitle="Give your card a name you'll recognise.">
+                <x-ui.card :title="__('Card nickname')" :subtitle="__('Give your card a name you\'ll recognise.')">
                     <form method="POST" action="{{ route('card.controls', $card->id) }}" class="space-y-5">
                         @csrf @method('PUT')
-                        <x-ui.input label="Nickname" name="nickname" :value="old('nickname', $card->nickname)" placeholder="e.g. Travel card" :error="$errors->first('nickname')" />
+                        <x-ui.input :label="__('Nickname')" name="nickname" :value="old('nickname', $card->nickname)" :placeholder="__('e.g. Travel card')" :error="$errors->first('nickname')" />
 
                         {{-- Spend controls are hidden here; preserve their current values so
                              saving the nickname doesn't reset the card's controls. --}}
@@ -166,17 +164,17 @@
                         <input type="hidden" name="blocked_mccs" value="{{ $card->blocked_mccs ? implode(', ', $card->blocked_mccs) : '' }}">
 
                         <div class="flex justify-end">
-                            <x-ui.button type="submit" icon="check">Save</x-ui.button>
+                            <x-ui.button type="submit" icon="check">{{ __('Save') }}</x-ui.button>
                         </div>
                     </form>
                 </x-ui.card>
 
                 {{-- Set PIN --}}
-                <x-ui.card title="Card PIN" subtitle="Used for ATM and chip-and-PIN. We store only a secure hash.">
+                <x-ui.card :title="__('Card PIN')" :subtitle="__('Used for ATM and chip-and-PIN. We store only a secure hash.')">
                     <form method="POST" action="{{ route('card.pin', $card->id) }}" class="flex flex-col gap-3 sm:flex-row sm:items-end">
                         @csrf
-                        <x-ui.input label="New PIN (4-6 digits)" name="pin" type="password" inputmode="numeric" placeholder="••••" class="sm:max-w-xs" :error="$errors->first('pin')" />
-                        <x-ui.button type="submit" icon="key">{{ $card->hasPin() ? 'Change PIN' : 'Set PIN' }}</x-ui.button>
+                        <x-ui.input :label="__('New PIN (4-6 digits)')" name="pin" type="password" inputmode="numeric" placeholder="••••" class="sm:max-w-xs" :error="$errors->first('pin')" />
+                        <x-ui.button type="submit" icon="key">{{ $card->hasPin() ? __('Change PIN') : __('Set PIN') }}</x-ui.button>
                     </form>
                 </x-ui.card>
 
@@ -193,29 +191,29 @@
                         </form>
                     </x-slot:actions>
                     <div class="mb-4">
-                        <h3 class="text-base font-semibold text-neutral-900">Statement</h3>
+                        <h3 class="text-base font-semibold text-neutral-900">{{ __('Statement') }}</h3>
                         <p class="mt-0.5 text-sm text-neutral-500">{{ $statement['from'] }} → {{ $statement['to'] }}</p>
                     </div>
 
                     <div class="grid gap-4 sm:grid-cols-3">
                         <div class="rounded-xl border border-gray-200 p-4">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Settled</p>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">{{ __('Settled') }}</p>
                             <p class="tabular mt-1 text-2xl font-bold text-gray-900">{{ $currency }} {{ $statement['settled'] }}</p>
                         </div>
                         <div class="rounded-xl border border-gray-200 p-4">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Refunded</p>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">{{ __('Refunded') }}</p>
                             <p class="tabular mt-1 text-2xl font-bold text-gray-900">{{ $currency }} {{ $statement['refunded'] }}</p>
                         </div>
                         <div class="rounded-xl border border-gray-200 p-4">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Transactions</p>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">{{ __('Transactions') }}</p>
                             <p class="tabular mt-1 text-2xl font-bold text-gray-900">{{ $statement['count'] }}</p>
                         </div>
                     </div>
 
                     @if (count($statement['byMcc']))
                         <div class="mt-5">
-                            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Spend by category (MCC)</p>
-                            <x-ui.table :headers="['MCC', 'Settled']">
+                            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">{{ __('Spend by category (MCC)') }}</p>
+                            <x-ui.table :headers="[__('MCC'), __('Settled')]">
                                 @foreach ($statement['byMcc'] as $row)
                                     <tr class="border-b border-gray-200 hover:bg-gray-100">
                                         <td class="px-3 py-2.5 font-mono text-sm text-gray-700">{{ $row['mcc'] }}</td>
@@ -225,14 +223,14 @@
                             </x-ui.table>
                         </div>
                     @else
-                        <p class="mt-4 text-sm text-gray-500">No settled spend for this period.</p>
+                        <p class="mt-4 text-sm text-gray-500">{{ __('No settled spend for this period.') }}</p>
                     @endif
                 </x-ui.card>
 
                 {{-- Analytics --}}
-                <x-ui.card title="Spend analytics" subtitle="Settled spend over the last 6 months.">
+                <x-ui.card :title="__('Spend analytics')" :subtitle="__('Settled spend over the last 6 months.')">
                     @if (! count($analytics))
-                        <p class="text-sm text-gray-500">No spend recorded yet.</p>
+                        <p class="text-sm text-gray-500">{{ __('No spend recorded yet.') }}</p>
                     @else
                         <div class="space-y-3">
                             @foreach ($analytics as $row)
@@ -241,7 +239,7 @@
                                         <span class="font-medium text-gray-700">{{ $row['label'] }}</span>
                                         <span class="tabular text-gray-900">
                                             <span>{{ $currency }} {{ $row['amount'] }}</span>
-                                            <span class="text-xs text-gray-400">· {{ $row['count'] }} tx</span>
+                                            <span class="text-xs text-gray-400">· {{ $row['count'] }} {{ __('tx') }}</span>
                                         </span>
                                     </div>
                                     <div class="h-2.5 w-full overflow-hidden rounded-full bg-gray-100">
@@ -254,11 +252,11 @@
                 </x-ui.card>
 
                 {{-- Recent authorizations --}}
-                <x-ui.card title="Recent authorizations" subtitle="Latest 20 authorizations on this card.">
+                <x-ui.card :title="__('Recent authorizations')" :subtitle="__('Latest 20 authorizations on this card.')">
                     @if (! count($auths))
-                        <x-ui.empty-state icon="banknotes" title="No activity yet" description="Authorizations will appear here as the card is used." />
+                        <x-ui.empty-state icon="banknotes" :title="__('No activity yet')" :description="__('Authorizations will appear here as the card is used.')" />
                     @else
-                        <x-ui.table :headers="['Merchant', 'MCC', 'Amount', 'Status', 'Date', '']">
+                        <x-ui.table :headers="[__('Merchant'), __('MCC'), __('Amount'), __('Status'), __('Date'), '']">
                             @foreach ($auths as $a)
                                 <tr class="border-b border-gray-200 hover:bg-gray-100">
                                     <td class="px-3 py-3 font-medium text-gray-900">{{ $a['merchant'] }}</td>
@@ -270,9 +268,9 @@
                                     <td class="px-3 py-3 text-sm text-gray-500">{{ $a['date'] }}</td>
                                     <td class="px-3 py-3 text-right">
                                         @if ($a['disputable'])
-                                            <x-ui.button variant="ghost" size="sm" icon="flag" x-on:click="disputingAuthId = {{ \Illuminate\Support\Js::from($a['id']) }}; $dispatch('open-modal', 'dispute-auth')">Dispute</x-ui.button>
+                                            <x-ui.button variant="ghost" size="sm" icon="flag" x-on:click="disputingAuthId = {{ \Illuminate\Support\Js::from($a['id']) }}; $dispatch('open-modal', 'dispute-auth')">{{ __('Dispute') }}</x-ui.button>
                                         @elseif ($a['disputed'])
-                                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide {{ $badge('warning') }}">Disputed</span>
+                                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide {{ $badge('warning') }}">{{ __('Disputed') }}</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -284,50 +282,50 @@
         </div>
 
         {{-- Replace modal --}}
-        <x-ui.modal name="replace-card" title="Replace card" subtitle="Closes this card and issues a fresh one with a new number." maxWidth="sm">
+        <x-ui.modal name="replace-card" :title="__('Replace card')" :subtitle="__('Closes this card and issues a fresh one with a new number.')" maxWidth="sm">
             <form id="replace-card-form" method="POST" action="{{ route('card.replace', $card->id) }}">
                 @csrf
-                <x-ui.select label="Reason" name="reason">
-                    <option value="lost">Lost</option>
-                    <option value="stolen">Stolen</option>
-                    <option value="damaged">Damaged</option>
+                <x-ui.select :label="__('Reason')" name="reason">
+                    <option value="lost">{{ __('Lost') }}</option>
+                    <option value="stolen">{{ __('Stolen') }}</option>
+                    <option value="damaged">{{ __('Damaged') }}</option>
                 </x-ui.select>
-                <p class="mt-3 text-xs text-slate-500">Existing authorizations are unaffected.</p>
+                <p class="mt-3 text-xs text-slate-500">{{ __('Existing authorizations are unaffected.') }}</p>
             </form>
             <x-slot:footer>
-                <x-ui.button type="button" variant="secondary" x-on:click="$dispatch('close-modal', 'replace-card')">Cancel</x-ui.button>
-                <x-ui.button type="submit" form="replace-card-form" icon="arrow-path">Replace card</x-ui.button>
+                <x-ui.button type="button" variant="secondary" x-on:click="$dispatch('close-modal', 'replace-card')">{{ __('Cancel') }}</x-ui.button>
+                <x-ui.button type="submit" form="replace-card-form" icon="arrow-path">{{ __('Replace card') }}</x-ui.button>
             </x-slot:footer>
         </x-ui.modal>
 
         {{-- Close modal --}}
         <x-ui.confirmation-modal name="close-card" maxWidth="sm">
-            <x-slot:title>Close this card?</x-slot:title>
-            <x-slot:content>Closing is permanent — the card can no longer be used. Cards with pending approved authorizations can't be closed.</x-slot:content>
+            <x-slot:title>{{ __('Close this card?') }}</x-slot:title>
+            <x-slot:content>{{ __("Closing is permanent — the card can no longer be used. Cards with pending approved authorizations can't be closed.") }}</x-slot:content>
             <x-slot:footer>
-                <x-ui.button type="button" variant="secondary" x-on:click="$dispatch('close-modal', 'close-card')">Cancel</x-ui.button>
+                <x-ui.button type="button" variant="secondary" x-on:click="$dispatch('close-modal', 'close-card')">{{ __('Cancel') }}</x-ui.button>
                 <form method="POST" action="{{ route('card.close', $card->id) }}">
                     @csrf
-                    <x-ui.button type="submit" variant="danger" icon="x-circle">Close card</x-ui.button>
+                    <x-ui.button type="submit" variant="danger" icon="x-circle">{{ __('Close card') }}</x-ui.button>
                 </form>
             </x-slot:footer>
         </x-ui.confirmation-modal>
 
         {{-- Dispute modal --}}
-        <x-ui.modal name="dispute-auth" title="Dispute purchase" subtitle="Opens a chargeback case; funds move only when it resolves." maxWidth="sm">
+        <x-ui.modal name="dispute-auth" :title="__('Dispute purchase')" :subtitle="__('Opens a chargeback case; funds move only when it resolves.')" maxWidth="sm">
             <form id="dispute-form" method="POST" action="{{ route('card.dispute', $card->id) }}">
                 @csrf
                 <input type="hidden" name="authId" :value="disputingAuthId" />
-                <x-ui.select label="Reason" name="reason">
-                    <option value="fraud">Fraudulent charge</option>
-                    <option value="not_received">Goods / service not received</option>
-                    <option value="duplicate">Duplicate charge</option>
-                    <option value="incorrect_amount">Incorrect amount</option>
+                <x-ui.select :label="__('Reason')" name="reason">
+                    <option value="fraud">{{ __('Fraudulent charge') }}</option>
+                    <option value="not_received">{{ __('Goods / service not received') }}</option>
+                    <option value="duplicate">{{ __('Duplicate charge') }}</option>
+                    <option value="incorrect_amount">{{ __('Incorrect amount') }}</option>
                 </x-ui.select>
             </form>
             <x-slot:footer>
-                <x-ui.button type="button" variant="secondary" x-on:click="$dispatch('close-modal', 'dispute-auth')">Cancel</x-ui.button>
-                <x-ui.button type="submit" form="dispute-form" icon="flag">Open dispute</x-ui.button>
+                <x-ui.button type="button" variant="secondary" x-on:click="$dispatch('close-modal', 'dispute-auth')">{{ __('Cancel') }}</x-ui.button>
+                <x-ui.button type="submit" form="dispute-form" icon="flag">{{ __('Open dispute') }}</x-ui.button>
             </x-slot:footer>
         </x-ui.modal>
     </div>

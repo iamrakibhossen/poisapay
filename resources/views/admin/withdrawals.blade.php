@@ -1,6 +1,6 @@
-<x-layouts.admin :title="'Withdrawals'">
+<x-layouts.admin :title="__('Withdrawals')">
     <div class="space-y-6">
-        <x-ui.page-header title="Withdrawals" subtitle="Approve or cancel outbound money. Reserve-before-sign — cancelling releases the ledger lock." />
+        <x-ui.page-header :title="__('Withdrawals')" :subtitle="__('Approve or cancel outbound money. Reserve-before-sign — cancelling releases the ledger lock.')" />
 
         {{-- Status tabs (query-string filter) --}}
         <div class="flex flex-wrap gap-1 rounded-xl bg-neutral-100 p-1">
@@ -11,13 +11,13 @@
                         'bg-white text-neutral-900 shadow-sm' => $status === $key,
                         'text-neutral-500 hover:text-neutral-800' => $status !== $key,
                     ])>
-                    {{ $key }}
+                    {{ __($key) }}
                     <span class="rounded-full bg-neutral-200 px-1.5 text-xs">{{ $count }}</span>
                 </a>
             @endforeach
         </div>
 
-        <x-ui.table :headers="['User', 'Amount', 'Destination', 'Risk', 'Status', 'Requested', '']">
+        <x-ui.table :headers="[__('User'), __('Amount'), __('Destination'), __('Risk'), __('Status'), __('Requested'), '']">
             @forelse ($withdrawals as $w)
                 <tr class="hover:bg-neutral-50">
                     <td class="px-4 py-3">
@@ -55,14 +55,14 @@
                         @if ($w->status->isReversibleLock() && $canApprove)
                             <div class="flex justify-end gap-2">
                                 <form method="POST" action="{{ route('admin.withdrawals.approve', $w->id) }}"
-                                    onsubmit="return confirm('Approve and queue for signing?')">
+                                    onsubmit="return confirm('{{ __('Approve and queue for signing?') }}')">
                                     @csrf
-                                    <x-ui.button type="submit" variant="success" size="sm" icon="check">Approve</x-ui.button>
+                                    <x-ui.button type="submit" variant="success" size="sm" icon="check">{{ __('Approve') }}</x-ui.button>
                                 </form>
                                 <form method="POST" action="{{ route('admin.withdrawals.cancel', $w->id) }}"
-                                    onsubmit="return confirm('Cancel and release the locked funds?')">
+                                    onsubmit="return confirm('{{ __('Cancel and release the locked funds?') }}')">
                                     @csrf
-                                    <x-ui.button type="submit" variant="secondary" size="sm" icon="x-mark">Cancel</x-ui.button>
+                                    <x-ui.button type="submit" variant="secondary" size="sm" icon="x-mark">{{ __('Cancel') }}</x-ui.button>
                                 </form>
                             </div>
                         @else
@@ -71,7 +71,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="7"><x-ui.empty-state icon="arrow-up-tray" title="No withdrawals" description="Nothing in this queue." /></td></tr>
+                <tr><td colspan="7"><x-ui.empty-state icon="arrow-up-tray" :title="__('No withdrawals')" :description="__('Nothing in this queue.')" /></td></tr>
             @endforelse
         </x-ui.table>
 

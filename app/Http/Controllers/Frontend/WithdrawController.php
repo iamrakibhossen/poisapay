@@ -305,7 +305,7 @@ class WithdrawController extends Controller
         // Persist / touch the saved account.
         $this->rememberAccount($user, $asset, $method, $account, $name, $number, $bankName, $validated);
 
-        return redirect()->route('withdraw')->with(
+        return redirect()->route('withdraw.index')->with(
             'success',
             'Cash-out of '.$withdrawal->money()->format().' requested to '.$reference.' — we\'ll process it after review.'
         );
@@ -318,7 +318,7 @@ class WithdrawController extends Controller
         $assetId = $account->asset_id;
         $account->delete();
 
-        return redirect()->route('withdraw', ['cash' => $assetId])->with('success', 'Payout account removed.');
+        return redirect()->route('withdraw.index', ['cash' => $assetId])->with('success', 'Payout account removed.');
     }
 
     /**
@@ -489,7 +489,7 @@ class WithdrawController extends Controller
             ? 'Withdrawal of '.$withdrawal->money()->format().' submitted — queued for review.'
             : 'Withdrawal of '.$withdrawal->money()->format().' submitted.';
 
-        return redirect()->route('withdraw')->with('success', $message);
+        return redirect()->route('withdraw.index')->with('success', $message);
     }
 
     /** Funded crypto wallets only — fiat is not withdrawable on-chain. */

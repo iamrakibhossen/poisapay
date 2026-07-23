@@ -12,16 +12,18 @@ use Illuminate\Support\Facades\Route;
  * pages + form-POST mutations that redirect back.
  */
 
-// Pages (server-rendered).
-Route::get('/merchant', [MerchantController::class, 'index'])->name('merchant');
-Route::get('/pay/{invoice}', [PayInvoiceController::class, 'index'])->name('pay.invoice');
+// Merchant console (page + mutations).
+Route::controller(MerchantController::class)->group(function () {
+    Route::get('/merchant', 'index')->name('merchant');
+    Route::post('/merchant/register', 'register')->name('merchant.register');
+    Route::put('/merchant/profile', 'saveProfile')->name('merchant.profile');
+    Route::post('/merchant/invoices', 'createInvoice')->name('merchant.invoice.create');
+    Route::post('/merchant/invoices/{id}/cancel', 'cancelInvoice')->name('merchant.invoice.cancel');
+    Route::post('/merchant/invoices/{id}/refund', 'refundInvoice')->name('merchant.invoice.refund');
+});
 
-// Merchant console mutations.
-Route::post('/merchant/register', [MerchantController::class, 'register'])->name('merchant.register');
-Route::put('/merchant/profile', [MerchantController::class, 'saveProfile'])->name('merchant.profile');
-Route::post('/merchant/invoices', [MerchantController::class, 'createInvoice'])->name('merchant.invoice.create');
-Route::post('/merchant/invoices/{id}/cancel', [MerchantController::class, 'cancelInvoice'])->name('merchant.invoice.cancel');
-Route::post('/merchant/invoices/{id}/refund', [MerchantController::class, 'refundInvoice'])->name('merchant.invoice.refund');
-
-// Invoice payment.
-Route::post('/pay/{invoice}', [PayInvoiceController::class, 'pay'])->name('pay.execute');
+// Invoice payment (public-facing pay page + execution).
+Route::controller(PayInvoiceController::class)->group(function () {
+    Route::get('/pay/{invoice}', 'index')->name('pay.invoice');
+    Route::post('/pay/{invoice}', 'pay')->name('pay.execute');
+});

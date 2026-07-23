@@ -20,7 +20,7 @@
             @endif
         </div>
         @if ($locked && $locked !== '0')
-            <p class="mt-1 text-[11px] text-amber-600">{{ $locked }} locked</p>
+            <p class="mt-1 text-[11px] text-amber-600">{{ $locked }} {{ __('locked') }}</p>
         @endif
     </div>
 </div>

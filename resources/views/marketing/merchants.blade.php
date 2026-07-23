@@ -1,34 +1,34 @@
 @php
     $features = [
-        ['icon' => 'link', 'title' => 'Payment links', 'body' => 'Create a link, share it anywhere, get paid in crypto.'],
-        ['icon' => 'qr-code', 'title' => 'QR at checkout', 'body' => 'Show a QR in-store — customers scan and pay in a tap.'],
-        ['icon' => 'document-text', 'title' => 'Invoices', 'body' => 'Send branded invoices with due dates and auto-reminders.'],
-        ['icon' => 'bolt', 'title' => 'Instant settlement', 'body' => 'Funds land in your PoisaPay wallet the moment they clear.'],
-        ['icon' => 'banknotes', 'title' => 'Low flat fee', 'body' => 'A simple 1% per transaction. No setup or monthly fees.'],
-        ['icon' => 'code-bracket', 'title' => 'API & webhooks', 'body' => 'Automate orders and reconciliation with a clean REST API.'],
-        ['icon' => 'arrow-uturn-left', 'title' => 'Refunds', 'body' => 'One-tap refunds and clear dispute handling.'],
-        ['icon' => 'chart-bar', 'title' => 'Dashboard', 'body' => 'Track sales, settlements and payouts in real time.'],
+        ['icon' => 'link', 'title' => __('Payment links'), 'body' => __('Create a link, share it anywhere, get paid in crypto.')],
+        ['icon' => 'qr-code', 'title' => __('QR at checkout'), 'body' => __('Show a QR in-store — customers scan and pay in a tap.')],
+        ['icon' => 'document-text', 'title' => __('Invoices'), 'body' => __('Send branded invoices with due dates and auto-reminders.')],
+        ['icon' => 'bolt', 'title' => __('Instant settlement'), 'body' => __('Funds land in your PoisaPay wallet the moment they clear.')],
+        ['icon' => 'banknotes', 'title' => __('Low flat fee'), 'body' => __('A simple 1% per transaction. No setup or monthly fees.')],
+        ['icon' => 'code-bracket', 'title' => __('API & webhooks'), 'body' => __('Automate orders and reconciliation with a clean REST API.')],
+        ['icon' => 'arrow-uturn-left', 'title' => __('Refunds'), 'body' => __('One-tap refunds and clear dispute handling.')],
+        ['icon' => 'chart-bar', 'title' => __('Dashboard'), 'body' => __('Track sales, settlements and payouts in real time.')],
     ];
     $featured = array_shift($features); // "Payment links" becomes the bento hero tile
 
     $steps = [
-        ['icon' => 'user-plus', 'title' => 'Create & verify', 'body' => 'Sign up and complete business KYC once.'],
-        ['icon' => 'building-storefront', 'title' => 'Set up your store', 'body' => 'Add your business details and settlement asset.'],
-        ['icon' => 'qr-code', 'title' => 'Share link or QR', 'body' => 'Send a payment link or show a QR at checkout.'],
-        ['icon' => 'banknotes', 'title' => 'Get paid', 'body' => 'Settle instantly to your wallet, cash out anytime.'],
+        ['icon' => 'user-plus', 'title' => __('Create & verify'), 'body' => __('Sign up and complete business KYC once.')],
+        ['icon' => 'building-storefront', 'title' => __('Set up your store'), 'body' => __('Add your business details and settlement asset.')],
+        ['icon' => 'qr-code', 'title' => __('Share link or QR'), 'body' => __('Send a payment link or show a QR at checkout.')],
+        ['icon' => 'banknotes', 'title' => __('Get paid'), 'body' => __('Settle instantly to your wallet, cash out anytime.')],
     ];
 
     $stats = [
-        ['value' => '1%', 'label' => 'Flat fee, all-in'],
-        ['value' => 'Instant', 'label' => 'Wallet settlement'],
-        ['value' => '5+', 'label' => 'Coins accepted'],
-        ['value' => '৳0', 'label' => 'Setup & monthly'],
+        ['value' => '1%', 'label' => __('Flat fee, all-in')],
+        ['value' => __('Instant'), 'label' => __('Wallet settlement')],
+        ['value' => '5+', 'label' => __('Coins accepted')],
+        ['value' => '৳0', 'label' => __('Setup & monthly')],
     ];
 
     $coins = ['USDT', 'BTC', 'ETH', 'BNB', 'TON'];
 @endphp
 
-<x-layouts.marketing title="Accept crypto payments" description="Accept USDT, BTC and ETH with payment links, invoices and QR checkout. Instant settlement to your PoisaPay wallet, a flat 1% fee, and a clean API. Built for Bangladesh.">
+<x-layouts.marketing :title="__('Accept crypto payments')" :description="__('Accept USDT, BTC and ETH with payment links, invoices and QR checkout. Instant settlement to your PoisaPay wallet, a flat 1% fee, and a clean API. Built for Bangladesh.')">
 
     {{-- ===================== HERO ===================== --}}
     <section class="relative overflow-hidden px-4 pb-16 pt-8 sm:px-6 lg:px-8 lg:pb-20 lg:pt-16">
@@ -38,28 +38,28 @@
                 <div class="text-center lg:text-left">
                     <span class="reveal inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium text-slate-700 ring-chip">
                         <span class="h-1.5 w-1.5 rounded-full pp-pulse" style="background:var(--brand)"></span>
-                        PoisaPay for Business
+                        {{ __('PoisaPay for Business') }}
                     </span>
 
                     <h1 class="reveal mx-auto mt-6 max-w-2xl text-[2.7rem] font-extrabold leading-[1.03] tracking-tight text-slate-900 sm:text-6xl lg:mx-0 lg:text-[4rem]" data-d="1">
-                        Accept crypto. <span class="grad-text-anim">Settle instantly.</span>
+                        {{ __('Accept crypto.') }} <span class="grad-text-anim">{{ __('Settle instantly.') }}</span>
                     </h1>
 
                     <p class="reveal mx-auto mt-6 max-w-xl text-lg leading-relaxed text-slate-600 lg:mx-0" data-d="2">
-                        Take payments in USDT, BTC and ETH with payment links, invoices and QR checkout — settled straight to your PoisaPay wallet. A flat 1% fee, no setup cost.
+                        {{ __('Take payments in USDT, BTC and ETH with payment links, invoices and QR checkout — settled straight to your PoisaPay wallet. A flat 1% fee, no setup cost.') }}
                     </p>
 
                     <div class="reveal mt-9 flex flex-wrap items-center justify-center gap-3 lg:justify-start" data-d="3">
                         <a href="{{ route('register') }}" class="pp-btn pp-btn-primary pp-btn-lg">
-                            Get started <x-heroicon-o-arrow-right class="h-5 w-5" />
+                            {{ __('Get started') }} <x-heroicon-o-arrow-right class="h-5 w-5" />
                         </a>
                         <a href="#how" class="pp-btn pp-btn-ghost pp-btn-lg">
-                            <x-heroicon-s-play class="h-4 w-4" /> How it works
+                            <x-heroicon-s-play class="h-4 w-4" /> {{ __('How it works') }}
                         </a>
                     </div>
 
                     <div class="reveal mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 lg:justify-start" data-d="4">
-                        @foreach ([['check-badge','No chargebacks'],['globe-alt','Multi-coin'],['code-bracket','Developer API'],['shield-check','KYC / AML']] as $b)
+                        @foreach ([['check-badge', __('No chargebacks')],['globe-alt', __('Multi-coin')],['code-bracket', __('Developer API')],['shield-check', __('KYC / AML')]] as $b)
                             <span class="inline-flex items-center gap-2 text-sm font-medium text-slate-600">
                                 <x-dynamic-component :component="'heroicon-s-'.$b[0]" class="h-4 w-4" style="color:var(--brand)" />
                                 {{ $b[1] }}
@@ -75,18 +75,18 @@
                     <div class="reveal glass-card pp-float-slow p-6" data-d="2">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm font-bold text-slate-900">Payment request</p>
-                                <p class="mt-0.5 text-xs text-slate-500">Invoice #INV-2K9F</p>
+                                <p class="text-sm font-bold text-slate-900">{{ __('Payment request') }}</p>
+                                <p class="mt-0.5 text-xs text-slate-500">{{ __('Invoice #INV-2K9F') }}</p>
                             </div>
                             <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium" style="background:rgba(37,99,235,.10);color:var(--brand)">USDT</span>
                         </div>
 
                         <p class="mt-4 text-3xl font-bold tabular text-slate-900">$250.00</p>
-                        <p class="text-xs text-slate-500">Scan to pay or share the link</p>
+                        <p class="text-xs text-slate-500">{{ __('Scan to pay or share the link') }}</p>
 
                         {{-- QR (decorative mock) --}}
                         <div class="mt-4 grid place-items-center rounded-2xl border border-slate-200 bg-white p-4">
-                            <svg viewBox="0 0 25 25" class="h-40 w-40" shape-rendering="crispEdges" role="img" aria-label="Payment QR code">
+                            <svg viewBox="0 0 25 25" class="h-40 w-40" shape-rendering="crispEdges" role="img" aria-label="{{ __('Payment QR code') }}">
                                 <rect width="25" height="25" fill="#fff"/>
                                 @php $finders = [[0,0],[18,0],[0,18]]; @endphp
                                 @foreach ($finders as $f)
@@ -108,7 +108,7 @@
                         <div class="mt-4 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
                             <x-heroicon-o-link class="h-4 w-4 flex-none text-slate-400" />
                             <span class="truncate text-xs text-slate-600">pay.poisapay.app/inv_2K9F</span>
-                            <span class="ml-auto text-xs font-semibold" style="color:var(--brand)">Copy</span>
+                            <span class="ml-auto text-xs font-semibold" style="color:var(--brand)">{{ __('Copy') }}</span>
                         </div>
                     </div>
 
@@ -119,8 +119,8 @@
                                 <x-heroicon-s-check class="h-4 w-4" style="color:var(--up)" />
                             </span>
                             <div class="leading-tight">
-                                <p class="text-xs font-semibold text-slate-900">Settled to wallet</p>
-                                <p class="text-[0.65rem] text-slate-500">+250.00 USDT · just now</p>
+                                <p class="text-xs font-semibold text-slate-900">{{ __('Settled to wallet') }}</p>
+                                <p class="text-[0.65rem] text-slate-500">{{ __( '+250.00 USDT · just now') }}</p>
                             </div>
                         </div>
                     </div>
@@ -143,9 +143,9 @@
     <section id="features" class="relative px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
         <div class="mx-auto max-w-7xl">
             <div class="reveal mx-auto max-w-2xl text-center">
-                <p class="text-sm font-semibold uppercase tracking-[0.18em]" style="color:var(--brand)">Everything to get paid</p>
-                <h2 class="mt-3 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">Payments that just <span class="grad-text">work.</span></h2>
-                <p class="mt-4 text-lg text-slate-600">Links, invoices, QR and an API — settled to your wallet in real time.</p>
+                <p class="text-sm font-semibold uppercase tracking-[0.18em]" style="color:var(--brand)">{{ __('Everything to get paid') }}</p>
+                <h2 class="mt-3 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">{{ __('Payments that just') }} <span class="grad-text">{{ __('work.') }}</span></h2>
+                <p class="mt-4 text-lg text-slate-600">{{ __('Links, invoices, QR and an API — settled to your wallet in real time.') }}</p>
             </div>
 
             <div class="mt-14 grid gap-4 sm:grid-cols-2 lg:auto-rows-fr lg:grid-cols-4">
@@ -157,14 +157,14 @@
                         <x-dynamic-component :component="'heroicon-o-'.$featured['icon']" class="h-7 w-7" />
                     </span>
                     <h3 class="relative mt-6 text-2xl font-bold text-slate-900">{{ $featured['title'] }}</h3>
-                    <p class="relative mt-2 max-w-sm text-slate-600">{{ $featured['body'] }} Share on WhatsApp, social or email — no code required.</p>
+                    <p class="relative mt-2 max-w-sm text-slate-600">{{ $featured['body'] }} {{ __('Share on WhatsApp, social or email — no code required.') }}</p>
 
                     {{-- mock link pill --}}
                     <div class="relative mt-6 flex items-center gap-2 rounded-xl border border-slate-200 bg-white/80 px-3.5 py-3 backdrop-blur lg:mt-auto">
                         <x-heroicon-o-link class="h-4 w-4 flex-none text-slate-400" />
                         <span class="truncate text-sm text-slate-600">pay.poisapay.app/tea-house</span>
                         <span class="ml-auto inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold text-white" style="background:var(--brand)">
-                            <x-heroicon-o-share class="h-3.5 w-3.5" /> Share
+                            <x-heroicon-o-share class="h-3.5 w-3.5" /> {{ __('Share') }}
                         </span>
                     </div>
                 </div>
@@ -182,7 +182,7 @@
 
                 {{-- Accepted coins filler tile (fills the bento) --}}
                 <div class="reveal glass glass-hover flex flex-col justify-center rounded-3xl p-6" data-d="2">
-                    <p class="text-sm font-semibold text-slate-900">Accepted coins</p>
+                    <p class="text-sm font-semibold text-slate-900">{{ __('Accepted coins') }}</p>
                     <div class="mt-3 flex flex-wrap gap-2">
                         @foreach ($coins as $c)
                             <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-slate-700 ring-chip">{{ $c }}</span>
@@ -197,8 +197,8 @@
     <section id="how" class="relative px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
         <div class="mx-auto max-w-7xl">
             <div class="reveal mx-auto max-w-2xl text-center">
-                <p class="text-sm font-semibold uppercase tracking-[0.18em]" style="color:var(--brand)">How it works</p>
-                <h2 class="mt-3 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">Live in <span class="grad-text">four steps.</span></h2>
+                <p class="text-sm font-semibold uppercase tracking-[0.18em]" style="color:var(--brand)">{{ __('How it works') }}</p>
+                <h2 class="mt-3 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">{{ __('Live in') }} <span class="grad-text">{{ __('four steps.') }}</span></h2>
             </div>
 
             <div class="relative mt-16">
@@ -228,18 +228,18 @@
                 <span aria-hidden="true" class="absolute -left-16 -top-16 h-64 w-64 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(37,99,235,.16),transparent 65%)"></span>
                 <span aria-hidden="true" class="absolute -bottom-16 -right-16 h-64 w-64 rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(14,165,233,.14),transparent 65%)"></span>
                 <div class="relative">
-                    <h2 class="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">Start accepting crypto <span class="grad-text-anim">today.</span></h2>
-                    <p class="mx-auto mt-4 max-w-lg text-lg text-slate-600">Create your merchant account and share your first payment link in minutes.</p>
+                    <h2 class="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">{{ __('Start accepting crypto') }} <span class="grad-text-anim">{{ __('today.') }}</span></h2>
+                    <p class="mx-auto mt-4 max-w-lg text-lg text-slate-600">{{ __('Create your merchant account and share your first payment link in minutes.') }}</p>
                     <div class="mt-9 flex flex-wrap items-center justify-center gap-3">
-                        <a href="{{ route('register') }}" class="pp-btn pp-btn-primary pp-btn-lg">Get started <x-heroicon-o-arrow-right class="h-5 w-5" /></a>
+                        <a href="{{ route('register') }}" class="pp-btn pp-btn-primary pp-btn-lg">{{ __('Get started') }} <x-heroicon-o-arrow-right class="h-5 w-5" /></a>
                         @auth
-                            <a href="{{ route('merchant') }}" class="pp-btn pp-btn-ghost pp-btn-lg"><x-heroicon-s-building-storefront class="h-5 w-5" /> Open merchant console</a>
+                            <a href="{{ route('merchant') }}" class="pp-btn pp-btn-ghost pp-btn-lg"><x-heroicon-s-building-storefront class="h-5 w-5" /> {{ __('Open merchant console') }}</a>
                         @else
-                            <a href="{{ route('login') }}" class="pp-btn pp-btn-ghost pp-btn-lg"><x-heroicon-s-building-storefront class="h-5 w-5" /> Merchant login</a>
+                            <a href="{{ route('login') }}" class="pp-btn pp-btn-ghost pp-btn-lg"><x-heroicon-s-building-storefront class="h-5 w-5" /> {{ __('Merchant login') }}</a>
                         @endauth
                     </div>
                     <p class="mt-6 flex items-center justify-center gap-2 text-xs text-slate-500">
-                        <x-heroicon-s-lock-closed class="h-3.5 w-3.5" /> Custodial · KYC/AML gated · Flat 1% per transaction
+                        <x-heroicon-s-lock-closed class="h-3.5 w-3.5" /> {{ __('Custodial · KYC/AML gated · Flat 1% per transaction') }}
                     </p>
                 </div>
             </div>

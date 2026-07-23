@@ -45,7 +45,7 @@ beforeEach(function () {
 });
 
 it('offers a fiat cash-out option on the withdraw page', function () {
-    actingAs($this->user)->get(route('withdraw'))
+    actingAs($this->user)->get(route('withdraw.index'))
         ->assertOk()->assertSee('Local Withdraw')->assertSee('BDT cash-out');
 });
 
@@ -77,7 +77,7 @@ it('settles a fiat cash-out without an on-chain tx and books the fee to revenue'
 });
 
 it('renders the per-currency payout methods on the cash-out form', function () {
-    actingAs($this->user)->get(route('withdraw', ['cash' => $this->bdt->id]))
+    actingAs($this->user)->get(route('withdraw.index', ['cash' => $this->bdt->id]))
         ->assertOk()
         ->assertSee('Payout method')
         ->assertSee('bKash')
@@ -88,7 +88,7 @@ it('requests a mobile cash-out against a configured method and reserves funds', 
     actingAs($this->user)->post(route('withdraw.fiat'), [
         'assetId' => $this->bdt->id, 'methodId' => $this->bkash->id,
         'accountName' => 'Rakib Hossen', 'accountNumber' => '01711000000', 'amount' => '1000',
-    ])->assertRedirect(route('withdraw'))->assertSessionHas('success');
+    ])->assertRedirect(route('withdraw.index'))->assertSessionHas('success');
 
     $w = Withdrawal::where('user_id', $this->user->id)->firstOrFail();
     expect($w->payout_method)->toBe('mobile')

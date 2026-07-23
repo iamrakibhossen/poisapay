@@ -1,4 +1,4 @@
-<x-layouts.admin :title="'Pages'">
+<x-layouts.admin :title="__('Pages')">
     {{-- Alpine is light UI only: modal open/close + prefill for edit. The form POSTs traditionally. --}}
     <div x-data="{
             open: {{ $errors->any() ? 'true' : 'false' }},
@@ -14,13 +14,13 @@
             edit(p) { this.editingId = p.id; this.form = { title: p.title, slug: p.slug, status: p.status, meta_description: p.meta_description, content: p.content }; this.open = true; },
             slugify() { if (! this.editingId && ! this.form.slug) { this.form.slug = this.form.title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); } },
         }" class="space-y-6">
-        <x-ui.page-header title="Pages" subtitle="Marketing and legal content served on the public site.">
+        <x-ui.page-header :title="__('Pages')" :subtitle="__('Marketing and legal content served on the public site.')">
             <x-slot:actions>
-                <x-ui.button x-on:click="create()" icon="plus" size="sm">New page</x-ui.button>
+                <x-ui.button x-on:click="create()" icon="plus" size="sm">{{ __('New page') }}</x-ui.button>
             </x-slot:actions>
         </x-ui.page-header>
 
-        <x-ui.table :headers="['Title', 'Slug', 'Status', 'Updated', '']">
+        <x-ui.table :headers="[__('Title'), __('Slug'), __('Status'), __('Updated'), '']">
             @forelse ($pages as $page)
                 <tr class="border-b border-gray-200 hover:bg-gray-100">
                     <td class="px-4 py-3">
@@ -36,16 +36,16 @@
                     <td class="px-4 py-3 text-right">
                         <div class="flex items-center justify-end gap-2">
                             <x-ui.button variant="secondary" size="sm" icon="pencil-square"
-                                x-on:click="edit({{ Illuminate\Support\Js::from(['id' => $page->id, 'title' => $page->title, 'slug' => $page->slug, 'status' => $page->status, 'meta_description' => (string) $page->meta_description, 'content' => (string) $page->content]) }})">Edit</x-ui.button>
+                                x-on:click="edit({{ Illuminate\Support\Js::from(['id' => $page->id, 'title' => $page->title, 'slug' => $page->slug, 'status' => $page->status, 'meta_description' => (string) $page->meta_description, 'content' => (string) $page->content]) }})">{{ __('Edit') }}</x-ui.button>
                             <form method="POST" action="{{ route('admin.pages.delete', $page->id) }}" onsubmit="return confirm('Delete this page? This cannot be undone.')">
                                 @csrf @method('DELETE')
-                                <x-ui.button type="submit" variant="ghost" size="sm" icon="trash">Delete</x-ui.button>
+                                <x-ui.button type="submit" variant="ghost" size="sm" icon="trash">{{ __('Delete') }}</x-ui.button>
                             </form>
                         </div>
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="5"><x-ui.empty-state icon="document-text" title="No pages" description="Create your first content page." /></td></tr>
+                <tr><td colspan="5"><x-ui.empty-state icon="document-text" :title="__('No pages')" :description="__('Create your first content page.')" /></td></tr>
             @endforelse
         </x-ui.table>
 
@@ -61,17 +61,17 @@
                     @csrf
                     <input type="hidden" name="id" :value="editingId" />
                     <div class="grid gap-4 sm:grid-cols-2">
-                        <x-ui.input label="Title" name="title" x-model="form.title" x-on:blur="slugify()" placeholder="About us" :error="$errors->first('title')" />
-                        <x-ui.input label="Slug" name="slug" x-model="form.slug" placeholder="about-us" :error="$errors->first('slug')" />
+                        <x-ui.input :label="__('Title')" name="title" x-model="form.title" x-on:blur="slugify()" placeholder="{{ __('About us') }}" :error="$errors->first('title')" />
+                        <x-ui.input :label="__('Slug')" name="slug" x-model="form.slug" placeholder="{{ __('about-us') }}" :error="$errors->first('slug')" />
                     </div>
-                    <x-ui.select label="Status" name="status" x-model="form.status" :error="$errors->first('status')">
-                        <option value="published">Published</option>
-                        <option value="draft">Draft</option>
+                    <x-ui.select :label="__('Status')" name="status" x-model="form.status" :error="$errors->first('status')">
+                        <option value="published">{{ __('Published') }}</option>
+                        <option value="draft">{{ __('Draft') }}</option>
                     </x-ui.select>
-                    <x-ui.input label="Meta description (SEO)" name="meta_description" x-model="form.meta_description" placeholder="A short summary for search engines." :error="$errors->first('meta_description')" />
-                    <x-ui.textarea label="Content (HTML / Markdown body)" name="content" x-model="form.content" :rows="12" class="font-mono text-sm" placeholder="<h2>Welcome</h2><p>…</p>" :error="$errors->first('content')" />
+                    <x-ui.input :label="__('Meta description (SEO)')" name="meta_description" x-model="form.meta_description" placeholder="{{ __('A short summary for search engines.') }}" :error="$errors->first('meta_description')" />
+                    <x-ui.textarea :label="__('Content (HTML / Markdown body)')" name="content" x-model="form.content" :rows="12" class="font-mono text-sm" placeholder="<h2>Welcome</h2><p>…</p>" :error="$errors->first('content')" />
                     <div class="flex justify-end gap-2 pt-2">
-                        <x-ui.button type="button" variant="secondary" x-on:click="open = false">Cancel</x-ui.button>
+                        <x-ui.button type="button" variant="secondary" x-on:click="open = false">{{ __('Cancel') }}</x-ui.button>
                         <x-ui.button type="submit" x-text="editingId ? 'Save changes' : 'Create page'"></x-ui.button>
                     </div>
                 </form>

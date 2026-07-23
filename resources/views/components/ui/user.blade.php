@@ -8,7 +8,7 @@
 
 @php
     $user ??= $guard ? auth($guard)->user() : auth()->user();
-    $displayName = $user?->name ?? 'Guest';
+    $displayName = $user?->name ?? __('Guest');
     $displayEmail = $user?->email;
     $firstName = \Illuminate\Support\Str::of($displayName)->trim()->explode(' ')->first();
 @endphp

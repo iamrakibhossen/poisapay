@@ -31,7 +31,7 @@ it('requests a withdrawal through the withdraw page (reserves funds)', function 
     $user->forceFill(['created_at' => now()->subMonth()])->save();
     creditUser($user, $this->asset, '5000000');
 
-    actingAs($user)->get(route('withdraw'))->assertOk();
+    actingAs($user)->get(route('withdraw.index'))->assertOk();
 
     // Backend path (the UI wraps this) reserves funds available -> locked.
     $w = app(RequestWithdrawalAction::class)->execute(

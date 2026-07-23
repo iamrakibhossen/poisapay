@@ -1,18 +1,18 @@
-<x-layouts.admin :title="'Card Disputes'">
+<x-layouts.admin :title="__('Card Disputes')">
     <div class="space-y-6">
-        <x-ui.page-header title="Card Disputes" subtitle="Adjudicate cardholder disputes. Losing a case posts a chargeback that reimburses the cardholder." />
+        <x-ui.page-header :title="__('Card Disputes')" :subtitle="__('Adjudicate cardholder disputes. Losing a case posts a chargeback that reimburses the cardholder.')" />
 
         {{-- Stat cards --}}
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <x-ui.stat-card label="Open disputes" :value="number_format($stats['open'])" icon="exclamation-triangle" accent="amber" />
-            <x-ui.stat-card label="Open disputed amount" :value="number_format($stats['openAmount'] / 100, 2)" icon="banknotes" accent="brand" />
-            <x-ui.stat-card label="Won" :value="number_format($stats['won'])" icon="check-circle" accent="emerald" />
-            <x-ui.stat-card label="Lost (chargebacks)" :value="number_format($stats['lost'])" icon="x-circle" accent="rose" />
+            <x-ui.stat-card :label="__('Open disputes')" :value="number_format($stats['open'])" icon="exclamation-triangle" accent="amber" />
+            <x-ui.stat-card :label="__('Open disputed amount')" :value="number_format($stats['openAmount'] / 100, 2)" icon="banknotes" accent="brand" />
+            <x-ui.stat-card :label="__('Won')" :value="number_format($stats['won'])" icon="check-circle" accent="emerald" />
+            <x-ui.stat-card :label="__('Lost (chargebacks)')" :value="number_format($stats['lost'])" icon="x-circle" accent="rose" />
         </div>
 
         {{-- Filter tabs (query-string filter) --}}
         @php
-            $filters = ['actionable' => 'Actionable', 'all' => 'All', 'open' => 'Open', 'represented' => 'Represented', 'won' => 'Won', 'lost' => 'Lost'];
+            $filters = ['actionable' => __('Actionable'), 'all' => __('All'), 'open' => __('Open'), 'represented' => __('Represented'), 'won' => __('Won'), 'lost' => __('Lost')];
         @endphp
         <div class="flex flex-wrap gap-1 rounded-xl bg-neutral-100 p-1">
             @foreach ($filters as $key => $label)
@@ -31,7 +31,7 @@
             $statusColor = ['open' => 'warning', 'represented' => 'warning', 'won' => 'success', 'lost' => 'danger'];
         @endphp
 
-        <x-ui.table :headers="['Cardholder', 'Merchant', 'Reason', 'Amount', 'Status', 'Opened', '']">
+        <x-ui.table :headers="[__('Cardholder'), __('Merchant'), __('Reason'), __('Amount'), __('Status'), __('Opened'), '']">
             @forelse ($disputes as $dispute)
                 @php
                     $auth = $dispute->authorization;
@@ -60,16 +60,16 @@
                         @if ($actionable && (auth('admin')->user()?->can('manage-card-disputes') || auth('admin')->user()?->hasRole('super-admin')))
                             <div class="flex justify-end gap-2">
                                 <form method="POST" action="{{ route('admin.card-disputes.resolve', $dispute->id) }}"
-                                    onsubmit="return confirm('Mark this dispute as WON and close it? No money moves.')">
+                                    onsubmit="return confirm('{{ __('Mark this dispute as WON and close it? No money moves.') }}')">
                                     @csrf
                                     <input type="hidden" name="outcome" value="won" />
-                                    <x-ui.button type="submit" variant="success" size="sm" icon="check">Won</x-ui.button>
+                                    <x-ui.button type="submit" variant="success" size="sm" icon="check">{{ __('Won') }}</x-ui.button>
                                 </form>
                                 <form method="POST" action="{{ route('admin.card-disputes.resolve', $dispute->id) }}"
-                                    onsubmit="return confirm('Mark this dispute as LOST? This posts a chargeback that reimburses the cardholder.')">
+                                    onsubmit="return confirm('{{ __('Mark this dispute as LOST? This posts a chargeback that reimburses the cardholder.') }}')">
                                     @csrf
                                     <input type="hidden" name="outcome" value="lost" />
-                                    <x-ui.button type="submit" variant="danger" size="sm" icon="banknotes">Lost</x-ui.button>
+                                    <x-ui.button type="submit" variant="danger" size="sm" icon="banknotes">{{ __('Lost') }}</x-ui.button>
                                 </form>
                             </div>
                         @else
@@ -78,7 +78,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="7"><x-ui.empty-state icon="scale" title="No disputes" description="Nothing matches this filter." /></td></tr>
+                <tr><td colspan="7"><x-ui.empty-state icon="scale" :title="__('No disputes')" :description="__('Nothing matches this filter.')" /></td></tr>
             @endforelse
         </x-ui.table>
 

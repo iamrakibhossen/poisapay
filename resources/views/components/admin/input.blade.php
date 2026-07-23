@@ -35,7 +35,7 @@
                 @readonly($readonly)
                 {!! $attributes->merge(['class' => $defaultClasses.' pr-11']) !!}
             >
-            <button type="button" tabindex="-1" @click="show = ! show" :title="show ? 'Hide' : 'Show'"
+            <button type="button" tabindex="-1" @click="show = ! show" :title="show ? '{{ __('Hide') }}' : '{{ __('Show') }}'"
                 class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 transition cursor-pointer hover:text-gray-600">
                 <x-heroicon-o-eye x-show="! show" class="w-5 h-5" />
                 <x-heroicon-o-eye-slash x-show="show" x-cloak class="w-5 h-5" />

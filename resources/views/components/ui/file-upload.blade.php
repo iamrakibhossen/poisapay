@@ -23,7 +23,7 @@
     },
 }">
     @if ($label)
-        <label class="pp-label">{{ $label }}@if ($optional) <span class="font-normal text-neutral-400">(optional)</span>@endif</label>
+        <label class="pp-label">{{ $label }}@if ($optional) <span class="font-normal text-neutral-400">{{ __('(optional)') }}</span>@endif</label>
     @endif
 
     <div @class([
@@ -45,7 +45,7 @@
         </label>
 
         {{-- Clear button, only once a file is chosen --}}
-        <button type="button" x-show="fileName" x-cloak x-on:click="clear()" title="Remove"
+        <button type="button" x-show="fileName" x-cloak x-on:click="clear()" title="{{ __('Remove') }}"
             class="grid h-6 w-6 shrink-0 place-items-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-600">
             <x-heroicon-o-x-mark class="h-4 w-4" />
         </button>

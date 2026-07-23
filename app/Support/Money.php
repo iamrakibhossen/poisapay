@@ -116,7 +116,11 @@ final readonly class Money implements JsonSerializable, Stringable
         return (string) BigDecimal::ofUnscaledValue($this->base, $this->decimals);
     }
 
-    /** Formatted for display with thousands separators and symbol. */
+    /**
+     * Formatted for display with thousands separators and symbol. Trailing zeros are
+     * trimmed but a minimum of 2 decimals is kept, so "1000.00000000" shows as
+     * "1000.00" while "0.02048275" shows in full.
+     */
     public function format(?int $displayDecimals = null): string
     {
         $decimal = BigDecimal::ofUnscaledValue($this->base, $this->decimals);
@@ -124,6 +128,14 @@ final readonly class Money implements JsonSerializable, Stringable
         $rounded = $decimal->toScale($scale, RoundingMode::DOWN);
 
         [$whole, $frac] = array_pad(explode('.', (string) $rounded->abs()), 2, '');
+
+        // Keep only significant decimals, padded up to a 2-decimal minimum.
+        $minFrac = min(2, $scale);
+        $frac = rtrim($frac, '0');
+        if (strlen($frac) < $minFrac) {
+            $frac = str_pad($frac, $minFrac, '0');
+        }
+
         $grouped = number_format((float) $whole, 0, '.', ',');
         $sign = $this->base->isNegative() ? '-' : '';
         $value = $frac === '' ? $grouped : "{$grouped}.{$frac}";

@@ -12,19 +12,21 @@ use Illuminate\Support\Facades\Route;
  * Traditional server-rendered pages + form-POST mutations that redirect back.
  */
 
-// Pages (server-rendered).
-Route::get('/cards', [CardsController::class, 'index'])->name('cards');
-Route::get('/cards/{card}', [CardManageController::class, 'index'])->name('cards.manage');
+// Cards list page + its mutations.
+Route::controller(CardsController::class)->group(function () {
+    Route::get('/cards', 'index')->name('cards');
+    Route::post('/cards', 'generate')->name('cards.generate');
+    Route::post('/cards/{card}/activate', 'activate')->name('cards.activate');
+    Route::post('/cards/{card}/freeze', 'toggleFreeze')->name('cards.freeze');
+});
 
-// Cards list mutations.
-Route::post('/cards', [CardsController::class, 'generate'])->name('cards.generate');
-Route::post('/cards/{card}/activate', [CardsController::class, 'activate'])->name('cards.activate');
-Route::post('/cards/{card}/freeze', [CardsController::class, 'toggleFreeze'])->name('cards.freeze');
-
-// Card management (detail) mutations.
-Route::put('/cards/{card}/controls', [CardManageController::class, 'saveControls'])->name('card.controls');
-Route::post('/cards/{card}/pin', [CardManageController::class, 'setPin'])->name('card.pin');
-Route::post('/cards/{card}/manage-freeze', [CardManageController::class, 'toggleFreeze'])->name('card.freeze');
-Route::post('/cards/{card}/replace', [CardManageController::class, 'replace'])->name('card.replace');
-Route::post('/cards/{card}/close', [CardManageController::class, 'close'])->name('card.close');
-Route::post('/cards/{card}/disputes', [CardManageController::class, 'submitDispute'])->name('card.dispute');
+// Card management (detail) page + its mutations.
+Route::controller(CardManageController::class)->group(function () {
+    Route::get('/cards/{card}', 'index')->name('cards.manage');
+    Route::put('/cards/{card}/controls', 'saveControls')->name('card.controls');
+    Route::post('/cards/{card}/pin', 'setPin')->name('card.pin');
+    Route::post('/cards/{card}/manage-freeze', 'toggleFreeze')->name('card.freeze');
+    Route::post('/cards/{card}/replace', 'replace')->name('card.replace');
+    Route::post('/cards/{card}/close', 'close')->name('card.close');
+    Route::post('/cards/{card}/disputes', 'submitDispute')->name('card.dispute');
+});

@@ -1,4 +1,4 @@
-<x-layouts.admin :title="'P2P Payment Methods'">
+<x-layouts.admin :title="__('P2P Payment Methods')">
     <div x-data="{
             open: {{ $errors->any() ? 'true' : 'false' }},
             base: '{{ route('admin.p2p-payment-methods') }}',
@@ -28,9 +28,9 @@
             addField() { this.fields.push({ key: '', label: '', required: false }); },
         }" class="space-y-6">
 
-        <x-ui.page-header title="P2P Payment Methods" subtitle="The rails users can save payout accounts on. Each method's fields define what a user must enter — “bank” can require more than a mobile wallet.">
+        <x-ui.page-header :title="__('P2P Payment Methods')" :subtitle="__('The rails users can save payout accounts on. Each method\'s fields define what a user must enter — “bank” can require more than a mobile wallet.')">
             <x-slot:actions>
-                <x-ui.button x-on:click="create()" icon="plus" size="sm">Add method</x-ui.button>
+                <x-ui.button x-on:click="create()" icon="plus" size="sm">{{ __('Add method') }}</x-ui.button>
             </x-slot:actions>
         </x-ui.page-header>
 
@@ -38,7 +38,7 @@
         @if (session('error'))<x-ui.alert type="error">{{ session('error') }}</x-ui.alert>@endif
 
         <x-ui.card class="p-0">
-            <x-ui.table :headers="['Method', 'Key', 'Type', 'Fields', 'Accounts', 'Status', '']">
+            <x-ui.table :headers="[__('Method'), __('Key'), __('Type'), __('Fields'), __('Accounts'), __('Status'), '']">
                 @forelse ($methods as $m)
                     <tr class="border-b border-gray-100">
                         <td class="px-4 py-3 font-medium">
@@ -48,20 +48,20 @@
                         <td class="px-4 py-3"><x-ui.badge color="gray">{{ ucfirst($m->type) }}</x-ui.badge></td>
                         <td class="px-4 py-3 text-gray-600">{{ count($m->fields ?? []) }}</td>
                         <td class="px-4 py-3 text-gray-600 tabular">{{ $m->user_accounts_count }}</td>
-                        <td class="px-4 py-3"><x-ui.badge :color="$m->is_active ? 'success' : 'gray'" dot>{{ $m->is_active ? 'Active' : 'Off' }}</x-ui.badge></td>
+                        <td class="px-4 py-3"><x-ui.badge :color="$m->is_active ? 'success' : 'gray'" dot>{{ $m->is_active ? __('Active') : __('Off') }}</x-ui.badge></td>
                         <td class="px-4 py-3">
                             <div class="flex items-center justify-end gap-2">
                                 <x-ui.button size="sm" variant="secondary" icon="pencil-square"
-                                    x-on:click="edit({{ Illuminate\Support\Js::from(['id' => (string) $m->id, 'name' => $m->name, 'key' => $m->key, 'type' => $m->type, 'country' => $m->country, 'sort' => (int) $m->sort, 'is_active' => (bool) $m->is_active, 'fields' => $m->fields ?? []]) }})">Edit</x-ui.button>
+                                    x-on:click="edit({{ Illuminate\Support\Js::from(['id' => (string) $m->id, 'name' => $m->name, 'key' => $m->key, 'type' => $m->type, 'country' => $m->country, 'sort' => (int) $m->sort, 'is_active' => (bool) $m->is_active, 'fields' => $m->fields ?? []]) }})">{{ __('Edit') }}</x-ui.button>
                                 <form method="POST" action="{{ route('admin.p2p-payment-methods.delete', $m) }}">
                                     @csrf @method('DELETE')
-                                    <x-ui.button type="submit" size="sm" variant="ghost" icon="trash" aria-label="Delete" />
+                                    <x-ui.button type="submit" size="sm" variant="ghost" icon="trash" aria-label="{{ __('Delete') }}" />
                                 </form>
                             </div>
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="7"><x-ui.empty-state icon="credit-card" title="No payment methods" description="Add the first rail users can save accounts on." /></td></tr>
+                    <tr><td colspan="7"><x-ui.empty-state icon="credit-card" :title="__('No payment methods')" :description="__('Add the first rail users can save accounts on.')" /></td></tr>
                 @endforelse
             </x-ui.table>
         </x-ui.card>

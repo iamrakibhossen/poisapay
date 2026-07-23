@@ -80,7 +80,7 @@ class ReviewKycAction
 
             $this->notifications->send($user, 'kyc.rejected', [
                 'reason' => $reason,
-            ], url: route('kyc'));
+            ], url: route('kyc.index'));
         });
     }
 }

@@ -1,41 +1,41 @@
-<x-layouts.app :title="'Cards'">
+<x-layouts.app :title="__('Cards')">
     <div class="space-y-6">
-        <x-ui.page-header title="Cards" subtitle="Spend your balance anywhere with a PoisaPay card.">
+        <x-ui.page-header :title="__('Cards')" :subtitle="__('Spend your balance anywhere with a PoisaPay card.')">
             @if ($canIssue && $canCreate)
                 <x-slot:actions>
-                    <x-ui.button icon="plus" x-on:click="$dispatch('open-modal', 'new-card')">New card</x-ui.button>
+                    <x-ui.button icon="plus" x-on:click="$dispatch('open-modal', 'new-card')">{{ __('New card') }}</x-ui.button>
                 </x-slot:actions>
             @endif
         </x-ui.page-header>
 
         {{-- Verification gate --}}
         @unless ($canIssue)
-            <x-ui.alert type="warning" title="Full verification required">
-                Cards are only available to fully verified accounts. Complete identity verification to unlock virtual and physical cards.
+            <x-ui.alert type="warning" :title="__('Full verification required')">
+                {{ __('Cards are only available to fully verified accounts. Complete identity verification to unlock virtual and physical cards.') }}
             </x-ui.alert>
             <x-ui.card>
-                <x-ui.empty-state icon="credit-card" title="No cards yet"
-                    description="Once you're fully verified, you can create a card instantly.">
+                <x-ui.empty-state icon="credit-card" :title="__('No cards yet')"
+                    :description="__('Once you\'re fully verified, you can create a card instantly.')">
                     <x-slot:action>
-                        <a href="{{ route('settings', ['tab' => 'verification']) }}">
-                            <x-ui.button icon="identification">Verify my identity</x-ui.button>
+                        <a href="{{ route('settings.index', ['tab' => 'verification']) }}">
+                            <x-ui.button icon="identification">{{ __('Verify my identity') }}</x-ui.button>
                         </a>
                     </x-slot:action>
                 </x-ui.empty-state>
             </x-ui.card>
         @else
             @unless ($canCreate)
-                <x-ui.alert type="warning">Card issuance is temporarily unavailable. Please check back soon.</x-ui.alert>
+                <x-ui.alert type="warning">{{ __('Card issuance is temporarily unavailable. Please check back soon.') }}</x-ui.alert>
             @endunless
 
             @if ($cards->isEmpty())
                 {{-- Hero empty state --}}
                 <x-ui.card>
-                    <x-ui.empty-state icon="credit-card" title="Create your first card"
-                        description="A virtual or physical card, spendable instantly from your balance. Freeze, set limits, and manage it any time.">
+                    <x-ui.empty-state icon="credit-card" :title="__('Create your first card')"
+                        :description="__('A virtual or physical card, spendable instantly from your balance. Freeze, set limits, and manage it any time.')">
                         @if ($canCreate)
                             <x-slot:action>
-                                <x-ui.button icon="plus" x-on:click="$dispatch('open-modal', 'new-card')">Create a card</x-ui.button>
+                                <x-ui.button icon="plus" x-on:click="$dispatch('open-modal', 'new-card')">{{ __('Create a card') }}</x-ui.button>
                             </x-slot:action>
                         @endif
                     </x-ui.empty-state>
@@ -44,9 +44,9 @@
                 {{-- Portfolio summary --}}
                 <div class="grid gap-4 sm:grid-cols-3">
                     @foreach ([
-                        ['label' => 'Spent this month', 'value' => $monthCurrency.' '.$monthSpent, 'icon' => 'banknotes', 'bg' => 'bg-brand-100', 'fg' => 'text-brand-600'],
-                        ['label' => 'Total cards', 'value' => $cards->count(), 'icon' => 'credit-card', 'bg' => 'bg-emerald-100', 'fg' => 'text-emerald-500'],
-                        ['label' => 'Active cards', 'value' => $activeCount, 'icon' => 'check-circle', 'bg' => 'bg-amber-100', 'fg' => 'text-amber-500'],
+                        ['label' => __('Spent this month'), 'value' => $monthCurrency.' '.$monthSpent, 'icon' => 'banknotes', 'bg' => 'bg-brand-100', 'fg' => 'text-brand-600'],
+                        ['label' => __('Total cards'), 'value' => $cards->count(), 'icon' => 'credit-card', 'bg' => 'bg-emerald-100', 'fg' => 'text-emerald-500'],
+                        ['label' => __('Active cards'), 'value' => $activeCount, 'icon' => 'check-circle', 'bg' => 'bg-amber-100', 'fg' => 'text-amber-500'],
                     ] as $stat)
                         <div class="pp-card group flex items-center gap-4 p-5 transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-pop)]">
                             <span class="grid h-12 w-12 shrink-0 place-items-center rounded-lg {{ $stat['bg'] }} {{ $stat['fg'] }}">
@@ -101,11 +101,11 @@
                                         <p class="tabular font-mono text-lg tracking-widest">•••• •••• •••• {{ $card->last4 }}</p>
                                         <div class="mt-3 flex items-end justify-between gap-2">
                                             <div class="min-w-0">
-                                                <p class="text-[9px] uppercase tracking-wider text-white/50">Card holder</p>
+                                                <p class="text-[9px] uppercase tracking-wider text-white/50">{{ __('Card holder') }}</p>
                                                 <p class="truncate text-xs font-medium uppercase tracking-wide text-white/90">{{ $card->nickname ?: $holderName }}</p>
                                             </div>
                                             <div class="shrink-0 text-center">
-                                                <p class="text-[9px] uppercase tracking-wider text-white/50">Valid thru</p>
+                                                <p class="text-[9px] uppercase tracking-wider text-white/50">{{ __('Valid thru') }}</p>
                                                 <p class="tabular text-xs font-medium text-white/90">{{ $expiry }}</p>
                                             </div>
                                             <span class="shrink-0 text-lg font-bold italic">{{ $card->network->label() }}</span>
@@ -119,23 +119,23 @@
                                 @if ($card->status === \App\Enums\CardStatus::Inactive)
                                     <form method="POST" action="{{ route('cards.activate', $card->id) }}" class="flex-1">
                                         @csrf
-                                        <x-ui.button type="submit" variant="success" size="sm" icon="power" class="w-full">Activate</x-ui.button>
+                                        <x-ui.button type="submit" variant="success" size="sm" icon="power" class="w-full">{{ __('Activate') }}</x-ui.button>
                                     </form>
                                 @elseif ($card->status === \App\Enums\CardStatus::Active)
                                     <form method="POST" action="{{ route('cards.freeze', $card->id) }}" class="flex-1">
                                         @csrf
-                                        <x-ui.button type="submit" variant="secondary" size="sm" icon="lock-closed" class="w-full">Freeze</x-ui.button>
+                                        <x-ui.button type="submit" variant="secondary" size="sm" icon="lock-closed" class="w-full">{{ __('Freeze') }}</x-ui.button>
                                     </form>
                                 @elseif ($card->status === \App\Enums\CardStatus::Frozen)
                                     <form method="POST" action="{{ route('cards.freeze', $card->id) }}" class="flex-1">
                                         @csrf
-                                        <x-ui.button type="submit" variant="secondary" size="sm" icon="lock-open" class="w-full">Unfreeze</x-ui.button>
+                                        <x-ui.button type="submit" variant="secondary" size="sm" icon="lock-open" class="w-full">{{ __('Unfreeze') }}</x-ui.button>
                                     </form>
                                 @else
-                                    <x-ui.button variant="ghost" size="sm" class="flex-1" disabled>Closed</x-ui.button>
+                                    <x-ui.button variant="ghost" size="sm" class="flex-1" disabled>{{ __('Closed') }}</x-ui.button>
                                 @endif
                                 <a href="{{ route('cards.manage', $card->id) }}" class="flex-1">
-                                    <x-ui.button variant="secondary" size="sm" icon="cog-6-tooth" class="w-full">Manage</x-ui.button>
+                                    <x-ui.button variant="secondary" size="sm" icon="cog-6-tooth" class="w-full">{{ __('Manage') }}</x-ui.button>
                                 </a>
                             </div>
                         </div>
@@ -145,20 +145,20 @@
 
             {{-- Create-card modal (segmented type selector; provider is chosen server-side) --}}
             @if ($canCreate)
-                <x-ui.modal name="new-card" title="Create a card" subtitle="Spendable instantly from your balance." maxWidth="sm">
+                <x-ui.modal name="new-card" :title="__('Create a card')" :subtitle="__('Spendable instantly from your balance.')" maxWidth="sm">
                     <form id="new-card-form" method="POST" action="{{ route('cards.generate') }}" x-data="{ type: 'virtual' }">
                         @csrf
                         <input type="hidden" name="cardType" :value="type">
 
-                        <p class="mb-2 text-sm font-medium text-slate-700">Card type</p>
+                        <p class="mb-2 text-sm font-medium text-slate-700">{{ __('Card type') }}</p>
                         <div class="grid {{ $supportsPhysical ? 'grid-cols-2' : 'grid-cols-1' }} gap-2.5">
                             <button type="button" x-on:click="type = 'virtual'"
                                 :class="type === 'virtual' ? 'border-slate-900 ring-1 ring-slate-900 bg-slate-50' : 'border-slate-200 hover:border-slate-300'"
                                 class="flex items-center gap-3 rounded-xl border p-3 text-left transition">
                                 <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-600"><x-heroicon-o-bolt class="h-5 w-5" /></span>
                                 <span class="min-w-0">
-                                    <span class="block text-sm font-semibold text-slate-900">Virtual</span>
-                                    <span class="block text-xs text-slate-500">Instant, use online now</span>
+                                    <span class="block text-sm font-semibold text-slate-900">{{ __('Virtual') }}</span>
+                                    <span class="block text-xs text-slate-500">{{ __('Instant, use online now') }}</span>
                                 </span>
                             </button>
                             @if ($supportsPhysical)
@@ -167,8 +167,8 @@
                                     class="flex items-center gap-3 rounded-xl border p-3 text-left transition">
                                     <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-600"><x-heroicon-o-credit-card class="h-5 w-5" /></span>
                                     <span class="min-w-0">
-                                        <span class="block text-sm font-semibold text-slate-900">Physical</span>
-                                        <span class="block text-xs text-slate-500">Shipped to you</span>
+                                        <span class="block text-sm font-semibold text-slate-900">{{ __('Physical') }}</span>
+                                        <span class="block text-xs text-slate-500">{{ __('Shipped to you') }}</span>
                                     </span>
                                 </button>
                             @endif
@@ -181,23 +181,23 @@
                         {{-- What you get --}}
                         <div class="mt-4 space-y-2 rounded-xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
                             @foreach ([
-                                ['bolt', 'Spendable instantly from your balance'],
-                                ['credit-card', $cardNetwork.' · settles in '.$settlementCurrency],
-                                ['adjustments-horizontal', 'Limits '.$settlementCurrency.' 5,000/day · 2,000/transaction'],
-                                ['lock-closed', 'Freeze, set a PIN & spend controls anytime'],
+                                ['bolt', __('Spendable instantly from your balance')],
+                                ['credit-card', $cardNetwork.' · '.__('settles in').' '.$settlementCurrency],
+                                ['adjustments-horizontal', __('Limits').' '.$settlementCurrency.' 5,000/day · 2,000/transaction'],
+                                ['lock-closed', __('Freeze, set a PIN & spend controls anytime')],
                             ] as [$ic, $txt])
                                 <div class="flex items-center gap-2.5 text-xs text-slate-600">
                                     <x-dynamic-component :component="'heroicon-o-'.$ic" class="h-4 w-4 shrink-0 text-slate-400" />
                                     <span>{{ $txt }}</span>
                                 </div>
                             @endforeach
-                            <p class="pt-1 text-[11px] text-slate-400">New cards start inactive — activate from your Cards list to use.</p>
+                            <p class="pt-1 text-[11px] text-slate-400">{{ __('New cards start inactive — activate from your Cards list to use.') }}</p>
                         </div>
                     </form>
 
                     <x-slot:footer>
-                        <x-ui.button type="button" variant="secondary" x-on:click="$dispatch('close-modal', 'new-card')">Cancel</x-ui.button>
-                        <x-ui.button type="submit" form="new-card-form" icon="plus">Create card</x-ui.button>
+                        <x-ui.button type="button" variant="secondary" x-on:click="$dispatch('close-modal', 'new-card')">{{ __('Cancel') }}</x-ui.button>
+                        <x-ui.button type="submit" form="new-card-form" icon="plus">{{ __('Create card') }}</x-ui.button>
                     </x-slot:footer>
                 </x-ui.modal>
 

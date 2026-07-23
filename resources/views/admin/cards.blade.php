@@ -1,36 +1,36 @@
-<x-layouts.admin :title="'Issued Cards'">
+<x-layouts.admin :title="__('Issued Cards')">
     <div class="space-y-6" x-data="{ viewingId: null }">
-        <x-ui.page-header title="Issued Cards" subtitle="Every card the platform has provisioned. Freeze, inspect authorisations and post refunds." />
+        <x-ui.page-header :title="__('Issued Cards')" :subtitle="__('Every card the platform has provisioned. Freeze, inspect authorisations and post refunds.')" />
 
         {{-- Stat cards --}}
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <x-ui.stat-card label="Total cards" :value="number_format($stats['total'])" icon="credit-card" accent="brand" />
-            <x-ui.stat-card label="Active" :value="number_format($stats['active'])" icon="check-circle" accent="emerald" />
-            <x-ui.stat-card label="Frozen" :value="number_format($stats['frozen'])" icon="lock-closed" accent="amber" />
-            <x-ui.stat-card label="Settled spend (this month)" :value="number_format($stats['spend'] / 100, 2)" icon="banknotes" accent="brand" />
+            <x-ui.stat-card :label="__('Total cards')" :value="number_format($stats['total'])" icon="credit-card" accent="brand" />
+            <x-ui.stat-card :label="__('Active')" :value="number_format($stats['active'])" icon="check-circle" accent="emerald" />
+            <x-ui.stat-card :label="__('Frozen')" :value="number_format($stats['frozen'])" icon="lock-closed" accent="amber" />
+            <x-ui.stat-card :label="__('Settled spend (this month)')" :value="number_format($stats['spend'] / 100, 2)" icon="banknotes" accent="brand" />
         </div>
 
         {{-- Filters --}}
         <form method="GET" action="{{ route('admin.cards') }}" class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex flex-wrap gap-2">
                 <x-ui.select name="status" class="w-auto" onchange="this.form.submit()">
-                    <option value="all" @selected($status === 'all')>All statuses</option>
-                    <option value="inactive" @selected($status === 'inactive')>Inactive</option>
-                    <option value="active" @selected($status === 'active')>Active</option>
-                    <option value="frozen" @selected($status === 'frozen')>Frozen</option>
-                    <option value="closed" @selected($status === 'closed')>Closed</option>
+                    <option value="all" @selected($status === 'all')>{{ __('All statuses') }}</option>
+                    <option value="inactive" @selected($status === 'inactive')>{{ __('Inactive') }}</option>
+                    <option value="active" @selected($status === 'active')>{{ __('Active') }}</option>
+                    <option value="frozen" @selected($status === 'frozen')>{{ __('Frozen') }}</option>
+                    <option value="closed" @selected($status === 'closed')>{{ __('Closed') }}</option>
                 </x-ui.select>
                 <x-ui.select name="type" class="w-auto" onchange="this.form.submit()">
-                    <option value="all" @selected($type === 'all')>All types</option>
-                    <option value="virtual" @selected($type === 'virtual')>Virtual</option>
-                    <option value="physical" @selected($type === 'physical')>Physical</option>
+                    <option value="all" @selected($type === 'all')>{{ __('All types') }}</option>
+                    <option value="virtual" @selected($type === 'virtual')>{{ __('Virtual') }}</option>
+                    <option value="physical" @selected($type === 'physical')>{{ __('Physical') }}</option>
                 </x-ui.select>
             </div>
 
-            <x-ui.input name="search" :value="$search" icon="magnifying-glass" placeholder="Search name, email or last4…" class="w-full sm:w-72" />
+            <x-ui.input name="search" :value="$search" icon="magnifying-glass" :placeholder="__('Search name, email or last4…')" class="w-full sm:w-72" />
         </form>
 
-        <x-ui.table :headers="['Cardholder', 'Card', 'Network', 'Type', 'Status', 'Limits', 'Created', '']">
+        <x-ui.table :headers="[__('Cardholder'), __('Card'), __('Network'), __('Type'), __('Status'), __('Limits'), __('Created'), '']">
             @forelse ($cards as $card)
                 <tr class="border-b border-gray-200 hover:bg-gray-100">
                     <td class="px-3 py-3">
@@ -50,17 +50,17 @@
                     <td class="px-3 py-3"><x-ui.badge :color="$card->type->color()">{{ $card->type->label() }}</x-ui.badge></td>
                     <td class="px-3 py-3"><x-ui.badge :color="$card->status->color()" dot>{{ $card->status->label() }}</x-ui.badge></td>
                     <td class="px-3 py-3 text-sm text-neutral-600">
-                        <span class="tabular">{{ number_format($card->daily_limit / 100, 2) }}</span> / day<br>
-                        <span class="tabular">{{ number_format($card->per_tx_limit / 100, 2) }}</span> / tx
+                        <span class="tabular">{{ number_format($card->daily_limit / 100, 2) }}</span> {{ __('/ day') }}<br>
+                        <span class="tabular">{{ number_format($card->per_tx_limit / 100, 2) }}</span> {{ __('/ tx') }}
                         <span class="text-xs text-neutral-400">{{ $card->settlement_currency }}</span>
                     </td>
                     <td class="px-3 py-3 text-sm text-neutral-500">{{ $card->created_at?->diffForHumans() }}</td>
                     <td class="px-3 py-3 text-right">
-                        <x-ui.button type="button" x-on:click="viewingId = '{{ $card->id }}'" variant="secondary" size="sm" icon="eye">View</x-ui.button>
+                        <x-ui.button type="button" x-on:click="viewingId = '{{ $card->id }}'" variant="secondary" size="sm" icon="eye">{{ __('View') }}</x-ui.button>
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="8"><x-ui.empty-state icon="credit-card" title="No cards" description="No issued cards match your filters." /></td></tr>
+                <tr><td colspan="8"><x-ui.empty-state icon="credit-card" :title="__('No cards')" :description="__('No issued cards match your filters.')" /></td></tr>
             @endforelse
         </x-ui.table>
 
@@ -93,9 +93,9 @@
                                         onsubmit="return confirm('{{ $card->status->value === 'frozen' ? 'Unfreeze this card and allow spending again?' : 'Freeze this card and block spending?' }}')">
                                         @csrf
                                         @if ($card->status->value === 'frozen')
-                                            <x-ui.button type="submit" variant="secondary" size="sm" icon="lock-open">Unfreeze</x-ui.button>
+                                            <x-ui.button type="submit" variant="secondary" size="sm" icon="lock-open">{{ __('Unfreeze') }}</x-ui.button>
                                         @else
-                                            <x-ui.button type="submit" variant="danger" size="sm" icon="lock-closed">Freeze</x-ui.button>
+                                            <x-ui.button type="submit" variant="danger" size="sm" icon="lock-closed">{{ __('Freeze') }}</x-ui.button>
                                         @endif
                                     </form>
                                 </div>
@@ -103,9 +103,9 @@
                         @endif
                     </div>
 
-                    <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">Recent authorisations</p>
+                    <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">{{ __('Recent authorisations') }}</p>
                     <div class="min-h-0 flex-1 overflow-y-auto">
-                        <x-ui.table :headers="['Merchant', 'Amount', 'MCC', 'Status', 'Date', '']">
+                        <x-ui.table :headers="[__('Merchant'), __('Amount'), __('MCC'), __('Status'), __('Date'), '']">
                             @forelse (($authorizations[$card->id] ?? collect())->take(20) as $auth)
                                 <tr class="border-b border-gray-200 hover:bg-gray-100">
                                     <td class="px-3 py-2.5 text-sm text-neutral-800">{{ $auth->merchant ?? '—' }}</td>
@@ -118,7 +118,7 @@
                                             <form method="POST" action="{{ route('admin.cards.refund', $auth->id) }}"
                                                 onsubmit="return confirm('Post a FULL refund for this settled purchase? This moves money back to the cardholder.')">
                                                 @csrf
-                                                <x-ui.button type="submit" variant="secondary" size="sm" icon="arrow-uturn-left">Refund</x-ui.button>
+                                                <x-ui.button type="submit" variant="secondary" size="sm" icon="arrow-uturn-left">{{ __('Refund') }}</x-ui.button>
                                             </form>
                                         @else
                                             <span class="text-xs text-neutral-300">—</span>
@@ -126,13 +126,13 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="6"><x-ui.empty-state icon="receipt-percent" title="No authorisations" description="This card has no activity yet." /></td></tr>
+                                <tr><td colspan="6"><x-ui.empty-state icon="receipt-percent" :title="__('No authorisations')" :description="__('This card has no activity yet.')" /></td></tr>
                             @endforelse
                         </x-ui.table>
                     </div>
 
                     <div class="mt-4 flex justify-end">
-                        <x-ui.button type="button" variant="secondary" x-on:click="viewingId = null">Close</x-ui.button>
+                        <x-ui.button type="button" variant="secondary" x-on:click="viewingId = null">{{ __('Close') }}</x-ui.button>
                     </div>
                 </div>
             </div>

@@ -1,1 +1,1 @@
-<x-layouts.app :title="'Loading'"><div class="py-12 text-center text-neutral-400">Loading…</div></x-layouts.app>
+<x-layouts.app :title="__('Loading')"><div class="py-12 text-center text-neutral-400">{{ __('Loading…') }}</div></x-layouts.app>

@@ -37,19 +37,19 @@ it('groups a coin across its funded networks and resolves a chosen network', fun
     creditUser($this->user, $usdtEth, '3000000');
 
     // Step 1: coin grid shows the coin with its network count.
-    actingAs($this->user)->get(route('withdraw'))
+    actingAs($this->user)->get(route('withdraw.index'))
         ->assertOk()
         ->assertSee('USDT')
         ->assertSee('2 networks');
 
     // Step 2: the network list shows both chains.
-    actingAs($this->user)->get(route('withdraw', ['coin' => 'USDT']))
+    actingAs($this->user)->get(route('withdraw.index', ['coin' => 'USDT']))
         ->assertOk()
         ->assertSee('Tron')
         ->assertSee('Ethereum');
 
     // Step 3: the chosen network resolves and renders its detail form.
-    actingAs($this->user)->get(route('withdraw', ['coin' => 'USDT', 'asset' => $usdtEth->id]))
+    actingAs($this->user)->get(route('withdraw.index', ['coin' => 'USDT', 'asset' => $usdtEth->id]))
         ->assertOk()
         ->assertSee('Ethereum network');
 });
@@ -60,7 +60,7 @@ it('withdraws on a network, reserving funds (available -> locked)', function () 
 
     actingAs($this->user)->post(route('withdraw.submit'), [
         'assetId' => $usdt->id, 'toAddress' => 'TdestAddress123', 'amount' => '2',
-    ])->assertRedirect(route('withdraw'))->assertSessionHas('success');
+    ])->assertRedirect(route('withdraw.index'))->assertSessionHas('success');
 
     // 2 USDT reserved (available 5 → 3).
     expect($this->ledger->availableBalance($this->user, $usdt->id)->baseString())->toBe('3000000');

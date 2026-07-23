@@ -12,7 +12,7 @@ beforeEach(function () {
 });
 
 it('renders the settings page via a controller (no Livewire)', function () {
-    actingAs($this->user)->get(route('settings'))
+    actingAs($this->user)->get(route('settings.index'))
         ->assertOk()
         ->assertSee('Settings')
         ->assertSee('Profile')
@@ -22,7 +22,7 @@ it('renders the settings page via a controller (no Livewire)', function () {
 it('saves the profile and redirects with a flash message', function () {
     actingAs($this->user)->put(route('settings.profile'), [
         'name' => 'New Name', 'phone' => '+8801711000000', 'baseCurrency' => 'USD', 'timezone' => 'UTC',
-    ])->assertRedirect(route('settings', ['tab' => 'profile']))->assertSessionHas('success');
+    ])->assertRedirect(route('settings.index', ['tab' => 'profile']))->assertSessionHas('success');
 
     $fresh = $this->user->fresh();
     expect($fresh->name)->toBe('New Name')
@@ -38,11 +38,11 @@ it('validates the profile name', function () {
 
 it('starts 2FA enrolment flashing a QR and recovery codes', function () {
     actingAs($this->user)->post(route('settings.2fa.enable'))
-        ->assertRedirect(route('settings', ['tab' => 'security']))
+        ->assertRedirect(route('settings.index', ['tab' => 'security']))
         ->assertSessionHas('twoFactorSetup');
 
     // The flashed setup renders on the security tab.
-    actingAs($this->user)->get(route('settings', ['tab' => 'security']))->assertOk()->assertSee('Recovery codes');
+    actingAs($this->user)->get(route('settings.index', ['tab' => 'security']))->assertOk()->assertSee('Recovery codes');
 });
 
 it('rejects confirming 2FA with an empty code', function () {
@@ -62,11 +62,11 @@ it('revokes a device scoped to the owner and redirects', function () {
     ]);
 
     actingAs($this->user)->delete(route('settings.device.revoke', $device->id))
-        ->assertRedirect(route('settings', ['tab' => 'devices']))->assertSessionHas('success');
+        ->assertRedirect(route('settings.index', ['tab' => 'devices']))->assertSessionHas('success');
 
     expect(UserDevice::whereKey($device->id)->exists())->toBeFalse();
 });
 
 it('requires authentication for the settings page', function () {
-    $this->get(route('settings'))->assertRedirect(route('login'));
+    $this->get(route('settings.index'))->assertRedirect(route('login'));
 });

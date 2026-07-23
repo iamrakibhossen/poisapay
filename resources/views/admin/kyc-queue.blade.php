@@ -1,6 +1,6 @@
-<x-layouts.admin :title="'KYC Queue'">
+<x-layouts.admin :title="__('KYC Queue')">
     <div class="space-y-6" x-data="{ rejectingId: null }">
-        <x-ui.page-header title="KYC Queue" subtitle="Review identity submissions and gate money-movement access." />
+        <x-ui.page-header :title="__('KYC Queue')" :subtitle="__('Review identity submissions and gate money-movement access.')" />
 
         {{-- Status tabs (query-string filter) --}}
         <div class="flex flex-wrap gap-1 rounded-xl bg-neutral-100 p-1">
@@ -17,7 +17,7 @@
             @endforeach
         </div>
 
-        <x-ui.table :headers="['Applicant', 'Requested tier', 'Document', 'Status', 'Submitted', '']">
+        <x-ui.table :headers="[__('Applicant'), __('Requested tier'), __('Document'), __('Status'), __('Submitted'), '']">
             @forelse ($profiles as $profile)
                 <tr class="hover:bg-neutral-50">
                     <td class="px-4 py-3">
@@ -38,19 +38,19 @@
                     <td class="px-4 py-3 text-sm text-neutral-500">{{ $profile->created_at->diffForHumans() }}</td>
                     <td class="px-4 py-3 text-right">
                         <div class="flex justify-end gap-2">
-                            <x-ui.button href="{{ route('admin.kyc.show', $profile->id) }}" variant="secondary" size="sm" icon="eye">Review</x-ui.button>
+                            <x-ui.button href="{{ route('admin.kyc.show', $profile->id) }}" variant="secondary" size="sm" icon="eye">{{ __('Review') }}</x-ui.button>
                             @if ($profile->status->value === 'pending')
                                 <form method="POST" action="{{ route('admin.kyc.approve', $profile->id) }}"
-                                    onsubmit="return confirm('Approve this applicant to {{ $profile->requested_tier->label() }}?')">
+                                    onsubmit="return confirm('{{ __('Approve this applicant to') }} {{ $profile->requested_tier->label() }}?')">
                                     @csrf
-                                    <x-ui.button type="submit" variant="success" size="sm" icon="check">Approve</x-ui.button>
+                                    <x-ui.button type="submit" variant="success" size="sm" icon="check">{{ __('Approve') }}</x-ui.button>
                                 </form>
                             @endif
                         </div>
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="6"><x-ui.empty-state icon="identification" title="No submissions" description="Nothing in this queue." /></td></tr>
+                <tr><td colspan="6"><x-ui.empty-state icon="identification" :title="__('No submissions')" :description="__('Nothing in this queue.')" /></td></tr>
             @endforelse
         </x-ui.table>
 
@@ -63,16 +63,16 @@
                     <div class="fixed inset-0 bg-gray-500/60" x-on:click="rejectingId = null"></div>
                     <div class="relative w-full max-w-md pp-card p-6" role="dialog" aria-modal="true">
                         <div class="mb-4 flex items-center justify-between">
-                            <h3 class="text-lg font-semibold text-neutral-900">Reject verification</h3>
+                            <h3 class="text-lg font-semibold text-neutral-900">{{ __('Reject verification') }}</h3>
                             <button type="button" x-on:click="rejectingId = null" class="rounded-lg p-1 text-neutral-400 hover:bg-neutral-100"><x-heroicon-o-x-mark class="h-5 w-5" /></button>
                         </div>
                         <form method="POST" action="{{ route('admin.kyc.reject', $profile->id) }}" class="space-y-4">
                             @csrf
-                            <p class="text-sm text-neutral-500">Provide a reason. The applicant will be notified and can resubmit.</p>
-                            <x-ui.textarea label="Reason" name="rejectReason" :rows="3" placeholder="Document unreadable / details mismatch…" :error="$errors->first('rejectReason')" />
+                            <p class="text-sm text-neutral-500">{{ __('Provide a reason. The applicant will be notified and can resubmit.') }}</p>
+                            <x-ui.textarea :label="__('Reason')" name="rejectReason" :rows="3" :placeholder="__('Document unreadable / details mismatch…')" :error="$errors->first('rejectReason')" />
                             <div class="flex justify-end gap-2">
-                                <x-ui.button type="button" variant="secondary" x-on:click="rejectingId = null">Cancel</x-ui.button>
-                                <x-ui.button type="submit" variant="danger">Reject verification</x-ui.button>
+                                <x-ui.button type="button" variant="secondary" x-on:click="rejectingId = null">{{ __('Cancel') }}</x-ui.button>
+                                <x-ui.button type="submit" variant="danger">{{ __('Reject verification') }}</x-ui.button>
                             </div>
                         </form>
                     </div>

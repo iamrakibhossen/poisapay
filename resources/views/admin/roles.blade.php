@@ -1,4 +1,4 @@
-<x-layouts.admin :title="'Roles & Permissions'">
+<x-layouts.admin :title="__('Roles & Permissions')">
     {{-- Alpine is light UI only: modal open/close + prefill for edit. The form POSTs traditionally. --}}
     <div x-data="{
             open: {{ $errors->any() ? 'true' : 'false' }},
@@ -18,24 +18,24 @@
                 this.open = true;
             },
         }" class="space-y-6">
-        <x-ui.page-header title="Roles & Permissions" subtitle="Operator roles and the permissions they grant on the admin guard.">
+        <x-ui.page-header :title="__('Roles & Permissions')" :subtitle="__('Operator roles and the permissions they grant on the admin guard.')">
             <x-slot:actions>
-                <x-ui.button x-on:click="create()" icon="plus" size="sm">Add role</x-ui.button>
+                <x-ui.button x-on:click="create()" icon="plus" size="sm">{{ __('Add role') }}</x-ui.button>
             </x-slot:actions>
         </x-ui.page-header>
 
-        <x-ui.table :headers="['Role', 'Permissions', 'Admins', 'Created', '']">
+        <x-ui.table :headers="[__('Role'), __('Permissions'), __('Admins'), __('Created'), '']">
             @forelse ($roles as $role)
                 <tr class="border-b border-gray-200 hover:bg-gray-100">
                     <td class="px-4 py-3">
                         <p class="text-sm font-semibold text-neutral-900">{{ $role->name }}</p>
                         @if (in_array($role->name, $protectedRoles, true))
-                            <p class="text-xs text-neutral-400">System role</p>
+                            <p class="text-xs text-neutral-400">{{ __('System role') }}</p>
                         @endif
                     </td>
                     <td class="px-4 py-3">
                         @if ($role->name === 'super-admin')
-                            <x-ui.badge color="warning">All permissions</x-ui.badge>
+                            <x-ui.badge color="warning">{{ __('All permissions') }}</x-ui.badge>
                         @else
                             <x-ui.badge color="info">{{ $role->permissions_count }}</x-ui.badge>
                         @endif
@@ -45,19 +45,19 @@
                     <td class="px-4 py-3">
                         <div class="flex justify-end gap-2">
                             <x-ui.button variant="secondary" size="sm" icon="pencil-square"
-                                x-on:click="edit({{ Illuminate\Support\Js::from(['id' => (string) $role->id, 'name' => $role->name, 'permissions' => $role->permissions->pluck('name')->all()]) }})">Edit</x-ui.button>
+                                x-on:click="edit({{ Illuminate\Support\Js::from(['id' => (string) $role->id, 'name' => $role->name, 'permissions' => $role->permissions->pluck('name')->all()]) }})">{{ __('Edit') }}</x-ui.button>
                             @unless (in_array($role->name, $protectedRoles, true))
                                 <form method="POST" action="{{ route('admin.roles.delete', $role->id) }}" onsubmit="return confirm('Delete the {{ $role->name }} role?')">
                                     @csrf
                                     @method('DELETE')
-                                    <x-ui.button type="submit" variant="danger" size="sm" icon="trash">Delete</x-ui.button>
+                                    <x-ui.button type="submit" variant="danger" size="sm" icon="trash">{{ __('Delete') }}</x-ui.button>
                                 </form>
                             @endunless
                         </div>
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="5"><x-ui.empty-state icon="shield-check" title="No roles" description="Create a role to grant operators scoped permissions." /></td></tr>
+                <tr><td colspan="5"><x-ui.empty-state icon="shield-check" :title="__('No roles')" :description="__('Create a role to grant operators scoped permissions.')" /></td></tr>
             @endforelse
         </x-ui.table>
 
@@ -72,10 +72,10 @@
                 <form method="POST" action="{{ route('admin.roles.save') }}" class="flex min-h-0 flex-1 flex-col space-y-4">
                     @csrf
                     <input type="hidden" name="id" :value="editingId" />
-                    <x-ui.input label="Role name" name="name" x-model="name" placeholder="e.g. support-lead" hint="Lowercase letters, numbers and dashes." :error="$errors->first('name')" />
+                    <x-ui.input :label="__('Role name')" name="name" x-model="name" :placeholder="__('e.g. support-lead')" :hint="__('Lowercase letters, numbers and dashes.')" :error="$errors->first('name')" />
 
                     <div class="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
-                        <label class="pp-label">Permissions</label>
+                        <label class="pp-label">{{ __('Permissions') }}</label>
                         @foreach ($permissionGroups as $group => $permissions)
                             <div x-data="{
                                     names: @js($permissions->pluck('name')->all()),
@@ -94,7 +94,7 @@
                                     <h4 class="text-sm font-semibold text-neutral-700">{{ $group }}</h4>
                                     <label class="inline-flex cursor-pointer items-center gap-1.5 text-xs text-neutral-500">
                                         <input type="checkbox" :checked="allChecked" @change="toggleAll($event)" class="h-3.5 w-3.5 rounded border-neutral-300 text-brand-500 focus:ring-brand-500">
-                                        Select all
+                                        {{ __('Select all') }}
                                     </label>
                                 </div>
                                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -110,7 +110,7 @@
                     </div>
 
                     <div class="flex justify-end gap-2 border-t border-gray-100 pt-4">
-                        <x-ui.button type="button" variant="secondary" x-on:click="open = false">Cancel</x-ui.button>
+                        <x-ui.button type="button" variant="secondary" x-on:click="open = false">{{ __('Cancel') }}</x-ui.button>
                         <x-ui.button type="submit" x-text="editingId ? 'Save changes' : 'Add role'"></x-ui.button>
                     </div>
                 </form>

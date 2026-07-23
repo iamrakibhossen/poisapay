@@ -104,7 +104,7 @@ class SettingsController extends Controller
         $user->timezone = $validated['timezone'];
         $user->save();
 
-        return redirect()->route('settings', ['tab' => 'profile'])->with('success', 'Profile updated.');
+        return redirect()->route('settings.index', ['tab' => 'profile'])->with('success', 'Profile updated.');
     }
 
     public function updatePassword(Request $request): RedirectResponse
@@ -117,7 +117,7 @@ class SettingsController extends Controller
         $request->user()->update(['password' => Hash::make($validated['password'])]);
         ActivityLogger::log('security.password.updated', null, [], actor: $request->user());
 
-        return redirect()->route('settings', ['tab' => 'password'])->with('success', 'Password updated.');
+        return redirect()->route('settings.index', ['tab' => 'password'])->with('success', 'Password updated.');
     }
 
     public function enableTwoFactor(Request $request, TwoFactorService $twoFactor): RedirectResponse
@@ -125,7 +125,7 @@ class SettingsController extends Controller
         $result = $twoFactor->enable($request->user());
 
         // Secret QR + recovery codes are shown once, during enrolment — flashed to the session.
-        return redirect()->route('settings', ['tab' => 'security'])->with('twoFactorSetup', [
+        return redirect()->route('settings.index', ['tab' => 'security'])->with('twoFactorSetup', [
             'qr' => $result['qr_svg'],
             'recoveryCodes' => $result['recovery_codes'],
         ]);
@@ -141,14 +141,14 @@ class SettingsController extends Controller
             throw ValidationException::withMessages(['confirmCode' => 'That code is invalid. Please try again.']);
         }
 
-        return redirect()->route('settings', ['tab' => 'security'])->with('success', 'Two-factor authentication enabled.');
+        return redirect()->route('settings.index', ['tab' => 'security'])->with('success', 'Two-factor authentication enabled.');
     }
 
     public function disableTwoFactor(Request $request, TwoFactorService $twoFactor): RedirectResponse
     {
         $twoFactor->disable($request->user());
 
-        return redirect()->route('settings', ['tab' => 'security'])->with('success', 'Two-factor authentication disabled.');
+        return redirect()->route('settings.index', ['tab' => 'security'])->with('success', 'Two-factor authentication disabled.');
     }
 
     public function sendPhoneOtp(Request $request, OtpService $otp): RedirectResponse
@@ -160,7 +160,7 @@ class SettingsController extends Controller
 
         $otp->request($user->phone, 'sms', 'verify');
 
-        return redirect()->route('settings', ['tab' => 'security'])->with('success', 'Verification code sent.')->with('otpSent', true);
+        return redirect()->route('settings.index', ['tab' => 'security'])->with('success', 'Verification code sent.')->with('otpSent', true);
     }
 
     public function verifyPhone(Request $request, OtpService $otp): RedirectResponse
@@ -179,7 +179,7 @@ class SettingsController extends Controller
         $user->save();
         ActivityLogger::log('phone.verified', $user);
 
-        return redirect()->route('settings', ['tab' => 'security'])->with('success', 'Phone number verified.');
+        return redirect()->route('settings.index', ['tab' => 'security'])->with('success', 'Phone number verified.');
     }
 
     public function revokeDevice(Request $request, string $id): RedirectResponse
@@ -190,6 +190,6 @@ class SettingsController extends Controller
             ActivityLogger::log('device.revoked', $device);
         }
 
-        return redirect()->route('settings', ['tab' => 'devices'])->with('success', 'Device revoked.');
+        return redirect()->route('settings.index', ['tab' => 'devices'])->with('success', 'Device revoked.');
     }
 }

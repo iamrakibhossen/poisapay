@@ -1,4 +1,4 @@
-<x-layouts.admin :title="'Assets & chains'">
+<x-layouts.admin :title="__('Assets & chains')">
     @php
         // Which modal (if any) to reopen after a validation error: the network form
         // carries currency_id; the coin form does not.
@@ -48,16 +48,16 @@
                 this.netOpen = true;
             },
         }" class="space-y-8">
-        <x-ui.page-header title="Assets &amp; chains" subtitle="One coin, many networks — each coin settles on one or more chains.">
+        <x-ui.page-header :title="__('Assets & chains')" :subtitle="__('One coin, many networks — each coin settles on one or more chains.')">
             <x-slot:actions>
-                <x-ui.button x-on:click="newCoin()" variant="primary" size="sm" icon="plus">New coin</x-ui.button>
+                <x-ui.button x-on:click="newCoin()" variant="primary" size="sm" icon="plus">{{ __('New coin') }}</x-ui.button>
             </x-slot:actions>
         </x-ui.page-header>
 
         {{-- Coins, each grouping its per-chain network rows --}}
         <div class="space-y-3">
-            <h3 class="text-base font-semibold text-neutral-900">Coins</h3>
-            <x-ui.table :headers="['Coin / network', 'Contract', 'Decimals', 'Withdrawal fee', 'Active', '']">
+            <h3 class="text-base font-semibold text-neutral-900">{{ __('Coins') }}</h3>
+            <x-ui.table :headers="[__('Coin / network'), __('Contract'), __('Decimals'), __('Withdrawal fee'), __('Active'), '']">
                 @forelse ($currencies as $currency)
                     @php
                         $coinJson = ['id' => $currency->id, 'symbol' => $currency->symbol, 'name' => $currency->name, 'kind' => $currency->kind->value, 'currency_code' => $currency->currency_code, 'is_stablecoin' => (bool) $currency->is_stablecoin, 'sort' => $currency->sort, 'is_active' => (bool) $currency->is_active];
@@ -71,7 +71,7 @@
                                 <span class="text-sm font-bold text-neutral-900">{{ $currency->symbol }}</span>
                                 <span class="text-sm text-neutral-500">{{ $currency->name }}</span>
                                 <x-ui.badge :color="$currency->kind->color()">{{ $currency->kind->label() }}</x-ui.badge>
-                                @if ($currency->is_stablecoin)<x-ui.badge color="info">Stablecoin</x-ui.badge>@endif
+                                @if ($currency->is_stablecoin)<x-ui.badge color="info">{{ __('Stablecoin') }}</x-ui.badge>@endif
                                 <span class="rounded-full bg-neutral-200 px-2 py-0.5 text-xs font-medium text-neutral-600">
                                     {{ $currency->assets->count() }} {{ Str::plural('network', $currency->assets->count()) }}
                                 </span>
@@ -80,15 +80,15 @@
                         <td class="px-4 py-2.5">
                             <form method="POST" action="{{ route('admin.currencies.toggle', $currency->id) }}">
                                 @csrf
-                                <button type="submit" title="Toggle coin active">
-                                    <x-ui.badge :color="$currency->is_active ? 'success' : 'gray'" dot>{{ $currency->is_active ? 'Active' : 'Inactive' }}</x-ui.badge>
+                                <button type="submit" title="{{ __('Toggle coin active') }}">
+                                    <x-ui.badge :color="$currency->is_active ? 'success' : 'gray'" dot>{{ $currency->is_active ? __('Active') : __('Inactive') }}</x-ui.badge>
                                 </button>
                             </form>
                         </td>
                         <td class="px-4 py-2.5 text-right">
                             <div class="flex justify-end gap-1.5">
-                                <x-ui.button variant="ghost" size="sm" icon="pencil-square" x-on:click="editCoin({{ Illuminate\Support\Js::from($coinJson) }})">Edit coin</x-ui.button>
-                                <x-ui.button variant="ghost" size="sm" icon="plus" x-on:click="addNetwork({{ Illuminate\Support\Js::from($coinJson) }})">Add network</x-ui.button>
+                                <x-ui.button variant="ghost" size="sm" icon="pencil-square" x-on:click="editCoin({{ Illuminate\Support\Js::from($coinJson) }})">{{ __('Edit coin') }}</x-ui.button>
+                                <x-ui.button variant="ghost" size="sm" icon="plus" x-on:click="addNetwork({{ Illuminate\Support\Js::from($coinJson) }})">{{ __('Add network') }}</x-ui.button>
                             </div>
                         </td>
                     </tr>
@@ -102,9 +102,9 @@
                                     @if ($asset->chain)
                                         <span class="text-sm font-medium text-neutral-800">{{ $asset->chain->name }}</span>
                                     @elseif ($asset->kind->value === 'fiat')
-                                        <span class="text-sm font-medium text-neutral-800">Fiat{{ $asset->currency_code ? ' · '.$asset->currency_code : '' }}</span>
+                                        <span class="text-sm font-medium text-neutral-800">{{ __('Fiat') }}{{ $asset->currency_code ? ' · '.$asset->currency_code : '' }}</span>
                                     @else
-                                        <span class="text-sm text-neutral-400">No chain</span>
+                                        <span class="text-sm text-neutral-400">{{ __('No chain') }}</span>
                                     @endif
                                 </div>
                             </td>
@@ -120,33 +120,33 @@
                             <td class="px-4 py-3">
                                 <form method="POST" action="{{ route('admin.assets.toggle', $asset->id) }}">
                                     @csrf
-                                    <button type="submit" title="Toggle network active">
-                                        <x-ui.badge :color="$asset->is_active ? 'success' : 'gray'" dot>{{ $asset->is_active ? 'Active' : 'Inactive' }}</x-ui.badge>
+                                    <button type="submit" title="{{ __('Toggle network active') }}">
+                                        <x-ui.badge :color="$asset->is_active ? 'success' : 'gray'" dot>{{ $asset->is_active ? __('Active') : __('Inactive') }}</x-ui.badge>
                                     </button>
                                 </form>
                             </td>
                             <td class="px-4 py-3 text-right">
                                 <x-ui.button variant="ghost" size="sm" icon="pencil-square"
-                                    x-on:click="editNetwork({{ Illuminate\Support\Js::from(['id' => $asset->id, 'currency_id' => $asset->currency_id, 'symbol' => $asset->symbol, 'chain_id' => $asset->chain_id, 'contract_address' => $asset->contract_address, 'decimals' => $asset->decimals, 'withdrawal_min' => (string) ($asset->withdrawal_min ?? '0'), 'withdrawal_fee' => (string) ($asset->withdrawal_fee ?? '0'), 'sort' => $asset->sort, 'is_active' => (bool) $asset->is_active]) }})">Edit</x-ui.button>
+                                    x-on:click="editNetwork({{ Illuminate\Support\Js::from(['id' => $asset->id, 'currency_id' => $asset->currency_id, 'symbol' => $asset->symbol, 'chain_id' => $asset->chain_id, 'contract_address' => $asset->contract_address, 'decimals' => $asset->decimals, 'withdrawal_min' => (string) ($asset->withdrawal_min ?? '0'), 'withdrawal_fee' => (string) ($asset->withdrawal_fee ?? '0'), 'sort' => $asset->sort, 'is_active' => (bool) $asset->is_active]) }})">{{ __('Edit') }}</x-ui.button>
                             </td>
                         </tr>
                     @empty
                         <tr>
                             <td class="py-3 pl-10 pr-4 text-sm text-neutral-400" colspan="6">
-                                No networks yet — <button type="button" class="font-medium text-brand-700 hover:underline" x-on:click="addNetwork({{ Illuminate\Support\Js::from($coinJson) }})">add one</button>.
+                                {{ __('No networks yet —') }} <button type="button" class="font-medium text-brand-700 hover:underline" x-on:click="addNetwork({{ Illuminate\Support\Js::from($coinJson) }})">{{ __('add one') }}</button>.
                             </td>
                         </tr>
                     @endforelse
                 @empty
-                    <tr><td colspan="6"><x-ui.empty-state icon="banknotes" title="No coins" description="Create your first coin to get started." /></td></tr>
+                    <tr><td colspan="6"><x-ui.empty-state icon="banknotes" :title="__('No coins')" :description="__('Create your first coin to get started.')" /></td></tr>
                 @endforelse
             </x-ui.table>
         </div>
 
         {{-- Chains --}}
         <div class="space-y-3">
-            <h3 class="text-base font-semibold text-neutral-900">Chains</h3>
-            <x-ui.table :headers="['Key', 'Name', 'Native symbol', 'Min confirmations', 'EVM', 'Active']">
+            <h3 class="text-base font-semibold text-neutral-900">{{ __('Chains') }}</h3>
+            <x-ui.table :headers="[__('Key'), __('Name'), __('Native symbol'), __('Min confirmations'), __('EVM'), __('Active')]">
                 @forelse ($chains as $chain)
                     <tr class="hover:bg-neutral-50">
                         <td class="px-4 py-3"><x-ui.badge :color="$chain->key->color()">{{ $chain->key->label() }}</x-ui.badge></td>
@@ -160,10 +160,10 @@
                                 <span class="text-neutral-300">—</span>
                             @endif
                         </td>
-                        <td class="px-4 py-3"><x-ui.badge :color="$chain->is_active ? 'success' : 'gray'" dot>{{ $chain->is_active ? 'Active' : 'Inactive' }}</x-ui.badge></td>
+                        <td class="px-4 py-3"><x-ui.badge :color="$chain->is_active ? 'success' : 'gray'" dot>{{ $chain->is_active ? __('Active') : __('Inactive') }}</x-ui.badge></td>
                     </tr>
                 @empty
-                    <tr><td colspan="6"><x-ui.empty-state icon="link" title="No chains" description="No settlement chains configured." /></td></tr>
+                    <tr><td colspan="6"><x-ui.empty-state icon="link" :title="__('No chains')" :description="__('No settlement chains configured.')" /></td></tr>
                 @endforelse
             </x-ui.table>
         </div>
@@ -180,21 +180,21 @@
                     @csrf
                     <input type="hidden" name="id" :value="coin.id" />
                     <div class="grid gap-4 sm:grid-cols-2">
-                        <x-ui.input name="symbol" x-model="coin.symbol" label="Symbol" placeholder="USDT" :error="$errors->first('symbol')" />
-                        <x-ui.input name="name" x-model="coin.name" label="Name" placeholder="Tether USD" :error="$errors->first('name')" />
-                        <x-ui.select label="Kind" name="kind" x-model="coin.kind" :error="$errors->first('kind')">
-                            <option value="crypto">Crypto</option>
-                            <option value="fiat">Fiat</option>
+                        <x-ui.input name="symbol" x-model="coin.symbol" :label="__('Symbol')" :placeholder="__('USDT')" :error="$errors->first('symbol')" />
+                        <x-ui.input name="name" x-model="coin.name" :label="__('Name')" :placeholder="__('Tether USD')" :error="$errors->first('name')" />
+                        <x-ui.select :label="__('Kind')" name="kind" x-model="coin.kind" :error="$errors->first('kind')">
+                            <option value="crypto">{{ __('Crypto') }}</option>
+                            <option value="fiat">{{ __('Fiat') }}</option>
                         </x-ui.select>
-                        <x-ui.input name="sort" x-model="coin.sort" type="number" label="Sort" :error="$errors->first('sort')" />
+                        <x-ui.input name="sort" x-model="coin.sort" type="number" :label="__('Sort')" :error="$errors->first('sort')" />
                     </div>
                     <div class="flex flex-wrap gap-6">
-                        <x-ui.checkbox name="is_stablecoin" value="1" x-model="coin.is_stablecoin" label="Stablecoin" />
-                        <x-ui.checkbox name="is_active" value="1" x-model="coin.is_active" label="Active" />
+                        <x-ui.checkbox name="is_stablecoin" value="1" x-model="coin.is_stablecoin" :label="__('Stablecoin')" />
+                        <x-ui.checkbox name="is_active" value="1" x-model="coin.is_active" :label="__('Active')" />
                     </div>
-                    <p class="rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-500">The coin's identity is shared by all its networks. Editing it re-syncs every network row.</p>
+                    <p class="rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-500">{{ __("The coin's identity is shared by all its networks. Editing it re-syncs every network row.") }}</p>
                     <div class="flex justify-end gap-2 pt-2">
-                        <x-ui.button type="button" variant="secondary" x-on:click="coinOpen = false">Cancel</x-ui.button>
+                        <x-ui.button type="button" variant="secondary" x-on:click="coinOpen = false">{{ __('Cancel') }}</x-ui.button>
                         <x-ui.button type="submit" variant="primary" x-text="coin.id ? 'Save coin' : 'Create coin'"></x-ui.button>
                     </div>
                 </form>
@@ -218,21 +218,21 @@
                     <input type="hidden" name="id" :value="net.id" />
                     <input type="hidden" name="currency_id" :value="net.currency_id" />
                     <div class="grid gap-4 sm:grid-cols-2">
-                        <x-ui.select label="Chain" name="chain_id" x-model="net.chain_id" :error="$errors->first('chain_id')">
-                            <option value="">— None (fiat / chain-less) —</option>
+                        <x-ui.select :label="__('Chain')" name="chain_id" x-model="net.chain_id" :error="$errors->first('chain_id')">
+                            <option value="">{{ __('— None (fiat / chain-less) —') }}</option>
                             @foreach ($chainOptions as $id => $chainName)
                                 <option value="{{ $id }}">{{ $chainName }}</option>
                             @endforeach
                         </x-ui.select>
-                        <x-ui.input name="contract_address" x-model="net.contract_address" label="Contract address" placeholder="Leave blank for native" :error="$errors->first('contract_address')" />
-                        <x-ui.input name="decimals" x-model="net.decimals" type="number" label="Decimals" :error="$errors->first('decimals')" />
-                        <x-ui.input name="sort" x-model="net.sort" type="number" label="Sort" :error="$errors->first('sort')" />
-                        <x-ui.input name="withdrawal_min" x-model="net.withdrawal_min" label="Withdrawal min (base units)" :error="$errors->first('withdrawal_min')" />
-                        <x-ui.input name="withdrawal_fee" x-model="net.withdrawal_fee" label="Withdrawal fee (base units)" :error="$errors->first('withdrawal_fee')" />
+                        <x-ui.input name="contract_address" x-model="net.contract_address" :label="__('Contract address')" :placeholder="__('Leave blank for native')" :error="$errors->first('contract_address')" />
+                        <x-ui.input name="decimals" x-model="net.decimals" type="number" :label="__('Decimals')" :error="$errors->first('decimals')" />
+                        <x-ui.input name="sort" x-model="net.sort" type="number" :label="__('Sort')" :error="$errors->first('sort')" />
+                        <x-ui.input name="withdrawal_min" x-model="net.withdrawal_min" :label="__('Withdrawal min (base units)')" :error="$errors->first('withdrawal_min')" />
+                        <x-ui.input name="withdrawal_fee" x-model="net.withdrawal_fee" :label="__('Withdrawal fee (base units)')" :error="$errors->first('withdrawal_fee')" />
                     </div>
-                    <x-ui.checkbox name="is_active" value="1" x-model="net.is_active" label="Active" />
+                    <x-ui.checkbox name="is_active" value="1" x-model="net.is_active" :label="__('Active')" />
                     <div class="flex justify-end gap-2 pt-2">
-                        <x-ui.button type="button" variant="secondary" x-on:click="netOpen = false">Cancel</x-ui.button>
+                        <x-ui.button type="button" variant="secondary" x-on:click="netOpen = false">{{ __('Cancel') }}</x-ui.button>
                         <x-ui.button type="submit" variant="primary" x-text="net.id ? 'Save network' : 'Add network'"></x-ui.button>
                     </div>
                 </form>

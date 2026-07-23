@@ -1,4 +1,4 @@
-<x-layouts.app :title="'Deposit'">
+<x-layouts.app :title="__('Deposit')">
     @php
         // Crypto network flow = an on-chain coin (no manual deposit methods) is in play,
         // either because a specific network asset is selected or a coin symbol is chosen.
@@ -15,25 +15,25 @@
 
     <div class="mx-auto max-w-2xl space-y-6">
         <div class="text-center">
-            <h1 class="text-2xl font-semibold tracking-tight text-neutral-900">Deposit</h1>
-            <p class="mt-1 text-sm text-neutral-500">Fund your account with crypto or a supported payment method.</p>
+            <h1 class="text-2xl font-semibold tracking-tight text-neutral-900">{{ __('Deposit') }}</h1>
+            <p class="mt-1 text-sm text-neutral-500">{{ __('Fund your account with crypto or a supported payment method.') }}</p>
             @if ($recentCount > 0)
-                <a href="{{ route('deposits') }}" class="group mt-3 inline-flex items-center gap-1 text-sm font-medium text-neutral-500 transition hover:text-brand-600">
-                    View deposit history
+                <a href="{{ route('deposit.history') }}" class="group mt-3 inline-flex items-center gap-1 text-sm font-medium text-neutral-500 transition hover:text-brand-600">
+                    {{ __('View deposit history') }}
                     <x-heroicon-o-chevron-right class="h-4 w-4 transition group-hover:translate-x-0.5" />
                 </a>
             @endif
         </div>
 
         @unless ($depositEnabled)
-            <x-ui.alert type="warning" title="Deposits are disabled">Deposits are currently turned off. Please check back shortly.</x-ui.alert>
+            <x-ui.alert type="warning" :title="__('Deposits are disabled')">{{ __('Deposits are currently turned off. Please check back shortly.') }}</x-ui.alert>
         @endunless
 
         {{-- ══ 1. Choose a coin ══ --}}
         @if (! $selectedAsset && ! $inCryptoFlow)
-            <x-ui.card title="Choose a coin" subtitle="Pick what you want to deposit.">
+            <x-ui.card :title="__('Choose a coin')" :subtitle="__('Pick what you want to deposit.')">
                 @if ($assets->isEmpty())
-                    <x-ui.empty-state icon="banknotes" title="No currencies available" description="Deposit currencies are not configured yet." />
+                    <x-ui.empty-state icon="banknotes" :title="__('No currencies available')" :description="__('Deposit currencies are not configured yet.')" />
                 @else
                     <div class="grid gap-2.5 sm:grid-cols-2">
                         @foreach ($assets->groupBy('symbol') as $symbol => $group)
@@ -41,7 +41,7 @@
                                 $onchain = $group->filter(fn ($a) => $a->chain && $a->depositMethods->isEmpty());
                                 $multiNetwork = $onchain->count() > 1;
                                 $first = $group->first();
-                                $href = $multiNetwork ? route('deposit', ['symbol' => $symbol]) : route('deposit', ['asset' => $first->id]);
+                                $href = $multiNetwork ? route('deposit.index', ['symbol' => $symbol]) : route('deposit.index', ['asset' => $first->id]);
                             @endphp
                             <a href="{{ $href }}"
                                class="group flex items-center gap-3 rounded-xl border border-neutral-200 p-3.5 transition hover:border-brand-400 hover:bg-brand-50/40">
@@ -49,7 +49,7 @@
                                 <span class="min-w-0 flex-1">
                                     <span class="block text-sm font-semibold text-neutral-900">{{ $symbol }}</span>
                                     <span class="block truncate text-xs text-neutral-500">
-                                        {{ $multiNetwork ? $onchain->count().' networks' : ($first->chain?->name ?? $first->name) }}
+                                        {{ $multiNetwork ? $onchain->count().' '.__('networks') : ($first->chain?->name ?? $first->name) }}
                                     </span>
                                 </span>
                                 <x-heroicon-o-chevron-right class="h-5 w-5 shrink-0 text-neutral-300 transition group-hover:translate-x-0.5 group-hover:text-brand-500" />
@@ -66,20 +66,20 @@
                 <div class="mb-5 flex items-center gap-3">
                     <x-ui.asset-icon :symbol="$coinSymbol" size="lg" />
                     <div class="min-w-0 flex-1">
-                        <p class="text-sm font-semibold text-neutral-900">Deposit {{ $coinSymbol }}</p>
-                        <p class="text-xs text-neutral-500">Select the network you’re sending on.</p>
+                        <p class="text-sm font-semibold text-neutral-900">{{ __('Deposit :symbol', ['symbol' => $coinSymbol]) }}</p>
+                        <p class="text-xs text-neutral-500">{{ __("Select the network you’re sending on.") }}</p>
                     </div>
-                    <a href="{{ route('deposit') }}" class="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700">
-                        <x-heroicon-o-arrow-left class="h-4 w-4" /> Change
+                    <a href="{{ route('deposit.index') }}" class="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700">
+                        <x-heroicon-o-arrow-left class="h-4 w-4" /> {{ __('Change') }}
                     </a>
                 </div>
 
                 {{-- Network chips --}}
-                <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-400">Network</p>
+                <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-400">{{ __('Network') }}</p>
                 <div class="flex flex-wrap gap-2">
                     @foreach ($networks as $net)
                         @php $active = $selectedAsset && $selectedAsset->id === $net->id; @endphp
-                        <a href="{{ route('deposit', ['asset' => $net->id]) }}" @class([
+                        <a href="{{ route('deposit.index', ['asset' => $net->id]) }}" @class([
                             'inline-flex items-center gap-2 rounded-xl border px-3.5 py-2 text-sm font-medium transition',
                             'border-brand-500 bg-brand-50 text-brand-700 ring-1 ring-brand-500' => $active,
                             'border-neutral-200 text-neutral-700 hover:border-brand-300 hover:bg-neutral-50' => ! $active,
@@ -94,15 +94,15 @@
                 @if ($selectedAsset)
                     <div class="mt-6 border-t border-neutral-100 pt-6">
                         @if ($custodySimulated)
-                            <x-ui.alert type="danger" title="Demo / testnet — do not send real funds" class="mb-5">
-                                This is a simulated address for testing PoisaPay. The platform does not hold its private key; real funds sent here will be lost.
+                            <x-ui.alert type="danger" :title="__('Demo / testnet — do not send real funds')" class="mb-5">
+                                {{ __('This is a simulated address for testing PoisaPay. The platform does not hold its private key; real funds sent here will be lost.') }}
                             </x-ui.alert>
                         @endif
 
                         <x-ui.alert type="warning" class="mb-5">
-                            Only send <span class="font-semibold">{{ $selectedAsset->symbol }}</span> on the
-                            <span class="font-semibold">{{ $selectedAsset->chain?->name ?? $selectedAsset->name }}</span> network.
-                            Sending any other asset or network may be lost permanently.
+                            {{ __('Only send') }} <span class="font-semibold">{{ $selectedAsset->symbol }}</span> {{ __('on the') }}
+                            <span class="font-semibold">{{ $selectedAsset->chain?->name ?? $selectedAsset->name }}</span> {{ __('network.') }}
+                            {{ __('Sending any other asset or network may be lost permanently.') }}
                         </x-ui.alert>
 
                         @include('frontend.partials.deposit-address')
@@ -110,10 +110,10 @@
                         <div class="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-neutral-200 bg-neutral-200 text-sm">
                             @php
                                 $infoRows = [
-                                    ['label' => 'Coin', 'value' => $selectedAsset->symbol.' · '.$selectedAsset->name],
-                                    ['label' => 'Network', 'value' => $selectedAsset->chain?->name ?? $selectedAsset->name],
-                                    ['label' => 'Min deposit', 'value' => $selectedAsset->money($selectedAsset->withdrawal_min ?: '0')->format()],
-                                    ['label' => 'Credited after', 'value' => $selectedAsset->requiredConfirmations().' confirmations'],
+                                    ['label' => __('Coin'), 'value' => $selectedAsset->symbol.' · '.$selectedAsset->name],
+                                    ['label' => __('Network'), 'value' => $selectedAsset->chain?->name ?? $selectedAsset->name],
+                                    ['label' => __('Min deposit'), 'value' => $selectedAsset->money($selectedAsset->withdrawal_min ?: '0')->format()],
+                                    ['label' => __('Credited after'), 'value' => $selectedAsset->requiredConfirmations().' '.__('confirmations')],
                                 ];
                             @endphp
                             @foreach ($infoRows as $row)
@@ -127,13 +127,13 @@
                         @if ($selectedIsEvm)
                             <p class="mt-3 flex items-start gap-1.5 text-xs text-neutral-500">
                                 <x-heroicon-o-information-circle class="mt-px h-4 w-4 shrink-0 text-neutral-400" />
-                                This is your shared EVM address — it’s the same across Ethereum, BSC, Polygon, Arbitrum, Optimism, Base and Avalanche. Just make sure you send on the network selected above.
+                                {{ __("This is your shared EVM address — it’s the same across Ethereum, BSC, Polygon, Arbitrum, Optimism, Base and Avalanche. Just make sure you send on the network selected above.") }}
                             </p>
                         @endif
                     </div>
                 @else
                     <p class="mt-6 rounded-xl border border-dashed border-neutral-200 bg-neutral-50/60 px-4 py-6 text-center text-sm text-neutral-500">
-                        Select a network above to reveal your {{ $coinSymbol }} deposit address.
+                        {{ __('Select a network above to reveal your :symbol deposit address.', ['symbol' => $coinSymbol]) }}
                     </p>
                 @endif
             </x-ui.card>
@@ -147,17 +147,17 @@
                         <p class="text-sm font-semibold text-neutral-900">{{ $selectedAsset->symbol }}</p>
                         <p class="text-xs text-neutral-500">{{ $selectedAsset->name }}</p>
                     </div>
-                    <a href="{{ route('deposit') }}" class="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700">
-                        <x-heroicon-o-arrow-left class="h-4 w-4" /> Change
+                    <a href="{{ route('deposit.index') }}" class="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700">
+                        <x-heroicon-o-arrow-left class="h-4 w-4" /> {{ __('Change') }}
                     </a>
                 </div>
             </x-ui.card>
 
             @if ($selectedAsset->depositMethods->isNotEmpty() && ! $selectedMethod)
-                <x-ui.card title="Choose a deposit method">
+                <x-ui.card :title="__('Choose a deposit method')">
                     <div class="space-y-2.5">
                         @foreach ($selectedAsset->depositMethods as $m)
-                            <a href="{{ route('deposit', ['asset' => $selectedAsset->id, 'method' => $m->id]) }}"
+                            <a href="{{ route('deposit.index', ['asset' => $selectedAsset->id, 'method' => $m->id]) }}"
                                class="group flex items-center gap-3 rounded-xl border border-neutral-200 p-4 transition hover:border-brand-400 hover:bg-brand-50/40">
                                 <span class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-600">
                                     <x-dynamic-component :component="'heroicon-o-'.$m->type->icon()" class="h-5 w-5" />
@@ -182,8 +182,8 @@
                             <p class="text-sm font-semibold text-neutral-900">{{ $selectedMethod->name }}</p>
                             <p class="text-xs text-neutral-500">{{ $selectedMethod->type->label() }}</p>
                         </div>
-                        <a href="{{ route('deposit', ['asset' => $selectedAsset->id]) }}" class="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700">
-                            <x-heroicon-o-arrow-left class="h-4 w-4" /> Change method
+                        <a href="{{ route('deposit.index', ['asset' => $selectedAsset->id]) }}" class="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700">
+                            <x-heroicon-o-arrow-left class="h-4 w-4" /> {{ __('Change method') }}
                         </a>
                     </div>
 
@@ -204,16 +204,16 @@
                     @endif
 
                     <div class="mb-5 flex flex-wrap gap-x-6 gap-y-1 text-xs text-neutral-500">
-                        <span>Minimum: <span class="font-semibold text-neutral-800">{{ $selectedMethod->minMoney()->format() }}</span></span>
+                        <span>{{ __('Minimum:') }} <span class="font-semibold text-neutral-800">{{ $selectedMethod->minMoney()->format() }}</span></span>
                         @if ($selectedMethod->maxMoney())
-                            <span>Maximum: <span class="font-semibold text-neutral-800">{{ $selectedMethod->maxMoney()->format() }}</span></span>
+                            <span>{{ __('Maximum:') }} <span class="font-semibold text-neutral-800">{{ $selectedMethod->maxMoney()->format() }}</span></span>
                         @endif
                     </div>
 
                     @if ($isCrypto)
                         @if ($custodySimulated)
-                            <x-ui.alert type="danger" title="Demo / testnet — do not send real funds" class="mb-5">
-                                This is a simulated address for testing PoisaPay. Real funds sent here will be lost.
+                            <x-ui.alert type="danger" :title="__('Demo / testnet — do not send real funds')" class="mb-5">
+                                {{ __('This is a simulated address for testing PoisaPay. Real funds sent here will be lost.') }}
                             </x-ui.alert>
                         @endif
                         @include('frontend.partials.deposit-address')
@@ -222,12 +222,12 @@
                             @csrf
                             <input type="hidden" name="assetId" value="{{ $selectedAsset->id }}" />
                             <input type="hidden" name="methodId" value="{{ $selectedMethod->id }}" />
-                            <x-ui.input label="Amount" name="amount" type="number" step="any" :value="old('amount')"
-                                hint="In {{ $selectedAsset->symbol }}" placeholder="0.00" :error="$errors->first('amount')" />
-                            <x-ui.input label="Payment reference" name="reference" :value="old('reference')"
-                                hint="Your bank or mobile transaction ID." placeholder="e.g. TX-483920" :error="$errors->first('reference')" />
+                            <x-ui.input :label="__('Amount')" name="amount" type="number" step="any" :value="old('amount')"
+                                :hint="__('In :symbol', ['symbol' => $selectedAsset->symbol])" placeholder="0.00" :error="$errors->first('amount')" />
+                            <x-ui.input :label="__('Payment reference')" name="reference" :value="old('reference')"
+                                :hint="__('Your bank or mobile transaction ID.')" :placeholder="__('e.g. TX-483920')" :error="$errors->first('reference')" />
                             <div class="pt-1">
-                                <x-ui.button type="submit" variant="primary" class="w-full sm:w-auto">Submit deposit for review</x-ui.button>
+                                <x-ui.button type="submit" variant="primary" class="w-full sm:w-auto">{{ __('Submit deposit for review') }}</x-ui.button>
                             </div>
                         </form>
                     @endif

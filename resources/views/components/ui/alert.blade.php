@@ -22,7 +22,7 @@
         <div class="{{ $title ? 'mt-0.5' : '' }} opacity-90">{{ $slot }}</div>
     </div>
     @if ($dismissible)
-        <button type="button" x-on:click="show = false" class="-m-1 shrink-0 rounded-lg p-1 opacity-60 transition hover:opacity-100" aria-label="Dismiss">
+        <button type="button" x-on:click="show = false" class="-m-1 shrink-0 rounded-lg p-1 opacity-60 transition hover:opacity-100" aria-label="{{ __('Dismiss') }}">
             <x-heroicon-o-x-mark class="h-4 w-4" />
         </button>
     @endif

@@ -1,6 +1,6 @@
-<x-layouts.admin :title="'Deposits'">
+<x-layouts.admin :title="__('Deposits')">
     <div class="space-y-6">
-        <x-ui.page-header title="Deposits" subtitle="Inbound settlements — on-chain and manual, detected, confirming and credited." />
+        <x-ui.page-header :title="__('Deposits')" :subtitle="__('Inbound settlements — on-chain and manual, detected, confirming and credited.')" />
 
         <form method="GET" action="{{ route('admin.deposits') }}" class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             {{-- Status tabs (query-string filter) --}}
@@ -19,10 +19,10 @@
             </div>
 
             <input type="hidden" name="status" value="{{ $status }}" />
-            <x-ui.input name="search" :value="$search" icon="magnifying-glass" placeholder="Search user email…" class="w-full sm:w-64" />
+            <x-ui.input name="search" :value="$search" icon="magnifying-glass" :placeholder="__('Search user email…')" class="w-full sm:w-64" />
         </form>
 
-        <x-ui.table :headers="['User', 'Asset', 'Amount', 'Source', 'Status', 'Progress', 'Created', '']">
+        <x-ui.table :headers="[__('User'), __('Asset'), __('Amount'), __('Source'), __('Status'), __('Progress'), __('Created'), '']">
             @forelse ($deposits as $deposit)
                 @php($isManual = $deposit->source === 'manual')
                 @php($canAct = $isManual && $deposit->status === \App\Enums\DepositStatus::Detected)
@@ -45,13 +45,13 @@
                     <td class="px-4 py-3"><span class="tabular text-sm font-semibold text-neutral-900">{{ $deposit->money()->format() }}</span></td>
                     <td class="px-4 py-3">
                         @if ($isManual)
-                            <x-ui.badge color="info">Manual</x-ui.badge>
+                            <x-ui.badge color="info">{{ __('Manual') }}</x-ui.badge>
                             <p class="mt-1 text-xs text-neutral-500">{{ $deposit->depositMethod?->name ?? '—' }}</p>
                             @if ($deposit->reference)
                                 <p class="font-mono text-xs text-neutral-400">{{ $deposit->reference }}</p>
                             @endif
                         @else
-                            <x-ui.badge color="gray">On-chain</x-ui.badge>
+                            <x-ui.badge color="gray">{{ __('On-chain') }}</x-ui.badge>
                         @endif
                     </td>
                     <td class="px-4 py-3"><x-ui.badge :color="$deposit->status->color()" dot>{{ $deposit->status->label() }}</x-ui.badge></td>
@@ -67,21 +67,21 @@
                         @if ($canAct)
                             <div class="flex justify-end gap-2">
                                 <form method="POST" action="{{ route('admin.deposits.approve', $deposit->id) }}"
-                                    onsubmit="return confirm('Approve and credit this deposit?')">
+                                    onsubmit="return confirm('{{ __('Approve and credit this deposit?') }}')">
                                     @csrf
-                                    <x-ui.button type="submit" size="sm" icon="check">Approve</x-ui.button>
+                                    <x-ui.button type="submit" size="sm" icon="check">{{ __('Approve') }}</x-ui.button>
                                 </form>
                                 <form method="POST" action="{{ route('admin.deposits.reject', $deposit->id) }}"
-                                    onsubmit="return confirm('Reject this deposit?')">
+                                    onsubmit="return confirm('{{ __('Reject this deposit?') }}')">
                                     @csrf
-                                    <x-ui.button type="submit" variant="secondary" size="sm" icon="x-mark">Reject</x-ui.button>
+                                    <x-ui.button type="submit" variant="secondary" size="sm" icon="x-mark">{{ __('Reject') }}</x-ui.button>
                                 </form>
                             </div>
                         @endif
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="8"><x-ui.empty-state icon="arrow-down-tray" title="No deposits" description="Nothing in this queue." /></td></tr>
+                <tr><td colspan="8"><x-ui.empty-state icon="arrow-down-tray" :title="__('No deposits')" :description="__('Nothing in this queue.')" /></td></tr>
             @endforelse
         </x-ui.table>
 

@@ -9,10 +9,10 @@
     $kycErrorStep = $errors->hasAny(['documentNumber', 'documentFront', 'documentBack', 'selfie', 'documentType']) ? 2 : 1;
 @endphp
 
-<x-settings.section title="Identity verification" description="Verify your identity to unlock higher limits and cards.">
+<x-settings.section :title="__('Identity verification')" :description="__('Verify your identity to unlock higher limits and cards.')">
     {{-- Current status --}}
     <div class="flex flex-wrap items-center gap-3">
-        <span class="text-sm text-neutral-500">Verification status</span>
+        <span class="text-sm text-neutral-500">{{ __('Verification status') }}</span>
         <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium {{ $kycBadge($kyc['color']) }}">
             <span class="h-1.5 w-1.5 rounded-full bg-current opacity-70"></span>
             <span>{{ $kyc['label'] }}</span>
@@ -20,16 +20,16 @@
     </div>
 
     @if ($kyc['key'] === 'pending')
-        <x-ui.alert type="info" title="Under review" class="mt-5">
-            Your verification is being reviewed. This usually takes a short while — we'll notify you once it's complete.
+        <x-ui.alert type="info" :title="__('Under review')" class="mt-5">
+            {{ __("Your verification is being reviewed. This usually takes a short while — we'll notify you once it's complete.") }}
         </x-ui.alert>
     @elseif ($kyc['key'] === 'approved')
-        <x-ui.alert type="success" title="You're verified" class="mt-5">
-            Your identity has been verified. Enjoy higher limits across PoisaPay.
+        <x-ui.alert type="success" :title="__('You\'re verified')" class="mt-5">
+            {{ __('Your identity has been verified. Enjoy higher limits across PoisaPay.') }}
         </x-ui.alert>
     @elseif ($kyc['key'] === 'rejected')
-        <x-ui.alert type="danger" title="Previous submission was rejected" class="mt-5">
-            Please review your details and resubmit below.
+        <x-ui.alert type="danger" :title="__('Previous submission was rejected')" class="mt-5">
+            {{ __('Please review your details and resubmit below.') }}
         </x-ui.alert>
     @endif
 
@@ -60,7 +60,7 @@
 
             {{-- Stepper --}}
             <div class="mb-6 flex items-center">
-                @foreach (['Personal', 'Document', 'Review'] as $i => $label)
+                @foreach ([__('Personal'), __('Document'), __('Review')] as $i => $label)
                     <div class="flex items-center {{ $i < 2 ? 'flex-1' : '' }}">
                         <div class="flex items-center gap-2">
                             <span class="grid h-8 w-8 place-items-center rounded-full text-sm font-semibold transition"
@@ -76,44 +76,44 @@
 
             {{-- Step 1 --}}
             <div x-show="step === 1" class="space-y-4">
-                <x-ui.input label="Full legal name" name="fullName" :value="old('fullName')" icon="user" placeholder="As on your document" :error="$errors->first('fullName')" />
-                <x-ui.input label="Date of birth" type="date" name="dateOfBirth" :value="old('dateOfBirth')" :error="$errors->first('dateOfBirth')" />
-                <x-ui.select label="Country" name="country" :error="$errors->first('country')">
-                    @foreach (['BD' => 'Bangladesh', 'IN' => 'India', 'US' => 'United States', 'GB' => 'United Kingdom', 'AE' => 'United Arab Emirates'] as $code => $name)
+                <x-ui.input :label="__('Full legal name')" name="fullName" :value="old('fullName')" icon="user" :placeholder="__('As on your document')" :error="$errors->first('fullName')" />
+                <x-ui.input :label="__('Date of birth')" type="date" name="dateOfBirth" :value="old('dateOfBirth')" :error="$errors->first('dateOfBirth')" />
+                <x-ui.select :label="__('Country')" name="country" :error="$errors->first('country')">
+                    @foreach (['BD' => __('Bangladesh'), 'IN' => __('India'), 'US' => __('United States'), 'GB' => __('United Kingdom'), 'AE' => __('United Arab Emirates')] as $code => $name)
                         <option value="{{ $code }}" @selected(old('country', 'BD') === $code)>{{ $name }}</option>
                     @endforeach
                 </x-ui.select>
-                <x-ui.input label="Residential address" name="address" :value="old('address')" icon="map-pin" placeholder="Street, city, postcode" :error="$errors->first('address')" />
+                <x-ui.input :label="__('Residential address')" name="address" :value="old('address')" icon="map-pin" :placeholder="__('Street, city, postcode')" :error="$errors->first('address')" />
                 <div class="flex justify-end">
-                    <x-ui.button type="button" x-on:click="step = 2" iconRight="arrow-right">Continue</x-ui.button>
+                    <x-ui.button type="button" x-on:click="step = 2" iconRight="arrow-right">{{ __('Continue') }}</x-ui.button>
                 </div>
             </div>
 
             {{-- Step 2 --}}
             <div x-show="step === 2" x-cloak class="space-y-4">
-                <x-ui.select label="Document type" name="documentType" :error="$errors->first('documentType')">
-                    <option value="nid" @selected(old('documentType', 'nid') === 'nid')>National ID (NID)</option>
-                    <option value="passport" @selected(old('documentType') === 'passport')>Passport</option>
+                <x-ui.select :label="__('Document type')" name="documentType" :error="$errors->first('documentType')">
+                    <option value="nid" @selected(old('documentType', 'nid') === 'nid')>{{ __('National ID (NID)') }}</option>
+                    <option value="passport" @selected(old('documentType') === 'passport')>{{ __('Passport') }}</option>
                 </x-ui.select>
-                <x-ui.input label="Document number" name="documentNumber" :value="old('documentNumber')" icon="identification" :error="$errors->first('documentNumber')" />
+                <x-ui.input :label="__('Document number')" name="documentNumber" :value="old('documentNumber')" icon="identification" :error="$errors->first('documentNumber')" />
                 <div class="grid gap-4 sm:grid-cols-3">
-                    <x-ui.file-upload label="Document front" name="documentFront" :error="$errors->first('documentFront')" />
-                    <x-ui.file-upload label="Document back" name="documentBack" optional :error="$errors->first('documentBack')" />
-                    <x-ui.file-upload label="Selfie" name="selfie" :error="$errors->first('selfie')" />
+                    <x-ui.file-upload :label="__('Document front')" name="documentFront" :error="$errors->first('documentFront')" />
+                    <x-ui.file-upload :label="__('Document back')" name="documentBack" optional :error="$errors->first('documentBack')" />
+                    <x-ui.file-upload :label="__('Selfie')" name="selfie" :error="$errors->first('selfie')" />
                 </div>
                 <div class="flex justify-between">
-                    <x-ui.button type="button" variant="ghost" x-on:click="step = 1" icon="arrow-left">Back</x-ui.button>
-                    <x-ui.button type="button" x-on:click="goReview()" iconRight="arrow-right">Continue</x-ui.button>
+                    <x-ui.button type="button" variant="ghost" x-on:click="step = 1" icon="arrow-left">{{ __('Back') }}</x-ui.button>
+                    <x-ui.button type="button" x-on:click="goReview()" iconRight="arrow-right">{{ __('Continue') }}</x-ui.button>
                 </div>
             </div>
 
             {{-- Step 3 --}}
             <div x-show="step === 3" x-cloak class="space-y-4">
                 <x-ui.alert type="info">
-                    Please confirm your details are accurate. Submitting a fraudulent application may lead to account suspension.
+                    {{ __('Please confirm your details are accurate. Submitting a fraudulent application may lead to account suspension.') }}
                 </x-ui.alert>
                 <div>
-                    <p class="mb-2 text-sm font-medium text-neutral-700">Review your details</p>
+                    <p class="mb-2 text-sm font-medium text-neutral-700">{{ __('Review your details') }}</p>
                     <dl class="divide-y divide-neutral-100 overflow-hidden rounded-xl border border-neutral-200">
                         <template x-for="(value, key) in review" :key="key">
                             <div class="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
@@ -124,8 +124,8 @@
                     </dl>
                 </div>
                 <div class="flex justify-between">
-                    <x-ui.button type="button" variant="ghost" x-on:click="step = 2" icon="arrow-left">Back</x-ui.button>
-                    <x-ui.button type="submit" variant="success" icon="check">Submit for review</x-ui.button>
+                    <x-ui.button type="button" variant="ghost" x-on:click="step = 2" icon="arrow-left">{{ __('Back') }}</x-ui.button>
+                    <x-ui.button type="submit" variant="success" icon="check">{{ __('Submit for review') }}</x-ui.button>
                 </div>
             </div>
         </form>

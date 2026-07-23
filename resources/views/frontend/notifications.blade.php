@@ -1,9 +1,9 @@
-<x-layouts.app :title="'Notifications'">
+<x-layouts.app :title="__('Notifications')">
     @php
         // Filter chips shown above the feed: All + Unread, then one per category.
         $chips = [
-            ['key' => 'all', 'label' => 'All', 'count' => $total],
-            ['key' => 'unread', 'label' => 'Unread', 'count' => $unreadCount],
+            ['key' => 'all', 'label' => __('All'), 'count' => $total],
+            ['key' => 'unread', 'label' => __('Unread'), 'count' => $unreadCount],
         ];
         foreach ($categoryMeta as $key => $meta) {
             $chips[] = ['key' => $key, 'label' => $meta['label'], 'count' => $categoryCounts[$key] ?? 0];
@@ -11,22 +11,22 @@
     @endphp
 
     <div class="mx-auto max-w-3xl space-y-6">
-        <x-ui.page-header title="Notifications" subtitle="Your recent account activity.">
+        <x-ui.page-header :title="__('Notifications')" :subtitle="__('Your recent account activity.')">
             <x-slot:actions>
                 @if ($unreadCount > 0)
                     <form method="POST" action="{{ route('notifications.read-all') }}">
                         @csrf
-                        <x-ui.button type="submit" variant="secondary" size="sm" icon="check">Mark all as read</x-ui.button>
+                        <x-ui.button type="submit" variant="secondary" size="sm" icon="check">{{ __('Mark all as read') }}</x-ui.button>
                     </form>
                 @endif
-                <x-ui.button href="{{ route('notifications.preferences') }}" variant="ghost" size="sm" icon="adjustments-horizontal">Preferences</x-ui.button>
+                <x-ui.button href="{{ route('notifications.preferences') }}" variant="ghost" size="sm" icon="adjustments-horizontal">{{ __('Preferences') }}</x-ui.button>
             </x-slot:actions>
         </x-ui.page-header>
 
         {{-- Filter chips (plain GET query param) --}}
         <div class="-mx-1 flex flex-nowrap gap-2 overflow-x-auto px-1 pb-1">
             @foreach ($chips as $chip)
-                <a href="{{ route('notifications', ['filter' => $chip['key']]) }}"
+                <a href="{{ route('notifications.index', ['filter' => $chip['key']]) }}"
                     class="pp-chip shrink-0 {{ $filter === $chip['key'] ? 'is-on' : '' }}">
                     {{ $chip['label'] }}
                     @if ($chip['count'] > 0)
@@ -39,13 +39,13 @@
         @if ($groups->isEmpty())
             <x-ui.card>
                 @if ($total === 0)
-                    <x-ui.empty-state icon="bell" title="No notifications yet"
-                        description="Account activity, security alerts and product updates will show up here." />
+                    <x-ui.empty-state icon="bell" :title="__('No notifications yet')"
+                        :description="__('Account activity, security alerts and product updates will show up here.')" />
                 @else
-                    <x-ui.empty-state icon="funnel" title="Nothing to show"
-                        description="No notifications match this filter.">
+                    <x-ui.empty-state icon="funnel" :title="__('Nothing to show')"
+                        :description="__('No notifications match this filter.')">
                         <x-slot:action>
-                            <x-ui.button href="{{ route('notifications') }}" variant="secondary" size="sm">View all</x-ui.button>
+                            <x-ui.button href="{{ route('notifications.index') }}" variant="secondary" size="sm">{{ __('View all') }}</x-ui.button>
                         </x-slot:action>
                     </x-ui.empty-state>
                 @endif

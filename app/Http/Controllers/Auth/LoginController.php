@@ -80,6 +80,16 @@ class LoginController extends Controller
         return $this->complete($request, $user, $request->boolean('remember'));
     }
 
+    /** Sign the user out and invalidate the session. */
+    public function destroy(Request $request): RedirectResponse
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login');
+    }
+
     private function complete(Request $request, User $user, bool $remember): RedirectResponse
     {
         Auth::login($user, $remember);

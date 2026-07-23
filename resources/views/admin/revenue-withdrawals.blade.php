@@ -1,4 +1,4 @@
-<x-layouts.admin :title="'Revenue Withdrawals'">
+<x-layouts.admin :title="__('Revenue Withdrawals')">
     <div class="space-y-6"
         x-data="{
             showApprove: {{ $errors->any() ? 'true' : 'false' }},
@@ -6,13 +6,13 @@
             open(id) { this.approveId = id; this.showApprove = true; },
             close() { this.showApprove = false; this.approveId = null; },
         }">
-        <x-ui.page-header title="Revenue Withdrawals" subtitle="Approve outbound revenue payouts. Approval posts the ledger and queues the on-chain broadcast." />
+        <x-ui.page-header :title="__('Revenue Withdrawals')" :subtitle="__('Approve outbound revenue payouts. Approval posts the ledger and queues the on-chain broadcast.')" />
 
         {{-- Stat tiles --}}
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
-            <x-ui.stat-card label="Pending" :value="number_format($pendingCount)" icon="clock" accent="amber" />
-            <x-ui.stat-card label="Completed" :value="number_format($completedCount)" icon="check-circle" accent="emerald" />
-            <x-ui.stat-card label="Total Withdrawn" :value="$totalWithdrawn" icon="banknotes" accent="brand" />
+            <x-ui.stat-card :label="__('Pending')" :value="number_format($pendingCount)" icon="clock" accent="amber" />
+            <x-ui.stat-card :label="__('Completed')" :value="number_format($completedCount)" icon="check-circle" accent="emerald" />
+            <x-ui.stat-card :label="__('Total Withdrawn')" :value="$totalWithdrawn" icon="banknotes" accent="brand" />
         </div>
 
         {{-- Status tabs (query-string filter) --}}
@@ -30,7 +30,7 @@
             @endforeach
         </div>
 
-        <x-ui.table :headers="['Amount', 'Asset', 'Network', 'Destination', 'Status', 'Requested by', 'Approved by', 'Tx hash', 'Created', '']">
+        <x-ui.table :headers="[__('Amount'), __('Asset'), __('Network'), __('Destination'), __('Status'), __('Requested by'), __('Approved by'), __('Tx hash'), __('Created'), '']">
             @forelse ($withdrawals as $w)
                 <tr class="border-b border-gray-200 hover:bg-gray-100">
                     <td class="px-3 py-3">
@@ -64,14 +64,14 @@
                     <td class="px-3 py-3 text-xs text-neutral-500">{{ $w->created_at?->diffForHumans() }}</td>
                     <td class="px-3 py-3 text-right">
                         @if ($canApprove && $w->status === \App\Enums\RevenueWithdrawalStatus::Pending)
-                            <x-ui.button type="button" x-on:click="open({{ \Illuminate\Support\Js::from((string) $w->id) }})" variant="success" size="sm" icon="check">Approve</x-ui.button>
+                            <x-ui.button type="button" x-on:click="open({{ \Illuminate\Support\Js::from((string) $w->id) }})" variant="success" size="sm" icon="check">{{ __('Approve') }}</x-ui.button>
                         @else
                             <span class="text-xs text-neutral-400">—</span>
                         @endif
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="10"><x-ui.empty-state icon="banknotes" title="No withdrawals" description="Nothing in this queue." /></td></tr>
+                <tr><td colspan="10"><x-ui.empty-state icon="banknotes" :title="__('No withdrawals')" :description="__('Nothing in this queue.')" /></td></tr>
             @endforelse
         </x-ui.table>
 
@@ -83,17 +83,17 @@
                 <div class="fixed inset-0 bg-gray-500/60" x-on:click="close()"></div>
                 <div class="relative w-full max-w-md pp-card p-6">
                     <div class="mb-4 flex items-start justify-between">
-                        <h3 class="text-lg font-semibold text-neutral-900">Approve revenue withdrawal</h3>
+                        <h3 class="text-lg font-semibold text-neutral-900">{{ __('Approve revenue withdrawal') }}</h3>
                         <button type="button" x-on:click="close()" class="rounded-lg p-1 text-neutral-400 hover:bg-neutral-100"><x-heroicon-o-x-mark class="h-5 w-5" /></button>
                     </div>
-                    <p class="mb-4 text-sm text-neutral-500">Approving posts the ledger entry and queues the on-chain broadcast. This cannot be undone.</p>
+                    <p class="mb-4 text-sm text-neutral-500">{{ __('Approving posts the ledger entry and queues the on-chain broadcast. This cannot be undone.') }}</p>
                     <form method="POST" x-bind:action="'{{ url('admin/finance/revenue-withdrawals') }}/' + approveId + '/approve'" class="space-y-4">
                         @csrf
                         <input type="hidden" name="_approve_id" x-bind:value="approveId">
-                        <x-ui.input label="Confirm your password" name="password" type="password" placeholder="••••••••" :error="$errors->first('password')" />
+                        <x-ui.input :label="__('Confirm your password')" name="password" type="password" placeholder="••••••••" :error="$errors->first('password')" />
                         <div class="flex justify-end gap-2 pt-1">
-                            <x-ui.button type="button" variant="secondary" x-on:click="close()">Cancel</x-ui.button>
-                            <x-ui.button type="submit" variant="success" icon="check">Approve &amp; broadcast</x-ui.button>
+                            <x-ui.button type="button" variant="secondary" x-on:click="close()">{{ __('Cancel') }}</x-ui.button>
+                            <x-ui.button type="submit" variant="success" icon="check">{{ __('Approve & broadcast') }}</x-ui.button>
                         </div>
                     </form>
                 </div>

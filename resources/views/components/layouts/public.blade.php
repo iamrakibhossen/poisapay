@@ -21,12 +21,12 @@
                 <span class="text-lg font-bold text-neutral-900">PoisaPay</span>
             </a>
             <div class="flex items-center gap-4 text-sm">
-                <a href="{{ route('faqs.public') }}" class="font-medium text-neutral-600 hover:text-neutral-900">FAQs</a>
+                <a href="{{ route('faqs.public') }}" class="font-medium text-neutral-600 hover:text-neutral-900">{{ __('FAQs') }}</a>
                 @auth
-                    <a href="{{ route('dashboard') }}" class="rounded-lg bg-brand-500 px-4 py-2 font-semibold text-ink-900 hover:bg-brand-400">Dashboard</a>
+                    <a href="{{ route('dashboard') }}" class="rounded-lg bg-brand-500 px-4 py-2 font-semibold text-ink-900 hover:bg-brand-400">{{ __('Dashboard') }}</a>
                 @else
-                    <a href="{{ route('login') }}" class="font-medium text-neutral-600 hover:text-neutral-900">Log in</a>
-                    <a href="{{ route('register') }}" class="rounded-lg bg-brand-500 px-4 py-2 font-semibold text-ink-900 hover:bg-brand-400">Get started</a>
+                    <a href="{{ route('login') }}" class="font-medium text-neutral-600 hover:text-neutral-900">{{ __('Log in') }}</a>
+                    <a href="{{ route('register') }}" class="rounded-lg bg-brand-500 px-4 py-2 font-semibold text-ink-900 hover:bg-brand-400">{{ __('Get started') }}</a>
                 @endauth
             </div>
         </nav>
@@ -38,7 +38,7 @@
 
     <footer class="border-t border-neutral-200 py-8">
         <div class="mx-auto max-w-5xl px-4 text-center text-xs text-neutral-500 sm:px-6">
-            &copy; {{ date('Y') }} PoisaPay. Custodial · KYC/AML gated.
+            &copy; {{ date('Y') }} PoisaPay. {{ __('Custodial · KYC/AML gated.') }}
         </div>
     </footer>
 </div>

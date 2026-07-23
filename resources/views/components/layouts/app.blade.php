@@ -16,12 +16,12 @@
     <div class="flex flex-wrap items-center justify-center gap-3 bg-amber-500 px-4 py-2 text-center text-sm font-semibold text-ink-900">
         <span class="flex items-center gap-1.5">
             <x-heroicon-o-eye class="h-4 w-4" />
-            You are viewing as {{ auth()->user()?->name }} (operator impersonation).
+            {{ __('You are viewing as :name (operator impersonation).', ['name' => auth()->user()?->name]) }}
         </span>
         <form method="POST" action="{{ route('impersonate.stop') }}">
             @csrf
             <button type="submit" class="rounded-md bg-ink-900 px-3 py-1 text-xs font-semibold text-white hover:bg-ink-800">
-                Stop impersonating
+                {{ __('Stop impersonating') }}
             </button>
         </form>
     </div>

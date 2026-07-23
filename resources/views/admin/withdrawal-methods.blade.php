@@ -1,4 +1,4 @@
-<x-layouts.admin :title="'Withdrawal Methods'">
+<x-layouts.admin :title="__('Withdrawal Methods')">
     {{-- Alpine is light UI only: modal open/close + prefill for edit. The form POSTs traditionally. --}}
     <div x-data="{
             open: {{ $errors->any() ? 'true' : 'false' }},
@@ -27,20 +27,20 @@
                 this.open = true;
             },
         }" class="space-y-6">
-        <x-ui.page-header title="Withdrawal Methods" subtitle="Configure how each currency can be cashed out.">
+        <x-ui.page-header :title="__('Withdrawal Methods')" :subtitle="__('Configure how each currency can be cashed out.')">
             <x-slot:actions>
-                <x-ui.button x-on:click="create()" icon="plus" size="sm">New method</x-ui.button>
+                <x-ui.button x-on:click="create()" icon="plus" size="sm">{{ __('New method') }}</x-ui.button>
             </x-slot:actions>
         </x-ui.page-header>
 
         {{-- Stat tiles --}}
         <div class="grid gap-4 sm:grid-cols-3">
-            <x-ui.stat-card label="Total methods" :value="$stats['total']" icon="banknotes" accent="brand" />
-            <x-ui.stat-card label="Active methods" :value="$stats['active']" icon="check-badge" accent="emerald" />
-            <x-ui.stat-card label="Fiat currencies" :value="$stats['currencies']" icon="currency-dollar" accent="amber" />
+            <x-ui.stat-card :label="__('Total methods')" :value="$stats['total']" icon="banknotes" accent="brand" />
+            <x-ui.stat-card :label="__('Active methods')" :value="$stats['active']" icon="check-badge" accent="emerald" />
+            <x-ui.stat-card :label="__('Fiat currencies')" :value="$stats['currencies']" icon="currency-dollar" accent="amber" />
         </div>
 
-        <x-ui.table :headers="['Asset', 'Method', 'Type', 'Min / Max', 'Fee', 'Active', '']">
+        <x-ui.table :headers="[__('Asset'), __('Method'), __('Type'), __('Min / Max'), __('Fee'), __('Active'), '']">
             @forelse ($methods as $m)
                 <tr class="border-b border-gray-200 hover:bg-gray-100">
                     <td class="px-4 py-3">
@@ -71,17 +71,17 @@
                         <form method="POST" action="{{ route('admin.withdrawal-methods.toggle', $m->id) }}">
                             @csrf
                             <button type="submit" class="inline-flex">
-                                <x-ui.badge :color="$m->is_active ? 'success' : 'gray'" dot>{{ $m->is_active ? 'Active' : 'Disabled' }}</x-ui.badge>
+                                <x-ui.badge :color="$m->is_active ? 'success' : 'gray'" dot>{{ $m->is_active ? __('Active') : __('Disabled') }}</x-ui.badge>
                             </button>
                         </form>
                     </td>
                     <td class="px-4 py-3 text-right">
                         <x-ui.button variant="secondary" size="sm" icon="pencil-square"
-                            x-on:click="edit({{ Illuminate\Support\Js::from(['id' => $m->id, 'asset_id' => $m->asset_id, 'name' => $m->name, 'type' => $m->type, 'number_label' => $m->details['number_label'] ?? '', 'instructions' => $m->instructions, 'min_amount' => ($m->min_amount !== null && $m->asset) ? $m->asset->money($m->min_amount)->toDecimal() : '', 'max_amount' => ($m->max_amount !== null && $m->asset) ? $m->asset->money($m->max_amount)->toDecimal() : '', 'fixed_fee' => ($m->fixed_fee !== null && $m->asset) ? $m->asset->money($m->fixed_fee)->toDecimal() : '', 'percent_fee_bps' => (string) ($m->percent_fee_bps ?? 0), 'sort' => (string) ($m->sort ?? 0), 'is_active' => (bool) $m->is_active]) }})">Edit</x-ui.button>
+                            x-on:click="edit({{ Illuminate\Support\Js::from(['id' => $m->id, 'asset_id' => $m->asset_id, 'name' => $m->name, 'type' => $m->type, 'number_label' => $m->details['number_label'] ?? '', 'instructions' => $m->instructions, 'min_amount' => ($m->min_amount !== null && $m->asset) ? $m->asset->money($m->min_amount)->toDecimal() : '', 'max_amount' => ($m->max_amount !== null && $m->asset) ? $m->asset->money($m->max_amount)->toDecimal() : '', 'fixed_fee' => ($m->fixed_fee !== null && $m->asset) ? $m->asset->money($m->fixed_fee)->toDecimal() : '', 'percent_fee_bps' => (string) ($m->percent_fee_bps ?? 0), 'sort' => (string) ($m->sort ?? 0), 'is_active' => (bool) $m->is_active]) }})">{{ __('Edit') }}</x-ui.button>
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="7"><x-ui.empty-state icon="banknotes" title="No withdrawal methods" description="Add a method so users can cash out an asset." /></td></tr>
+                <tr><td colspan="7"><x-ui.empty-state icon="banknotes" :title="__('No withdrawal methods')" :description="__('Add a method so users can cash out an asset.')" /></td></tr>
             @endforelse
         </x-ui.table>
 
@@ -97,40 +97,40 @@
                     @csrf
                     <input type="hidden" name="id" :value="editingId" />
                     <div class="grid gap-4 sm:grid-cols-2">
-                        <x-ui.select label="Asset" name="asset_id" x-model="form.asset_id" :error="$errors->first('asset_id')">
-                            <option value="">Select asset…</option>
+                        <x-ui.select :label="__('Asset')" name="asset_id" x-model="form.asset_id" :error="$errors->first('asset_id')">
+                            <option value="">{{ __('Select asset…') }}</option>
                             @foreach ($assets as $asset)
                                 <option value="{{ $asset->id }}">{{ $asset->symbol }} — {{ $asset->name }}</option>
                             @endforeach
                         </x-ui.select>
-                        <x-ui.select label="Type" name="type" x-model="form.type" :error="$errors->first('type')">
+                        <x-ui.select :label="__('Type')" name="type" x-model="form.type" :error="$errors->first('type')">
                             @foreach ($types as $value => $label)
                                 <option value="{{ $value }}">{{ $label }}</option>
                             @endforeach
                         </x-ui.select>
                     </div>
 
-                    <x-ui.input label="Name" name="name" x-model="form.name" placeholder="e.g. bKash" :error="$errors->first('name')" />
+                    <x-ui.input :label="__('Name')" name="name" x-model="form.name" placeholder="{{ __('e.g. bKash') }}" :error="$errors->first('name')" />
 
-                    <x-ui.input label="Number label" name="number_label" x-model="form.number_label" placeholder="e.g. bKash number" hint="Label shown to the user for the account/number they enter." :error="$errors->first('number_label')" />
+                    <x-ui.input :label="__('Number label')" name="number_label" x-model="form.number_label" placeholder="{{ __('e.g. bKash number') }}" :hint="__('Label shown to the user for the account/number they enter.')" :error="$errors->first('number_label')" />
 
-                    <x-ui.textarea label="Instructions" name="instructions" x-model="form.instructions" rows="3" placeholder="What the user should know about this payout method…" :error="$errors->first('instructions')" />
+                    <x-ui.textarea :label="__('Instructions')" name="instructions" x-model="form.instructions" rows="3" placeholder="{{ __('What the user should know about this payout method…') }}" :error="$errors->first('instructions')" />
 
                     <div class="grid gap-4 sm:grid-cols-3">
-                        <x-ui.input label="Min amount" name="min_amount" x-model="form.min_amount" placeholder="0.00" :error="$errors->first('min_amount')" />
-                        <x-ui.input label="Max amount (optional)" name="max_amount" x-model="form.max_amount" placeholder="—" :error="$errors->first('max_amount')" />
-                        <x-ui.input label="Fixed fee" name="fixed_fee" x-model="form.fixed_fee" placeholder="0.00" :error="$errors->first('fixed_fee')" />
+                        <x-ui.input :label="__('Min amount')" name="min_amount" x-model="form.min_amount" placeholder="{{ __('0.00') }}" :error="$errors->first('min_amount')" />
+                        <x-ui.input :label="__('Max amount (optional)')" name="max_amount" x-model="form.max_amount" placeholder="{{ __('—') }}" :error="$errors->first('max_amount')" />
+                        <x-ui.input :label="__('Fixed fee')" name="fixed_fee" x-model="form.fixed_fee" placeholder="{{ __('0.00') }}" :error="$errors->first('fixed_fee')" />
                     </div>
 
                     <div class="grid gap-4 sm:grid-cols-2">
-                        <x-ui.input label="Percent fee (bps)" name="percent_fee_bps" x-model="form.percent_fee_bps" type="number" placeholder="0" hint="100 bps = 1%" :error="$errors->first('percent_fee_bps')" />
-                        <x-ui.input label="Sort order" name="sort" x-model="form.sort" type="number" placeholder="0" :error="$errors->first('sort')" />
+                        <x-ui.input :label="__('Percent fee (bps)')" name="percent_fee_bps" x-model="form.percent_fee_bps" type="number" placeholder="{{ __('0') }}" :hint="__('100 bps = 1%')" :error="$errors->first('percent_fee_bps')" />
+                        <x-ui.input :label="__('Sort order')" name="sort" x-model="form.sort" type="number" placeholder="{{ __('0') }}" :error="$errors->first('sort')" />
                     </div>
 
-                    <x-ui.checkbox name="is_active" value="1" x-model="form.is_active" label="Active" />
+                    <x-ui.checkbox name="is_active" value="1" x-model="form.is_active" :label="__('Active')" />
 
                     <div class="flex justify-end gap-2 pt-2">
-                        <x-ui.button type="button" variant="secondary" x-on:click="open = false">Cancel</x-ui.button>
+                        <x-ui.button type="button" variant="secondary" x-on:click="open = false">{{ __('Cancel') }}</x-ui.button>
                         <x-ui.button type="submit" x-text="editingId ? 'Save changes' : 'Create method'"></x-ui.button>
                     </div>
                 </form>

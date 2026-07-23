@@ -48,7 +48,7 @@ it('renders the admin catalogue grouped by coin', function () {
 it('renders the swap page showing each coin once', function () {
     $user = User::factory()->create();
 
-    $res = actingAs($user)->get(route('exchange'))->assertOk();
+    $res = actingAs($user)->get(route('exchange.index'))->assertOk();
 
     // USDT appears as one coin option even though it has three network rows.
     expect(substr_count($res->getContent(), '>USDT<'))->toBeLessThanOrEqual(1);

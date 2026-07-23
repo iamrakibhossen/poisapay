@@ -1,7 +1,7 @@
-<x-layouts.app :title="'Ticket'">
+<x-layouts.app :title="__('Ticket')">
     <div class="mx-auto max-w-2xl">
         <header class="mb-6">
-            <a href="{{ route('support') }}" class="text-sm text-neutral-500 hover:text-neutral-900">← Back to support</a>
+            <a href="{{ route('support.index') }}" class="text-sm text-neutral-500 hover:text-neutral-900">{{ __('← Back to support') }}</a>
             <div class="mt-2 flex items-center justify-between gap-3">
                 <h1 class="text-xl font-semibold tracking-tight text-neutral-900">{{ $ticket->subject }}</h1>
                 <span @class([
@@ -12,7 +12,7 @@
                     'bg-neutral-100 text-neutral-600' => $ticket->status->value === 'closed',
                 ])>{{ $ticket->status->label() }}</span>
             </div>
-            <p class="text-xs text-neutral-500">{{ ucfirst($ticket->category) }} · {{ ucfirst($ticket->priority) }} priority</p>
+            <p class="text-xs text-neutral-500">{{ ucfirst($ticket->category) }} · {{ ucfirst($ticket->priority) }} {{ __('priority') }}</p>
         </header>
 
         @if (session('status'))
@@ -31,7 +31,7 @@
                         'bg-white border border-neutral-200 text-neutral-800' => ! $message->is_staff,
                     ])>
                         <p class="mb-1 text-xs font-semibold {{ $message->is_staff ? 'text-brand-600' : 'text-neutral-500' }}">
-                            {{ $message->is_staff ? ($message->author_name ?? 'Support') : 'You' }} · {{ $message->created_at->diffForHumans() }}
+                            {{ $message->is_staff ? ($message->author_name ?? __('Support')) : __('You') }} · {{ $message->created_at->diffForHumans() }}
                         </p>
                         <p class="whitespace-pre-line text-sm">{{ $message->body }}</p>
                     </div>
@@ -42,13 +42,13 @@
         @if ($ticket->status->value !== 'closed')
             <form method="POST" action="{{ route('support.reply', $ticket->id) }}" class="mt-5">
                 @csrf
-                <textarea name="body" required rows="3" maxlength="5000" placeholder="Write a reply…" class="w-full rounded-xl border-neutral-300 text-sm"></textarea>
+                <textarea name="body" required rows="3" maxlength="5000" placeholder="{{ __('Write a reply…') }}" class="w-full rounded-xl border-neutral-300 text-sm"></textarea>
                 <div class="mt-2 text-right">
-                    <button class="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-semibold text-white">Send reply</button>
+                    <button class="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-semibold text-white">{{ __('Send reply') }}</button>
                 </div>
             </form>
         @else
-            <p class="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-center text-sm text-neutral-500">This ticket is closed.</p>
+            <p class="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-center text-sm text-neutral-500">{{ __('This ticket is closed.') }}</p>
         @endif
     </div>
 </x-layouts.app>

@@ -1,6 +1,6 @@
-<x-layouts.admin :title="'Transfers'">
+<x-layouts.admin :title="__('Transfers')">
     <div class="space-y-6">
-        <x-ui.page-header title="Transfers" subtitle="P2P sends, fiat payouts and cross-border remittances." />
+        <x-ui.page-header :title="__('Transfers')" :subtitle="__('P2P sends, fiat payouts and cross-border remittances.')" />
 
         {{-- Kind tabs (query-string filter) --}}
         <div class="flex flex-wrap gap-1 rounded-xl bg-neutral-100 p-1">
@@ -17,7 +17,7 @@
             @endforeach
         </div>
 
-        <x-ui.table :headers="['Sender', 'Recipient', 'Asset', 'Amount', 'Kind', 'Status', 'Created']">
+        <x-ui.table :headers="[__('Sender'), __('Recipient'), __('Asset'), __('Amount'), __('Kind'), __('Status'), __('Created')]">
             @forelse ($transfers as $transfer)
                 <tr class="hover:bg-neutral-50">
                     <td class="px-4 py-3">
@@ -41,7 +41,7 @@
                     <td class="px-4 py-3 text-sm text-neutral-500">{{ $transfer->created_at->diffForHumans() }}</td>
                 </tr>
             @empty
-                <tr><td colspan="7"><x-ui.empty-state icon="arrows-right-left" title="No transfers" description="Nothing in this queue." /></td></tr>
+                <tr><td colspan="7"><x-ui.empty-state icon="arrows-right-left" :title="__('No transfers')" :description="__('Nothing in this queue.')" /></td></tr>
             @endforelse
         </x-ui.table>
 

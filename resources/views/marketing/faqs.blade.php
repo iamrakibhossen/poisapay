@@ -1,13 +1,13 @@
-<x-layouts.marketing title="FAQs" description="Answers to common questions about using PoisaPay — deposits, withdrawals, cards, security and more.">
+<x-layouts.marketing :title="__('FAQs')" :description="__('Answers to common questions about using PoisaPay — deposits, withdrawals, cards, security and more.')">
     <div class="mx-auto max-w-3xl px-4 pb-24 pt-6 sm:px-6">
         {{-- Hero --}}
         <div class="text-center">
-            <p class="text-sm font-semibold uppercase tracking-[0.18em]" style="color:var(--brand)">Help center</p>
+            <p class="text-sm font-semibold uppercase tracking-[0.18em]" style="color:var(--brand)">{{ __('Help center') }}</p>
             <h1 class="mt-3 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-                Questions, <span class="grad-text">answered.</span>
+                {{ __('Questions,') }} <span class="grad-text">{{ __('answered.') }}</span>
             </h1>
             <p class="mx-auto mt-4 max-w-xl text-slate-600">
-                Everything you need to know about deposits, withdrawals, cards and security on PoisaPay.
+                {{ __('Everything you need to know about deposits, withdrawals, cards and security on PoisaPay.') }}
             </p>
         </div>
 
@@ -45,7 +45,7 @@
                 </section>
             @empty
                 <div class="glass rounded-2xl p-10 text-center text-slate-500">
-                    No FAQs published yet. Please check back soon.
+                    {{ __('No FAQs published yet. Please check back soon.') }}
                 </div>
             @endforelse
         </div>
@@ -53,11 +53,11 @@
         {{-- Contact CTA --}}
         <div class="glass-card mt-16 flex flex-col items-center gap-5 p-8 text-center sm:flex-row sm:justify-between sm:text-left">
             <div>
-                <p class="text-lg font-bold text-slate-900">Still have questions?</p>
-                <p class="mt-1 text-sm text-slate-500">Our support team is here to help, around the clock.</p>
+                <p class="text-lg font-bold text-slate-900">{{ __('Still have questions?') }}</p>
+                <p class="mt-1 text-sm text-slate-500">{{ __('Our support team is here to help, around the clock.') }}</p>
             </div>
             <a href="{{ route('home') }}" class="pp-btn pp-btn-primary pp-btn-lg shrink-0">
-                Contact support <x-heroicon-o-arrow-right class="h-5 w-5" />
+                {{ __('Contact support') }} <x-heroicon-o-arrow-right class="h-5 w-5" />
             </a>
         </div>
     </div>
