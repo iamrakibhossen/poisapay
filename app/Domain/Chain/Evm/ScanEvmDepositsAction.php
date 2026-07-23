@@ -8,6 +8,7 @@ use App\Domain\Chain\Evm\Contracts\BlockchainProvider;
 use App\Enums\ChainType;
 use App\Enums\DepositStatus;
 use App\Enums\OnchainTxStatus;
+use App\Events\DepositDetected;
 use App\Models\Asset;
 use App\Models\Chain;
 use App\Models\Deposit;
@@ -122,7 +123,7 @@ class ScanEvmDepositsAction
                 'direction' => 'in',
             ]);
 
-            Deposit::create([
+            $deposit = Deposit::create([
                 'user_id' => $address->user_id,
                 'deposit_address_id' => $address->id,
                 'asset_id' => $asset->id,
@@ -133,6 +134,8 @@ class ScanEvmDepositsAction
                 'required_confirmations' => $asset->requiredConfirmations(),
                 'status' => DepositStatus::Detected,
             ]);
+
+            DepositDetected::dispatch($deposit->id);
         });
 
         return true;

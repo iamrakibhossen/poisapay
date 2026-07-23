@@ -13,6 +13,8 @@ use App\Domain\Ledger\LedgerService;
 use App\Enums\LedgerAccountType;
 use App\Enums\OnchainTxStatus;
 use App\Enums\SweepStatus;
+use App\Events\SweepConfirmed;
+use App\Events\SweepFailed;
 use App\Models\Asset;
 use App\Models\OnchainTx;
 use App\Models\Sweep;
@@ -58,6 +60,7 @@ class SettleEvmSweepsAction
             if (! $receipt['status']) {
                 $sweep->update(['status' => SweepStatus::Failed]);
                 $tx->update(['status' => OnchainTxStatus::Orphaned]);
+                SweepFailed::dispatch($sweep->id, 'on-chain revert');
 
                 return;
             }
@@ -87,6 +90,8 @@ class SettleEvmSweepsAction
                 $sweep->update(['status' => SweepStatus::Swept, 'settle_entry_id' => $entry->id]);
                 $tx->update(['status' => OnchainTxStatus::Confirmed, 'confirmations' => $confirmations]);
             });
+
+            SweepConfirmed::dispatch($sweep->id);
 
             $settled++;
         });

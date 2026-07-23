@@ -10,6 +10,8 @@ use App\Domain\Custody\Crypto\Secp256k1Signer;
 use App\Enums\ChainType;
 use App\Enums\OnchainTxStatus;
 use App\Enums\SweepStatus;
+use App\Events\SweepBroadcasted;
+use App\Events\SweepFailed;
 use App\Models\Asset;
 use App\Models\DepositAddress;
 use App\Models\OnchainTx;
@@ -123,6 +125,7 @@ class TronSweepAction
             );
 
             ActivityLogger::log('sweep.broadcast', $sweep, ['tx' => $txId, 'amount' => $balance]);
+            SweepBroadcasted::dispatch($sweep->id);
 
             return $sweep;
         });
@@ -142,6 +145,7 @@ class TronSweepAction
         );
 
         ActivityLogger::log('sweep.failed', $sweep, ['reason' => $reason]);
+        SweepFailed::dispatch($sweep->id, $reason);
 
         return $sweep;
     }

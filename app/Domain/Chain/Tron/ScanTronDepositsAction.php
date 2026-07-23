@@ -6,6 +6,7 @@ namespace App\Domain\Chain\Tron;
 
 use App\Enums\DepositStatus;
 use App\Enums\OnchainTxStatus;
+use App\Events\DepositDetected;
 use App\Models\Asset;
 use App\Models\Chain;
 use App\Models\Deposit;
@@ -89,7 +90,7 @@ class ScanTronDepositsAction
                     'direction' => 'in',
                 ]);
 
-                Deposit::create([
+                $deposit = Deposit::create([
                     'user_id' => $address->user_id,
                     'deposit_address_id' => $address->id,
                     'asset_id' => $asset->id,
@@ -100,6 +101,8 @@ class ScanTronDepositsAction
                     'required_confirmations' => $asset->requiredConfirmations(),
                     'status' => DepositStatus::Detected,
                 ]);
+
+                DepositDetected::dispatch($deposit->id);
 
                 return true;
             });
