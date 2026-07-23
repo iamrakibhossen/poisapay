@@ -4,6 +4,8 @@
         $done = in_array($s, ['completed', 'force_released']);
         $failed = in_array($s, ['cancelled', 'expired', 'force_cancelled']);
         $disputed = $s === 'disputed';
+        $cp = $isBuyer ? $order->seller : $order->buyer;
+        $cpVerified = $cp->kyc_tier === \App\Enums\KycTier::Full;
 
         // Happy-path progress tracker (4 nodes). $current = index of the in-progress
         // node, or 4 when everything is done.
@@ -23,7 +25,17 @@
         };
         $greenSteps = $done ? $n - 1 : ($failed ? max(0, $current - 1) : min($current, $n - 1));
         $greenPct = ($greenSteps / ($n - 1)) * 75;
-        $sideAccent = $isBuyer ? 'green' : 'red';
+
+        // Contextual headline for the status hero.
+        $headline = match (true) {
+            $done => __('Order completed'),
+            $failed => $order->status->label(),
+            $disputed => __('Under dispute'),
+            $s === 'waiting_payment' && $isBuyer => __('Pay the seller'),
+            $s === 'waiting_payment' => __('Waiting for the buyer to pay'),
+            in_array($s, ['buyer_paid', 'releasing']) && ! $isBuyer => __('Confirm payment & release'),
+            default => __('Waiting for the seller to release'),
+        };
     @endphp
 
     <div class="space-y-6">
@@ -36,21 +48,53 @@
         @if (session('success'))<x-ui.alert type="success">{{ session('success') }}</x-ui.alert>@endif
         @if (session('error'))<x-ui.alert type="error">{{ session('error') }}</x-ui.alert>@endif
 
-        {{-- ─── Progress tracker + status hero ─── --}}
-        <x-ui.card>
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="flex items-center gap-3">
-                    <span class="rounded-lg px-2.5 py-1 text-xs font-bold uppercase tracking-wide {{ $isBuyer ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">{{ $isBuyer ? __('Buy') : __('Sell') }}</span>
-                    <x-ui.badge :color="$order->status->color()" dot>{{ $order->status->label() }}</x-ui.badge>
+        {{-- ─── Status hero + progress tracker ─── --}}
+        <x-ui.card @class([
+            'border-l-4',
+            'border-l-green-500' => $done,
+            'border-l-red-500' => $failed,
+            'border-l-amber-400' => $disputed,
+            'border-l-brand-500' => ! $done && ! $failed && ! $disputed,
+        ])>
+            <div class="flex flex-wrap items-start justify-between gap-4">
+                <div class="flex items-start gap-3">
+                    <span @class([
+                        'grid h-11 w-11 shrink-0 place-items-center rounded-full',
+                        'bg-green-100 text-green-600' => $done,
+                        'bg-red-100 text-red-600' => $failed,
+                        'bg-amber-100 text-amber-600' => $disputed,
+                        'bg-brand-100 text-brand-600' => ! $done && ! $failed && ! $disputed,
+                    ])>
+                        @if ($done)<x-heroicon-s-check-circle class="h-6 w-6" />
+                        @elseif ($failed)<x-heroicon-s-x-circle class="h-6 w-6" />
+                        @elseif ($disputed)<x-heroicon-s-scale class="h-6 w-6" />
+                        @else<x-heroicon-s-clock class="h-6 w-6" />
+                        @endif
+                    </span>
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h2 class="text-lg font-bold text-neutral-900">{{ $headline }}</h2>
+                            <span class="rounded px-2 py-0.5 text-xs font-bold uppercase tracking-wide {{ $isBuyer ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">{{ $isBuyer ? __('Buy') : __('Sell') }}</span>
+                        </div>
+                        <p class="mt-0.5 flex items-center gap-1.5 text-sm text-neutral-500">
+                            <x-ui.badge :color="$order->status->color()" dot>{{ $order->status->label() }}</x-ui.badge>
+                            <span class="text-neutral-300">·</span>
+                            {{ $order->cryptoMoney()->format() }}
+                        </p>
+                    </div>
                 </div>
+
                 @if ($s === 'waiting_payment' && $order->expires_at)
-                    <div class="flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1.5 text-sm text-amber-800" x-data="{ left: '' }"
+                    <div x-data="{ left: '', urgent: false }"
                          x-init="const end = {{ $order->expires_at->timestamp }} * 1000;
-                             const t = () => { let d = Math.max(0, Math.floor((end - Date.now())/1000));
+                             const t = () => { let d = Math.max(0, Math.floor((end - Date.now())/1000)); urgent = d <= 120;
                                  left = String(Math.floor(d/60)).padStart(2,'0') + ':' + String(d%60).padStart(2,'0'); };
-                             t(); setInterval(t, 1000);">
-                        <x-heroicon-o-clock class="h-4 w-4" />
-                        {{ __('Pay within') }} <span class="font-bold tabular" x-text="left"></span>
+                             t(); setInterval(t, 1000);"
+                         class="flex items-center gap-2 rounded-full px-3.5 py-2 text-sm font-medium transition-colors"
+                         :class="urgent ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-800'">
+                        <x-heroicon-o-clock class="h-4 w-4 shrink-0" x-bind:class="urgent ? 'animate-pulse' : ''" />
+                        <span>{{ __('Pay within') }}</span>
+                        <span class="text-base font-bold tabular" x-text="left"></span>
                     </div>
                 @endif
             </div>
@@ -105,31 +149,34 @@
                         </div>
                     </div>
 
-                    <dl class="mt-4 divide-y divide-neutral-100 text-sm">
-                        <div class="flex justify-between py-2.5">
-                            <dt class="text-neutral-500">{{ __('Price') }}</dt>
-                            <dd class="text-neutral-700 tabular">{{ number_format((float) $order->price, 4) }} {{ $order->fiat_currency }}</dd>
-                        </div>
+                    <x-ui.list-group class="mt-4 divide-y divide-neutral-100">
+                        <x-ui.list-group-item :label="__('Order number')" class="!py-2.5">
+                            <x-slot:value>
+                                <span class="font-mono text-xs">{{ $order->ref }}</span> <x-ui.copy-text :text="$order->ref" />
+                            </x-slot:value>
+                        </x-ui.list-group-item>
+                        <x-ui.list-group-item :label="__('Price')" :value="number_format((float) $order->price, 4).' '.$order->fiat_currency" class="!py-2.5" />
                         @if ($isBuyer)
-                            <div class="flex justify-between py-2.5">
-                                <dt class="text-neutral-500">{{ __('Fee / you receive') }}</dt>
-                                <dd class="text-neutral-700 tabular">{{ $order->feeMoney()->format() }} · <span class="font-semibold text-neutral-900">{{ $order->netMoney()->format() }}</span></dd>
-                            </div>
+                            <x-ui.list-group-item :label="__('Fee / you receive')" class="!py-2.5">
+                                <x-slot:value>{{ $order->feeMoney()->format() }} · <span class="font-semibold text-neutral-900">{{ $order->netMoney()->format() }}</span></x-slot:value>
+                            </x-ui.list-group-item>
                         @endif
-                        <div class="flex items-center justify-between py-2.5">
-                            <dt class="text-neutral-500">{{ __('Counterparty') }}</dt>
-                            <dd class="flex items-center gap-2">
-                                <x-ui.avatar :name="$isBuyer ? $order->seller->name : $order->buyer->name" size="sm" />
-                                <span class="font-medium text-neutral-900">{{ $isBuyer ? $order->seller->name : $order->buyer->name }}</span>
-                            </dd>
-                        </div>
+                        <x-ui.list-group-item :label="__('Counterparty')" class="!py-2.5">
+                            <x-slot:value>
+                                <a href="{{ route('p2p.merchant', $cp->getKey()) }}" class="flex items-center gap-2 hover:text-brand-600">
+                                    <x-ui.avatar :name="$cp->name" size="sm" />
+                                    <span class="font-medium text-neutral-900">{{ $cp->name }}</span>
+                                    @if ($cpVerified)<x-heroicon-s-check-badge class="h-4 w-4 text-brand-500" />@endif
+                                </a>
+                            </x-slot:value>
+                        </x-ui.list-group-item>
                         @if ($order->paymentMethod)
-                            <div class="flex justify-between py-2.5">
-                                <dt class="text-neutral-500">{{ __('Payment method') }}</dt>
-                                <dd><span class="inline-flex items-center rounded-md border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-xs font-medium text-neutral-600">{{ $order->paymentMethod->name }}</span></dd>
-                            </div>
+                            <x-ui.list-group-item :label="__('Payment method')" class="!py-2.5">
+                                <x-slot:value><span class="inline-flex items-center rounded-md border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-xs font-medium text-neutral-600">{{ $order->paymentMethod->name }}</span></x-slot:value>
+                            </x-ui.list-group-item>
                         @endif
-                    </dl>
+                        <x-ui.list-group-item :label="__('Opened')" :value="$order->created_at?->format('d M, Y · h:i A')" class="!py-2.5" />
+                    </x-ui.list-group>
                 </x-ui.card>
 
                 {{-- What to do now --}}
@@ -231,35 +278,44 @@
                 @php $hasAction = ($s === 'waiting_payment') || (in_array($s, ['buyer_paid', 'releasing'])); @endphp
                 @if ($hasAction)
                     <x-ui.card>
-                        <div class="flex flex-wrap gap-2" x-data>
+                        <div class="space-y-3" x-data>
+                            {{-- Primary action --}}
                             @if ($s === 'waiting_payment' && $isBuyer)
-                                <form method="POST" action="{{ route('p2p.order.paid', $order) }}">@csrf<x-ui.button type="submit" variant="success" icon="check">{{ __("I've paid") }}</x-ui.button></form>
+                                <form method="POST" action="{{ route('p2p.order.paid', $order) }}">@csrf
+                                    <x-ui.button type="submit" variant="success" icon="check" class="w-full">{{ __("I've paid — notify the seller") }}</x-ui.button>
+                                </form>
+                            @elseif (in_array($s, ['buyer_paid', 'releasing']) && ! $isBuyer)
+                                <x-ui.button type="button" variant="success" icon="lock-open" class="w-full" x-on:click="$dispatch('open-modal', 'p2p-release')">{{ __('Release USDT') }}</x-ui.button>
                             @endif
-                            @if (in_array($s, ['buyer_paid', 'releasing']) && ! $isBuyer)
-                                <form method="POST" action="{{ route('p2p.order.release', $order) }}">@csrf<x-ui.button type="submit" variant="success" icon="lock-open">{{ __('Release USDT') }}</x-ui.button></form>
-                            @endif
-                            @if ($s === 'waiting_payment')
-                                <form method="POST" action="{{ route('p2p.order.cancel', $order) }}">@csrf<x-ui.button type="submit" variant="secondary">{{ __('Cancel order') }}</x-ui.button></form>
-                            @endif
-                            @if (in_array($s, ['buyer_paid', 'releasing']))
-                                <x-ui.button type="button" variant="danger" icon="exclamation-triangle" x-on:click="$dispatch('open-modal', 'p2p-dispute')">{{ __('Open dispute') }}</x-ui.button>
-                            @endif
+
+                            {{-- Secondary actions --}}
+                            <div class="flex flex-wrap gap-2">
+                                @if ($s === 'waiting_payment')
+                                    <x-ui.button type="button" variant="secondary" x-on:click="$dispatch('open-modal', 'p2p-cancel')">{{ __('Cancel order') }}</x-ui.button>
+                                @endif
+                                @if (in_array($s, ['buyer_paid', 'releasing']))
+                                    <x-ui.button type="button" variant="danger" icon="exclamation-triangle" x-on:click="$dispatch('open-modal', 'p2p-dispute')">{{ __('Open dispute') }}</x-ui.button>
+                                @endif
+                            </div>
                         </div>
                     </x-ui.card>
                 @endif
             </div>
 
             {{-- ─── Live chat ─── --}}
-            <x-ui.card class="p-0">
+            <x-ui.card class="p-0 lg:sticky lg:top-4 lg:self-start">
                 <div x-data="p2pChat('{{ $order->id }}', '{{ $me }}')" class="flex h-[34rem] flex-col">
                     <div class="flex items-center justify-between border-b border-neutral-100 px-5 py-3.5">
-                        <div class="flex items-center gap-2.5">
-                            <x-ui.avatar :name="$isBuyer ? $order->seller->name : $order->buyer->name" size="sm" />
+                        <a href="{{ route('p2p.merchant', $cp->getKey()) }}" class="flex items-center gap-2.5 hover:opacity-80">
+                            <x-ui.avatar :name="$cp->name" size="sm" />
                             <div class="leading-tight">
-                                <p class="text-sm font-semibold text-neutral-900">{{ $isBuyer ? $order->seller->name : $order->buyer->name }}</p>
+                                <p class="flex items-center gap-1 text-sm font-semibold text-neutral-900">
+                                    {{ $cp->name }}
+                                    @if ($cpVerified)<x-heroicon-s-check-badge class="h-4 w-4 text-brand-500" />@endif
+                                </p>
                                 <p class="h-3.5 text-xs text-brand-600" x-show="typing" x-cloak>{{ __('typing…') }}</p>
                             </div>
-                        </div>
+                        </a>
                         <span class="inline-flex items-center gap-1.5 text-xs text-neutral-400"><x-heroicon-s-lock-closed class="h-3.5 w-3.5" /> {{ __('Encrypted') }}</span>
                     </div>
 
@@ -343,6 +399,38 @@
                     <p class="mt-4 border-t border-neutral-100 pt-3 text-sm text-neutral-500">{{ __('Resolved') }}{{ $order->dispute->resolution ? ' — '.$order->dispute->resolution : '' }}.</p>
                 @endif
             </x-ui.card>
+        @endif
+
+        {{-- Release confirmation modal --}}
+        @if (in_array($s, ['buyer_paid', 'releasing']) && ! $isBuyer)
+            <x-ui.modal name="p2p-release" :title="__('Release the USDT?')" :subtitle="__('This is final and cannot be undone.')" maxWidth="sm">
+                <div class="space-y-4">
+                    <div class="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                        <x-heroicon-s-exclamation-triangle class="mt-0.5 h-5 w-5 shrink-0" />
+                        <p>{{ __('Only release once you have confirmed the :amount payment landed in your account. Once released, the USDT goes to the buyer immediately.', ['amount' => number_format((float) $order->fiat_amount, 2).' '.$order->fiat_currency]) }}</p>
+                    </div>
+                    <form method="POST" action="{{ route('p2p.order.release', $order) }}">
+                        @csrf
+                        <x-ui.button type="submit" variant="success" icon="lock-open" class="w-full">{{ __('Yes, release :amount', ['amount' => $order->cryptoMoney()->format()]) }}</x-ui.button>
+                    </form>
+                </div>
+            </x-ui.modal>
+        @endif
+
+        {{-- Cancel confirmation modal --}}
+        @if ($s === 'waiting_payment')
+            <x-ui.modal name="p2p-cancel" :title="__('Cancel this order?')" :subtitle="__('The escrow is returned to the seller.')" maxWidth="sm">
+                <div class="space-y-4">
+                    <p class="text-sm text-neutral-600">{{ __("Only cancel if you haven't paid. If you already sent the money, do not cancel — open a dispute instead.") }}</p>
+                    <div class="flex gap-2">
+                        <form method="POST" action="{{ route('p2p.order.cancel', $order) }}" class="flex-1">
+                            @csrf
+                            <x-ui.button type="submit" variant="danger" class="w-full">{{ __('Cancel order') }}</x-ui.button>
+                        </form>
+                        <x-ui.button type="button" variant="secondary" x-on:click="$dispatch('close-modal', 'p2p-cancel')">{{ __('Keep it') }}</x-ui.button>
+                    </div>
+                </div>
+            </x-ui.modal>
         @endif
 
         {{-- Dispute modal --}}

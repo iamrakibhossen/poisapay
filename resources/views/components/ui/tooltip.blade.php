@@ -25,7 +25,7 @@
     $arrowPositionClasses = $arrowPositions[$position] ?? $arrowPositions['top'];
 @endphp
 
-<div x-data="{ tooltip: false }" class="relative z-[70] inline-flex">
+<div x-data="{ tooltip: false }" class="relative inline-flex">
     <div x-on:mouseover="tooltip = true" x-on:mouseleave="tooltip = false" x-on:focus="tooltip = true"
         x-on:blur="tooltip = false">
         {{ $slot }}
@@ -34,7 +34,7 @@
     <div x-cloak x-show="tooltip" x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100"
         x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 transform scale-100"
-        x-transition:leave-end="opacity-0 transform scale-95" class="absolute {{ $positionClasses }}">
+        x-transition:leave-end="opacity-0 transform scale-95" class="absolute z-[70] {{ $positionClasses }}">
         <div
             class="{{ $width }} px-3 py-1.5 {{ $textColor }} {{ $bgColor }} rounded-lg shadow-lg text-sm font-normal text-center">
             {{ $message }}

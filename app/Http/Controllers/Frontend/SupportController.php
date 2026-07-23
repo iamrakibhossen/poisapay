@@ -22,12 +22,29 @@ class SupportController extends Controller
 
     public function index(Request $request): View
     {
-        $tickets = SupportTicket::where('user_id', $request->user()->id)
-            ->withCount('messages')
-            ->latest('updated_at')
-            ->paginate(20);
+        $uid = $request->user()->id;
+        $statuses = ['open', 'pending', 'resolved', 'closed'];
+        $tab = in_array($request->query('tab'), $statuses, true) ? $request->query('tab') : 'all';
 
-        return view('frontend.support.index', ['tickets' => $tickets]);
+        $tickets = SupportTicket::where('user_id', $uid)
+            ->withCount('messages')
+            ->when($tab !== 'all', fn ($q) => $q->where('status', $tab))
+            ->when($request->filled('q'), fn ($q) => $q->where('subject', 'like', '%'.$request->query('q').'%'))
+            ->latest('updated_at')
+            ->paginate(20)
+            ->withQueryString();
+
+        $byStatus = SupportTicket::where('user_id', $uid)->selectRaw('status, count(*) as c')->groupBy('status')->pluck('c', 'status');
+        $counts = ['all' => (int) $byStatus->sum()];
+        foreach ($statuses as $s) {
+            $counts[$s] = (int) ($byStatus[$s] ?? 0);
+        }
+
+        return view('frontend.support.index', [
+            'tickets' => $tickets,
+            'tab' => $tab,
+            'counts' => $counts,
+        ]);
     }
 
     public function create(): View

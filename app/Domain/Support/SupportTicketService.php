@@ -16,7 +16,8 @@ use Illuminate\Support\Facades\DB;
 /**
  * Support-ticket workflow (Wave 6). Opens tickets with an initial message, threads
  * user + staff replies (staff replies aren't tied to a user row), toggles status,
- * and fans notifications: operators on a new ticket, the user on a staff reply.
+ * and fans notifications: operators on a new ticket or user reply, the user on a
+ * staff reply.
  */
 class SupportTicketService
 {
@@ -65,6 +66,13 @@ class SupportTicketService
 
         // A user reply re-opens the ticket for staff attention.
         $ticket->update(['status' => SupportTicketStatus::Open]);
+
+        notifyAdmins(
+            'Support ticket reply',
+            "{$user->name} replied to \"{$ticket->subject}\"",
+            route('admin.support.show', $ticket->id),
+            'support',
+        );
         ActivityLogger::log('support.ticket.user_replied', $ticket, [], actor: $user);
 
         return $message;

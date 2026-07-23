@@ -1,54 +1,85 @@
-<x-layouts.app :title="__('Ticket')">
-    <div class="mx-auto max-w-2xl">
-        <header class="mb-6">
-            <a href="{{ route('support.index') }}" class="text-sm text-neutral-500 hover:text-neutral-900">{{ __('← Back to support') }}</a>
-            <div class="mt-2 flex items-center justify-between gap-3">
-                <h1 class="text-xl font-semibold tracking-tight text-neutral-900">{{ $ticket->subject }}</h1>
-                <span @class([
-                    'shrink-0 rounded-full px-2.5 py-1 text-xs font-medium',
-                    'bg-sky-100 text-sky-700' => $ticket->status->value === 'open',
-                    'bg-amber-100 text-amber-700' => $ticket->status->value === 'pending',
-                    'bg-emerald-100 text-emerald-700' => $ticket->status->value === 'resolved',
-                    'bg-neutral-100 text-neutral-600' => $ticket->status->value === 'closed',
-                ])>{{ $ticket->status->label() }}</span>
-            </div>
-            <p class="text-xs text-neutral-500">{{ ucfirst($ticket->category) }} · {{ ucfirst($ticket->priority) }} {{ __('priority') }}</p>
-        </header>
+<x-layouts.app :title="__('Ticket · :subject', ['subject' => $ticket->subject])">
+    @php
+        $catMeta = [
+            'general' => 'chat-bubble-left-right', 'account' => 'user-circle', 'deposit' => 'arrow-down-tray',
+            'withdrawal' => 'arrow-up-tray', 'card' => 'credit-card', 'kyc' => 'identification', 'other' => 'ellipsis-horizontal-circle',
+        ];
+        $icon = $catMeta[$ticket->category] ?? 'ellipsis-horizontal-circle';
+        $closed = $ticket->status->value === 'closed';
+    @endphp
 
-        @if (session('status'))
-            <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{{ session('status') }}</div>
-        @endif
-        @if ($errors->any())
-            <div class="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{{ $errors->first() }}</div>
-        @endif
+    <div class="mx-auto max-w-3xl space-y-5">
+        <x-ui.page-header :title="$ticket->subject" :subtitle="__('Ticket #:id', ['id' => \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($ticket->id, 0, 8))])">
+            <x-slot:actions>
+                <a href="{{ route('support.index') }}"><x-ui.button variant="secondary" icon="arrow-left">{{ __('Support') }}</x-ui.button></a>
+            </x-slot:actions>
+        </x-ui.page-header>
 
-        <div class="space-y-3">
+        {{-- Meta bar --}}
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-neutral-200 bg-white p-4 shadow-[var(--shadow-card)]">
+            <span class="inline-flex items-center gap-1.5 text-sm text-neutral-600">
+                <x-dynamic-component :component="'heroicon-o-'.$icon" class="h-4 w-4 text-neutral-400" />{{ ucfirst($ticket->category) }}
+            </span>
+            <span class="text-neutral-200">|</span>
+            <span class="inline-flex items-center gap-1.5 text-sm text-neutral-600">
+                @php $tone = ['low' => 'bg-green-500', 'normal' => 'bg-brand-500', 'high' => 'bg-red-500'][$ticket->priority] ?? 'bg-neutral-400'; @endphp
+                <span class="h-2 w-2 rounded-full {{ $tone }}"></span>{{ ucfirst($ticket->priority) }} {{ __('priority') }}
+            </span>
+            <span class="text-neutral-200">|</span>
+            <span class="text-sm text-neutral-500">{{ __('Opened') }} {{ $ticket->created_at->format('d M, Y') }}</span>
+            <x-ui.badge :color="$ticket->status->color()" dot class="ml-auto">{{ $ticket->status->label() }}</x-ui.badge>
+        </div>
+
+        @if (session('status'))<x-ui.alert type="success">{{ session('status') }}</x-ui.alert>@endif
+        @if ($errors->any())<x-ui.alert type="error">{{ $errors->first() }}</x-ui.alert>@endif
+
+        {{-- Conversation --}}
+        <div class="space-y-4">
             @foreach ($ticket->messages as $message)
-                <div @class(['flex', 'justify-end' => $message->is_staff])>
-                    <div @class([
-                        'max-w-[85%] rounded-2xl px-4 py-3',
-                        'bg-brand-50 text-neutral-900' => $message->is_staff,
-                        'bg-white border border-neutral-200 text-neutral-800' => ! $message->is_staff,
+                <div @class(['flex gap-3', 'flex-row-reverse' => ! $message->is_staff])>
+                    <span @class([
+                        'grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-bold',
+                        'bg-brand-100 text-brand-700' => $message->is_staff,
+                        'bg-neutral-200 text-neutral-600' => ! $message->is_staff,
                     ])>
-                        <p class="mb-1 text-xs font-semibold {{ $message->is_staff ? 'text-brand-600' : 'text-neutral-500' }}">
-                            {{ $message->is_staff ? ($message->author_name ?? __('Support')) : __('You') }} · {{ $message->created_at->diffForHumans() }}
+                        @if ($message->is_staff)<x-heroicon-s-lifebuoy class="h-5 w-5" />@else {{ \Illuminate\Support\Str::substr(auth()->user()->name, 0, 1) }}@endif
+                    </span>
+                    <div class="min-w-0 max-w-[85%]">
+                        <div @class([
+                            'rounded-2xl px-4 py-3',
+                            'rounded-tl-sm bg-brand-50 text-neutral-900' => $message->is_staff,
+                            'rounded-tr-sm border border-neutral-200 bg-white text-neutral-800' => ! $message->is_staff,
+                        ])>
+                            <p class="whitespace-pre-line text-sm">{{ $message->body }}</p>
+                        </div>
+                        <p @class(['mt-1 px-1 text-xs text-neutral-400', 'text-right' => ! $message->is_staff])>
+                            {{ $message->is_staff ? ($message->author_name ?? __('Support team')) : __('You') }} · {{ $message->created_at->diffForHumans() }}
                         </p>
-                        <p class="whitespace-pre-line text-sm">{{ $message->body }}</p>
                     </div>
                 </div>
             @endforeach
         </div>
 
-        @if ($ticket->status->value !== 'closed')
-            <form method="POST" action="{{ route('support.reply', $ticket->id) }}" class="mt-5">
-                @csrf
-                <textarea name="body" required rows="3" maxlength="5000" placeholder="{{ __('Write a reply…') }}" class="w-full rounded-xl border-neutral-300 text-sm"></textarea>
-                <div class="mt-2 text-right">
-                    <button class="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-semibold text-white">{{ __('Send reply') }}</button>
-                </div>
-            </form>
+        {{-- Reply --}}
+        @if (! $closed)
+            <x-ui.card>
+                <form method="POST" action="{{ route('support.reply', $ticket->id) }}" x-data="{ body: '' }">
+                    @csrf
+                    <label class="pp-label">{{ __('Reply') }}</label>
+                    <textarea name="body" x-model="body" required rows="3" maxlength="5000"
+                              placeholder="{{ __('Write a reply…') }}" class="pp-input"></textarea>
+                    <div class="mt-3 flex items-center justify-between">
+                        <p class="text-xs text-neutral-400"><span x-text="body.length"></span>/5000</p>
+                        <x-ui.button type="submit" icon="paper-airplane" x-bind:disabled="!body.trim()">{{ __('Send reply') }}</x-ui.button>
+                    </div>
+                </form>
+            </x-ui.card>
         @else
-            <p class="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-center text-sm text-neutral-500">{{ __('This ticket is closed.') }}</p>
+            <div class="flex flex-col items-center gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-6 text-center">
+                <x-heroicon-o-lock-closed class="h-6 w-6 text-neutral-400" />
+                <p class="text-sm text-neutral-500">{{ __('This ticket is closed. Open a new one if you still need help.') }}</p>
+                <a href="{{ route('support.create') }}"><x-ui.button variant="secondary" icon="plus">{{ __('New ticket') }}</x-ui.button></a>
+            </div>
         @endif
     </div>
 </x-layouts.app>

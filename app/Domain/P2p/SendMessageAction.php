@@ -8,7 +8,9 @@ use App\Enums\P2pMessageType;
 use App\Models\P2pOrder;
 use App\Models\P2pOrderMessage;
 use App\Models\User;
+use App\Notifications\P2pChatMessageNotification;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 /**
@@ -47,6 +49,30 @@ class SendMessageAction
             throw new RuntimeException('Message cannot be empty.');
         }
 
-        return $this->chat->record($order, 'user', (string) $sender->getKey(), $type, $body, $path);
+        $message = $this->chat->record($order, 'user', (string) $sender->getKey(), $type, $body, $path);
+
+        $this->notifyCounterparty($order, $sender, $type, $body);
+
+        return $message;
+    }
+
+    /** Alert the other party (in-app) so they see the reply even when off the page. */
+    private function notifyCounterparty(P2pOrder $order, User $sender, P2pMessageType $type, ?string $body): void
+    {
+        $counterpartyId = $sender->getKey() === $order->buyer_id ? $order->seller_id : $order->buyer_id;
+        $counterparty = User::find($counterpartyId);
+        if (! $counterparty) {
+            return;
+        }
+
+        $preview = $type->hasAttachment()
+            ? __('Sent an attachment')
+            : Str::limit(trim((string) $body), 100);
+
+        $counterparty->notify(new P2pChatMessageNotification(
+            __('New message on order :ref', ['ref' => $order->ref]),
+            $sender->name.': '.$preview,
+            route('p2p.order', $order),
+        ));
     }
 }

@@ -70,16 +70,37 @@ class P2pController extends Controller
         ]);
     }
 
+    /** Ad status buckets that power the quick-filter tabs. */
+    private const AD_TABS = [
+        'active' => ['active'],
+        'paused' => ['paused'],
+        'closed' => ['disabled', 'archived', 'draft'],
+    ];
+
     public function myAds(Request $request): View
     {
+        $uid = $request->user()->getKey();
+        $tab = array_key_exists($request->query('tab'), self::AD_TABS) ? $request->query('tab') : 'all';
+
         $ads = P2pAd::with(['asset', 'paymentMethods'])
-            ->where('user_id', $request->user()->getKey())
+            ->where('user_id', $uid)
+            ->when($tab !== 'all', fn ($q) => $q->whereIn('status', self::AD_TABS[$tab]))
+            ->orderByDesc('priority')
             ->latest()
-            ->paginate(15);
+            ->paginate(12)
+            ->withQueryString();
+
+        $byStatus = P2pAd::where('user_id', $uid)->selectRaw('status, count(*) as c')->groupBy('status')->pluck('c', 'status');
+        $counts = ['all' => (int) $byStatus->sum()];
+        foreach (self::AD_TABS as $key => $statuses) {
+            $counts[$key] = (int) collect($statuses)->sum(fn ($s) => $byStatus[$s] ?? 0);
+        }
 
         return view('frontend.p2p.ads', [
             'ads' => $ads,
-            'profile' => $this->profileFor($request->user()->getKey()),
+            'profile' => $this->profileFor($uid),
+            'tab' => $tab,
+            'counts' => $counts,
         ]);
     }
 
@@ -236,15 +257,46 @@ class P2pController extends Controller
         return redirect()->route('p2p.ads')->with('success', 'Your ad has been updated.');
     }
 
+    /** Order status buckets that power the quick-filter tabs. */
+    private const ORDER_TABS = [
+        'active' => ['waiting_payment', 'buyer_paid', 'releasing'],
+        'completed' => ['completed', 'force_released'],
+        'cancelled' => ['cancelled', 'expired', 'force_cancelled', 'refunded'],
+        'disputed' => ['disputed'],
+    ];
+
     public function orders(Request $request): View
     {
         $me = $request->user()->getKey();
-        $orders = P2pOrder::with(['asset', 'ad'])
-            ->where(fn ($q) => $q->where('buyer_id', $me)->orWhere('seller_id', $me))
-            ->latest()
-            ->paginate(15);
+        $mine = fn ($q) => $q->where('buyer_id', $me)->orWhere('seller_id', $me);
 
-        return view('frontend.p2p.orders', ['orders' => $orders, 'me' => $me]);
+        $tab = array_key_exists($request->query('tab'), self::ORDER_TABS) ? $request->query('tab') : 'all';
+
+        $orders = P2pOrder::with(['asset', 'ad', 'buyer', 'seller'])
+            ->where($mine)
+            ->when($request->query('role') === 'buying', fn ($q) => $q->where('buyer_id', $me))
+            ->when($request->query('role') === 'selling', fn ($q) => $q->where('seller_id', $me))
+            ->when($tab !== 'all', fn ($q) => $q->whereIn('status', self::ORDER_TABS[$tab]))
+            ->when($request->filled('search'), fn ($q) => $q->where('ref', 'like', '%'.$request->query('search').'%'))
+            ->when($request->filled('from'), fn ($q) => $q->whereDate('created_at', '>=', $request->query('from')))
+            ->when($request->filled('to'), fn ($q) => $q->whereDate('created_at', '<=', $request->query('to')))
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
+
+        // One grouped query → per-status counts, summed into the tab buckets below.
+        $byStatus = P2pOrder::where($mine)->selectRaw('status, count(*) as c')->groupBy('status')->pluck('c', 'status');
+        $counts = ['all' => (int) $byStatus->sum()];
+        foreach (self::ORDER_TABS as $key => $statuses) {
+            $counts[$key] = (int) collect($statuses)->sum(fn ($s) => $byStatus[$s] ?? 0);
+        }
+
+        return view('frontend.p2p.orders', [
+            'orders' => $orders,
+            'me' => $me,
+            'tab' => $tab,
+            'counts' => $counts,
+        ]);
     }
 
     public function createOrder(Request $request, CreateOrderAction $action): RedirectResponse

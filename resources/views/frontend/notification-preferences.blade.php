@@ -3,8 +3,6 @@
         $channels = [
             ['key' => 'in_app', 'label' => __('In-app')],
             ['key' => 'email', 'label' => __('Email')],
-            ['key' => 'push', 'label' => __('Push')],
-            ['key' => 'sms', 'label' => __('SMS')],
         ];
     @endphp
 
@@ -20,16 +18,14 @@
                 @csrf @method('PUT')
 
                 {{-- Header row (channels) --}}
-                <div class="hidden grid-cols-[1fr_repeat(4,4rem)] items-center gap-2 border-b border-neutral-100 pb-3 text-xs font-semibold uppercase tracking-wide text-neutral-400 sm:grid">
+                <div class="hidden grid-cols-[1fr_repeat(2,4rem)] items-center gap-2 border-b border-neutral-100 pb-3 text-xs font-semibold uppercase tracking-wide text-neutral-400 sm:grid">
                     <span>{{ __('Category') }}</span>
                     <span class="text-center">{{ __('In-app') }}</span>
                     <span class="text-center">{{ __('Email') }}</span>
-                    <span class="text-center">{{ __('Push') }}</span>
-                    <span class="text-center">{{ __('SMS') }}</span>
                 </div>
 
                 @foreach ($categories as $cat => $label)
-                    <div class="grid grid-cols-2 items-center gap-3 rounded-xl border border-neutral-200 p-4 sm:grid-cols-[1fr_repeat(4,4rem)] sm:gap-2 sm:border-0 sm:border-b sm:border-neutral-100 sm:rounded-none sm:p-0 sm:pb-4 sm:last:border-b-0 sm:last:pb-0">
+                    <div class="grid grid-cols-2 items-center gap-3 rounded-xl border border-neutral-200 p-4 sm:grid-cols-[1fr_repeat(2,4rem)] sm:gap-2 sm:border-0 sm:border-b sm:border-neutral-100 sm:rounded-none sm:p-0 sm:pb-4 sm:last:border-b-0 sm:last:pb-0">
                         <div class="col-span-2 flex items-center gap-3 sm:col-span-1">
                             <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full {{ $categoryMeta[$cat]['tint'] }}">
                                 <x-dynamic-component :component="'heroicon-o-'.$categoryMeta[$cat]['icon']" class="h-5 w-5" />
