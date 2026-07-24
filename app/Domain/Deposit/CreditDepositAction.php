@@ -47,11 +47,12 @@ class CreditDepositAction
             $fee = PlatformFees::depositFee($deposit->amount);
             $net = (string) BigInteger::of($deposit->amount)->minus($fee);
 
-            $idempotencyKey = sprintf(
-                'deposit:%s:%d',
-                $deposit->onchainTx->tx_hash,
-                $deposit->onchainTx->log_index,
-            );
+            // On-chain deposits dedupe by the chain event (tx hash + log index) so a
+            // replayed tick can't double-credit; anything without a tx (e.g. a simulated
+            // or manually-linked deposit) falls back to the deposit id.
+            $idempotencyKey = $deposit->onchainTx
+                ? sprintf('deposit:%s:%d', $deposit->onchainTx->tx_hash, $deposit->onchainTx->log_index)
+                : sprintf('deposit:%s', $deposit->id);
 
             $lines = [
                 PostingLine::debit($treasury->id, $deposit->asset_id, $deposit->amount),

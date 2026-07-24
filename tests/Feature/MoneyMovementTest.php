@@ -71,6 +71,27 @@ it('credits a confirmed deposit exactly once (idempotent, no double-credit)', fu
         ->and($deposit->fresh()->status)->toBe(DepositStatus::Credited);
 });
 
+it('credits a deposit with no on-chain tx without crashing (idempotency falls back to id)', function () {
+    $user = User::factory()->create();
+    CustodyXpub::create([
+        'chain_id' => $this->chain->id, 'label' => 'x', 'xpub' => 'xpub-notx',
+        'derivation_path' => 'm', 'next_index' => 0, 'purpose' => 'deposit',
+    ]);
+    $address = app(AllocateDepositAddressAction::class)->execute($user, $this->chain);
+
+    // No linked OnchainTx (e.g. a simulated/manually-linked deposit).
+    $deposit = Deposit::create([
+        'user_id' => $user->id, 'deposit_address_id' => $address->id, 'asset_id' => $this->asset->id,
+        'onchain_tx_id' => null, 'amount' => '5000000', 'confirmations' => 20,
+        'required_confirmations' => 19, 'status' => DepositStatus::Detected,
+    ]);
+
+    app(CreditDepositAction::class)->execute($deposit);
+
+    expect($this->ledger->availableBalance($user, $this->asset->id)->baseString())->toBe('5000000')
+        ->and($deposit->fresh()->status)->toBe(DepositStatus::Credited);
+});
+
 it('performs an instant internal transfer between users', function () {
     $sender = User::factory()->create();
     $recipient = User::factory()->create();
