@@ -27,6 +27,8 @@ it('renders every settings section', function () {
 
 it('persists a card setting and a comma-list compliance setting', function () {
     actingAs($this->admin, 'admin')->put(route('admin.settings.update', 'cards'), [
+        'card_price_virtual' => 2,
+        'card_price_physical' => 9.99,
         'card_fee_bps' => 150,
         'card_default_daily_limit' => 600000,
         'card_default_per_tx_limit' => 250000,

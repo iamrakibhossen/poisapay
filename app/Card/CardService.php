@@ -225,7 +225,10 @@ class CardService
             ->where('card_provider_id', $provider->id)
             ->first();
 
-        if ($account) {
+        // Reuse the cached cardholder token only if it was minted by the SAME driver.
+        // A token from another driver (e.g. after switching mock -> stripe) is invalid
+        // there and would fail with "No such issuing cardholder".
+        if ($account && $account->driver === $adapter->key()) {
             return $account->provider_ref;
         }
 
@@ -238,13 +241,12 @@ class CardService
             $status = null;
         }
 
-        ProviderAccount::create([
-            'user_id' => $user->id,
-            'card_provider_id' => $provider->id,
-            'driver' => $adapter->key(),
-            'provider_ref' => $ref,
-            'status' => $status,
-        ]);
+        // updateOrCreate respects the (user_id, card_provider_id) unique key, so a stale
+        // cross-driver token is replaced with the freshly minted one.
+        ProviderAccount::updateOrCreate(
+            ['user_id' => $user->id, 'card_provider_id' => $provider->id],
+            ['driver' => $adapter->key(), 'provider_ref' => $ref, 'status' => $status],
+        );
 
         return $ref;
     }
