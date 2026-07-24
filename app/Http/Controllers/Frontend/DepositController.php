@@ -6,14 +6,18 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Domain\Custody\AllocateDepositAddressAction;
 use App\Domain\Deposit\SubmitManualDepositAction;
+use App\Domain\Exchange\Contracts\RateProvider;
 use App\Enums\DepositMethodType;
 use App\Http\Controllers\Controller;
 use App\Models\Asset;
 use App\Models\Deposit;
 use App\Models\DepositAddress;
 use App\Models\DepositMethod;
+use App\Support\BaseCurrency;
 use App\Support\Money;
 use App\Support\Qr;
+use Brick\Math\BigDecimal;
+use Brick\Math\RoundingMode;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -85,25 +89,70 @@ class DepositController extends Controller
     /** Dedicated deposit history page — the full, paginated list of the user's deposits. */
     public function history(Request $request): View
     {
-        $deposits = Deposit::with(['asset.chain', 'depositMethod', 'onchainTx'])
-            ->where('user_id', $request->user()->id)
+        $user = $request->user();
+
+        $filters = [
+            'status' => (string) $request->query('status', 'all'),
+            'asset' => (string) $request->query('asset', 'all'),
+            'search' => trim((string) $request->query('search', '')),
+        ];
+
+        // ── Account-wide stats (independent of the active filters) ──
+        $base = Deposit::where('user_id', $user->id);
+        $stats = [
+            'total' => (clone $base)->count(),
+            'month' => (clone $base)->where('created_at', '>=', now()->startOfMonth())->count(),
+            'pending' => (clone $base)->whereIn('status', ['detected', 'confirming'])->count(),
+            'received' => $this->receivedInBaseCurrency($user),
+        ];
+
+        // Assets this user has ever deposited — powers the asset filter.
+        $symbols = Asset::whereIn('id', (clone $base)->select('asset_id'))
+            ->orderBy('symbol')->pluck('symbol');
+
+        // ── Filtered, paginated feed ──
+        $query = Deposit::with(['asset.chain', 'depositMethod', 'onchainTx'])
+            ->where('user_id', $user->id);
+
+        $statusGroups = ['pending' => ['detected', 'confirming'], 'credited' => ['credited'], 'failed' => ['orphaned']];
+        if (isset($statusGroups[$filters['status']])) {
+            $query->whereIn('status', $statusGroups[$filters['status']]);
+        }
+
+        if ($filters['asset'] !== 'all') {
+            $query->whereHas('asset', fn ($q) => $q->where('symbol', $filters['asset']));
+        }
+
+        if ($filters['search'] !== '') {
+            $term = '%'.$filters['search'].'%';
+            $query->where(fn ($q) => $q
+                ->where('reference', 'ilike', $term)
+                ->orWhereHas('onchainTx', fn ($t) => $t->where('tx_hash', 'ilike', $term)));
+        }
+
+        $deposits = $query
             ->latest()
             ->paginate(20)
+            ->withQueryString()
             ->through(function (Deposit $d) {
                 $tx = $d->onchainTx;
                 $hash = $tx?->tx_hash;
 
                 return [
+                    'id' => $d->id,
                     'symbol' => $d->asset->symbol,
                     'name' => $d->asset->name,
                     'network' => $d->asset->chain?->name ?? ($d->asset->isFiat() ? 'Fiat' : $d->asset->name),
                     'amount' => $d->money()->format(),
                     'fee' => $d->fee > 0 ? $d->feeMoney()->format() : null,
+                    'net' => $d->netMoney()->format(),
                     'source' => $d->source === 'manual' ? ($d->depositMethod?->name ?? 'Manual') : 'On-chain',
+                    'sourceKind' => $d->source === 'manual' ? 'Manual' : 'On-chain',
                     'reference' => $d->reference,
                     'status' => $d->status->label(),
                     'statusColor' => $d->status->color(),
                     'at' => $d->created_at->toIso8601String(),
+                    'creditedAt' => $d->credited_at?->toIso8601String(),
                     // On-chain details.
                     'txid' => $hash,
                     'txidShort' => $hash ? Str::substr($hash, 0, 10).'…'.Str::substr($hash, -8) : null,
@@ -114,7 +163,39 @@ class DepositController extends Controller
                 ];
             });
 
-        return view('frontend.deposits', ['deposits' => $deposits]);
+        return view('frontend.deposits', [
+            'deposits' => $deposits,
+            'stats' => $stats,
+            'filters' => $filters,
+            'symbols' => $symbols,
+        ]);
+    }
+
+    /**
+     * All-time credited deposits, valued in the user's base currency.
+     * Mirrors {@see \App\Domain\Analytics\FlowAnalytics} so the figure never drifts.
+     */
+    private function receivedInBaseCurrency($user): string
+    {
+        $base = BaseCurrency::assetFor($user);
+        if (! $base) {
+            return '—';
+        }
+
+        $rates = app(RateProvider::class);
+        $total = BigDecimal::zero();
+
+        foreach (Deposit::with('asset')->where('user_id', $user->id)->where('status', 'credited')->get() as $d) {
+            $total = $total->plus(
+                BigDecimal::ofUnscaledValue($d->amount, $d->asset->decimals)->multipliedBy($rates->rate($d->asset, $base))
+            );
+        }
+
+        return Money::ofBase(
+            $total->withPointMovedRight($base->decimals)->toScale(0, RoundingMode::DOWN)->toBigInteger(),
+            $base->decimals,
+            $base->symbol,
+        )->format(2);
     }
 
     public function submit(Request $request): RedirectResponse

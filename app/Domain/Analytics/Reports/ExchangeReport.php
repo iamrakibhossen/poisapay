@@ -59,7 +59,7 @@ class ExchangeReport extends Report
             $this->trendKpi('Exchange Volume', $this->usdFmt($volume), $volume, $volumePrev, ['accent' => 'emerald', 'icon' => 'banknotes', 'spark' => $this->summarySeries('swap_volume_usd', $period)]),
             $this->kpi('Spread Earned', $this->usdFmt($spread), ['accent' => 'emerald']),
             $this->kpi('Avg Profit / Swap', $this->usdFmt($avgProfit), ['accent' => 'sky']),
-            $this->kpi('Avg Rate', $avgRate ?: '—', ['accent' => 'violet']),
+            $this->kpi('Avg Rate', $avgRate ? number_format($avgRate, 4) : '—', ['accent' => 'violet']),
             $this->kpi('Failed Swaps', number_format(max(0, $swaps - $completed)), ['accent' => 'rose']),
         ];
 

@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Domain\Transaction;
 
 use App\Enums\CardAuthStatus;
+use App\Enums\LedgerSide;
+use App\Models\Card;
 use App\Models\CardAuthorization;
 use App\Models\Conversion;
 use App\Models\Deposit;
+use App\Models\JournalEntry;
 use App\Models\MerchantInvoice;
 use App\Models\Transfer;
 use App\Models\User;
@@ -80,6 +83,7 @@ class TransactionFeedService
             ->concat($this->conversions($userId))
             ->concat($this->payments($userId))
             ->concat($this->cards($userId))
+            ->concat($this->cardIssuance($userId))
             ->sortByDesc('_at')
             ->values();
     }
@@ -192,6 +196,36 @@ class TransactionFeedService
                     'asset' => $a->currency_code, 'url' => route('cards.manage', $a->card_id),
                 ], $a->created_at);
             });
+    }
+
+    /** One-time card issuance fees — booked to the ledger (card.issue.fee), no domain model. */
+    private function cardIssuance(string $userId): Collection
+    {
+        $cardIds = Card::where('user_id', $userId)->pluck('id');
+        if ($cardIds->isEmpty()) {
+            return collect();
+        }
+
+        return JournalEntry::with('lines.asset')
+            ->where('type', 'card.issue.fee')
+            ->whereIn('metadata->card_id', $cardIds->all())
+            ->latest('posted_at')->limit(self::SOURCE_LIMIT)->get()
+            ->map(function (JournalEntry $e) {
+                // The debit line is the user's charge (user:available -> fee:card).
+                $debit = $e->lines->firstWhere('side', LedgerSide::Debit);
+                if (! $debit || ! $debit->asset) {
+                    return null;
+                }
+                $money = Money::ofBase($debit->amount, $debit->asset->decimals, $debit->asset->symbol);
+
+                return $this->row([
+                    'group' => 'cards', 'type' => 'Card',
+                    'icon' => 'credit-card', 'color' => 'warning',
+                    'title' => 'Card purchase', 'subtitle' => 'Card issuance fee',
+                    'amount' => '-'.$money->format(), 'status' => 'Completed', 'statusColor' => 'success',
+                    'asset' => $debit->asset->symbol, 'url' => route('cards'),
+                ], $e->posted_at ?? $e->created_at);
+            })->filter()->values();
     }
 
     private function shorten(string $address): string

@@ -7,6 +7,16 @@
             <x-admin.input.boolean name="cards_enabled" :value="old('cards_enabled', getSetting('cards_enabled', true))" />
         </x-admin.input.group>
 
+        <div class="grid gap-5 sm:grid-cols-2">
+            <x-admin.input.group id="card_price_virtual" :label="__('Virtual Card Price (USD)')" required class="w-full" :hints="__('One-time issuance price in USD. 0 = free.')">
+                <x-admin.input type="number" min="0" max="100000" step="0.01" name="card_price_virtual" :value="old('card_price_virtual', getSetting('card_price_virtual', config('card.pricing.virtual', 2)))" required />
+            </x-admin.input.group>
+
+            <x-admin.input.group id="card_price_physical" :label="__('Physical Card Price (USD)')" required class="w-full" :hints="__('One-time issuance price in USD. 0 = free.')">
+                <x-admin.input type="number" min="0" max="100000" step="0.01" name="card_price_physical" :value="old('card_price_physical', getSetting('card_price_physical', config('card.pricing.physical', 9.99)))" required />
+            </x-admin.input.group>
+        </div>
+
         <x-admin.input.group id="card_fee_bps" :label="__('Card Fee (bps)')" required class="w-full" :hints="__('100 bps = 1% on each settled card transaction.')">
             <x-admin.input type="number" min="0" max="10000" name="card_fee_bps" :value="old('card_fee_bps', getSetting('card_fee_bps', 100))" required />
         </x-admin.input.group>

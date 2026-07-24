@@ -71,6 +71,8 @@ class SettingsSeeder extends Seeder
                 'security_high_risk_countries' => ['KP', 'IR', 'SY', 'CU'],
             ],
             'cards' => [
+                'card_price_virtual' => 2,              // one-time issuance price (settlement currency)
+                'card_price_physical' => 9.99,
                 'card_default_daily_limit' => 500000,   // $5,000.00 minor units
                 'card_default_per_tx_limit' => 200000,  // $2,000.00 minor units
                 'card_dispute_window_days' => 60,

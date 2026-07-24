@@ -71,4 +71,13 @@ return [
         'tolerate_seconds' => (int) env('CARD_WEBHOOK_TOLERANCE', 300),
         'jit_timeout_ms' => (int) env('CARD_JIT_TIMEOUT_MS', 1500),
     ],
+
+    // One-time issuance price per card type, charged from the user's stablecoin
+    // balance and booked to fee:card. Priced in `currency` (2dp); 0 = free.
+    'pricing' => [
+        'currency' => env('CARD_PRICE_CURRENCY', 'USD'),
+        'funding_asset' => env('CARD_FUNDING_ASSET', 'USDT'),
+        'virtual' => (float) env('CARD_PRICE_VIRTUAL', 2),
+        'physical' => (float) env('CARD_PRICE_PHYSICAL', 9.99),
+    ],
 ];

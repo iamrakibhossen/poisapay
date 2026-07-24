@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Domain\Exchange\Contracts\RateProvider;
 use App\Domain\Transfer\ExecuteTransferAction;
 use App\Domain\Wallet\WalletService;
 use App\Http\Controllers\Controller;
 use App\Models\Asset;
 use App\Models\Transfer;
 use App\Models\User;
+use App\Support\BaseCurrency;
 use App\Support\Money;
+use Brick\Math\BigDecimal;
+use Brick\Math\RoundingMode;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -46,26 +50,109 @@ class SendController extends Controller
     /** Dedicated transfer history page — the full, paginated list of the user's transfers. */
     public function history(Request $request): View
     {
-        $userId = $request->user()->id;
+        $user = $request->user();
+        $userId = $user->id;
 
-        $transfers = Transfer::with(['asset', 'sender', 'recipient'])
-            ->where(fn ($q) => $q->where('sender_id', $userId)->orWhere('recipient_id', $userId))
+        $filters = [
+            'direction' => (string) $request->query('direction', 'all'),
+            'asset' => (string) $request->query('asset', 'all'),
+            'search' => trim((string) $request->query('search', '')),
+        ];
+
+        $mine = fn ($q) => $q->where('sender_id', $userId)->orWhere('recipient_id', $userId);
+
+        // ── Account-wide stats (independent of the active filters) ──
+        $base = Transfer::where($mine);
+        $stats = [
+            'total' => (clone $base)->count(),
+            'month' => (clone $base)->where('created_at', '>=', now()->startOfMonth())->count(),
+            'sent' => $this->flowInBaseCurrency($user, 'sent'),
+            'received' => $this->flowInBaseCurrency($user, 'received'),
+        ];
+
+        // Assets this user has ever transferred — powers the asset filter.
+        $symbols = Asset::whereIn('id', (clone $base)->select('asset_id'))
+            ->orderBy('symbol')->pluck('symbol');
+
+        // ── Filtered, paginated feed ──
+        $query = Transfer::with(['asset', 'sender', 'recipient'])->where($mine);
+
+        if ($filters['direction'] === 'sent') {
+            $query->where('sender_id', $userId);
+        } elseif ($filters['direction'] === 'received') {
+            $query->where('recipient_id', $userId);
+        }
+
+        if ($filters['asset'] !== 'all') {
+            $query->whereHas('asset', fn ($q) => $q->where('symbol', $filters['asset']));
+        }
+
+        if ($filters['search'] !== '') {
+            $term = '%'.$filters['search'].'%';
+            $query->where(fn ($q) => $q
+                ->where('memo', 'ilike', $term)
+                ->orWhereHas('sender', fn ($s) => $s->where('name', 'ilike', $term))
+                ->orWhereHas('recipient', fn ($r) => $r->where('name', 'ilike', $term)));
+        }
+
+        $transfers = $query
             ->latest()
             ->paginate(20)
+            ->withQueryString()
             ->through(function (Transfer $t) use ($userId) {
                 $sent = $t->sender_id === $userId;
+                $party = $sent ? $t->recipient : $t->sender;
 
                 return [
+                    'id' => $t->id,
                     'sent' => $sent,
                     'symbol' => $t->asset->symbol,
-                    'counterparty' => $sent ? ($t->recipient?->name ?? 'Recipient') : ($t->sender?->name ?? 'Sender'),
+                    'name' => $t->asset->name,
+                    'counterparty' => $party?->name ?? ($sent ? 'Recipient' : 'Sender'),
+                    'counterpartyHandle' => $party?->email ?? $t->recipient_handle,
                     'memo' => $t->memo,
                     'amount' => $t->money()->format(),
+                    'kind' => $t->kind?->label(),
+                    'status' => $t->status?->label(),
+                    'statusColor' => $t->status?->color(),
                     'at' => $t->created_at->toIso8601String(),
                 ];
             });
 
-        return view('frontend.transfers', ['transfers' => $transfers]);
+        return view('frontend.transfers', [
+            'transfers' => $transfers,
+            'stats' => $stats,
+            'filters' => $filters,
+            'symbols' => $symbols,
+        ]);
+    }
+
+    /**
+     * All-time completed transfers in one direction, valued in the user's base
+     * currency. Mirrors {@see \App\Domain\Analytics\FlowAnalytics} so figures never drift.
+     */
+    private function flowInBaseCurrency(User $user, string $direction): string
+    {
+        $base = BaseCurrency::assetFor($user);
+        if (! $base) {
+            return '—';
+        }
+
+        $rates = app(RateProvider::class);
+        $total = BigDecimal::zero();
+
+        $column = $direction === 'sent' ? 'sender_id' : 'recipient_id';
+        foreach (Transfer::with('asset')->where($column, $user->id)->where('status', 'completed')->get() as $t) {
+            $total = $total->plus(
+                BigDecimal::ofUnscaledValue($t->amount, $t->asset->decimals)->multipliedBy($rates->rate($t->asset, $base))
+            );
+        }
+
+        return Money::ofBase(
+            $total->withPointMovedRight($base->decimals)->toScale(0, RoundingMode::DOWN)->toBigInteger(),
+            $base->decimals,
+            $base->symbol,
+        )->format(2);
     }
 
     public function send(Request $request, ExecuteTransferAction $transfers): RedirectResponse

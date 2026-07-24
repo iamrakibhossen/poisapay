@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Domain\Exchange\Contracts\RateProvider;
 use App\Domain\Exchange\ExchangeService;
 use App\Domain\Exchange\ExecuteSwapAction;
 use App\Domain\Exchange\SwapPolicy;
@@ -14,7 +15,10 @@ use App\Models\Asset;
 use App\Models\Conversion;
 use App\Models\FxQuote;
 use App\Models\TradingPair;
+use App\Support\BaseCurrency;
 use App\Support\Money;
+use Brick\Math\BigDecimal;
+use Brick\Math\RoundingMode;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -80,27 +84,123 @@ class ExchangeController extends Controller
     /** Dedicated swap history page — the full, paginated list of the user's swaps. */
     public function history(Request $request): View
     {
-        $swaps = Conversion::with(['quote.fromAsset', 'quote.toAsset'])
-            ->where('user_id', $request->user()->id)
+        $user = $request->user();
+        $userId = $user->id;
+
+        $filters = [
+            'context' => (string) $request->query('context', 'all'),
+            'asset' => (string) $request->query('asset', 'all'),
+            'search' => trim((string) $request->query('search', '')),
+        ];
+
+        // ── Account-wide stats (independent of the active filters) ──
+        $base = Conversion::where('user_id', $userId);
+        $stats = [
+            'total' => (clone $base)->count(),
+            'month' => (clone $base)->where('created_at', '>=', now()->startOfMonth())->count(),
+            'volume' => $this->swapVolumeInBaseCurrency($user),
+            'volume30d' => $this->swapVolumeInBaseCurrency($user, now()->subDays(30)),
+        ];
+
+        // Assets this user has swapped (either side) — powers the asset filter.
+        $quoteIds = (clone $base)->pluck('quote_id');
+        $assetIds = FxQuote::whereIn('id', $quoteIds)->get(['from_asset_id', 'to_asset_id'])
+            ->flatMap(fn (FxQuote $q) => [$q->from_asset_id, $q->to_asset_id])->unique();
+        $symbols = Asset::whereIn('id', $assetIds)->orderBy('symbol')->pluck('symbol')->unique()->values();
+
+        // ── Filtered, paginated feed ──
+        $query = Conversion::with(['quote.fromAsset', 'quote.toAsset'])->where('user_id', $userId);
+
+        if (in_array($filters['context'], ['swap', 'ramp', 'card_settle'], true)) {
+            $query->where('context', $filters['context']);
+        }
+
+        // Asset / search both match either side of the pair (from OR to symbol).
+        $symbolNeedle = $filters['asset'] !== 'all' ? $filters['asset'] : ($filters['search'] !== '' ? $filters['search'] : null);
+        if ($symbolNeedle !== null) {
+            $exact = $filters['asset'] !== 'all';
+            $query->whereHas('quote', function ($q) use ($symbolNeedle, $exact) {
+                $match = fn ($a) => $exact ? $a->where('symbol', $symbolNeedle) : $a->where('symbol', 'ilike', '%'.$symbolNeedle.'%');
+                $q->whereHas('fromAsset', $match)->orWhereHas('toAsset', $match);
+            });
+        }
+
+        $swaps = $query
             ->latest()
             ->paginate(20)
+            ->withQueryString()
             ->through(function (Conversion $c) {
                 $q = $c->quote;
                 if (! $q || ! $q->fromAsset || ! $q->toAsset) {
                     return null;
                 }
 
+                $spread = $q->toAsset->money($c->spread_amount ?? '0');
+                $fee = $q->toAsset->money($c->fee_amount ?? '0');
+
                 return [
+                    'id' => $c->id,
                     'fromSymbol' => $q->fromAsset->symbol,
                     'toSymbol' => $q->toAsset->symbol,
+                    'fromName' => $q->fromAsset->name,
+                    'toName' => $q->toAsset->name,
                     'fromAmount' => $q->fromAsset->money($q->from_amount)->format(),
                     'toAmount' => $q->toAsset->money($q->to_amount)->format(),
-                    'rate' => $q->toAsset->symbol,
+                    'rate' => rtrim(rtrim($q->rate, '0'), '.'),
+                    'marketRate' => $q->market_rate ? rtrim(rtrim($q->market_rate, '0'), '.') : null,
+                    'spread' => $c->spread_amount > 0 ? $spread->format() : null,
+                    'spreadBps' => (int) $q->spread_bps,
+                    'fee' => $c->fee_amount > 0 ? $fee->format() : null,
+                    'feeBps' => (int) $q->fee_bps,
+                    'context' => $c->context?->label(),
+                    'status' => ucfirst((string) $c->status),
                     'at' => $c->created_at->toIso8601String(),
+                    'completedAt' => $c->completed_at?->toIso8601String(),
                 ];
             });
 
-        return view('frontend.swaps', ['swaps' => $swaps]);
+        return view('frontend.swaps', [
+            'swaps' => $swaps,
+            'stats' => $stats,
+            'filters' => $filters,
+            'symbols' => $symbols,
+        ]);
+    }
+
+    /**
+     * All-time (or since $since) swap volume, valued in the user's base currency
+     * from the amount paid in. Mirrors {@see \App\Domain\Analytics\FlowAnalytics}.
+     */
+    private function swapVolumeInBaseCurrency($user, ?\DateTimeInterface $since = null): string
+    {
+        $base = BaseCurrency::assetFor($user);
+        if (! $base) {
+            return '—';
+        }
+
+        $rates = app(RateProvider::class);
+        $total = BigDecimal::zero();
+
+        $conversions = Conversion::with('quote.fromAsset')
+            ->where('user_id', $user->id)
+            ->when($since, fn ($q) => $q->where('created_at', '>=', $since))
+            ->get();
+
+        foreach ($conversions as $c) {
+            $from = $c->quote?->fromAsset;
+            if (! $from) {
+                continue;
+            }
+            $total = $total->plus(
+                BigDecimal::ofUnscaledValue($c->quote->from_amount, $from->decimals)->multipliedBy($rates->rate($from, $base))
+            );
+        }
+
+        return Money::ofBase(
+            $total->withPointMovedRight($base->decimals)->toScale(0, RoundingMode::DOWN)->toBigInteger(),
+            $base->decimals,
+            $base->symbol,
+        )->format(2);
     }
 
     public function quote(Request $request, ExchangeService $exchange, SwapPolicy $policy): RedirectResponse
@@ -193,9 +293,29 @@ class ExchangeController extends Controller
             'toSymbol' => $to->symbol,
             'spread' => number_format($quote->spread_bps / 100, 2),
             'fee' => number_format($quote->fee_bps / 100, 2),
+            // Notional value of the swap in the user's base currency (display only).
+            'valueBase' => $this->amountInBaseCurrency($quote->user, $from, $quote->from_amount),
             'expiresAt' => $quote->expires_at->timestamp,
             'expired' => $quote->expires_at->isPast(),
         ];
+    }
+
+    /** Value `$baseUnits` of `$asset` in the user's base currency, or null. */
+    private function amountInBaseCurrency($user, Asset $asset, string $baseUnits): ?string
+    {
+        $base = BaseCurrency::assetFor($user);
+        if (! $base) {
+            return null;
+        }
+
+        $rate = app(RateProvider::class)->rate($asset, $base);
+        $value = BigDecimal::ofUnscaledValue($baseUnits, $asset->decimals)->multipliedBy($rate);
+
+        return Money::ofBase(
+            $value->withPointMovedRight($base->decimals)->toScale(0, RoundingMode::DOWN)->toBigInteger(),
+            $base->decimals,
+            $base->symbol,
+        )->format(2);
     }
 
     /** @return Collection<int, Asset> */

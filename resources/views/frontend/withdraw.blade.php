@@ -1,14 +1,9 @@
 <x-layouts.app :title="__('Withdraw')">
     <div class="mx-auto mt-6 max-w-2xl space-y-6">
         <div class="flex items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-50 text-brand-600">
-                    <x-heroicon-o-arrow-up-tray class="h-5 w-5" />
-                </span>
-                <div>
-                    <h1 class="text-2xl font-semibold tracking-tight text-neutral-900">{{ __('Withdraw') }}</h1>
-                    <p class="mt-1 text-sm text-neutral-500">{{ __('Withdraw to a bank account or mobile wallet, or send crypto to an external wallet.') }}</p>
-                </div>
+            <div>
+                <h1 class="text-2xl font-semibold tracking-tight text-neutral-900">{{ __('Withdraw') }}</h1>
+                <p class="mt-1 text-sm text-neutral-500">{{ __('Withdraw to a bank account or mobile wallet, or send crypto to an external wallet.') }}</p>
             </div>
             @if ($recentCount > 0)
                 <a href="{{ route('withdraw.history') }}" class="group inline-flex shrink-0 items-center gap-1 text-sm font-medium text-neutral-500 transition hover:text-brand-600">
@@ -248,14 +243,9 @@
                         @elseif (! $coin)
                             {{-- Step 1: choose what to withdraw --}}
                             @if ($cashOptions->isNotEmpty())
-                                <div class="mb-3 flex items-center gap-2.5">
-                                    <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-emerald-100 text-emerald-600">
-                                        <x-heroicon-o-building-library class="h-4 w-4" />
-                                    </span>
-                                    <div>
-                                        <p class="text-sm font-semibold text-neutral-900">{{ __('Local Withdraw') }}</p>
-                                        <p class="text-xs text-neutral-400">{{ __('Withdraw to a bank account or mobile wallet') }}</p>
-                                    </div>
+                                <div class="mb-3">
+                                    <p class="text-sm font-semibold text-neutral-900">{{ __('Local Withdraw') }}</p>
+                                    <p class="text-xs text-neutral-400">{{ __('Withdraw to a bank account or mobile wallet') }}</p>
                                 </div>
                                 <div class="mb-6 space-y-2.5">
                                     @foreach ($cashOptions as $cash)

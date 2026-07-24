@@ -168,6 +168,12 @@
                                     <span>{{ __('Spread') }}</span>
                                     <span class="tabular font-medium text-neutral-900">{{ $activeQuote['spread'] }}%</span>
                                 </div>
+                                @if (! empty($activeQuote['valueBase']))
+                                    <div class="flex items-center justify-between text-neutral-600">
+                                        <span>{{ __('Value') }}</span>
+                                        <span class="tabular font-medium text-neutral-900">≈ {{ $activeQuote['valueBase'] }}</span>
+                                    </div>
+                                @endif
                                 <div class="flex items-center justify-between border-t border-neutral-200 pt-2 text-neutral-600">
                                     <span>{{ __('Quote expires in') }}</span>
                                     <span class="tabular inline-flex items-center gap-1 font-semibold" :class="remaining > 0 ? 'text-amber-700' : 'text-rose-600'">

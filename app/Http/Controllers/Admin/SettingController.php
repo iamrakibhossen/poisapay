@@ -122,6 +122,8 @@ class SettingController extends Controller
                 'group' => 'cards',
                 'rules' => [
                     'cards_enabled' => 'boolean',
+                    'card_price_virtual' => 'required|numeric|min:0|max:100000',
+                    'card_price_physical' => 'required|numeric|min:0|max:100000',
                     'card_fee_bps' => 'required|integer|min:0|max:10000',
                     'card_default_daily_limit' => 'required|integer|min:0',
                     'card_default_per_tx_limit' => 'required|integer|min:0',

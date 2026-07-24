@@ -106,7 +106,8 @@ class CardService
                 'settlement_currency' => $provider->settlement_currency,
                 'daily_limit' => '500000',
                 'per_tx_limit' => '200000',
-                'nickname' => $nickname,
+                // Default to the cardholder's name when none was supplied.
+                'nickname' => $nickname ?: ($user->name ?: $provider->network.'-'.$data->last4),
             ]);
 
             $this->logger->record([

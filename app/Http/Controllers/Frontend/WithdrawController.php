@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Domain\Audit\ActivityLogger;
 use App\Domain\Auth\TwoFactorService;
+use App\Domain\Exchange\Contracts\RateProvider;
 use App\Domain\Fees\PlatformFees;
 use App\Domain\Wallet\WalletService;
 use App\Domain\Withdrawal\RequestWithdrawalAction;
@@ -14,6 +15,7 @@ use App\Models\Asset;
 use App\Models\PayoutAccount;
 use App\Models\Withdrawal;
 use App\Models\WithdrawalMethod;
+use App\Support\BaseCurrency;
 use App\Support\Money;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
@@ -112,30 +114,119 @@ class WithdrawController extends Controller
     /** Dedicated withdrawal history page — the full, paginated list of the user's withdrawals. */
     public function history(Request $request): View
     {
-        $withdrawals = Withdrawal::with('asset.chain', 'onchainTx')
-            ->where('user_id', $request->user()->id)
+        $user = $request->user();
+
+        $filters = [
+            'status' => (string) $request->query('status', 'all'),
+            'asset' => (string) $request->query('asset', 'all'),
+            'search' => trim((string) $request->query('search', '')),
+        ];
+
+        // Status groupings shared by the filter tabs and the stats counters.
+        $statusGroups = [
+            'pending' => ['pending', 'review', 'approved', 'signing', 'broadcast'],
+            'completed' => ['completed'],
+            'failed' => ['failed', 'cancelled'],
+        ];
+
+        // ── Account-wide stats (independent of the active filters) ──
+        $base = Withdrawal::where('user_id', $user->id);
+        $stats = [
+            'total' => (clone $base)->count(),
+            'month' => (clone $base)->where('created_at', '>=', now()->startOfMonth())->count(),
+            'pending' => (clone $base)->whereIn('status', $statusGroups['pending'])->count(),
+            'sent' => $this->sentInBaseCurrency($user),
+        ];
+
+        // Assets this user has ever withdrawn — powers the asset filter.
+        $symbols = Asset::whereIn('id', (clone $base)->select('asset_id'))
+            ->orderBy('symbol')->pluck('symbol');
+
+        // ── Filtered, paginated feed ──
+        $query = Withdrawal::with('asset.chain', 'onchainTx')
+            ->where('user_id', $user->id);
+
+        if (isset($statusGroups[$filters['status']])) {
+            $query->whereIn('status', $statusGroups[$filters['status']]);
+        }
+
+        if ($filters['asset'] !== 'all') {
+            $query->whereHas('asset', fn ($q) => $q->where('symbol', $filters['asset']));
+        }
+
+        if ($filters['search'] !== '') {
+            $term = '%'.$filters['search'].'%';
+            $query->where(fn ($q) => $q
+                ->where('to_address', 'ilike', $term)
+                ->orWhereHas('onchainTx', fn ($t) => $t->where('tx_hash', 'ilike', $term)));
+        }
+
+        $withdrawals = $query
             ->latest()
             ->paginate(20)
+            ->withQueryString()
             ->through(function (Withdrawal $w) {
                 $hash = $w->onchainTx?->tx_hash;
+                $hasFee = $w->fee > 0;
 
                 return [
+                    'id' => $w->id,
                     'symbol' => $w->asset->symbol,
                     'name' => $w->asset->name,
                     'network' => $w->asset->chain?->name ?? ($w->asset->isFiat() ? 'Cash-out' : $w->asset->name),
                     'amount' => $w->money()->format(),
-                    'fee' => $w->fee > 0 ? $w->asset->money($w->fee)->format() : null,
+                    'fee' => $hasFee ? $w->feeMoney()->format() : null,
+                    'total' => $w->money()->plus($w->feeMoney())->format(),
                     'to' => $w->to_address ? $this->shorten($w->to_address) : null,
+                    'toFull' => $w->to_address,
+                    'payoutMethod' => $w->payout_method,
+                    'isFiat' => $w->isFiatPayout(),
+                    'riskLevel' => $w->risk_level?->label(),
+                    'failureReason' => $w->failure_reason,
                     'status' => $w->status->label(),
                     'statusColor' => $w->status->color(),
                     'at' => $w->created_at->toIso8601String(),
+                    'completedAt' => $w->completed_at?->toIso8601String(),
+                    // On-chain details.
                     'txid' => $hash,
                     'txidShort' => $hash ? Str::substr($hash, 0, 10).'…'.Str::substr($hash, -8) : null,
                     'explorer' => $w->asset->chain?->explorerTxUrl($hash),
                 ];
             });
 
-        return view('frontend.withdrawals', ['withdrawals' => $withdrawals]);
+        return view('frontend.withdrawals', [
+            'withdrawals' => $withdrawals,
+            'stats' => $stats,
+            'filters' => $filters,
+            'symbols' => $symbols,
+        ]);
+    }
+
+    /**
+     * All-time completed withdrawals, valued in the user's base currency.
+     * Mirrors {@see \App\Domain\Analytics\FlowAnalytics} so the figure never drifts.
+     */
+    private function sentInBaseCurrency($user): string
+    {
+        $base = BaseCurrency::assetFor($user);
+        if (! $base) {
+            return '—';
+        }
+
+        $rates = app(RateProvider::class);
+        $total = BigDecimal::zero();
+
+        foreach (Withdrawal::with('asset')->where('user_id', $user->id)->where('status', 'completed')->get() as $w) {
+            $total = $total->plus(
+                BigDecimal::ofUnscaledValue($w->amount, $w->asset->decimals)->multipliedBy($rates->rate($w->asset, $base))
+            );
+        }
+
+        return Money::ofBase(
+            $total->withPointMovedRight($base->decimals)->toScale(0, RoundingMode::DOWN)->toBigInteger(),
+            $base->decimals,
+            $base->symbol,
+        )->format(2);
     }
 
     /**
