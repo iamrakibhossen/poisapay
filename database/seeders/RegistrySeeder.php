@@ -56,7 +56,6 @@ class RegistrySeeder extends Seeder
                     'kind' => 'crypto',
                     'decimals' => 18,
                     'withdrawal_min' => $this->wholeToBase('0.001', 18),
-                    'withdrawal_fee' => $this->wholeToBase('0.0005', 18),
                     'is_active' => true,
                     'sort' => 10,
                 ],
@@ -88,7 +87,6 @@ class RegistrySeeder extends Seeder
                         'decimals' => 6,
                         'is_stablecoin' => true,
                         'withdrawal_min' => '1000000',   // 1.00
-                        'withdrawal_fee' => '500000',    // 0.50
                         'is_active' => true,
                         'deposit_enabled' => true,
                         'sort' => $token['sort'],
@@ -128,6 +126,15 @@ class RegistrySeeder extends Seeder
         Asset::updateOrCreate(
             ['symbol' => 'USD', 'chain_id' => null, 'contract_address' => 'FIAT_USD'],
             ['currency_id' => $usd->id, 'name' => 'US Dollar', 'kind' => 'fiat', 'currency_code' => 'USD', 'decimals' => 2, 'is_active' => true, 'sort' => 3],
+        );
+
+        $eur = Currency::updateOrCreate(
+            ['symbol' => 'EUR'],
+            ['name' => 'Euro', 'kind' => 'fiat', 'sort' => 4, 'is_active' => true],
+        );
+        Asset::updateOrCreate(
+            ['symbol' => 'EUR', 'chain_id' => null, 'contract_address' => 'FIAT_EUR'],
+            ['currency_id' => $eur->id, 'name' => 'Euro', 'kind' => 'fiat', 'currency_code' => 'EUR', 'decimals' => 2, 'is_active' => true, 'sort' => 4],
         );
 
         // Provision system ledger accounts for every asset.

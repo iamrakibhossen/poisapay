@@ -31,7 +31,7 @@ class OtpService
         $user = $identifier instanceof User ? $identifier : null;
         $target = $identifier instanceof User ? $identifier->email : $identifier;
 
-        $cap = (int) config('poisapay.otp.daily_cap');
+        $cap = (int) getSetting('otp_daily_cap', config('poisapay.otp.daily_cap'));
         $issuedToday = OtpCode::where('identifier', $target)
             ->where('purpose', $purpose)
             ->where('created_at', '>=', Carbon::now()->startOfDay())
@@ -52,7 +52,7 @@ class OtpService
             'purpose' => $purpose,
             'code_hash' => Hash::make($code),
             'attempts' => 0,
-            'expires_at' => Carbon::now()->addSeconds((int) config('poisapay.otp.ttl_seconds')),
+            'expires_at' => Carbon::now()->addSeconds((int) getSetting('otp_ttl_seconds', config('poisapay.otp.ttl_seconds'))),
         ]);
 
         OtpRequested::dispatch($target, $channel, $code, $purpose);
@@ -93,7 +93,7 @@ class OtpService
 
     private function generateCode(): string
     {
-        $length = (int) config('poisapay.otp.length');
+        $length = (int) getSetting('otp_length', config('poisapay.otp.length'));
         $max = (10 ** $length) - 1;
 
         return str_pad((string) random_int(0, $max), $length, '0', STR_PAD_LEFT);

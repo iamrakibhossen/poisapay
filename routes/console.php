@@ -32,6 +32,9 @@ Schedule::command('poisapay:resolve-failed-withdrawals')->everyFiveMinutes()->wi
 // P2P marketplace: expire orders past their payment window and refund escrow.
 Schedule::command('p2p:process-timeouts')->everyMinute()->withoutOverlapping();
 
+// Analytics: rebuild materialised daily rollups + flush the report cache (hourly).
+Schedule::command('poisapay:analytics-rollup')->hourly()->withoutOverlapping()->runInBackground();
+
 // Ops (Wave 7): nightly DB backup + weekly telemetry retention + audit-chain heartbeat.
 Schedule::command('poisapay:backup')->dailyAt('02:30')->withoutOverlapping();
 Schedule::command('poisapay:retention')->weekly();

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\Custody\AllocateDepositAddressAction;
 use App\Domain\Deposit\CreditDepositAction;
+use App\Domain\Fees\PlatformFees;
 use App\Domain\Ledger\AccountResolver;
 use App\Domain\Ledger\LedgerService;
 use App\Enums\DepositStatus;
@@ -70,3 +71,20 @@ it('adds a 1% platform fee to a withdrawal', function () {
     expect($withdrawal->fee)->toBe('500000')
         ->and($this->ledger->availableBalance($user, $this->asset->id)->baseString())->toBe('49500000');
 })->group('fee');
+
+it('charges coin and fiat withdrawals at separate central rates', function () {
+    updateSetting('withdrawal_fee_percent_coin', '0.5', 'fees');
+    updateSetting('withdrawal_fee_percent_fiat', '2', 'fees');
+
+    // 1,000,000 base units → coin 0.5% = 5,000; fiat 2% = 20,000.
+    expect(PlatformFees::withdrawalCoinPercent())->toBe('0.5')
+        ->and(PlatformFees::withdrawalFiatPercent())->toBe('2')
+        ->and(PlatformFees::withdrawalFee('1000000', false))->toBe('5000')
+        ->and(PlatformFees::withdrawalFee('1000000', true))->toBe('20000');
+});
+
+it('falls back to the legacy shared rate when coin/fiat are unset', function () {
+    // beforeEach set only the legacy withdrawal_fee_percent = 1%.
+    expect(PlatformFees::withdrawalFee('1000000', false))->toBe('10000')   // coin
+        ->and(PlatformFees::withdrawalFee('1000000', true))->toBe('10000'); // fiat
+});

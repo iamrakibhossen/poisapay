@@ -27,6 +27,9 @@ beforeEach(function () {
     $this->asset = testAsset('USDT', 6, 'tron');
     $this->ledger = app(LedgerService::class);
 
+    // These exercise the admin review queue on large withdrawals, not the tier ceiling.
+    updateSetting('kyc_full_daily_withdrawal_ceiling', 0, 'kyc');
+
     $this->admin = Admin::create([
         'name' => 'Op', 'email' => 'ops@poisapay.test', 'password' => bcrypt('password'), 'is_active' => true,
     ]);

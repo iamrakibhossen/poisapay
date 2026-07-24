@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 /**
@@ -90,7 +91,7 @@ class AdminNotificationController extends Controller
     }
 
     /** Per-category totals across all of the admin's notifications, folding unknown categories into `general`. */
-    private function categoryCounts($admin): \Illuminate\Support\Collection
+    private function categoryCounts($admin): Collection
     {
         $counts = collect();
 

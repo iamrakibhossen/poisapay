@@ -117,34 +117,48 @@ class ExchangeService
 
             $fromAvailable = $this->accounts->forUser($user, LedgerAccountType::UserAvailable, $from->id);
             $toAvailable = $this->accounts->forUser($user, LedgerAccountType::UserAvailable, $to->id);
-            $treasuryFrom = $this->accounts->system(LedgerAccountType::TreasuryHot, $from->id);
-            $treasuryTo = $this->accounts->system(LedgerAccountType::TreasuryHot, $to->id);
+            // Internal conversions trade against the house DEALER INVENTORY, never
+            // against custody (treasury:hot). Custody only moves on real chain/bank
+            // events, so it always reconciles to the wallet; the dealer position
+            // and its FX exposure live here.
+            $inventoryFrom = $this->accounts->system(LedgerAccountType::TradingInventory, $from->id);
+            $inventoryTo = $this->accounts->system(LedgerAccountType::TradingInventory, $to->id);
 
             $fromAmount = Money::ofBase($quote->from_amount, $from->decimals, $from->symbol);
             $toAmount = Money::ofBase($quote->to_amount, $to->decimals, $to->symbol);
 
-            // Guard balance under lock.
+            // Guard the user's from-balance under lock.
             $row = DB::table('account_balances')->where('account_id', $fromAvailable->id)->lockForUpdate()->first();
             $current = Money::ofBase($row->balance ?? '0', $from->decimals, $from->symbol);
             if ($current->isLessThan($fromAmount)) {
                 throw new RuntimeException('Insufficient balance for conversion.');
             }
 
+            // Guard dealer liquidity under lock: the house must actually hold enough
+            // of the to-asset to fill this. This is the per-asset solvency gate —
+            // it prevents customer liabilities from ever exceeding real holdings.
+            $invRow = DB::table('account_balances')->where('account_id', $inventoryTo->id)->lockForUpdate()->first();
+            $inventory = Money::ofBase($invRow->balance ?? '0', $to->decimals, $to->symbol);
+            if ($inventory->isLessThan($toAmount)) {
+                throw new RuntimeException("Insufficient {$to->symbol} liquidity to fill this conversion.");
+            }
+
             // The platform's profit is the spread (and optional platform fee),
             // booked explicitly in the from-asset to the revenue accounts so it
-            // surfaces in the revenue wallet — the rest of the from-amount backs
-            // the to-payout. treasury stays flat at mid; all margin is income.
+            // surfaces in the revenue wallet — the rest of the from-amount is
+            // absorbed into the dealer inventory. Inventory nets flat at mid; all
+            // margin is income.
             $fromBase = BigInteger::of($fromAmount->baseString());
             $spread = $fromBase->multipliedBy($quote->spread_bps)->dividedBy(10_000, RoundingMode::DOWN);
             $fee = $fromBase->multipliedBy($quote->fee_bps)->dividedBy(10_000, RoundingMode::DOWN);
-            $treasuryPortion = $fromBase->minus($spread)->minus($fee);
+            $inventoryPortion = $fromBase->minus($spread)->minus($fee);
 
             $lines = [
-                // User surrenders the from-asset.
+                // User surrenders the from-asset; the house takes it into inventory.
                 PostingLine::debit($fromAvailable->id, $from->id, $fromAmount),
-                PostingLine::credit($treasuryFrom->id, $from->id, (string) $treasuryPortion),
-                // Deliver the to-asset from treasury to the user.
-                PostingLine::debit($treasuryTo->id, $to->id, $toAmount),
+                PostingLine::credit($inventoryFrom->id, $from->id, (string) $inventoryPortion),
+                // Deliver the to-asset out of dealer inventory to the user.
+                PostingLine::debit($inventoryTo->id, $to->id, $toAmount),
                 PostingLine::credit($toAvailable->id, $to->id, $toAmount),
             ];
 

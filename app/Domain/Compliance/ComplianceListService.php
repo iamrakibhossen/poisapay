@@ -45,16 +45,23 @@ class ComplianceListService
         return $this->has('whitelist', $kind, $value);
     }
 
-    /** 'high' when a country is config-flagged high-risk or explicitly denylisted; else null. */
+    /** Admin-configurable high-risk country codes (uppercased); config is the fallback. */
+    public static function highRiskCountries(): array
+    {
+        $list = getSetting('security_high_risk_countries', config('poisapay.security.high_risk_countries', []));
+
+        return array_map('strtoupper', (array) $list);
+    }
+
+    /** 'high' when a country is flagged high-risk or explicitly denylisted; else null. */
     public function countryRisk(?string $country): ?string
     {
         if (! $country) {
             return null;
         }
         $upper = strtoupper($country);
-        $configHigh = array_map('strtoupper', (array) config('poisapay.security.high_risk_countries', []));
 
-        if (in_array($upper, $configHigh, true) || $this->isDenied('country', $upper)) {
+        if (in_array($upper, self::highRiskCountries(), true) || $this->isDenied('country', $upper)) {
             return 'high';
         }
 

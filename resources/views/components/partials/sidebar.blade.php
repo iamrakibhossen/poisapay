@@ -61,7 +61,7 @@
                     @endphp
                     <a href="{{ route($item['route']) }}" wire:navigate
                        @class([
-                           'group relative flex h-11 items-center gap-3 rounded-lg px-4 text-sm font-medium transition-colors',
+                           'group relative flex h-11 items-center gap-3 rounded-lg px-4 text-sm font-semibold transition-colors',
                            'bg-brand-50 text-neutral-900' => $active,
                            'text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900' => ! $active,
                        ])>

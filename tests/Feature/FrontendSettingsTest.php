@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Models\Asset;
+use App\Models\Currency;
 use App\Models\User;
 use App\Models\UserDevice;
 
@@ -9,6 +11,13 @@ use function Pest\Laravel\actingAs;
 
 beforeEach(function () {
     $this->user = User::factory()->create(['name' => 'Old Name', 'phone' => null]);
+
+    // Base-currency options come from real fiat assets — seed USD so it is selectable.
+    $usd = Currency::firstOrCreate(['symbol' => 'USD'], ['name' => 'US Dollar', 'kind' => 'fiat']);
+    Asset::firstOrCreate(
+        ['symbol' => 'USD', 'chain_id' => null, 'contract_address' => 'FIAT_USD'],
+        ['currency_id' => $usd->id, 'name' => 'US Dollar', 'kind' => 'fiat', 'currency_code' => 'USD', 'decimals' => 2, 'is_active' => true],
+    );
 });
 
 it('renders the settings page via a controller (no Livewire)', function () {

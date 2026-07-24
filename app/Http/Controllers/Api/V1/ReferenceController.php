@@ -23,7 +23,6 @@ class ReferenceController extends ApiController
                 'contract_address' => $a->contract_address,
                 'is_stablecoin' => $a->is_stablecoin,
                 'min_withdrawal' => $a->money($a->withdrawal_min)->toDecimal(),
-                'withdrawal_fee' => $a->money($a->withdrawal_fee)->toDecimal(),
             ]);
 
         return $this->ok($assets);

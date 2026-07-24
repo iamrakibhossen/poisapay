@@ -26,6 +26,14 @@ enum LedgerAccountType: string
     case TreasuryCold = 'treasury:cold';
     case TreasuryPending = 'treasury:pending';
     case TreasuryOut = 'treasury:out';
+
+    // House dealer inventory (NOT custody). One per asset. This is the exchange's
+    // own currency position from acting as principal on internal swaps/conversions.
+    // Invariant per asset:  TreasuryHot(+Cold+Pending) = CustomerLiabilities + TradingInventory + Income.
+    // Custody accounts move ONLY on real chain/bank movement; TradingInventory
+    // moves ONLY on internal conversions — so custody always reconciles to chain.
+    case TradingInventory = 'dealer:inventory';
+
     case LiabilityUserFunds = 'liability:user-funds';
     case FeeIncome = 'fee:income';
     case FeeCard = 'fee:card';
@@ -54,6 +62,7 @@ enum LedgerAccountType: string
         return match ($this) {
             self::UserAvailable, self::UserLocked, self::UserCardHold,
             self::UserCollateralLocked, self::UserP2pEscrow, self::LiabilityUserFunds,
+            self::TradingInventory,
             self::FeeIncome, self::FeeCard, self::FxSpreadIncome, self::P2pFeeIncome,
             self::CardProgramSettlement, self::Rewards, self::OwnerPayout => LedgerSide::Credit,
             default => LedgerSide::Debit,

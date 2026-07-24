@@ -1,12 +1,19 @@
 <x-layouts.app :title="__('Withdraw')">
-    <div class="mx-auto max-w-2xl space-y-6">
-        <div class="text-center">
-            <h1 class="text-2xl font-semibold tracking-tight text-neutral-900">{{ __('Withdraw') }}</h1>
-            <p class="mt-1 text-sm text-neutral-500">{{ __('Cash out to a bank account or mobile wallet, or send crypto to an external wallet.') }}</p>
+    <div class="mx-auto mt-6 max-w-2xl space-y-6">
+        <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-50 text-brand-600">
+                    <x-heroicon-o-arrow-up-tray class="h-5 w-5" />
+                </span>
+                <div>
+                    <h1 class="text-2xl font-semibold tracking-tight text-neutral-900">{{ __('Withdraw') }}</h1>
+                    <p class="mt-1 text-sm text-neutral-500">{{ __('Withdraw to a bank account or mobile wallet, or send crypto to an external wallet.') }}</p>
+                </div>
+            </div>
             @if ($recentCount > 0)
-                <a href="{{ route('withdraw.history') }}" class="group mt-3 inline-flex items-center gap-1 text-sm font-medium text-neutral-500 transition hover:text-brand-600">
-                    {{ __('View withdrawal history') }}
-                    <x-heroicon-o-chevron-right class="h-4 w-4 transition group-hover:translate-x-0.5" />
+                <a href="{{ route('withdraw.history') }}" class="group inline-flex shrink-0 items-center gap-1 text-sm font-medium text-neutral-500 transition hover:text-brand-600">
+                    {{ __('View all') }}
+                    <x-heroicon-s-chevron-right class="h-5 w-5 transition group-hover:translate-x-0.5" />
                 </a>
             @endif
         </div>
@@ -22,7 +29,7 @@
                 // Progress nav mirrors the deposit flow. Fiat cash-out collapses to a
                 // single details step; crypto has an explicit network step.
                 if ($fiatDetail) {
-                    $stepLabels = [__('Asset'), __('Cash-out')]; $currentStep = 2;
+                    $stepLabels = [__('Asset'), __('Withdraw')]; $currentStep = 2;
                 } elseif (! $coin) {
                     $stepLabels = [__('Asset'), __('Destination'), __('Confirm')]; $currentStep = 1;
                 } elseif (! $assetId || ! $networkDetail) {
@@ -31,26 +38,25 @@
                     $stepLabels = [__('Asset'), __('Network'), __('Confirm')]; $currentStep = 3;
                 }
             @endphp
-            <nav aria-label="{{ __('Progress') }}" class="flex items-center gap-2 px-1">
-                @foreach ($stepLabels as $i => $label)
-                    @php $n = $i + 1; $done = $n < $currentStep; $active = $n === $currentStep; @endphp
-                    <div class="flex items-center gap-2">
-                        <span @class([
-                            'grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold transition',
-                            'bg-brand-500 text-white' => $active,
-                            'bg-brand-100 text-brand-700' => $done,
-                            'bg-neutral-100 text-neutral-400' => ! $active && ! $done,
-                        ])>
-                            @if ($done)<x-heroicon-o-check class="h-4 w-4" />@else{{ $n }}@endif
-                        </span>
-                        <span @class(['text-sm font-medium', 'text-neutral-900' => $active, 'text-neutral-500' => ! $active])>{{ $label }}</span>
-                    </div>
-                    @unless ($loop->last)<span class="h-px flex-1 bg-neutral-200"></span>@endunless
-                @endforeach
-            </nav>
-
             <div>
                 <x-ui.card>
+                    <nav aria-label="{{ __('Progress') }}" class="mb-5 flex items-center gap-2 border-b border-neutral-100 px-1 pb-4">
+                        @foreach ($stepLabels as $i => $label)
+                            @php $n = $i + 1; $done = $n < $currentStep; $active = $n === $currentStep; @endphp
+                            <div class="flex items-center gap-2">
+                                <span @class([
+                                    'grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold transition',
+                                    'bg-brand-500 text-white' => $active,
+                                    'bg-brand-100 text-brand-700' => $done,
+                                    'bg-neutral-100 text-neutral-400' => ! $active && ! $done,
+                                ])>
+                                    @if ($done)<x-heroicon-o-check class="h-4 w-4" />@else{{ $n }}@endif
+                                </span>
+                                <span @class(['text-sm font-medium', 'text-neutral-900' => $active, 'text-neutral-500' => ! $active])>{{ $label }}</span>
+                            </div>
+                            @unless ($loop->last)<span class="h-px flex-1 bg-neutral-200"></span>@endunless
+                        @endforeach
+                    </nav>
                         @if ($fiatDetail)
                             {{-- Fiat cash-out: pick a saved account or add a new one (methods are per-currency) --}}
                             @php $hasMethods = count($fiatDetail['methods']) > 0; @endphp
@@ -96,7 +102,7 @@
                                 </div>
 
                                 @unless ($hasMethods)
-                                    <x-ui.alert type="warning">{{ __('No cash-out methods are configured for :symbol yet. Please check back soon.', ['symbol' => $fiatDetail['symbol']]) }}</x-ui.alert>
+                                    <x-ui.alert type="warning">{{ __('No withdrawal methods are configured for :symbol yet. Please check back soon.', ['symbol' => $fiatDetail['symbol']]) }}</x-ui.alert>
                                 @else
                                     <form method="POST" action="{{ route('withdraw.fiat') }}" class="space-y-5" x-on:submit="submitting = true">
                                         @csrf
@@ -213,7 +219,7 @@
                                         @endif
 
                                         <x-ui.button type="submit" class="w-full" icon="banknotes" x-bind:disabled="!valid || submitting">
-                                            <span x-show="!submitting"><span x-show="valid">{{ __('Cash out') }} <span class="tabular" x-text="fmt(amountNum)"></span> {{ $fiatDetail['symbol'] }}</span><span x-show="!valid">{{ __('Request cash-out') }}</span></span>
+                                            <span x-show="!submitting"><span x-show="valid">{{ __('Withdraw') }} <span class="tabular" x-text="fmt(amountNum)"></span> {{ $fiatDetail['symbol'] }}</span><span x-show="!valid">{{ __('Request withdrawal') }}</span></span>
                                             <span x-show="submitting" x-cloak>{{ __('Processing…') }}</span>
                                         </x-ui.button>
                                     </form>
@@ -237,19 +243,30 @@
                         @elseif (! $coin)
                             {{-- Step 1: choose what to withdraw --}}
                             @if ($cashOptions->isNotEmpty())
-                                <p class="mb-3 text-sm font-semibold text-neutral-900">{{ __('Local Withdraw') }} <span class="font-normal text-neutral-400">· {{ __('bank or mobile wallet') }}</span></p>
+                                <div class="mb-3 flex items-center gap-2.5">
+                                    <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-emerald-100 text-emerald-600">
+                                        <x-heroicon-o-building-library class="h-4 w-4" />
+                                    </span>
+                                    <div>
+                                        <p class="text-sm font-semibold text-neutral-900">{{ __('Local Withdraw') }}</p>
+                                        <p class="text-xs text-neutral-400">{{ __('Withdraw to a bank account or mobile wallet') }}</p>
+                                    </div>
+                                </div>
                                 <div class="mb-6 space-y-2.5">
                                     @foreach ($cashOptions as $cash)
                                         <a href="{{ route('withdraw.index', ['cash' => $cash['assetId']]) }}"
-                                            class="group flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50/40 p-4 text-left transition hover:border-emerald-400 hover:bg-emerald-50">
+                                            class="group flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50/40 p-4 text-left transition hover:border-emerald-400 hover:bg-emerald-50 hover:shadow-sm">
                                             <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-600">
                                                 <x-heroicon-o-banknotes class="h-5 w-5" />
                                             </span>
                                             <div class="min-w-0 flex-1">
-                                                <p class="text-sm font-semibold text-neutral-900">{{ $cash['symbol'] }} {{ __('cash-out') }}</p>
-                                                <p class="truncate text-xs text-neutral-500">{{ __('Bank · mobile wallet') }}</p>
+                                                <p class="text-sm font-semibold text-neutral-900">{{ __('Withdraw :symbol', ['symbol' => $cash['symbol']]) }}</p>
+                                                <p class="truncate text-xs text-neutral-500">{{ __('Bank transfer · mobile wallet') }}</p>
                                             </div>
-                                            <p class="tabular text-sm font-semibold text-neutral-900">{{ $cash['available'] }}</p>
+                                            <div class="text-right">
+                                                <p class="tabular text-sm font-semibold text-neutral-900">{{ $cash['available'] }}</p>
+                                                <p class="text-[11px] text-neutral-400">{{ __('available') }}</p>
+                                            </div>
                                             <x-heroicon-o-chevron-right class="h-5 w-5 shrink-0 text-neutral-300 transition group-hover:translate-x-0.5 group-hover:text-emerald-500" />
                                         </a>
                                     @endforeach
@@ -313,7 +330,6 @@
                             {{-- Step 3: amount + address form --}}
                             @php $dp = min((int) $networkDetail['decimals'], 8); @endphp
                             <div x-data="{
-                                    fee: {{ (float) $networkDetail['feeDecimal'] }},
                                     feePercent: {{ (float) $networkDetail['feePercent'] }},
                                     available: {{ (float) $networkDetail['availableDecimal'] }},
                                     max: {{ (float) $networkDetail['max'] }},
@@ -324,7 +340,7 @@
                                     submitting: false,
                                     get amountNum() { const n = parseFloat(this.amount); return isNaN(n) || n < 0 ? 0 : n; },
                                     get platformFee() { return this.amountNum * this.feePercent / 100; },
-                                    get totalDebited() { return this.amountNum + this.fee + this.platformFee; },
+                                    get totalDebited() { return this.amountNum + this.platformFee; },
                                     get exceeds() { return this.totalDebited > this.available + 1e-12; },
                                     get hasAmount() { return this.amountNum > 0; },
                                     get valid() { return this.hasAmount && !this.exceeds && this.address.trim().length > 0; },
@@ -393,9 +409,6 @@
                                     <div class="space-y-2 rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-sm">
                                         <div class="flex justify-between text-neutral-600">
                                             <span>{{ __('Recipient gets') }}</span><span class="tabular font-medium text-neutral-900"><span x-text="fmt(amountNum)"></span> {{ $coin }}</span>
-                                        </div>
-                                        <div class="flex justify-between text-neutral-600">
-                                            <span>{{ __('Network fee') }}</span><span class="tabular font-medium text-neutral-900">{{ $networkDetail['fee'] }}</span>
                                         </div>
                                         <div class="flex justify-between text-neutral-600" x-show="feePercent > 0">
                                             <span>{{ __('Platform fee') }} (<span x-text="feePercent"></span>%)</span><span class="tabular font-medium text-neutral-900"><span x-text="fmt(platformFee)"></span> {{ $coin }}</span>

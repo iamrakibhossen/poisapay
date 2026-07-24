@@ -13,6 +13,7 @@ use App\Enums\KycTier;
 use App\Http\Controllers\Controller;
 use App\Models\Card;
 use App\Models\CardProvider;
+use App\Support\KycPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -64,7 +65,7 @@ class CardsController extends Controller
     {
         $user = $request->user();
 
-        if (! $user->tier()->canIssueCard()) {
+        if (! KycPolicy::canIssueCard($user->tier())) {
             throw ValidationException::withMessages([
                 'cardType' => 'Full verification is required to issue a card.',
             ]);

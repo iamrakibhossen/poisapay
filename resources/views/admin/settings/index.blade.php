@@ -6,6 +6,8 @@
         'deposit' => ['label' => __('Deposit'), 'icon' => 'arrow-down-tray'],
         'withdrawal' => ['label' => __('Withdrawal'), 'icon' => 'arrow-up-tray'],
         'transfer' => ['label' => __('Transfer'), 'icon' => 'arrows-right-left'],
+        'kyc' => ['label' => __('KYC & Limits'), 'icon' => 'identification'],
+        'risk' => ['label' => __('Risk Scoring'), 'icon' => 'scale'],
         'exchange' => ['label' => __('Exchange'), 'icon' => 'arrow-path-rounded-square'],
         'cards' => ['label' => __('Cards'), 'icon' => 'credit-card'],
         'merchant' => ['label' => __('Merchant'), 'icon' => 'building-storefront'],

@@ -17,14 +17,21 @@
         }
     @endphp
 
-    <div class="space-y-6">
-        <div class="mx-auto max-w-lg text-center">
-            <h1 class="text-2xl font-semibold tracking-tight text-neutral-900">{{ __('Exchange') }}</h1>
-            <p class="mt-1 text-sm text-neutral-500">{{ __('Swap between coins at a live reference rate.') }}</p>
+    <div class="mt-6 space-y-6">
+        <div class="mx-auto flex max-w-lg items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-50 text-brand-600">
+                    <x-heroicon-o-arrows-right-left class="h-5 w-5" />
+                </span>
+                <div>
+                    <h1 class="text-2xl font-semibold tracking-tight text-neutral-900">{{ __('Exchange') }}</h1>
+                    <p class="mt-1 text-sm text-neutral-500">{{ __('Swap between coins at a live reference rate.') }}</p>
+                </div>
+            </div>
             @if ($recentCount > 0)
-                <a href="{{ route('exchange.history') }}" class="group mt-3 inline-flex items-center gap-1 text-sm font-medium text-neutral-500 transition hover:text-brand-600">
-                    {{ __('View swap history') }}
-                    <x-heroicon-o-chevron-right class="h-4 w-4 transition group-hover:translate-x-0.5" />
+                <a href="{{ route('exchange.history') }}" class="group inline-flex shrink-0 items-center gap-1 text-sm font-medium text-neutral-500 transition hover:text-brand-600">
+                    {{ __('View all') }}
+                    <x-heroicon-s-chevron-right class="h-5 w-5 transition group-hover:translate-x-0.5" />
                 </a>
             @endif
         </div>

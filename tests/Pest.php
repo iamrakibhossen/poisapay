@@ -79,3 +79,26 @@ function seedHotBalance(Asset $asset, string $baseAmount): void
         ],
     ));
 }
+
+/**
+ * Seed house DEALER INVENTORY for an asset — the real-world "house injects its own
+ * coins into the hot wallet as tradable liquidity": DR treasury:hot / CR
+ * dealer:inventory. Internal swaps deliver the to-asset out of this inventory.
+ */
+function seedInventory(Asset $asset, string $baseAmount): void
+{
+    $ledger = app(LedgerService::class);
+    $resolver = $ledger->resolver();
+
+    $hot = $resolver->system(LedgerAccountType::TreasuryHot, $asset->id);
+    $inventory = $resolver->system(LedgerAccountType::TradingInventory, $asset->id);
+
+    $ledger->post(new EntryData(
+        type: 'test.seed-inventory',
+        idempotencyKey: 'test:seedinv:'.$asset->id.':'.uniqid('', true),
+        lines: [
+            PostingLine::debit($hot->id, $asset->id, $baseAmount),
+            PostingLine::credit($inventory->id, $asset->id, $baseAmount),
+        ],
+    ));
+}

@@ -20,7 +20,28 @@ class PlatformFees
         return (string) getSetting('deposit_fee_percent', config('poisapay.deposit_fee_percent', '1'));
     }
 
-    public static function withdrawalPercent(): string
+    /**
+     * Platform withdrawal % — coin (crypto) and fiat cash-outs are charged
+     * separately (they are not the same rail). Each falls back to the legacy
+     * shared `withdrawal_fee_percent`, then config, so existing installs keep
+     * their current rate until an operator differentiates the two.
+     */
+    public static function withdrawalPercent(bool $isFiat = false): string
+    {
+        return $isFiat ? self::withdrawalFiatPercent() : self::withdrawalCoinPercent();
+    }
+
+    public static function withdrawalCoinPercent(): string
+    {
+        return (string) getSetting('withdrawal_fee_percent_coin', self::legacyWithdrawalPercent());
+    }
+
+    public static function withdrawalFiatPercent(): string
+    {
+        return (string) getSetting('withdrawal_fee_percent_fiat', self::legacyWithdrawalPercent());
+    }
+
+    private static function legacyWithdrawalPercent(): string
     {
         return (string) getSetting('withdrawal_fee_percent', config('poisapay.withdrawal_fee_percent', '1'));
     }
@@ -31,10 +52,10 @@ class PlatformFees
         return self::of($amountBase, self::depositPercent());
     }
 
-    /** Fee (base units) for a withdrawal of `$amountBase`. */
-    public static function withdrawalFee(string $amountBase): string
+    /** Fee (base units) for a withdrawal of `$amountBase` (coin unless `$isFiat`). */
+    public static function withdrawalFee(string $amountBase, bool $isFiat = false): string
     {
-        return self::of($amountBase, self::withdrawalPercent());
+        return self::of($amountBase, self::withdrawalPercent($isFiat));
     }
 
     /** floor(amountBase × percent / 100) in base units. */

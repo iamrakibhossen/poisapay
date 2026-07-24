@@ -35,7 +35,7 @@ class P2pMessageSent implements ShouldBroadcast
 
     public function broadcastWith(): array
     {
-        $message = P2pOrderMessage::find($this->messageId);
+        $message = P2pOrderMessage::query()->whereKey($this->messageId)->first();
         if (! $message) {
             return [];
         }

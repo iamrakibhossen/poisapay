@@ -29,7 +29,7 @@
         <x-ui.input :label="__('Full name')" name="name" :value="old('name', $profile['name'])" :error="$errors->first('name')" />
         <x-ui.input :label="__('Phone')" name="phone" :value="old('phone', $profile['phone'])" placeholder="+8801…" :error="$errors->first('phone')" />
         <x-ui.select :label="__('Base currency')" name="baseCurrency" :error="$errors->first('baseCurrency')">
-            @foreach (['BDT' => 'BDT — Bangladeshi Taka', 'USD' => 'USD — US Dollar', 'EUR' => 'EUR — Euro'] as $code => $label)
+            @foreach (\App\Support\BaseCurrency::options() as $code => $label)
                 <option value="{{ $code }}" @selected(old('baseCurrency', $profile['baseCurrency']) === $code)>{{ $label }}</option>
             @endforeach
         </x-ui.select>

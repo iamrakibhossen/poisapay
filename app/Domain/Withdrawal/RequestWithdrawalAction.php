@@ -36,12 +36,13 @@ class RequestWithdrawalAction
         private readonly AddressBookService $addressBook,
         private readonly VelocityGuard $velocity,
         private readonly TravelRuleService $travelRule,
+        private readonly WithdrawalLimitGuard $limits,
     ) {}
 
     /**
      * @param  string|null  $payoutMethod  'bank'|'mobile' for a fiat cash-out; null for an on-chain crypto withdrawal
      * @param  array<string, mixed>  $payoutDetails  bank/mobile account details for a fiat cash-out
-     * @param  Money|null  $feeOverride  method-specific fee (e.g. a fiat payout rail); defaults to the asset's withdrawal_fee
+     * @param  Money|null  $feeOverride  method-specific rail fee (e.g. a fiat payout rail); crypto withdrawals pass none
      */
     public function execute(
         User $user,
@@ -82,15 +83,19 @@ class RequestWithdrawalAction
                 return $existing;
             }
 
+            // Per-tier rolling-24h USD ceiling (admin-configurable; 0 = unlimited).
+            $this->limits->assertWithinTierCeiling($user, $asset, $amount);
+
             $assessment = $this->risk->scoreWithdrawal($user, $amount, $toAddress);
 
             // Velocity limiting: breaching the rolling-24h cap forces manual review.
             $velocityHit = $this->velocity->exceededWithdrawalVelocity($user);
             $mustReview = $assessment->requiresManualReview() || $velocityHit;
 
-            // Rail fee (flat network cost or fiat method fee) + platform % (admin's cut).
-            $railFee = $feeOverride ?? $asset->money($asset->withdrawal_fee);
-            $fee = $railFee->plus($asset->money(PlatformFees::withdrawalFee($amount->baseString())));
+            // Fiat cash-outs carry a method rail fee; crypto withdrawals do not pass
+            // through a network fee — the platform absorbs gas and charges only its %.
+            $railFee = $feeOverride ?? $asset->zero();
+            $fee = $railFee->plus($asset->money(PlatformFees::withdrawalFee($amount->baseString(), $asset->isFiat())));
 
             $withdrawal = Withdrawal::create([
                 'user_id' => $user->id,

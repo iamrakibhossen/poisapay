@@ -46,7 +46,7 @@ beforeEach(function () {
 
 it('offers a fiat cash-out option on the withdraw page', function () {
     actingAs($this->user)->get(route('withdraw.index'))
-        ->assertOk()->assertSee('Local Withdraw')->assertSee('BDT cash-out');
+        ->assertOk()->assertSee('Local Withdraw')->assertSee('Withdraw BDT');
 });
 
 it('settles a fiat cash-out without an on-chain tx and books the fee to revenue', function () {

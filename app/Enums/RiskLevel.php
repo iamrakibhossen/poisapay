@@ -16,12 +16,19 @@ enum RiskLevel: string
     case High = 'high';
     case Critical = 'critical';
 
-    public static function fromScore(int $score): self
+    /**
+     * @param  array{critical:int,high:int,medium:int}|null  $bands  score thresholds;
+     *                                                               passed in by callers that source them from admin settings so the enum stays
+     *                                                               free of container/config calls. Defaults reproduce the original hardcoded bands.
+     */
+    public static function fromScore(int $score, ?array $bands = null): self
     {
+        $bands ??= ['critical' => 80, 'high' => 50, 'medium' => 25];
+
         return match (true) {
-            $score >= 80 => self::Critical,
-            $score >= 50 => self::High,
-            $score >= 25 => self::Medium,
+            $score >= $bands['critical'] => self::Critical,
+            $score >= $bands['high'] => self::High,
+            $score >= $bands['medium'] => self::Medium,
             default => self::Low,
         };
     }

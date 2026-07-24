@@ -1,13 +1,16 @@
 <?php
+
 declare(strict_types=1);
 use App\Models\CardWebhook;
+use App\Models\User;
 use App\Models\WebhookDelivery;
 use App\Models\WebhookEndpoint;
-use App\Models\User;
 
 /** Create a row then backdate its timestamps (created_at is guarded). */
-function backdate($model, $when) {
+function backdate($model, $when)
+{
     $model->forceFill(['created_at' => $when, 'updated_at' => $when])->saveQuietly();
+
     return $model;
 }
 

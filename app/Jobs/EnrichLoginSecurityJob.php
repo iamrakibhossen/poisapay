@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Domain\Compliance\ComplianceListService;
 use App\Domain\Notification\NotificationService;
 use App\Domain\Security\Contracts\GeoLocator;
 use App\Domain\Security\Contracts\IpReputationProvider;
@@ -52,7 +53,7 @@ class EnrichLoginSecurityJob implements ShouldQueue
                 $history->country = $loc->country;
                 $history->city = $loc->city;
 
-                if (in_array($loc->country, (array) config('poisapay.security.high_risk_countries', []), true)) {
+                if (in_array(strtoupper((string) $loc->country), ComplianceListService::highRiskCountries(), true)) {
                     $risk += 40;
                     $reasons[] = 'high_risk_country';
                     $this->event($user->id, 'new_location', 'critical', 40, ['country' => $loc->country, 'high_risk' => true]);

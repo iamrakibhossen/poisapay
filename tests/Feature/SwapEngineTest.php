@@ -13,6 +13,7 @@ use App\Models\Asset;
 use App\Models\AuditLog;
 use App\Models\Conversion;
 use App\Models\Currency;
+use App\Models\FxQuote;
 use App\Models\JournalEntry;
 use App\Models\User;
 use App\Support\Money;
@@ -39,15 +40,15 @@ function usdAsset(): Asset
 beforeEach(function () {
     $this->usdt = testAsset('USDT', 6, 'tron');
     $this->usd = usdAsset();
-    // Treasury holds USDT to deliver to swappers.
-    seedHotBalance($this->usdt, '1000000000000'); // 1,000,000 USDT
+    // House holds USDT dealer inventory to deliver to swappers (DR hot / CR inventory).
+    seedInventory($this->usdt, '1000000000000'); // 1,000,000 USDT
     $this->ledger = app(LedgerService::class);
     $this->exchange = app(ExchangeService::class);
     $this->action = app(ExecuteSwapAction::class);
 });
 
 /** Helper: quote $100.00 USD -> USDT. */
-function quoteHundred(): App\Models\FxQuote
+function quoteHundred(): FxQuote
 {
     return app(ExchangeService::class)->quote(
         test()->user,

@@ -16,6 +16,7 @@ use App\Models\Deposit;
 use App\Models\Transfer;
 use App\Models\User;
 use App\Models\Withdrawal;
+use App\Support\BaseCurrency;
 use App\Support\Money;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
@@ -140,7 +141,7 @@ class DashboardController extends Controller
     private function snapshot(User $user, WalletService $wallets, RateProvider $rates): array
     {
         $funded = $wallets->walletsFor($user)->filter(fn ($b) => ! $b->total()->isZero())->values();
-        $base = Asset::where('currency_code', $user->base_currency)->first() ?? Asset::where('symbol', 'BDT')->first();
+        $base = BaseCurrency::assetFor($user);
 
         $totalBase = BigDecimal::zero();
         $lockedBase = BigDecimal::zero();

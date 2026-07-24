@@ -13,6 +13,7 @@ use App\Models\Deposit;
 use App\Models\Transfer;
 use App\Models\Withdrawal;
 use App\Models\WithdrawalMethod;
+use App\Support\BaseCurrency;
 use App\Support\Money;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
@@ -57,8 +58,7 @@ class AssetShowController extends Controller
             : true;
 
         // Fiat value in the user's base currency (coin total × rate).
-        $base = Asset::where('currency_code', $user->base_currency)->first()
-            ?? Asset::where('symbol', 'BDT')->first();
+        $base = BaseCurrency::assetFor($user);
         $fiat = null;
         if ($base && $base->symbol !== $model->symbol) {
             $rate = app(RateProvider::class)->rate($model, $base);

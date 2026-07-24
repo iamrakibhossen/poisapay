@@ -3,10 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Ledger\AccountResolver;
-use App\Domain\Ledger\DTO\EntryData;
-use App\Domain\Ledger\DTO\PostingLine;
 use App\Domain\Ledger\LedgerService;
-use App\Enums\LedgerAccountType;
 use App\Models\Asset;
 use App\Models\FxQuote;
 use App\Models\User;
@@ -22,17 +19,10 @@ beforeEach(function () {
     app(AccountResolver::class)->ensureSystemAccounts($this->trx->id);
 
     $this->ledger = app(LedgerService::class);
-    $resolver = $this->ledger->resolver();
-    $liab = $resolver->system(LedgerAccountType::LiabilityUserFunds, $this->trx->id);
-    $hot = $resolver->system(LedgerAccountType::TreasuryHot, $this->trx->id);
-    $this->ledger->post(new EntryData(
-        type: 'seed.treasury',
-        idempotencyKey: 'seed:treasury:trx',
-        lines: [
-            PostingLine::debit($hot->id, $this->trx->id, '100000000000000000000000'),
-            PostingLine::credit($liab->id, $this->trx->id, '100000000000000000000000'),
-        ],
-    ));
+
+    // House injects its own TRX into the hot wallet as tradable dealer inventory,
+    // which internal swaps draw from (DR treasury:hot / CR dealer:inventory).
+    seedInventory($this->trx, '100000000000000000000000');
 
     $this->user = User::factory()->create();
 });

@@ -28,7 +28,8 @@ class PayoutWebhookController extends Controller
 
         $event = $psp->parseWebhook($request);
 
-        $order = RampOrder::where('direction', RampDirection::Off->value)
+        $order = RampOrder::query()
+            ->where('direction', '=', RampDirection::Off->value)
             ->where('provider_ref', $event->providerRef)
             ->first();
 

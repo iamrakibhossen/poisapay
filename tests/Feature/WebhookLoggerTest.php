@@ -1,8 +1,10 @@
 <?php
+
 declare(strict_types=1);
 use App\Models\Admin;
 use App\Models\WebhookLog;
 use Illuminate\Support\Facades\Artisan;
+
 use function Pest\Laravel\actingAs;
 
 it('logs an inbound webhook request with redacted secret headers', function () {

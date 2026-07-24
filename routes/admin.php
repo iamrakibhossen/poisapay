@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\AdministratorsController;
 use App\Http\Controllers\Admin\AdminNotificationController;
 use App\Http\Controllers\Admin\AdminRewardsController;
 use App\Http\Controllers\Admin\AdminWithdrawalMethodsController;
+use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\AssetsController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\BlockchainHealthController;
@@ -15,40 +16,51 @@ use App\Http\Controllers\Admin\CardDisputesController;
 use App\Http\Controllers\Admin\CardMonitorController;
 use App\Http\Controllers\Admin\CardProvidersController;
 use App\Http\Controllers\Admin\CardsController;
+use App\Http\Controllers\Admin\CardTransactionsController;
+use App\Http\Controllers\Admin\ColdWalletController;
 use App\Http\Controllers\Admin\ComplianceController;
 use App\Http\Controllers\Admin\ComplianceExportController;
 use App\Http\Controllers\Admin\ComplianceListController;
 use App\Http\Controllers\Admin\CustodyController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DepositMethodsController;
+use App\Http\Controllers\Admin\DepositMonitorController;
 use App\Http\Controllers\Admin\DepositsController;
 use App\Http\Controllers\Admin\FaqsController;
 use App\Http\Controllers\Admin\FeatureFlagController;
 use App\Http\Controllers\Admin\FinancialReportController;
+use App\Http\Controllers\Admin\HotWalletController;
 use App\Http\Controllers\Admin\KycQueueController;
 use App\Http\Controllers\Admin\LedgerController;
+use App\Http\Controllers\Admin\LiquidityController;
+use App\Http\Controllers\Admin\LogViewerController;
 use App\Http\Controllers\Admin\MerchantsController;
 use App\Http\Controllers\Admin\MessagingController;
 use App\Http\Controllers\Admin\P2pController;
 use App\Http\Controllers\Admin\P2pPaymentMethodController;
 use App\Http\Controllers\Admin\PagesController;
+use App\Http\Controllers\Admin\QueueController;
+use App\Http\Controllers\Admin\ReconciliationController;
 use App\Http\Controllers\Admin\RevenueController;
 use App\Http\Controllers\Admin\RevenueTransactionsController;
 use App\Http\Controllers\Admin\RevenueWalletController;
 use App\Http\Controllers\Admin\RevenueWithdrawalsController;
+use App\Http\Controllers\Admin\RiskController;
 use App\Http\Controllers\Admin\RolesController;
 use App\Http\Controllers\Admin\RpcEndpointsController;
 use App\Http\Controllers\Admin\SecurityController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\SettlementsController;
 use App\Http\Controllers\Admin\SimulationController;
 use App\Http\Controllers\Admin\SupportController;
+use App\Http\Controllers\Admin\SwapOrdersController;
+use App\Http\Controllers\Admin\SweepQueueController;
 use App\Http\Controllers\Admin\SystemHealthController;
-use App\Http\Controllers\Admin\LogViewerController;
-use App\Http\Controllers\Admin\WebhookLogsController;
 use App\Http\Controllers\Admin\TransfersController;
 use App\Http\Controllers\Admin\TreasuryController;
+use App\Http\Controllers\Admin\TreasuryTransfersController;
 use App\Http\Controllers\Admin\UsersController;
-use App\Http\Controllers\Admin\WalletsController;
+use App\Http\Controllers\Admin\WebhookLogsController;
 use App\Http\Controllers\Admin\WithdrawalsController;
 use App\Http\Controllers\ImpersonationController;
 use Illuminate\Support\Facades\Route;
@@ -78,8 +90,21 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // Guarded console.
     Route::middleware('operator')->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+        // ── Enterprise analytics dashboard (cached reports + generic renderer) ──
+        Route::controller(AnalyticsController::class)->group(function () {
+            Route::get('/analytics', 'index')->name('analytics');
+            Route::get('/analytics/export/{section?}', 'export')->name('analytics.export');
+            Route::get('/analytics/{section}', 'section')->name('analytics.section');
+        });
+
         Route::get('/activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs');
         Route::get('/transfers', [TransfersController::class, 'index'])->name('transfers');
+
+        // ── Focused operational views (read-only; reuse existing models/services) ──
+        Route::get('/risk', [RiskController::class, 'index'])->name('risk');
+        Route::get('/card-transactions', [CardTransactionsController::class, 'index'])->name('card-transactions');
+        Route::get('/queue', [QueueController::class, 'index'])->name('queue');
 
         // ── System monitoring: health, logs, webhooks (Horizon is served at /horizon) ──
         Route::get('/system-health', [SystemHealthController::class, 'index'])->name('system-health');
@@ -106,7 +131,17 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/reports', 'index')->name('reports');
             Route::get('/reports/export', 'export')->name('reports.export');
         });
-        Route::get('/wallets', [WalletsController::class, 'index'])->name('wallets');
+        // ── Treasury: settlements queue + hot/cold transfer history ──
+        Route::get('/settlements', [SettlementsController::class, 'index'])->name('settlements');
+        Route::get('/treasury-transfers', [TreasuryTransfersController::class, 'index'])->name('treasury-transfers');
+        // ── Blockchain: focused custody/monitoring pages ──
+        Route::get('/deposit-monitor', [DepositMonitorController::class, 'index'])->name('deposit-monitor');
+        Route::get('/sweeps', [SweepQueueController::class, 'index'])->name('sweeps');
+        Route::get('/hot-wallet', [HotWalletController::class, 'index'])->name('hot-wallet');
+        Route::get('/cold-wallet', [ColdWalletController::class, 'index'])->name('cold-wallet');
+        Route::get('/reconciliation', [ReconciliationController::class, 'index'])->name('reconciliation');
+        // Retired: the combined custody-wallets page split into Hot/Cold Wallet.
+        Route::redirect('/wallets', '/admin/hot-wallet')->name('wallets');
 
         // ── Ops: blockchain health + simulation ──
         Route::controller(BlockchainHealthController::class)->group(function () {
@@ -224,12 +259,18 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::delete('/custody/{id}', 'destroy')->name('custody.delete');
         });
 
+        // ── Exchange: rates/pairs config + focused swap views ──
         Route::controller(AdminExchangeController::class)->group(function () {
+            Route::get('/rates', 'index')->name('rates');
+            // Legacy alias: the page was "Exchange" before the IA refactor renamed it
+            // "Rates". Kept (not redirected) so existing deep links keep resolving.
             Route::get('/exchange', 'index')->name('exchange');
             Route::post('/exchange', 'save')->name('exchange.save');
             Route::post('/exchange/{id}/toggle', 'toggleActive')->name('exchange.toggle');
             Route::delete('/exchange/{id}', 'destroy')->name('exchange.delete');
         });
+        Route::get('/swap-orders', [SwapOrdersController::class, 'index'])->name('swap-orders');
+        Route::get('/liquidity', [LiquidityController::class, 'index'])->name('liquidity');
 
         Route::controller(FaqsController::class)->group(function () {
             Route::get('/faqs', 'index')->name('faqs');
@@ -358,7 +399,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // ── Platform settings (controller + Blade forms, not Livewire) ──
         Route::controller(SettingController::class)->group(function () {
-            $sections = 'general|branding|auth|deposit|withdrawal|transfer|exchange|cards|merchant|p2p|credit|rewards|compliance|localization|announcement';
+            $sections = 'general|branding|auth|deposit|withdrawal|transfer|kyc|risk|exchange|cards|merchant|p2p|credit|rewards|compliance|localization|announcement';
             Route::get('/settings/{section?}', 'index')->where('section', $sections)->name('settings');
             Route::put('/settings/{section}', 'update')->where('section', $sections)->name('settings.update');
         });

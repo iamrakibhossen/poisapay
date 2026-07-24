@@ -7,9 +7,11 @@ use App\Card\Enums\ProviderCapability;
 use App\Card\Enums\WebhookEventType;
 use App\Card\Factory\CardProviderFactory;
 use App\Card\Providers\Stripe\StripeProvider;
+use App\Domain\Card\AuthorizationResult;
 use App\Enums\CardNetwork;
 use App\Enums\CardStatus;
 use App\Enums\CardType;
+use App\Models\CardAuthorization;
 use Illuminate\Support\Facades\Config;
 
 const CARD_WHSEC = 'whsec_card_test';
@@ -132,10 +134,10 @@ it('supports real-time JIT authorization and parses the request', function () {
 
 it('formats approve/decline responses (200-ack) for the JIT endpoint', function () {
     // No authorization id in context → no Stripe API call → pure formatting.
-    $approve = cardStripe()->formatFundingResponse(App\Domain\Card\AuthorizationResult::approve(
-        new App\Models\CardAuthorization(['network_auth_id' => 'n1'])
+    $approve = cardStripe()->formatFundingResponse(AuthorizationResult::approve(
+        new CardAuthorization(['network_auth_id' => 'n1'])
     ));
-    $decline = cardStripe()->formatFundingResponse(App\Domain\Card\AuthorizationResult::decline('insufficient_funds'));
+    $decline = cardStripe()->formatFundingResponse(AuthorizationResult::decline('insufficient_funds'));
 
     expect($approve['status'])->toBe(200)->and($approve['body']['approved'])->toBeTrue()
         ->and($decline['status'])->toBe(200)->and($decline['body']['approved'])->toBeFalse()

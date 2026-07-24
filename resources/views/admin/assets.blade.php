@@ -27,7 +27,6 @@
                 contract_address: @js(old('contract_address', '')),
                 decimals: @js(old('decimals', 6)),
                 withdrawal_min: @js(old('withdrawal_min', '0')),
-                withdrawal_fee: @js(old('withdrawal_fee', '0')),
                 sort: @js(old('sort', 0)),
                 is_active: true,
             },
@@ -40,11 +39,11 @@
                 this.coinOpen = true;
             },
             addNetwork(c) {
-                this.net = { id: '', currency_id: c.id, symbol: c.symbol, chain_id: '', contract_address: '', decimals: c.kind === 'fiat' ? 2 : 6, withdrawal_min: '0', withdrawal_fee: '0', sort: 0, is_active: true };
+                this.net = { id: '', currency_id: c.id, symbol: c.symbol, chain_id: '', contract_address: '', decimals: c.kind === 'fiat' ? 2 : 6, withdrawal_min: '0', sort: 0, is_active: true };
                 this.netOpen = true;
             },
             editNetwork(a) {
-                this.net = { id: a.id, currency_id: a.currency_id, symbol: a.symbol, chain_id: a.chain_id ? String(a.chain_id) : '', contract_address: a.contract_address ?? '', decimals: a.decimals, withdrawal_min: String(a.withdrawal_min ?? '0'), withdrawal_fee: String(a.withdrawal_fee ?? '0'), sort: a.sort, is_active: a.is_active };
+                this.net = { id: a.id, currency_id: a.currency_id, symbol: a.symbol, chain_id: a.chain_id ? String(a.chain_id) : '', contract_address: a.contract_address ?? '', decimals: a.decimals, withdrawal_min: String(a.withdrawal_min ?? '0'), sort: a.sort, is_active: a.is_active };
                 this.netOpen = true;
             },
         }" class="space-y-8">
@@ -57,7 +56,7 @@
         {{-- Coins, each grouping its per-chain network rows --}}
         <div class="space-y-3">
             <h3 class="text-base font-semibold text-neutral-900">{{ __('Coins') }}</h3>
-            <x-ui.table :headers="[__('Coin / network'), __('Contract'), __('Decimals'), __('Withdrawal fee'), __('Active'), '']">
+            <x-ui.table :headers="[__('Coin / network'), __('Contract'), __('Decimals'), __('Active'), '']">
                 @forelse ($currencies as $currency)
                     @php
                         $coinJson = ['id' => $currency->id, 'symbol' => $currency->symbol, 'name' => $currency->name, 'kind' => $currency->kind->value, 'currency_code' => $currency->currency_code, 'is_stablecoin' => (bool) $currency->is_stablecoin, 'sort' => $currency->sort, 'is_active' => (bool) $currency->is_active];
@@ -116,7 +115,6 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-sm text-neutral-600"><span class="tabular">{{ $asset->decimals }}</span></td>
-                            <td class="px-4 py-3 text-sm text-neutral-600"><span class="tabular">{{ $asset->withdrawal_fee ?? '0' }}</span></td>
                             <td class="px-4 py-3">
                                 <form method="POST" action="{{ route('admin.assets.toggle', $asset->id) }}">
                                     @csrf
@@ -127,7 +125,7 @@
                             </td>
                             <td class="px-4 py-3 text-right">
                                 <x-ui.button variant="ghost" size="sm" icon="pencil-square"
-                                    x-on:click="editNetwork({{ Illuminate\Support\Js::from(['id' => $asset->id, 'currency_id' => $asset->currency_id, 'symbol' => $asset->symbol, 'chain_id' => $asset->chain_id, 'contract_address' => $asset->contract_address, 'decimals' => $asset->decimals, 'withdrawal_min' => (string) ($asset->withdrawal_min ?? '0'), 'withdrawal_fee' => (string) ($asset->withdrawal_fee ?? '0'), 'sort' => $asset->sort, 'is_active' => (bool) $asset->is_active]) }})">{{ __('Edit') }}</x-ui.button>
+                                    x-on:click="editNetwork({{ Illuminate\Support\Js::from(['id' => $asset->id, 'currency_id' => $asset->currency_id, 'symbol' => $asset->symbol, 'chain_id' => $asset->chain_id, 'contract_address' => $asset->contract_address, 'decimals' => $asset->decimals, 'withdrawal_min' => $asset->money($asset->withdrawal_min)->toDecimal(), 'sort' => $asset->sort, 'is_active' => (bool) $asset->is_active]) }})">{{ __('Edit') }}</x-ui.button>
                             </td>
                         </tr>
                     @empty
@@ -227,8 +225,7 @@
                         <x-ui.input name="contract_address" x-model="net.contract_address" :label="__('Contract address')" :placeholder="__('Leave blank for native')" :error="$errors->first('contract_address')" />
                         <x-ui.input name="decimals" x-model="net.decimals" type="number" :label="__('Decimals')" :error="$errors->first('decimals')" />
                         <x-ui.input name="sort" x-model="net.sort" type="number" :label="__('Sort')" :error="$errors->first('sort')" />
-                        <x-ui.input name="withdrawal_min" x-model="net.withdrawal_min" :label="__('Withdrawal min (base units)')" :error="$errors->first('withdrawal_min')" />
-                        <x-ui.input name="withdrawal_fee" x-model="net.withdrawal_fee" :label="__('Withdrawal fee (base units)')" :error="$errors->first('withdrawal_fee')" />
+                        <x-ui.input name="withdrawal_min" x-model="net.withdrawal_min" type="number" step="any" min="0" :label="__('Withdrawal min')" :error="$errors->first('withdrawal_min')" />
                     </div>
                     <x-ui.checkbox name="is_active" value="1" x-model="net.is_active" :label="__('Active')" />
                     <div class="flex justify-end gap-2 pt-2">

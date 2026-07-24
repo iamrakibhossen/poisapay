@@ -54,7 +54,8 @@ it('persists a section via a PUT form submit', function () {
     actingAs($this->admin, 'admin')
         ->put(route('admin.settings.update', 'withdrawal'), [
             'withdrawal_enabled' => '1',
-            'withdrawal_fee_percent' => '1',
+            'withdrawal_fee_percent_coin' => '0.5',
+            'withdrawal_fee_percent_fiat' => '1.5',
             'withdrawal_auto_approve_limit' => 99000,
             'min_withdrawal_usd' => 2,
             'daily_withdrawal_count' => 20,
@@ -63,7 +64,9 @@ it('persists a section via a PUT form submit', function () {
         ->assertSessionHas('success');
 
     expect((int) getSetting('withdrawal_auto_approve_limit'))->toBe(99000)
-        ->and((int) getSetting('daily_withdrawal_count'))->toBe(20);
+        ->and((int) getSetting('daily_withdrawal_count'))->toBe(20)
+        ->and((string) getSetting('withdrawal_fee_percent_coin'))->toBe('0.5')
+        ->and((string) getSetting('withdrawal_fee_percent_fiat'))->toBe('1.5');
 
     // Exchange settings now live in their own section.
     actingAs($this->admin, 'admin')

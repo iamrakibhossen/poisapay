@@ -51,13 +51,15 @@ it('creates and updates a coin, syncing its networks', function () {
     $chainId = Chain::first()->id;
     actingAs($this->admin, 'admin')->post(route('admin.assets.save'), [
         'currency_id' => $coin->id, 'chain_id' => (string) $chainId, 'contract_address' => '0xABCDEF',
-        'decimals' => 6, 'sort' => 0, 'withdrawal_min' => '0', 'withdrawal_fee' => '0', 'is_active' => '1',
+        'decimals' => 6, 'sort' => 0, 'withdrawal_min' => '1.5', 'is_active' => '1',
     ])->assertRedirect(route('admin.assets'));
 
     $asset = Asset::where('currency_id', $coin->id)->first();
     expect($asset)->not->toBeNull()
         ->and($asset->symbol)->toBe('ABC')          // identity inherited from the coin
-        ->and($asset->contract_address)->toBe('0xABCDEF');
+        ->and($asset->contract_address)->toBe('0xABCDEF')
+        // Decimal input stored as base units (6 dp): 1.5 → 1_500_000.
+        ->and($asset->withdrawal_min)->toBe('1500000');
 
     // Renaming the coin re-syncs the network's denormalised symbol/name.
     actingAs($this->admin, 'admin')->post(route('admin.currencies.save'), [

@@ -21,13 +21,14 @@ it('renders the withdraw page', function () {
     actingAs($this->user)->get(route('withdraw.index'))->assertOk()->assertSee('Withdraw');
 });
 
-it('renders the network detail form with fee and available balance', function () {
+it('renders the network detail form with available balance', function () {
     creditUser($this->user, $this->asset, '5000000');
 
+    // Crypto withdrawals no longer show a per-network fee — only the amount form.
     actingAs($this->user)->get(route('withdraw.index', ['coin' => 'USDT', 'asset' => $this->asset->id]))
         ->assertOk()
         ->assertSee('Destination address')
-        ->assertSee('Network fee');
+        ->assertDontSee('Network fee');
 });
 
 it('submits a crypto withdrawal and reserves funds', function () {

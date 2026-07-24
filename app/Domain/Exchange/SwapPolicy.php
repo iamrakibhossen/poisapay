@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace App\Domain\Exchange;
 
 use App\Domain\Compliance\AccountGuard;
-use App\Domain\Exchange\Contracts\RateProvider;
 use App\Enums\KycTier;
 use App\Models\Asset;
 use App\Models\Conversion;
 use App\Models\User;
 use App\Support\Money;
 use Brick\Math\BigDecimal;
-use Brick\Math\RoundingMode;
 use RuntimeException;
 
 /**
@@ -24,7 +22,7 @@ use RuntimeException;
  */
 class SwapPolicy
 {
-    public function __construct(private readonly RateProvider $rates) {}
+    public function __construct(private readonly UsdValuation $usd) {}
 
     /** Feature flag + active account + minimum KYC tier. */
     public function assertEligible(User $user): void
@@ -64,20 +62,6 @@ class SwapPolicy
     /** USD value (major units, 2dp) of a from-amount — for limits + the record. */
     public function notionalUsd(Asset $from, Money $amount): string
     {
-        $decimal = BigDecimal::of($amount->toDecimal());
-
-        if (strtoupper($from->symbol) === 'USD') {
-            return (string) $decimal->toScale(2, RoundingMode::DOWN);
-        }
-
-        $usd = Asset::where('kind', 'fiat')->where('symbol', 'USD')->first();
-        if (! $usd) {
-            // No USD anchor configured; value stablecoins ~1:1, otherwise best-effort.
-            return (string) $decimal->toScale(2, RoundingMode::DOWN);
-        }
-
-        $rate = $this->rates->rate($from, $usd);   // price of 1 `from` in USD
-
-        return (string) $decimal->multipliedBy($rate)->toScale(2, RoundingMode::DOWN);
+        return $this->usd->toUsd($from, $amount);
     }
 }

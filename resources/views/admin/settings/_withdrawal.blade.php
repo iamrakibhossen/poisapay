@@ -7,10 +7,16 @@
             <x-admin.input.boolean name="withdrawal_enabled" :value="old('withdrawal_enabled', getSetting('withdrawal_enabled', true))" />
         </x-admin.input.group>
 
-        <x-admin.input.group id="withdrawal_fee_percent" :label="__('Withdrawal Fee (%)')" required class="w-full"
-            :hints="__('Platform fee on every withdrawal (added on top of the rail/network fee) and booked to revenue.')">
-            <x-admin.input type="number" step="0.01" min="0" max="100" name="withdrawal_fee_percent"
-                :value="old('withdrawal_fee_percent', getSetting('withdrawal_fee_percent', '1'))" required />
+        <x-admin.input.group id="withdrawal_fee_percent_coin" :label="__('Coin Withdrawal Fee (%)')" required class="w-full"
+            :hints="__('Platform fee on crypto withdrawals (added on top of the network fee) and booked to revenue.')">
+            <x-admin.input type="number" step="0.01" min="0" max="100" name="withdrawal_fee_percent_coin"
+                :value="old('withdrawal_fee_percent_coin', \App\Domain\Fees\PlatformFees::withdrawalCoinPercent())" required />
+        </x-admin.input.group>
+
+        <x-admin.input.group id="withdrawal_fee_percent_fiat" :label="__('Fiat Withdrawal Fee (%)')" required class="w-full"
+            :hints="__('Platform fee on fiat cash-outs (added on top of the payout-method fee) and booked to revenue.')">
+            <x-admin.input type="number" step="0.01" min="0" max="100" name="withdrawal_fee_percent_fiat"
+                :value="old('withdrawal_fee_percent_fiat', \App\Domain\Fees\PlatformFees::withdrawalFiatPercent())" required />
         </x-admin.input.group>
 
         <x-admin.input.group id="withdrawal_auto_approve_limit" :label="__('Auto-approve Limit')" required class="w-full"

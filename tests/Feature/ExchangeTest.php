@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 use App\Domain\Exchange\ExchangeService;
 use App\Domain\Ledger\AccountResolver;
-use App\Domain\Ledger\DTO\EntryData;
-use App\Domain\Ledger\DTO\PostingLine;
 use App\Domain\Ledger\LedgerService;
 use App\Enums\ConversionContext;
 use App\Enums\LedgerAccountType;
@@ -23,21 +21,11 @@ beforeEach(function () {
     );
     app(AccountResolver::class)->ensureSystemAccounts($this->trx->id);
 
-    // Fund treasury TRX so the platform can deliver the to-asset.
-    $ledger = app(LedgerService::class);
-    $resolver = $ledger->resolver();
-    $liab = $resolver->system(LedgerAccountType::LiabilityUserFunds, $this->trx->id);
-    $hot = $resolver->system(LedgerAccountType::TreasuryHot, $this->trx->id);
-    $ledger->post(new EntryData(
-        type: 'seed.treasury',
-        idempotencyKey: 'seed:treasury:trx',
-        lines: [
-            PostingLine::debit($hot->id, $this->trx->id, '100000000000000000000000'),
-            PostingLine::credit($liab->id, $this->trx->id, '100000000000000000000000'),
-        ],
-    ));
+    // House injects its own TRX into the hot wallet as tradable dealer inventory,
+    // which internal swaps deliver the to-asset from (DR treasury:hot / CR dealer:inventory).
+    seedInventory($this->trx, '100000000000000000000000');
 
-    $this->ledger = $ledger;
+    $this->ledger = app(LedgerService::class);
 });
 
 it('quotes and executes a swap, moving both balances atomically', function () {

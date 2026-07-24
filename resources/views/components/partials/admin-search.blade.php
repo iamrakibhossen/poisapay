@@ -4,8 +4,11 @@
     $admin = auth('admin')->user();
     $can = fn ($perm) => empty($perm) || $admin?->can($perm) || $admin?->hasRole('super-admin');
 
+    // Reachable = external URL or a registered named route (pages still being built are skipped).
+    $reachable = fn ($i) => ! empty($i['url']) || (! empty($i['route']) && \Illuminate\Support\Facades\Route::has($i['route']));
+
     $searchItems = collect(\App\Support\AdminMenu::searchItems())
-        ->filter(fn ($i) => $can($i['perm'] ?? null))
+        ->filter(fn ($i) => $can($i['perm'] ?? null) && $reachable($i))
         ->map(fn ($i) => [
             'label' => $i['label'],
             'group' => $i['group'] ?? '',

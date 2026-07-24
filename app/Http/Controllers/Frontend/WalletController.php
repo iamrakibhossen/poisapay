@@ -9,6 +9,7 @@ use App\Domain\Exchange\Contracts\RateProvider;
 use App\Domain\Wallet\WalletService;
 use App\Http\Controllers\Controller;
 use App\Models\Asset;
+use App\Support\BaseCurrency;
 use App\Support\Money;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
@@ -100,10 +101,10 @@ class WalletController extends Controller
         return redirect()->back();
     }
 
-    /** The user's base-currency asset for fiat valuation (falls back to BDT). */
+    /** The user's base-currency asset for fiat valuation (their choice, else platform default). */
     private function baseAsset($user): ?Asset
     {
-        return Asset::where('currency_code', $user->base_currency)->first() ?? Asset::where('symbol', 'BDT')->first();
+        return BaseCurrency::assetFor($user);
     }
 
     private function fiat(BigDecimal $value, Asset $base): string

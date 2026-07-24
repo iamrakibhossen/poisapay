@@ -10,6 +10,7 @@ use App\Enums\ReferralStatus;
 use App\Events\UserRegistered;
 use App\Models\Referral;
 use App\Models\User;
+use App\Support\BaseCurrency;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -42,7 +43,7 @@ class RegisterUserAction
                 'referred_by' => $referrer?->id,
                 'kyc_tier' => KycTier::Unverified,
                 'kyc_status' => KycStatus::None,
-                'base_currency' => 'BDT',
+                'base_currency' => BaseCurrency::code(),
             ]);
 
             if ($referrer) {

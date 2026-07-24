@@ -12,11 +12,13 @@ use App\Domain\Security\AddressBookService;
 use App\Enums\KycStatus;
 use App\Http\Controllers\Controller;
 use App\Models\UserDevice;
+use App\Support\BaseCurrency;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -66,7 +68,7 @@ class SettingsController extends Controller
             'profile' => [
                 'name' => (string) $user->name,
                 'phone' => (string) $user->phone,
-                'baseCurrency' => (string) ($user->base_currency ?: 'BDT'),
+                'baseCurrency' => (string) ($user->base_currency ?: BaseCurrency::code()),
                 'timezone' => (string) ($user->timezone ?: 'Asia/Dhaka'),
             ],
             'twoFactorEnabled' => $user->hasTwoFactorEnabled(),
@@ -93,7 +95,8 @@ class SettingsController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:32'],
-            'baseCurrency' => ['required', 'string', 'max:8'],
+            // Only currencies backed by a real fiat asset are selectable.
+            'baseCurrency' => ['required', 'string', Rule::in(array_keys(BaseCurrency::options()))],
             'timezone' => ['required', 'string', 'max:64'],
         ]);
 

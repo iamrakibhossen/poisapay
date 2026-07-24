@@ -23,6 +23,8 @@ use App\Support\Money;
 beforeEach(function () {
     $this->asset = testAsset('USDT', 6, 'tron');
     $this->user = User::factory()->create(['kyc_tier' => KycTier::Full, 'name' => 'Jane Clean']);
+    // These cases exercise AML/compliance, not the per-tier withdrawal ceiling — lift it.
+    updateSetting('kyc_full_daily_withdrawal_ceiling', 0, 'kyc');
 });
 
 function withdraw(User $user, $asset, string $base, string $key = 'wd-1'): Withdrawal

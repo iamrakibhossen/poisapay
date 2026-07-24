@@ -33,7 +33,7 @@ class GasWallet extends Model
     /** Gas balance as a Money VO (native coin, 18 decimals). */
     public function money(): Money
     {
-        return Money::ofBase($this->balance, 18, $this->chain?->native_symbol ?? '');
+        return Money::ofBase((string) $this->balance, 18, $this->chain?->native_symbol ?? '');
     }
 
     public function isLow(): bool

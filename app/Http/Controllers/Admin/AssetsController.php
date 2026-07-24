@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Asset;
 use App\Models\Chain;
 use App\Models\Currency;
+use App\Support\Money;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -95,8 +96,8 @@ class AssetsController extends Controller
             'chain_id' => ['nullable', 'integer', 'exists:chains,id'],
             'contract_address' => ['nullable', 'string', 'max:128'],
             'decimals' => ['required', 'integer', 'min:0', 'max:36'],
-            'withdrawal_min' => ['required', 'string'],
-            'withdrawal_fee' => ['required', 'string'],
+            // Entered in whole (decimal) units for readability; stored as base units below.
+            'withdrawal_min' => ['required', 'numeric', 'min:0'],
             'is_active' => ['boolean'],
             'sort' => ['required', 'integer', 'min:0'],
         ]);
@@ -120,8 +121,9 @@ class AssetsController extends Controller
             'chain_id' => $chainId,
             'contract_address' => $contract,
             'decimals' => $data['decimals'],
-            'withdrawal_min' => $data['withdrawal_min'],
-            'withdrawal_fee' => $data['withdrawal_fee'],
+            // Convert the decimal input to base units for storage. The per-network
+            // withdrawal fee was removed — withdrawals are charged the platform % only.
+            'withdrawal_min' => Money::ofDecimal($data['withdrawal_min'], (int) $data['decimals'])->baseString(),
             'is_active' => $request->boolean('is_active'),
             'sort' => $data['sort'],
         ];

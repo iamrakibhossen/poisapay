@@ -19,43 +19,25 @@
         $steps = [1 => __('Currency'), 2 => __('Method'), 3 => __('Deposit')];
     @endphp
 
-    <div class="mx-auto max-w-2xl space-y-6">
-        <div class="text-center">
-            <h1 class="text-2xl font-semibold tracking-tight text-neutral-900">{{ __('Deposit') }}</h1>
-            <p class="mt-1 text-sm text-neutral-500">{{ __('Fund your account with crypto or a supported payment method.') }}</p>
+    <div class="mx-auto mt-6 max-w-2xl space-y-6">
+        <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-50 text-brand-600">
+                    <x-heroicon-o-arrow-down-tray class="h-5 w-5" />
+                </span>
+                <div>
+                    <h1 class="text-2xl font-semibold tracking-tight text-neutral-900">{{ __('Deposit') }}</h1>
+                    <p class="mt-1 text-sm text-neutral-500">{{ __('Fund your account with crypto or a supported payment method.') }}</p>
+                </div>
+            </div>
             @if ($recentCount > 0)
-                <a href="{{ route('deposit.history') }}" class="group mt-3 inline-flex items-center gap-1 text-sm font-medium text-neutral-500 transition hover:text-brand-600">
-                    {{ __('View deposit history') }}
-                    <x-heroicon-o-chevron-right class="h-4 w-4 transition group-hover:translate-x-0.5" />
+                <a href="{{ route('deposit.history') }}" class="group inline-flex shrink-0 items-center gap-1 text-sm font-medium text-neutral-500 transition hover:text-brand-600">
+                    {{ __('View all') }}
+                    <x-heroicon-s-chevron-right class="h-5 w-5 transition group-hover:translate-x-0.5" />
                 </a>
             @endif
         </div>
 
-        {{-- Step progress --}}
-        <div class="flex items-center justify-center gap-2 sm:gap-3">
-            @foreach ($steps as $n => $label)
-                @php $done = $n < $currentStep; $active = $n === $currentStep; @endphp
-                <div class="flex items-center gap-2">
-                    <span @class([
-                        'grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-semibold transition',
-                        'bg-brand-500 text-white shadow-sm ring-4 ring-brand-100' => $active,
-                        'bg-brand-100 text-brand-600' => $done,
-                        'bg-neutral-100 text-neutral-400' => ! $active && ! $done,
-                    ])>
-                        @if ($done)<x-heroicon-o-check class="h-4 w-4" />@else{{ $n }}@endif
-                    </span>
-                    <span @class([
-                        'text-xs font-medium',
-                        'text-neutral-900' => $active,
-                        'text-neutral-500' => $done,
-                        'text-neutral-400' => ! $active && ! $done,
-                    ])>{{ $label }}</span>
-                </div>
-                @unless ($loop->last)
-                    <span @class(['h-px w-5 sm:w-10', 'bg-brand-300' => $done, 'bg-neutral-200' => ! $done])></span>
-                @endunless
-            @endforeach
-        </div>
 
         @unless ($depositEnabled)
             <x-ui.alert type="warning" :title="__('Deposits are disabled')">{{ __('Deposits are currently turned off. Please check back shortly.') }}</x-ui.alert>
@@ -63,7 +45,12 @@
 
         {{-- ══ 1. Choose a coin ══ --}}
         @if (! $selectedAsset && ! $inCryptoFlow)
-            <x-ui.card :title="__('Choose a coin')" :subtitle="__('Pick what you want to deposit.')">
+            <x-ui.card>
+                @include('frontend.partials.deposit-steps')
+                <div class="mb-4">
+                    <h3 class="text-base font-semibold text-neutral-900">{{ __('Choose a coin') }}</h3>
+                    <p class="mt-0.5 text-sm text-neutral-500">{{ __('Pick what you want to deposit.') }}</p>
+                </div>
                 @if ($assets->isEmpty())
                     <x-ui.empty-state icon="banknotes" :title="__('No currencies available')" :description="__('Deposit currencies are not configured yet.')" />
                 @else
@@ -94,6 +81,7 @@
         {{-- ══ 2. Crypto: unified network picker + address ══ --}}
         @elseif ($inCryptoFlow)
             <x-ui.card>
+                @include('frontend.partials.deposit-steps')
                 {{-- Coin header --}}
                 <div class="mb-5 flex items-center gap-3">
                     <x-ui.asset-icon :symbol="$coinSymbol" size="lg" />
@@ -173,6 +161,7 @@
         {{-- ══ 3. Fiat / method-based deposit ══ --}}
         @else
             <x-ui.card>
+                @include('frontend.partials.deposit-steps')
                 <div class="flex items-center gap-3">
                     <x-ui.asset-icon :symbol="$selectedAsset->symbol" size="lg" />
                     <div class="min-w-0 flex-1">

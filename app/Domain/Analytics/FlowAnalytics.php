@@ -10,6 +10,7 @@ use App\Models\Deposit;
 use App\Models\Transfer;
 use App\Models\User;
 use App\Models\Withdrawal;
+use App\Support\BaseCurrency;
 use App\Support\Money;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
@@ -30,7 +31,7 @@ class FlowAnalytics
      */
     public function forUser(User $user, int $days = 30): array
     {
-        $base = Asset::where('currency_code', $user->base_currency)->first() ?? Asset::where('symbol', 'BDT')->first();
+        $base = BaseCurrency::assetFor($user);
         $since = now()->subDays($days);
         $userId = $user->id;
 

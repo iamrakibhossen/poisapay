@@ -60,7 +60,7 @@
                     <div class="flex items-start justify-between">
                         <div>
                             <div class="flex items-center gap-2">
-                                <p class="text-xs font-medium uppercase tracking-wide text-brand-700">{{ __('Total balance') }} · {{ $baseCurrency }}</p>
+                                <p class="text-xs font-semibold uppercase tracking-wide text-brand-700">{{ __('Total balance') }} · {{ $baseCurrency }}</p>
                                 <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-600" title="{{ __('Values update live') }}">
                                     <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 motion-safe:animate-pulse"></span> {{ __('Live') }}
                                 </span>
@@ -188,14 +188,14 @@
             <div class="lg:col-span-2">
                 <x-ui.card :title="__('Your assets')">
                     <x-slot:actions>
-                        <x-ui.button href="{{ route('wallet') }}" variant="ghost" size="sm" iconRight="arrow-right">{{ __('All') }}</x-ui.button>
+                        <x-ui.button href="{{ route('wallet') }}" variant="ghost" size="sm" iconRight="chevron-right">{{ __('All') }}</x-ui.button>
                     </x-slot:actions>
 
                     @if (count($funded))
                         <div>
                             @foreach ($funded as $i => $row)
                                 <a href="{{ route('wallet.show', $row['symbol']) }}"
-                                    @class(['-mx-2 flex items-center gap-4 rounded-xl px-2 py-2.5 transition hover:bg-neutral-50', 'border-b border-neutral-100' => $i < count($funded) - 1])>
+                                    @class(['group -mx-2 flex items-center gap-4 rounded-xl px-2 py-2.5 transition hover:bg-neutral-50', 'border-b border-neutral-100' => $i < count($funded) - 1])>
                                     <span class="inline-grid h-11 w-11 shrink-0 place-items-center rounded-full text-sm font-bold text-white"
                                         style="background: {{ $row['color'] }}">{{ \Illuminate\Support\Str::substr($row['symbol'], 0, 4) }}</span>
                                     <div class="min-w-0 flex-1">
@@ -210,6 +210,7 @@
                                             <p class="js-asset-fiat tabular text-xs text-neutral-500" data-sym="{{ $row['symbol'] }}">{{ $row['fiat'] }}</p>
                                         </div>
                                     </div>
+                                    <x-heroicon-o-chevron-right class="h-4 w-4 shrink-0 text-neutral-300 transition group-hover:text-neutral-400" />
                                 </a>
                             @endforeach
                         </div>

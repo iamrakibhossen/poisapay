@@ -23,6 +23,7 @@ it('renders the asset detail page server-side (no Livewire, no JSON)', function 
 
 it('shows swaps in the per-asset activity (both directions)', function () {
     $btc = testAsset('BTC', 8, 'tron');
+    seedInventory($btc, '100000000000'); // house BTC dealer inventory
     creditUser($this->user, $this->usdt, '10000000'); // 10 USDT
 
     // Swap 4 USDT -> BTC.

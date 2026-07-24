@@ -1,7 +1,9 @@
 <?php
+
 declare(strict_types=1);
 use App\Models\Admin;
 use Illuminate\Support\Facades\Artisan;
+
 use function Pest\Laravel\actingAs;
 
 beforeEach(function () {

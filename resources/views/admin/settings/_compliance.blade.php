@@ -27,6 +27,10 @@
             <x-admin.input.textarea name="aml_watchlist" :value="implode(', ', (array) old('aml_watchlist', getSetting('aml_watchlist', [])))" rows="2" />
         </x-admin.input.group>
 
+        <x-admin.input.group id="security_high_risk_countries" :label="__('High-risk Countries')" class="w-full" :hints="__('Comma-separated ISO-3166 alpha-2 codes (e.g. KP, IR). Logins from these raise a country-risk signal.')">
+            <x-admin.input.textarea name="security_high_risk_countries" :value="implode(', ', (array) old('security_high_risk_countries', getSetting('security_high_risk_countries', [])))" rows="2" />
+        </x-admin.input.group>
+
         <div class="text-right">
             <x-admin.button type="submit">{{ __('Update') }}</x-admin.button>
         </div>

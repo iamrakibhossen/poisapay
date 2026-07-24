@@ -152,7 +152,7 @@ class WithdrawController extends Controller
         }
 
         $available = $wallets->balanceFor($request->user(), $asset)->available;
-        $fee = $asset->money($asset->withdrawal_fee);
+        $fee = $asset->zero(); // crypto network fee removed; fiat rail fee comes from the chosen method
 
         // Methods are dynamic per currency (operator-configured).
         $methods = WithdrawalMethod::where('asset_id', $asset->id)->where('is_active', true)
@@ -193,7 +193,7 @@ class WithdrawController extends Controller
             'availableDecimal' => $available->toDecimal(),
             'decimals' => $asset->decimals,
             'fee' => $fee->format(),
-            'feePercent' => (float) PlatformFees::withdrawalPercent(),
+            'feePercent' => (float) PlatformFees::withdrawalPercent(true), // fiat rail
             'min' => $asset->money($asset->withdrawal_min)->format(),
             'max' => $this->maxWithdrawable($available, $fee, $asset),
             'methods' => $methods,
@@ -391,7 +391,7 @@ class WithdrawController extends Controller
         }
 
         $available = $wallets->balanceFor($request->user(), $asset)->available;
-        $fee = $asset->money($asset->withdrawal_fee);
+        $fee = $asset->zero(); // no per-network flat fee — platform % only
 
         return [
             'assetId' => $asset->id,
@@ -418,7 +418,7 @@ class WithdrawController extends Controller
             return '0';
         }
 
-        $divisor = BigDecimal::of('1')->plus(BigDecimal::of(PlatformFees::withdrawalPercent())->dividedBy(100, 18, RoundingMode::DOWN));
+        $divisor = BigDecimal::of('1')->plus(BigDecimal::of(PlatformFees::withdrawalPercent($asset->isFiat()))->dividedBy(100, 18, RoundingMode::DOWN));
 
         return (string) BigDecimal::of($net->toDecimal())->dividedBy($divisor, $asset->decimals, RoundingMode::DOWN);
     }
