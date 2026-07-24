@@ -42,6 +42,8 @@
         </main>
     </div>
 
+    <x-partials.footer />
+
     <x-ui.toast />
     <x-flash-messages />
 </div>
