@@ -92,6 +92,17 @@
                             <x-ui.badge :color="$w['statusColor'] ?? 'gray'" dot>{{ $w['status'] }}</x-ui.badge>
                         </div>
 
+                        {{-- Lifecycle progress (Requested → Approved → Sent → Completed).
+                             Failure states rely on the red badge + failure reason below,
+                             since the stage a withdrawal failed at isn't persisted. --}}
+                        @unless ($w['isFailure'])
+                            <div class="rounded-xl border border-neutral-100 bg-neutral-50/60 px-4 py-4">
+                                <x-ui.progress-steps
+                                    :steps="[__('Requested'), __('Approved'), __('Sent'), __('Completed')]"
+                                    :current="$w['progressStep']" />
+                            </div>
+                        @endunless
+
                         {{-- Amounts --}}
                         <x-ui.detail-list>
                             <x-ui.detail-row :label="__('Amount')" class="tabular">{{ $w['amount'] }}</x-ui.detail-row>

@@ -185,6 +185,8 @@ class WithdrawController extends Controller
                     'failureReason' => $w->failure_reason,
                     'status' => $w->status->label(),
                     'statusColor' => $w->status->color(),
+                    'progressStep' => $w->status->progressStep(),
+                    'isFailure' => $w->status->isFailure(),
                     'at' => $w->created_at->toIso8601String(),
                     'completedAt' => $w->completed_at?->toIso8601String(),
                     // On-chain details.

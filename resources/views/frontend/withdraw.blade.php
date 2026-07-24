@@ -35,22 +35,8 @@
             @endphp
             <div>
                 <x-ui.card>
-                    <nav aria-label="{{ __('Progress') }}" class="mb-5 flex items-center gap-2 border-b border-neutral-100 px-1 pb-4">
-                        @foreach ($stepLabels as $i => $label)
-                            @php $n = $i + 1; $done = $n < $currentStep; $active = $n === $currentStep; @endphp
-                            <div class="flex items-center gap-2">
-                                <span @class([
-                                    'grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold transition',
-                                    'bg-brand-500 text-white' => $active,
-                                    'bg-brand-100 text-brand-700' => $done,
-                                    'bg-neutral-100 text-neutral-400' => ! $active && ! $done,
-                                ])>
-                                    @if ($done)<x-heroicon-o-check class="h-4 w-4" />@else{{ $n }}@endif
-                                </span>
-                                <span @class(['text-sm font-medium', 'text-neutral-900' => $active, 'text-neutral-500' => ! $active])>{{ $label }}</span>
-                            </div>
-                            @unless ($loop->last)<span class="h-px flex-1 bg-neutral-200"></span>@endunless
-                        @endforeach
+                    <nav aria-label="{{ __('Progress') }}" class="mb-5 border-b border-neutral-100 pb-4">
+                        <x-ui.progress-steps :steps="$stepLabels" :current="$currentStep" />
                     </nav>
                         @if ($fiatDetail)
                             {{-- Fiat cash-out: pick a saved account or add a new one (methods are per-currency) --}}

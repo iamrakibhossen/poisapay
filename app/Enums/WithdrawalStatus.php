@@ -41,4 +41,26 @@ enum WithdrawalStatus: string
     {
         return in_array($this, [self::Completed, self::Failed, self::Cancelled], true);
     }
+
+    /** A terminal state that did NOT succeed — drives the failed progress rendering. */
+    public function isFailure(): bool
+    {
+        return in_array($this, [self::Failed, self::Cancelled], true);
+    }
+
+    /**
+     * Position in the 4-stage progress tracker (Requested → Approved → Sent →
+     * Completed): 1..4 for the currently-reached stage, 0 for a terminal failure.
+     * Presentation only — the enum cases remain the authoritative state.
+     */
+    public function progressStep(): int
+    {
+        return match ($this) {
+            self::Pending, self::Review => 1,
+            self::Approved => 2,
+            self::Signing, self::Broadcast => 3,
+            self::Completed => 4,
+            self::Failed, self::Cancelled => 0,
+        };
+    }
 }

@@ -95,53 +95,108 @@
             </div>
         @endif
 
-        {{-- Activity --}}
+        {{-- Activity — clickable rows open a full detail modal, like the deposit history page. --}}
         <div>
             <h2 class="mb-3 px-1 text-sm font-semibold text-neutral-900">{{ __('Activity') }}</h2>
             @if (count($transactions))
-                <div class="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-[var(--shadow-card)]">
-                    <table class="min-w-full text-sm">
-                        <thead>
-                            <tr class="border-b border-neutral-200 bg-neutral-50/60 text-[11px] uppercase tracking-wider text-neutral-400">
-                                <th class="px-5 py-3 text-left font-semibold">{{ __('Date') }}</th>
-                                <th class="px-5 py-3 text-left font-semibold">{{ __('Transaction') }}</th>
-                                <th class="px-5 py-3 text-left font-semibold">{{ __('Status') }}</th>
-                                <th class="px-5 py-3 text-right font-semibold">{{ __('Amount') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-neutral-100">
-                            @foreach ($transactions as $item)
-                                @php
-                                    $isCredit = str_starts_with($item['amount'], '+');
-                                    $at = \Illuminate\Support\Carbon::parse($item['at']);
-                                    $date = $at->isCurrentYear() ? $at->format('M j') : $at->format('M j, Y');
-                                @endphp
-                                <tr class="transition hover:bg-neutral-50/70">
-                                    <td class="whitespace-nowrap px-5 py-4 align-middle">
-                                        <p class="text-sm font-medium text-neutral-700">{{ $date }}</p>
-                                        <p class="text-xs text-neutral-400">{{ $at->format('g:i A') }}</p>
-                                    </td>
-                                    <td class="px-5 py-4 align-middle">
-                                        <div class="flex items-center gap-3">
-                                            <span @class([
-                                                'grid h-9 w-9 shrink-0 place-items-center rounded-lg',
-                                                'bg-emerald-50 text-emerald-600' => $isCredit,
-                                                'bg-neutral-100 text-neutral-500' => ! $isCredit,
-                                            ])>
-                                                <x-dynamic-component :component="'heroicon-o-'.$item['icon']" class="h-4 w-4" />
-                                            </span>
-                                            <p class="truncate text-sm font-medium text-neutral-900">{{ $item['title'] }}</p>
-                                        </div>
-                                    </td>
-                                    <td class="px-5 py-4 align-middle">
-                                        <x-ui.badge :color="$item['color'] ?? 'gray'" dot>{{ $item['status'] }}</x-ui.badge>
-                                    </td>
-                                    <td class="tabular whitespace-nowrap px-5 py-4 text-right align-middle text-sm font-semibold {{ $isCredit ? 'text-emerald-600' : 'text-neutral-900' }}">{{ $item['amount'] }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                <x-ui.history-table :columns="[
+                    ['label' => __('Date')],
+                    ['label' => __('Transaction')],
+                    ['label' => __('Status')],
+                    ['label' => __('Amount'), 'align' => 'right'],
+                    ['label' => __('Details'), 'align' => 'right', 'sr' => true],
+                ]">
+                    @foreach ($transactions as $item)
+                        @php
+                            $at = \Illuminate\Support\Carbon::parse($item['at']);
+                            $date = $at->isCurrentYear() ? $at->format('M j') : $at->format('M j, Y');
+                        @endphp
+                        <tr class="cursor-pointer transition hover:bg-neutral-50/70"
+                            role="button" tabindex="0"
+                            x-on:click="$dispatch('open-modal', 'activity-{{ $item['id'] }}')"
+                            x-on:keydown.enter="$dispatch('open-modal', 'activity-{{ $item['id'] }}')"
+                            x-on:keydown.space.prevent="$dispatch('open-modal', 'activity-{{ $item['id'] }}')">
+                            <td class="whitespace-nowrap px-5 py-4 align-middle">
+                                <p class="text-sm font-medium text-neutral-700">{{ $date }}</p>
+                                <p class="text-xs text-neutral-400">{{ $at->format('g:i A') }}</p>
+                            </td>
+                            <td class="px-5 py-4 align-middle">
+                                <div class="flex items-center gap-3">
+                                    <span @class([
+                                        'grid h-9 w-9 shrink-0 place-items-center rounded-lg',
+                                        'bg-emerald-50 text-emerald-600' => $item['isCredit'],
+                                        'bg-neutral-100 text-neutral-500' => ! $item['isCredit'],
+                                    ])>
+                                        <x-dynamic-component :component="'heroicon-o-'.$item['icon']" class="h-4 w-4" />
+                                    </span>
+                                    <div class="min-w-0">
+                                        <p class="truncate text-sm font-medium text-neutral-900">{{ $item['title'] }}</p>
+                                        @if ($item['subtitle'])
+                                            <p class="truncate text-xs text-neutral-500">{{ $item['subtitle'] }}</p>
+                                        @endif
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-5 py-4 align-middle">
+                                <x-ui.badge :color="$item['statusColor'] ?? 'gray'" dot>{{ $item['status'] }}</x-ui.badge>
+                            </td>
+                            <td class="tabular whitespace-nowrap px-5 py-4 text-right align-middle text-sm font-semibold {{ $item['isCredit'] ? 'text-emerald-600' : 'text-neutral-900' }}">{{ $item['amount'] }}</td>
+                            <td class="whitespace-nowrap px-5 py-4 text-right align-middle">
+                                <x-heroicon-o-chevron-right class="ms-auto h-4 w-4 text-neutral-300" />
+                            </td>
+                        </tr>
+                    @endforeach
+                </x-ui.history-table>
+
+                {{-- Per-item detail modals — the full record for each activity entry. --}}
+                @foreach ($transactions as $item)
+                    <x-ui.modal name="activity-{{ $item['id'] }}" :title="__('Transaction details')" :subtitle="$item['title']" maxWidth="lg">
+                        <div class="space-y-6">
+                            {{-- Headline: amount + status --}}
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="flex items-center gap-3">
+                                    <span @class([
+                                        'grid h-11 w-11 shrink-0 place-items-center rounded-xl',
+                                        'bg-emerald-50 text-emerald-600' => $item['isCredit'],
+                                        'bg-neutral-100 text-neutral-500' => ! $item['isCredit'],
+                                    ])>
+                                        <x-dynamic-component :component="'heroicon-o-'.$item['icon']" class="h-5 w-5" />
+                                    </span>
+                                    <div>
+                                        <p class="tabular text-xl font-semibold {{ $item['isCredit'] ? 'text-emerald-600' : 'text-neutral-900' }}">{{ $item['amount'] }}</p>
+                                        <p class="text-xs text-slate-400">{{ $item['subtitle'] ?: $item['title'] }}</p>
+                                    </div>
+                                </div>
+                                <x-ui.badge :color="$item['statusColor'] ?? 'gray'" dot>{{ $item['status'] }}</x-ui.badge>
+                            </div>
+
+                            {{-- Detail rows --}}
+                            <x-ui.detail-list>
+                                @foreach ($item['rows'] as $row)
+                                    <x-ui.detail-row :label="$row['label']" :class="($row['mono'] ?? false) ? 'tabular' : ''">
+                                        @if (! empty($row['copy']) || ! empty($row['explorer']))
+                                            <div class="flex min-w-0 items-center justify-end gap-2">
+                                                <span class="truncate {{ ($row['mono'] ?? false) ? 'font-mono text-xs' : '' }} text-slate-700" title="{{ $row['copy'] ?? $row['value'] }}">{{ $row['value'] }}</span>
+                                                @if (! empty($row['copy']))
+                                                    <x-ui.copy-text :text="$row['copy']" />
+                                                @endif
+                                                @if (! empty($row['explorer']))
+                                                    <a href="{{ $row['explorer'] }}" target="_blank" rel="noopener" class="text-brand-600 transition hover:text-brand-700" title="{{ __('View on explorer') }}">
+                                                        <x-heroicon-o-arrow-top-right-on-square class="h-4 w-4" />
+                                                    </a>
+                                                @endif
+                                            </div>
+                                        @else
+                                            {{ $row['value'] }}
+                                        @endif
+                                    </x-ui.detail-row>
+                                @endforeach
+                            </x-ui.detail-list>
+
+                            <p class="text-center font-mono text-[11px] text-slate-300">{{ $item['id'] }}</p>
+                        </div>
+                    </x-ui.modal>
+                @endforeach
             @else
                 <div class="pp-card">
                     <x-ui.empty-state icon="clock" :title="__('No activity')"
