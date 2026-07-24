@@ -39,7 +39,9 @@ return new class extends Migration
             $table->decimal('from_amount', 78, 0);
             $table->decimal('to_amount', 78, 0);
             $table->decimal('rate', 38, 18);
+            $table->decimal('market_rate', 38, 18)->nullable();
             $table->unsignedInteger('spread_bps');
+            $table->unsignedInteger('fee_bps')->default(0);
             $table->string('source', 32);
             $table->string('context', 16)->default('swap');      // swap | ramp | card_settle
             $table->timestamp('expires_at');
@@ -54,6 +56,12 @@ return new class extends Migration
             $table->foreignUuid('quote_id')->constrained('fx_quotes');
             $table->string('context', 16);
             $table->uuid('entry_id')->nullable();
+            $table->string('status', 16)->default('completed');
+            $table->timestamp('completed_at')->nullable();
+            $table->decimal('spread_amount', 78, 0)->default(0);
+            $table->decimal('fee_amount', 78, 0)->default(0);
+            $table->decimal('gross_amount', 78, 0)->default(0);
+            $table->decimal('notional_usd', 38, 2)->nullable();
             $table->string('idempotency_key', 160)->unique();
             $table->timestamps();
 
@@ -78,6 +86,7 @@ return new class extends Migration
             $table->foreignId('fiat_asset_id')->constrained('assets');
             $table->decimal('fiat_amount', 38, 0);               // paisa
             $table->string('provider_ref', 128)->nullable();
+            $table->string('idempotency_key', 160)->nullable();
             $table->string('beneficiary', 160)->nullable();      // off-ramp / payout destination
             $table->string('status', 24)->default('pending');
             $table->uuid('entry_id')->nullable();
@@ -85,6 +94,7 @@ return new class extends Migration
 
             $table->foreign('entry_id')->references('id')->on('journal_entries')->nullOnDelete();
             $table->unique(['rail', 'provider_ref'], 'uq_ramp_provider'); // idempotent vs PSP callback
+            $table->unique('idempotency_key', 'uq_ramp_idempotency');
             $table->index(['user_id', 'status']);
         });
     }

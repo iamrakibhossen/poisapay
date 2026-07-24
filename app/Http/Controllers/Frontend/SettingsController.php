@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -98,6 +99,8 @@ class SettingsController extends Controller
             // Only currencies backed by a real fiat asset are selectable.
             'baseCurrency' => ['required', 'string', Rule::in(array_keys(BaseCurrency::options()))],
             'timezone' => ['required', 'string', 'max:64'],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
+            'remove_avatar' => ['nullable', 'boolean'],
         ]);
 
         $user = $request->user();
@@ -105,6 +108,18 @@ class SettingsController extends Controller
         $user->phone = ($validated['phone'] ?? '') !== '' ? $validated['phone'] : null;
         $user->base_currency = $validated['baseCurrency'];
         $user->timezone = $validated['timezone'];
+
+        // Profile picture: a new upload replaces the old file; ticking "remove" clears it.
+        if ($request->hasFile('avatar')) {
+            if ($user->image) {
+                Storage::disk('public')->delete($user->image);
+            }
+            $user->image = $request->file('avatar')->store('avatars/'.$user->id, 'public');
+        } elseif ($request->boolean('remove_avatar') && $user->image) {
+            Storage::disk('public')->delete($user->image);
+            $user->image = null;
+        }
+
         $user->save();
 
         return redirect()->route('settings.index', ['tab' => 'profile'])->with('success', 'Profile updated.');

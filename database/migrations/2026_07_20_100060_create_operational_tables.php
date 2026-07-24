@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /** Auth security (OTP/devices §9.2), audit (§9.5), webhooks (§8.3),
@@ -39,19 +40,30 @@ return new class extends Migration
             $table->unique(['user_id', 'fingerprint']);
         });
 
+        DB::statement('CREATE SEQUENCE IF NOT EXISTS audit_logs_seq'); // tamper-evident hash-chain ordering
+
         Schema::create('audit_logs', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->unsignedBigInteger('sequence')->nullable();
+            $table->string('prev_hash', 64)->nullable();
+            $table->string('hash', 64)->nullable();
             $table->foreignUuid('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('actor_type', 16)->default('user'); // user | operator | system
+            $table->uuid('actor_id')->nullable();               // user OR admin id
+            $table->string('actor_name')->nullable();
             $table->string('action', 64);
+            $table->string('description')->nullable();
             $table->string('subject_type', 64)->nullable();
             $table->string('subject_id', 64)->nullable();
             $table->json('changes')->nullable();
             $table->string('ip_address', 45)->nullable();
+            $table->string('user_agent', 255)->nullable();
             $table->timestamp('created_at')->nullable();
 
             $table->index(['subject_type', 'subject_id']);
             $table->index(['action', 'created_at']);
+            $table->index(['actor_type', 'actor_id']);
+            $table->index('sequence', 'ix_audit_sequence');
         });
 
         Schema::create('webhook_endpoints', function (Blueprint $table) {
@@ -94,7 +106,8 @@ return new class extends Migration
         Schema::create('support_messages', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('ticket_id')->constrained('support_tickets')->cascadeOnDelete();
-            $table->foreignUuid('author_id')->constrained('users');
+            $table->foreignUuid('author_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('author_name', 120)->nullable();
             $table->text('body');
             $table->boolean('is_staff')->default(false);
             $table->timestamps();
@@ -131,6 +144,7 @@ return new class extends Migration
         Schema::dropIfExists('webhook_deliveries');
         Schema::dropIfExists('webhook_endpoints');
         Schema::dropIfExists('audit_logs');
+        DB::statement('DROP SEQUENCE IF EXISTS audit_logs_seq');
         Schema::dropIfExists('user_devices');
         Schema::dropIfExists('otp_codes');
     }

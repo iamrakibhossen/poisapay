@@ -15,10 +15,35 @@ use App\Models\User;
  */
 class BaseCurrency
 {
+    /** Fiat codes the public rate feed can price (matches CoinGeckoRateProvider::FIATS). */
+    private const DISPLAY_FIATS = ['USD', 'BDT', 'EUR'];
+
+    /** Common currency glyphs; falls back to the code itself. */
+    private const SYMBOLS = ['USD' => '$', 'EUR' => '€', 'BDT' => '৳', 'GBP' => '£'];
+
     /** Platform-wide default fiat code (admin General setting). */
     public static function code(): string
     {
         return (string) getSetting('base_currency', 'BDT');
+    }
+
+    /**
+     * Currency the public rate widgets (converter / prices) display in: the signed-in
+     * user's own base currency, else USD. Restricted to fiats the feed can price.
+     */
+    public static function displayCode(): string
+    {
+        $code = strtoupper((string) (auth()->user()?->base_currency ?: ''));
+
+        return in_array($code, self::DISPLAY_FIATS, true) ? $code : 'USD';
+    }
+
+    /** Display glyph for a currency code (defaults to the current display currency). */
+    public static function symbol(?string $code = null): string
+    {
+        $code = strtoupper($code ?? self::displayCode());
+
+        return self::SYMBOLS[$code] ?? $code;
     }
 
     /** The fiat Asset a user's balances are valued in: their choice, else the platform default. */

@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Laravel\Sanctum\HasApiTokens;
@@ -28,7 +29,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'kyc_tier', 'kyc_status', 'referral_code', 'referred_by',
         'base_currency', 'locale', 'timezone', 'is_frozen',
         'two_factor_secret', 'two_factor_recovery_codes', 'two_factor_confirmed_at',
-        'anti_phishing_code', 'telegram_chat_id',
+        'anti_phishing_code', 'telegram_chat_id', 'image',
     ];
 
     protected $hidden = [
@@ -67,6 +68,12 @@ class User extends Authenticatable implements MustVerifyEmail
                 ])->validate();
             }
         });
+    }
+
+    /** Public URL of the uploaded profile picture, or null to fall back to initials. */
+    public function avatarUrl(): ?string
+    {
+        return $this->image ? Storage::disk('public')->url($this->image) : null;
     }
 
     /** A unique 9-digit public account ID others use to send money. */

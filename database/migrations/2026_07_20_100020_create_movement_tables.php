@@ -53,6 +53,7 @@ return new class extends Migration
             $table->foreignId('asset_id')->constrained('assets');
             $table->foreignUuid('onchain_tx_id')->constrained('onchain_txs');
             $table->decimal('amount', 78, 0);                   // base units
+            $table->decimal('fee', 78, 0)->default(0);           // platform deposit fee
             $table->unsignedInteger('confirmations')->default(0);
             $table->unsignedInteger('required_confirmations');
             $table->string('status', 16)->default('detected');
@@ -71,6 +72,8 @@ return new class extends Migration
             $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('asset_id')->constrained('assets');
             $table->string('to_address', 64);
+            $table->string('payout_method', 16)->nullable();    // bank | mobile (fiat rails)
+            $table->json('payout_details')->nullable();
             $table->decimal('amount', 78, 0);
             $table->decimal('fee', 78, 0)->default(0);
             $table->string('status', 16)->default('pending');
@@ -81,10 +84,14 @@ return new class extends Migration
             $table->uuid('lock_entry_id')->nullable();          // reserve-first lock (A3)
             $table->uuid('settle_entry_id')->nullable();
             $table->uuid('onchain_tx_id')->nullable();
+            $table->unsignedBigInteger('broadcast_nonce')->nullable();
+            $table->unsignedBigInteger('broadcast_block')->nullable();
+            $table->unsignedInteger('broadcast_attempts')->default(0);
             $table->foreignUuid('approved_by')->nullable()->constrained('admins');
             $table->timestamp('approved_at')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->text('failure_reason')->nullable();
+            $table->timestamp('reserve_released_at')->nullable();
             $table->timestamps();
 
             $table->foreign('lock_entry_id')->references('id')->on('journal_entries')->nullOnDelete();

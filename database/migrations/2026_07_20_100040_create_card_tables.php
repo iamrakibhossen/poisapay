@@ -18,6 +18,15 @@ return new class extends Migration
             $table->string('network', 12);               // visa | mastercard
             $table->string('issuer_card_ref', 128);      // partner token; NEVER the PAN
             $table->char('last4', 4)->nullable();
+            $table->string('nickname', 48)->nullable();
+            $table->boolean('online_enabled')->default(true);
+            $table->boolean('atm_enabled')->default(true);
+            $table->boolean('contactless_enabled')->default(true);
+            $table->json('allowed_countries')->nullable();
+            $table->json('blocked_mccs')->nullable();
+            $table->text('pin_hash')->nullable();
+            $table->uuid('replaced_by')->nullable();
+            $table->timestamp('closed_at')->nullable();
             $table->string('status', 16)->default('inactive');
             $table->decimal('daily_limit', 38, 0)->nullable();  // settlement-currency minor units
             $table->decimal('per_tx_limit', 38, 0)->nullable();

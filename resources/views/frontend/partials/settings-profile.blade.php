@@ -2,7 +2,7 @@
      Expects (from the settings view scope): $user, $profile, $errors. --}}
 {{-- Identity header --}}
 <div class="flex items-center gap-4">
-    <x-ui.avatar :name="$user->name" size="lg" />
+    <x-ui.avatar :name="$user->name" :src="$user->avatarUrl()" size="lg" />
     <div class="min-w-0">
         <p class="truncate text-base font-semibold text-neutral-900">{{ $user->name }}</p>
         <p class="truncate text-sm text-neutral-500">{{ $user->email }}</p>
@@ -23,9 +23,10 @@
 </div>
 
 <x-settings.section :title="__('Personal details')" :description="__('Your name and how we reach you.')">
-    <form method="POST" action="{{ route('settings.profile') }}" class="space-y-5">
+    <form method="POST" action="{{ route('settings.profile') }}" enctype="multipart/form-data" class="space-y-5">
         @csrf
         @method('PUT')
+        <x-ui.avatar-upload :label="__('Profile photo')" :current="$user->avatarUrl()" :display-name="$user->name" :error="$errors->first('avatar')" />
         <x-ui.input :label="__('Full name')" name="name" :value="old('name', $profile['name'])" :error="$errors->first('name')" />
         <x-ui.input :label="__('Phone')" name="phone" :value="old('phone', $profile['phone'])" placeholder="+8801…" :error="$errors->first('phone')" />
         <x-ui.select :label="__('Base currency')" name="baseCurrency" :error="$errors->first('baseCurrency')">

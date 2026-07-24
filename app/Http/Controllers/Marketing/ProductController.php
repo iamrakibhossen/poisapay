@@ -88,12 +88,12 @@ class ProductController extends Controller
                 ['value' => '5+', 'label' => 'Currencies'],
             ],
             'features' => [
-                ['icon' => 'bolt', 'title' => 'Instant swaps', 'desc' => 'Trade one asset for another in a single tap, settled to your balance.'],
+                ['icon' => 'bolt', 'title' => 'Instant swaps', 'desc' => 'Swap one asset for another in a single tap, settled to your balance.'],
                 ['icon' => 'scale', 'title' => 'Transparent pricing', 'desc' => 'See the rate and spread before you confirm — what you see is what you get.'],
-                ['icon' => 'clock', 'title' => 'Live rates', 'desc' => 'Prices refresh continuously so you always trade at a current rate.'],
+                ['icon' => 'clock', 'title' => 'Live rates', 'desc' => 'Prices refresh continuously so you always swap at a current rate.'],
                 ['icon' => 'shield-check', 'title' => 'Settled on-ledger', 'desc' => 'Every conversion is recorded on our double-entry ledger.'],
-                ['icon' => 'star', 'title' => 'Save your pairs', 'desc' => 'Pin the pairs you trade most for one-tap access.'],
-                ['icon' => 'arrows-right-left', 'title' => 'Crypto ↔ Taka', 'desc' => 'Move seamlessly between digital assets and your local currency.'],
+                ['icon' => 'star', 'title' => 'Save your pairs', 'desc' => 'Pin the pairs you swap most for one-tap access.'],
+                ['icon' => 'arrows-right-left', 'title' => 'Crypto ↔ fiat', 'desc' => 'Move seamlessly between digital assets and your local currency.'],
             ],
             'steps' => [
                 ['title' => 'Choose your pair', 'desc' => 'Pick what you want to swap from and to.'],
@@ -103,7 +103,7 @@ class ProductController extends Controller
             'faqs' => [
                 ['q' => 'How is the exchange rate set?', 'a' => 'Rates come from live market data with a small, transparent spread that is always shown before you confirm the swap.'],
                 ['q' => 'How fast are swaps?', 'a' => 'Swaps are instant — they settle to your PoisaPay balance the moment you confirm, on our internal ledger.'],
-                ['q' => 'Can I swap between crypto and Taka?', 'a' => 'Yes. You can convert between supported crypto assets and Taka in either direction.'],
+                ['q' => 'Can I swap between crypto and fiat?', 'a' => 'Yes. You can convert between supported crypto assets and fiat currencies in either direction.'],
             ],
         ],
     ];

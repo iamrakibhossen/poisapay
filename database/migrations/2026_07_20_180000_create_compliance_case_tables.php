@@ -41,6 +41,10 @@ return new class extends Migration
             $table->text('summary')->nullable();
             $table->boolean('sar_filed')->default(false);
             $table->string('sar_reference', 64)->nullable();
+            $table->string('sar_activity_type', 48)->nullable();
+            $table->text('sar_narrative')->nullable();
+            $table->decimal('sar_amount', 38, 0)->nullable();
+            $table->timestamp('sar_filed_at')->nullable();
             $table->foreignUuid('assigned_to')->nullable()->constrained('admins');
             $table->foreignUuid('opened_by')->nullable()->constrained('admins');
             $table->timestamp('closed_at')->nullable();

@@ -4,18 +4,28 @@
     'showLive' => true,
 ])
 @php
-    // Live crypto→BDT reference rates (cached ~60s; falls back to indicative
-    // values when the feed is down). Refreshed client-side via the rates route.
+    // Live crypto→fiat reference rates in the viewer's base currency (signed-in
+    // user's choice, else USD); cached ~60s, falls back to indicative values when
+    // the feed is down. Refreshed client-side via the rates route.
     $displayCoins = ['USDT', 'USDC', 'ETH', 'BTC', 'BNB', 'TON'];
-    $rates = app(\App\Domain\Exchange\CoinGeckoRateProvider::class)->bdtRatesWithFallback($displayCoins);
+    $base = \App\Support\BaseCurrency::displayCode();
+    $symbol = \App\Support\BaseCurrency::symbol($base);
+    $rates = app(\App\Domain\Exchange\CoinGeckoRateProvider::class)->ratesWithFallback($base, $displayCoins);
     $coins = collect($displayCoins)->map(fn ($s) => [$s, $rates[$s]])->all();
+
+    // Initial figures for the default 1,000 units of the first coin (JS recomputes on load).
+    $first = $displayCoins[0];
+    $r0 = (float) ($rates[$first] ?? 0);
+    $gross0 = 1000 * $r0;
+    $charge0 = $gross0 * 0.005;
+    $fmt2 = fn ($n) => number_format((float) $n, 2);
 @endphp
-<div class="pp-converter glass-card relative w-full p-6" data-spread="0.005" data-rates-url="{{ route('marketing.rates') }}" style="box-shadow:var(--shadow-pop)">
+<div class="pp-converter glass-card relative w-full p-6" data-spread="0.005" data-rates-url="{{ route('marketing.rates') }}" data-fiat-symbol="{{ $symbol }}" style="box-shadow:var(--shadow-pop)">
     <div aria-hidden="true" class="absolute inset-0 -z-10 blur-3xl" style="background:radial-gradient(circle at 70% 30%,rgba(37,99,235,.14),transparent 65%)"></div>
 
     <div class="flex items-center justify-between">
         <div>
-            <p class="text-sm font-bold text-slate-900">{{ __('Convert crypto to Taka') }}</p>
+            <p class="text-sm font-bold text-slate-900">{{ __('Convert crypto to :currency', ['currency' => $base]) }}</p>
             @unless ($compact)<p class="mt-0.5 text-xs text-slate-500">{{ __('Live reference rate · settles in seconds') }}</p>@endunless
         </div>
         @if ($showLive)
@@ -35,7 +45,7 @@
             </div>
             <div class="relative flex-none">
                 <select aria-label="{{ __('Swap from coin') }}"
-                    class="cv-from appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2 pl-3 pr-8 text-sm font-semibold text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-0">
+                    class="cv-from appearance-none bg-none rounded-xl border border-slate-200 bg-slate-50 py-2 pl-3 pr-8 text-sm font-semibold text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-0">
                     @foreach ($coins as $c)<option value="{{ $c[1] }}" data-sym="{{ $c[0] }}">{{ $c[0] }}</option>@endforeach
                 </select>
                 <x-heroicon-o-chevron-down class="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -49,11 +59,11 @@
         <ul class="space-y-1.5 py-1.5 text-xs text-slate-500">
             <li class="flex items-center gap-2">
                 <span class="z-10 grid h-4 w-4 place-items-center rounded-full bg-slate-100"><x-heroicon-o-receipt-percent class="h-2.5 w-2.5 text-slate-500" /></span>
-                {{ __('Exchange charge (0.5%)') }} <span class="cv-charge ml-auto font-semibold text-slate-700 tabular">607.50 ৳</span>
+                {{ __('Exchange charge (0.5%)') }} <span class="cv-charge ml-auto font-semibold text-slate-700 tabular">{{ $fmt2($charge0) }} {{ $symbol }}</span>
             </li>
             <li class="flex items-center gap-2">
                 <span class="z-10 grid h-4 w-4 place-items-center rounded-full bg-slate-100"><x-heroicon-o-arrows-right-left class="h-2.5 w-2.5 text-slate-500" /></span>
-                <span class="cv-rate font-semibold text-slate-700">1 USDT = 121.50 ৳</span> {{ __('reference rate') }}
+                <span class="cv-rate font-semibold text-slate-700">1 {{ $first }} = {{ $fmt2($r0) }} {{ $symbol }}</span> {{ __('reference rate') }}
             </li>
         </ul>
     </div>
@@ -63,10 +73,10 @@
         <div class="flex items-center justify-between gap-3 px-4 py-3">
             <div class="min-w-0 flex-1">
                 <p class="text-xs text-slate-400">{{ __('You receive') }}</p>
-                <p class="cv-result truncate text-2xl font-bold tabular text-slate-900">120,892.50</p>
+                <p class="cv-result truncate text-2xl font-bold tabular text-slate-900">{{ $fmt2($gross0 - $charge0) }}</p>
             </div>
             <span class="inline-flex flex-none items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900">
-                <span class="grid h-5 w-5 place-items-center rounded-full text-xs font-bold text-white" style="background:linear-gradient(120deg,var(--brand),var(--brand-600))">৳</span> BDT
+                <span class="grid h-5 w-5 place-items-center rounded-full text-xs font-bold text-white" style="background:linear-gradient(120deg,var(--brand),var(--brand-600))">{{ $symbol }}</span> {{ $base }}
             </span>
         </div>
     </div>
@@ -97,10 +107,11 @@
                 var rate = parseFloat(from.value) || 0,
                     raw = parseFloat((amt.value || '').replace(/[^0-9.]/g, '')) || 0,
                     sym = from.options[from.selectedIndex].text,
+                    fiat = root.getAttribute('data-fiat-symbol') || '',
                     gross = raw * rate, charge = gross * spread, net = gross - charge;
                 out.textContent = fmt(net, 2);
-                if (rateEl) rateEl.textContent = '1 ' + sym + ' = ' + fmt(rate, 2) + ' ৳';
-                if (chargeEl) chargeEl.textContent = fmt(charge, 2) + ' ৳';
+                if (rateEl) rateEl.textContent = '1 ' + sym + ' = ' + fmt(rate, 2) + ' ' + fiat;
+                if (chargeEl) chargeEl.textContent = fmt(charge, 2) + ' ' + fiat;
             }
             amt.addEventListener('input', calc);
             from.addEventListener('change', calc);
@@ -120,6 +131,7 @@
                 .then(function (r) { return r.ok ? r.json() : null; })
                 .then(function (data) {
                     if (!data || !data.rates) return;
+                    if (data.symbol) root.setAttribute('data-fiat-symbol', data.symbol);
                     var from = root.querySelector('.cv-from');
                     if (!from) return;
                     Array.prototype.forEach.call(from.options, function (opt) {

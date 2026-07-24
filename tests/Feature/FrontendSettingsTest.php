@@ -6,6 +6,8 @@ use App\Models\Asset;
 use App\Models\Currency;
 use App\Models\User;
 use App\Models\UserDevice;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 use function Pest\Laravel\actingAs;
 
@@ -43,6 +45,39 @@ it('validates the profile name', function () {
     actingAs($this->user)->put(route('settings.profile'), [
         'name' => '', 'baseCurrency' => 'USD', 'timezone' => 'UTC',
     ])->assertSessionHasErrors('name');
+});
+
+it('uploads a profile picture to the public disk', function () {
+    Storage::fake('public');
+
+    actingAs($this->user)->put(route('settings.profile'), [
+        'name' => 'Old Name', 'baseCurrency' => 'USD', 'timezone' => 'UTC',
+        'avatar' => UploadedFile::fake()->image('me.jpg', 256, 256),
+    ])->assertRedirect()->assertSessionHas('success');
+
+    $path = $this->user->fresh()->image;
+    expect($path)->not->toBeNull();
+    Storage::disk('public')->assertExists($path);
+});
+
+it('removes the current profile picture when asked', function () {
+    Storage::fake('public');
+    $old = UploadedFile::fake()->image('old.jpg')->store('avatars/'.$this->user->id, 'public');
+    $this->user->update(['image' => $old]);
+
+    actingAs($this->user)->put(route('settings.profile'), [
+        'name' => 'Old Name', 'baseCurrency' => 'USD', 'timezone' => 'UTC', 'remove_avatar' => '1',
+    ])->assertRedirect()->assertSessionHas('success');
+
+    expect($this->user->fresh()->image)->toBeNull();
+    Storage::disk('public')->assertMissing($old);
+});
+
+it('rejects a non-image avatar upload', function () {
+    actingAs($this->user)->put(route('settings.profile'), [
+        'name' => 'Old Name', 'baseCurrency' => 'USD', 'timezone' => 'UTC',
+        'avatar' => UploadedFile::fake()->create('resume.pdf', 100, 'application/pdf'),
+    ])->assertSessionHasErrors('avatar');
 });
 
 it('starts 2FA enrolment flashing a QR and recovery codes', function () {

@@ -33,6 +33,9 @@ final class CoinGeckoRateProvider implements RateProvider
         'TRX' => 'tron',
     ];
 
+    /** Fiat currencies the live feed and fallbacks can express crypto prices in. */
+    public const FIATS = ['USD', 'BDT', 'EUR'];
+
     /** Indicative BDT prices used when the live feed is unavailable. */
     public const FALLBACK_BDT = [
         'USDT' => '121.50',
@@ -42,6 +45,20 @@ final class CoinGeckoRateProvider implements RateProvider
         'BNB' => '52000',
         'TON' => '385',
     ];
+
+    /** Indicative USD prices — cross-multiplied for any non-BDT fiat when offline. */
+    public const FALLBACK_USD = [
+        'USDT' => '1.00',
+        'USDC' => '1.00',
+        'ETH' => '3300',
+        'BTC' => '60000',
+        'BNB' => '430',
+        'TON' => '3.20',
+        'TRX' => '0.13',
+    ];
+
+    /** Approximate units of each fiat per 1 USD (offline cross only). */
+    private const FIAT_PER_USD = ['USD' => '1', 'BDT' => '121.5', 'EUR' => '0.92'];
 
     public function __construct(private readonly StubRateProvider $fallback) {}
 
@@ -65,33 +82,62 @@ final class CoinGeckoRateProvider implements RateProvider
     }
 
     /**
-     * symbol => string BDT rate for the given crypto symbols — live when the
-     * feed is available, otherwise the indicative FALLBACK_BDT value. Used by
-     * the public marketing converter (display only, not a tradable quote).
+     * symbol => string rate in $base fiat for the given crypto symbols — live when
+     * the feed carries that fiat, otherwise the indicative fallback. Unknown fiats
+     * degrade to USD. Display only (not a tradable quote), used by the public
+     * marketing converter / prices page.
      *
      * @param  array<int,string>  $symbols
      * @return array<string,string>
      */
-    public function bdtRatesWithFallback(array $symbols): array
+    public function ratesWithFallback(string $base, array $symbols): array
     {
-        $bdt = $this->data()['bdt'] ?? [];
+        $base = strtoupper($base);
+        if (! in_array($base, self::FIATS, true)) {
+            $base = 'USD';
+        }
+
+        $live = $this->data()[strtolower($base)] ?? [];
         $out = [];
         foreach ($symbols as $sym) {
-            if (isset($bdt[$sym]) && $bdt[$sym] > 0) {
-                $out[$sym] = (string) BigDecimal::of((string) $bdt[$sym])->toScale(2, RoundingMode::HALF_UP);
+            if (isset($live[$sym]) && $live[$sym] > 0) {
+                $out[$sym] = (string) BigDecimal::of((string) $live[$sym])->toScale(2, RoundingMode::HALF_UP);
             } else {
-                $out[$sym] = self::FALLBACK_BDT[$sym] ?? '0';
+                $out[$sym] = $this->fallbackRate($base, $sym);
             }
         }
 
         return $out;
     }
 
+    /** Offline fallback price of $sym in $base fiat (BDT keeps its bespoke table). */
+    private function fallbackRate(string $base, string $sym): string
+    {
+        if ($base === 'BDT' && isset(self::FALLBACK_BDT[$sym])) {
+            return self::FALLBACK_BDT[$sym];
+        }
+
+        $usd = self::FALLBACK_USD[$sym] ?? null;
+        if ($usd === null) {
+            return '0';
+        }
+
+        return (string) BigDecimal::of($usd)
+            ->multipliedBy(self::FIAT_PER_USD[$base] ?? '1')
+            ->toScale(2, RoundingMode::HALF_UP);
+    }
+
+    /** BDT-specific shorthand kept for backward compatibility. */
+    public function bdtRatesWithFallback(array $symbols): array
+    {
+        return $this->ratesWithFallback('BDT', $symbols);
+    }
+
     /**
      * ['usd' => [SYM => price], 'bdt' => [SYM => price]] from CoinGecko, or []
      * on failure. Only successful fetches are cached (so an outage retries soon).
      *
-     * @return array{usd?:array<string,mixed>,bdt?:array<string,mixed>}
+     * @return array{usd?:array<string,mixed>,bdt?:array<string,mixed>,eur?:array<string,mixed>}
      */
     private function data(): array
     {
@@ -116,7 +162,7 @@ final class CoinGeckoRateProvider implements RateProvider
         try {
             $resp = Http::timeout(4)->acceptJson()->get(self::ENDPOINT, [
                 'ids' => implode(',', array_values(self::IDS)),
-                'vs_currencies' => 'usd,bdt',
+                'vs_currencies' => 'usd,bdt,eur',
             ]);
 
             if (! $resp->successful()) {
@@ -130,6 +176,7 @@ final class CoinGeckoRateProvider implements RateProvider
 
             $usd = [];
             $bdt = [];
+            $eur = [];
             foreach (self::IDS as $sym => $id) {
                 if (isset($body[$id]['usd'])) {
                     $usd[$sym] = $body[$id]['usd'];
@@ -137,15 +184,21 @@ final class CoinGeckoRateProvider implements RateProvider
                 if (isset($body[$id]['bdt'])) {
                     $bdt[$sym] = $body[$id]['bdt'];
                 }
+                if (isset($body[$id]['eur'])) {
+                    $eur[$sym] = $body[$id]['eur'];
+                }
             }
 
-            // Derive fiat cross-prices so rate() can also price USD/BDT pairs.
+            // Derive fiat cross-prices (USD per 1 fiat) so rate() can price fiat pairs.
             if (isset($body['tether']['usd'], $body['tether']['bdt']) && $body['tether']['bdt'] > 0) {
                 $usd['USD'] = 1.0;
-                $usd['BDT'] = $body['tether']['usd'] / $body['tether']['bdt']; // USD per 1 BDT
+                $usd['BDT'] = $body['tether']['usd'] / $body['tether']['bdt'];
+            }
+            if (isset($body['tether']['usd'], $body['tether']['eur']) && $body['tether']['eur'] > 0) {
+                $usd['EUR'] = $body['tether']['usd'] / $body['tether']['eur'];
             }
 
-            return $usd === [] ? [] : ['usd' => $usd, 'bdt' => $bdt];
+            return $usd === [] ? [] : ['usd' => $usd, 'bdt' => $bdt, 'eur' => $eur];
         } catch (\Throwable $e) {
             return [];
         }

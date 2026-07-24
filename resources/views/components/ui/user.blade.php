@@ -10,17 +10,18 @@
     $user ??= $guard ? auth($guard)->user() : auth()->user();
     $displayName = $user?->name ?? __('Guest');
     $displayEmail = $user?->email;
+    $avatarSrc = $user && method_exists($user, 'avatarUrl') ? $user->avatarUrl() : null;
     $firstName = \Illuminate\Support\Str::of($displayName)->trim()->explode(' ')->first();
 @endphp
 
 @if ($compact)
     <span {{ $attributes->merge(['class' => 'flex min-w-0 items-center gap-2']) }}>
-        <x-ui.avatar :name="$displayName" :size="$size" />
+        <x-ui.avatar :name="$displayName" :src="$avatarSrc" :size="$size" />
         <span class="hidden truncate text-sm font-medium text-neutral-700 sm:block">{{ $firstName }}</span>
     </span>
 @else
     <span {{ $attributes->merge(['class' => 'flex min-w-0 items-center gap-2.5']) }}>
-        <x-ui.avatar :name="$displayName" :size="$size" />
+        <x-ui.avatar :name="$displayName" :src="$avatarSrc" :size="$size" />
         <span class="min-w-0">
             <span class="block truncate text-sm font-medium text-neutral-900">{{ $displayName }}</span>
             @if ($showEmail && $displayEmail)

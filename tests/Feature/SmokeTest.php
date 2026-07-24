@@ -28,6 +28,8 @@ beforeEach(function () {
 
 it('renders public + guest pages', function () {
     $this->get('/')->assertOk();
+    $this->get(route('marketing.prices'))->assertOk();
+    $this->get(route('marketing.rates'))->assertOk()->assertJsonStructure(['base', 'rates', 'as_of']);
     $this->get(route('status'))->assertOk();
     $this->get('/login')->assertOk();
     $this->get('/register')->assertOk();

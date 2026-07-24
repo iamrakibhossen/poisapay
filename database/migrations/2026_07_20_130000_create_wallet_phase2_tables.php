@@ -16,11 +16,16 @@ return new class extends Migration
             $table->foreignId('chain_id')->nullable()->constrained('chains');
             $table->foreignId('asset_id')->nullable()->constrained('assets');
             $table->string('address', 128);
+            $table->string('status', 16)->default('active');
+            $table->timestamp('cooldown_until')->nullable();
+            $table->timestamp('whitelisted_at')->nullable();
+            $table->timestamp('blocked_at')->nullable();
             $table->boolean('is_favorite')->default(false);
             $table->timestamp('last_used_at')->nullable();
             $table->timestamps();
 
             $table->index(['user_id', 'is_favorite']);
+            $table->index(['user_id', 'status'], 'ix_addressbook_user_status');
             $table->unique(['user_id', 'address', 'chain_id'], 'uq_addressbook_user_address');
         });
 

@@ -28,18 +28,10 @@ return new class extends Migration
 
             $table->index(['status', 'created_at']);
         });
-
-        // Record the processing fee taken on each paid invoice (base units, invoice asset).
-        Schema::table('merchant_invoices', function (Blueprint $table) {
-            $table->decimal('fee_amount', 78, 0)->default(0)->after('amount');
-        });
     }
 
     public function down(): void
     {
-        Schema::table('merchant_invoices', function (Blueprint $table) {
-            $table->dropColumn('fee_amount');
-        });
         Schema::dropIfExists('merchants');
     }
 };

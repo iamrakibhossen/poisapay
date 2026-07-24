@@ -85,6 +85,11 @@
                             @break
 
                         @case('exchange')
+                            @php
+                                // Illustrative ETH→base-currency swap, priced live (user's base, else USD).
+                                $cvBase = \App\Support\BaseCurrency::displayCode();
+                                $cvRate = (float) (app(\App\Domain\Exchange\CoinGeckoRateProvider::class)->ratesWithFallback($cvBase, ['ETH'])['ETH'] ?? 0);
+                            @endphp
                             {{-- Swap widget --}}
                             <div class="glass-card p-6">
                                 <p class="text-sm font-semibold text-slate-900">{{ __('Swap') }}</p>
@@ -92,8 +97,8 @@
                                     <div class="rounded-2xl border border-slate-200 bg-white p-4">
                                         <p class="text-[11px] uppercase tracking-wide text-slate-400">{{ __('You pay') }}</p>
                                         <div class="mt-1 flex items-center justify-between">
-                                            <span class="text-2xl font-bold text-slate-900">100.00</span>
-                                            <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">USDT</span>
+                                            <span class="text-2xl font-bold text-slate-900">1.00</span>
+                                            <span class="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">ETH</span>
                                         </div>
                                     </div>
                                     <div class="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
@@ -104,12 +109,12 @@
                                     <div class="rounded-2xl border border-slate-200 bg-white p-4">
                                         <p class="text-[11px] uppercase tracking-wide text-slate-400">{{ __('You get') }}</p>
                                         <div class="mt-1 flex items-center justify-between">
-                                            <span class="text-2xl font-bold text-slate-900">11,940</span>
-                                            <span class="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">BDT</span>
+                                            <span class="text-2xl font-bold text-slate-900">{{ number_format($cvRate, 2) }}</span>
+                                            <span class="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">{{ $cvBase }}</span>
                                         </div>
                                     </div>
                                 </div>
-                                <p class="mt-3 text-center text-xs text-slate-400">{{ __('Rate 1 USDT ≈ 119.40 BDT · spread shown up front') }}</p>
+                                <p class="mt-3 text-center text-xs text-slate-400">{{ __('Rate 1 ETH ≈ :rate :currency · spread shown up front', ['rate' => number_format($cvRate, 2), 'currency' => $cvBase]) }}</p>
                             </div>
                             @break
 

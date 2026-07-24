@@ -18,7 +18,7 @@
         ],
         __('Resources') => [
             [__('Help Center'), route('faqs.public')],
-            [__('Live Rates'), route('marketing.rates')],
+            [__('Live Prices'), route('marketing.prices')],
             [__('System Status'), route('status')],
             [__('API Documentation'), $page('api')],
         ],

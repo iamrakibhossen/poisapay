@@ -14,6 +14,7 @@ return new class extends Migration
             $table->foreignUuid('merchant_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('asset_id')->constrained('assets');
             $table->decimal('amount', 78, 0);
+            $table->decimal('fee_amount', 78, 0)->default(0);  // processing fee taken on payment
             $table->string('reference', 64);               // merchant-side order id
             $table->string('memo', 160)->nullable();
             $table->string('status', 16)->default('pending'); // pending|paid|expired|cancelled
