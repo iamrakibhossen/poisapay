@@ -26,7 +26,8 @@
 
 <div x-show="sidebarOpen" x-cloak
     class="fixed lg:static inset-y-0 left-0 z-40 h-full w-[256px] shrink-0 overflow-hidden text-sm text-gray-100 bg-[#002044]">
-    <div class="relative h-full overflow-y-auto">
+    <div class="relative h-full overflow-y-auto"
+        x-init="$nextTick(() => { const el = $el.querySelector('[data-active-nav]'); if (el) $el.scrollTop = el.offsetTop - $el.clientHeight / 2 + el.offsetHeight / 2; })">
         <div class="px-3 pb-8">
 
             {{-- Logo --}}
@@ -65,6 +66,7 @@
                                 $count = $badge($item);
                             @endphp
                             <a href="{{ $href }}" @if (! empty($item['target'])) target="{{ $item['target'] }}" rel="noopener" @endif
+                                @if ($active) data-active-nav @endif
                                 @class([
                                     'mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 font-semibold transition',
                                     'bg-[#2C4DD4] text-white' => $active,
@@ -105,6 +107,7 @@
                                                 $count = $badge($child);
                                             @endphp
                                             <a href="{{ route($child['route']) }}"
+                                                @if ($active) data-active-nav @endif
                                                 @class([
                                                     'flex items-center rounded-lg px-3 py-2 text-sm transition',
                                                     'bg-[#2C4DD4] font-semibold text-white' => $active,
