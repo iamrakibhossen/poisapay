@@ -24,6 +24,8 @@ class StubRateProvider implements RateProvider
         'BNB' => '580.00',
         'TRX' => '0.13',
         'BTC' => '64000.00',
+        'POL' => '0.45',
+        'AVAX' => '28.00',
         'USD' => '1.00',
         'BDT' => '0.0091',   // ~110 BDT per USD
         'EUR' => '1.08',

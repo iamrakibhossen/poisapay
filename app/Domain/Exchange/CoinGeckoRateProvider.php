@@ -31,6 +31,8 @@ final class CoinGeckoRateProvider implements RateProvider
         'BNB' => 'binancecoin',
         'TON' => 'the-open-network',
         'TRX' => 'tron',
+        'POL' => 'polygon-ecosystem-token',
+        'AVAX' => 'avalanche-2',
     ];
 
     /** Fiat currencies the live feed and fallbacks can express crypto prices in. */
@@ -44,6 +46,8 @@ final class CoinGeckoRateProvider implements RateProvider
         'BTC' => '7250000',
         'BNB' => '52000',
         'TON' => '385',
+        'POL' => '55',
+        'AVAX' => '3400',
     ];
 
     /** Indicative USD prices — cross-multiplied for any non-BDT fiat when offline. */
@@ -55,6 +59,8 @@ final class CoinGeckoRateProvider implements RateProvider
         'BNB' => '430',
         'TON' => '3.20',
         'TRX' => '0.13',
+        'POL' => '0.45',
+        'AVAX' => '28.00',
     ];
 
     /** Approximate units of each fiat per 1 USD (offline cross only). */

@@ -16,7 +16,9 @@ class TradingPairSeeder extends Seeder
         $usdt = Asset::where('symbol', 'USDT')->first();
         $bdt = Asset::where('symbol', 'BDT')->first();
         $usd = Asset::where('symbol', 'USD')->first();
-        $cryptos = Asset::whereIn('symbol', ['ETH', 'BNB', 'TRX'])->get();
+        $eur = Asset::where('symbol', 'EUR')->first();
+        // Every tradable coin (crypto + non-hub stablecoins) pairs against the hubs.
+        $cryptos = Asset::whereIn('symbol', ['ETH', 'BNB', 'TRX', 'BTC', 'USDC', 'POL', 'AVAX'])->get();
 
         $hub = array_filter([$usdt, $bdt]);
         $sort = 0;
@@ -35,10 +37,10 @@ class TradingPairSeeder extends Seeder
             $this->pair($bdt, $usdt, $sort++);
         }
 
-        // USDT <-> USD.
-        if ($usdt && $usd) {
-            $this->pair($usdt, $usd, $sort++);
-            $this->pair($usd, $usdt, $sort++);
+        // USDT <-> fiat (USD, EUR).
+        foreach (array_filter([$usd, $eur]) as $fiat) {
+            $this->pair($usdt, $fiat, $sort++);
+            $this->pair($fiat, $usdt, $sort++);
         }
     }
 
