@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
             RegistrySeeder::class,
             TradingPairSeeder::class,
+            DealerInventorySeeder::class,
             BlockchainInfraSeeder::class,
             CmsSeeder::class,
             CardProviderSeeder::class,
