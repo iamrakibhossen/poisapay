@@ -39,6 +39,7 @@ class DealerInventorySeeder extends Seeder
         'ETH' => '20000',
         'BNB' => '100000',
         'AVAX' => '100000',
+        'BTC' => '1000',
     ];
 
     private const DEFAULT_AMOUNT = '1000000';
