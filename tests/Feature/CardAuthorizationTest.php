@@ -9,6 +9,7 @@ use App\Enums\CardStatus;
 use App\Models\Card;
 use App\Models\CardAuthorization;
 use App\Models\User;
+use App\Models\UserSpendingPriority;
 
 beforeEach(function () {
     $this->usdt = testAsset('USDT', 6, 'tron');
@@ -87,6 +88,47 @@ it('declines when funds are insufficient', function () {
 
     expect($result->approved)->toBeFalse()
         ->and($result->reason)->toBe('insufficient_funds');
+});
+
+it('funds from the highest spending-priority coin that covers the amount', function () {
+    $eth = testAsset('ETH', 18, 'ethereum');
+    testAsset('USD', 2, 'ethereum');   // fiat asset so non-stablecoins JIT-quote to USD
+    UserSpendingPriority::insert([
+        ['user_id' => $this->user->id, 'position' => 1, 'asset_id' => $eth->id],
+        ['user_id' => $this->user->id, 'position' => 2, 'asset_id' => $this->usdt->id],
+    ]);
+    creditUser($this->user, $eth, '1000000000000000000'); // 1 ETH (~$3,200)
+    creditUser($this->user, $this->usdt, '100000000');     // 100 USDT
+
+    // $32 settlement — ETH is #1 and covers it, so the hold is taken in ETH.
+    $result = app(AuthorizeCardAction::class)->authorize(new CardAuthorizationRequest(
+        cardRef: $this->card->issuer_card_ref, networkAuthId: 'auth_pri', amountMinor: '3200', currency: 'USD', merchant: 'X',
+    ));
+
+    $auth = CardAuthorization::where('network_auth_id', 'auth_pri')->first();
+    expect($result->approved)->toBeTrue()
+        ->and($auth->funding_asset_id)->toBe($eth->id)
+        // $32 / $3,200 = 0.01 ETH held (18dp).
+        ->and($auth->held_amount)->toBe('10000000000000000');
+});
+
+it('skips an underfunded priority coin and funds from the next that covers', function () {
+    $eth = testAsset('ETH', 18, 'ethereum');
+    testAsset('USD', 2, 'ethereum');
+    UserSpendingPriority::insert([
+        ['user_id' => $this->user->id, 'position' => 1, 'asset_id' => $eth->id],
+        ['user_id' => $this->user->id, 'position' => 2, 'asset_id' => $this->usdt->id],
+    ]);
+    creditUser($this->user, $eth, '1000000000000000');  // 0.001 ETH (~$3.20) — too little for $50
+    creditUser($this->user, $this->usdt, '100000000');  // 100 USDT
+
+    $result = app(AuthorizeCardAction::class)->authorize(new CardAuthorizationRequest(
+        cardRef: $this->card->issuer_card_ref, networkAuthId: 'auth_pri2', amountMinor: '5000', currency: 'USD', merchant: 'X',
+    ));
+
+    $auth = CardAuthorization::where('network_auth_id', 'auth_pri2')->first();
+    expect($result->approved)->toBeTrue()
+        ->and($auth->funding_asset_id)->toBe($this->usdt->id); // fell through to USDT
 });
 
 it('declines a frozen card', function () {

@@ -140,6 +140,7 @@ Route::middleware('auth')->group(function () {
     // ── Settings ──
     Route::controller(SettingsController::class)->prefix('settings')->name('settings.')->group(function () {
         Route::put('/profile', 'saveProfile')->name('profile');
+        Route::put('/preferences', 'saveSpendingPriority')->name('preferences');
         Route::put('/password', 'updatePassword')->name('password');
         // 2FA/OTP endpoints are brute-force targets — throttle code checks; OTP sends are stricter.
         Route::post('/2fa/enable', 'enableTwoFactor')->middleware('throttle:10,1')->name('2fa.enable');

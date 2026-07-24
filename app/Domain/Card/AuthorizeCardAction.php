@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Card;
 
+use App\Domain\Exchange\Contracts\RateProvider;
 use App\Domain\Ledger\AccountResolver;
 use App\Domain\Ledger\DTO\EntryData;
 use App\Domain\Ledger\DTO\PostingLine;
@@ -14,7 +15,11 @@ use App\Enums\LedgerAccountType;
 use App\Models\Asset;
 use App\Models\Card;
 use App\Models\CardAuthorization;
+use App\Models\User;
 use App\Support\Money;
+use Brick\Math\BigDecimal;
+use Brick\Math\RoundingMode;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -30,6 +35,7 @@ class AuthorizeCardAction
     public function __construct(
         private readonly LedgerService $ledger,
         private readonly AccountResolver $accounts,
+        private readonly RateProvider $rates,
     ) {}
 
     public function authorize(CardAuthorizationRequest $request): AuthorizationResult
@@ -168,24 +174,98 @@ class AuthorizeCardAction
     }
 
     /**
-     * Choose the first asset in the user's spending priority (stablecoin-first)
-     * that can cover the amount, and compute the crypto hold amount for the fiat
-     * settlement value. Falls back to any funded stablecoin.
+     * Walk the user's spending priority and pick the first coin whose available
+     * balance covers the settlement amount, JIT-quoting each candidate to the
+     * settlement currency. Falls back to a sensible default order (stablecoins
+     * first) when the user hasn't set a priority.
      *
      * @return array{0: Asset, 1: Money}|null
      */
     private function pickFundingAsset(Card $card, CardAuthorizationRequest $request): ?array
     {
-        // Prefer a stablecoin (1:1 to USD settlement is a reasonable JIT proxy here).
-        $asset = Asset::where('symbol', 'USDT')->where('is_active', true)->first();
-        if (! $asset) {
+        $user = $card->user;
+        $firstQuotable = null;
+
+        foreach ($this->candidateAssets($user) as $asset) {
+            $holdAmount = $this->holdAmountFor($asset, $request);
+            if (! $holdAmount || ! $holdAmount->isPositive()) {
+                continue; // no rate / can't quote this coin
+            }
+            $firstQuotable ??= [$asset, $holdAmount];
+
+            $available = $this->ledger->availableBalance($user, $asset->id);
+            if (! $available->isLessThan($holdAmount)) {
+                return [$asset, $holdAmount]; // covers the amount
+            }
+        }
+
+        // No coin covers the amount: return the top quotable coin anyway, so the
+        // locked balance re-check declines as `insufficient_funds` rather than
+        // `no_funding_asset` (which means the user holds nothing fundable at all).
+        return $firstQuotable;
+    }
+
+    /**
+     * Funding candidates in preference order: the user's saved spending priority
+     * first, then a default (stablecoins first) so an unconfigured account still
+     * spends sensibly. One entry per coin (pooled balances are per coin).
+     *
+     * @return Collection<int, Asset>
+     */
+    private function candidateAssets(User $user): Collection
+    {
+        $priority = $user->spendingPriority()->with('asset')->orderBy('position')->get()
+            ->map(fn ($p) => $p->asset)->filter();
+
+        $fallback = Asset::where('is_active', true)->get()
+            ->groupBy('currency_id')
+            ->map(fn ($group) => $group->sortBy('id')->first())
+            ->sortByDesc('is_stablecoin')
+            ->values();
+
+        return $priority->concat($fallback)->filter()->unique('currency_id')->values();
+    }
+
+    /**
+     * Hold amount in `$asset` for the request's settlement value. Stablecoins
+     * settling in USD use a 1:1 proxy (fast, and the common case); anything else
+     * is JIT-quoted through the rate feed. Returns null when no rate is available.
+     */
+    private function holdAmountFor(Asset $asset, CardAuthorizationRequest $request): ?Money
+    {
+        $amountMinor = (int) $request->amountMinor;
+
+        if ($asset->is_stablecoin && strtoupper($request->currency) === 'USD') {
+            $base = (string) ($amountMinor * 10 ** ($asset->decimals - 2));
+
+            return Money::ofBase($base, $asset->decimals, $asset->symbol);
+        }
+
+        $fiat = Asset::where('is_active', true)
+            ->where(fn ($q) => $q->where('symbol', strtoupper($request->currency))
+                ->orWhere('currency_code', strtoupper($request->currency)))
+            ->first();
+        if (! $fiat) {
             return null;
         }
 
-        // Settlement currency minor units -> stablecoin base units (both value-of-USD).
-        // amountMinor is in 2dp fiat; USDT is 6dp — scale up by 4.
-        $holdBase = (string) ((int) $request->amountMinor * 10 ** ($asset->decimals - 2));
+        try {
+            $rate = $this->rates->rate($fiat, $asset); // coin units per 1 fiat unit
+        } catch (\Throwable) {
+            return null;
+        }
+        if (! $rate->isPositive()) {
+            return null;
+        }
 
-        return [$asset, Money::ofBase($holdBase, $asset->decimals, $asset->symbol)];
+        // settlement fiat (minor units) -> coin base units; round the hold UP so it
+        // always covers the settlement value.
+        $coinBase = BigDecimal::of($amountMinor)->withPointMovedLeft(2)
+            ->multipliedBy($rate)
+            ->withPointMovedRight($asset->decimals)
+            ->toScale(0, RoundingMode::UP)
+            ->toBigInteger();
+
+        return Money::ofBase((string) $coinBase, $asset->decimals, $asset->symbol);
     }
 }

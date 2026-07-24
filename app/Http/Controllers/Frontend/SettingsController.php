@@ -11,7 +11,9 @@ use App\Domain\Auth\TwoFactorService;
 use App\Domain\Security\AddressBookService;
 use App\Enums\KycStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Asset;
 use App\Models\UserDevice;
+use App\Models\UserSpendingPriority;
 use App\Support\BaseCurrency;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -56,8 +58,20 @@ class SettingsController extends Controller
                 'current' => $s->id === session()->getId(),
             ]);
 
-        $priorities = $user->spendingPriority()->with('asset')->get()
-            ->map(fn ($p) => ['symbol' => $p->asset?->symbol ?? '?', 'name' => $p->asset?->name]);
+        // Selectable coins = one (canonical) asset per coin, since balances pool
+        // per coin. Both the ranked list and the "Add coin" picker draw from this.
+        $coins = Asset::where('is_active', true)->orderBy('sort')->orderBy('symbol')->get()
+            ->groupBy('currency_id')
+            ->map(fn ($group) => $group->sortBy('id')->first())
+            ->map(fn (Asset $a) => ['assetId' => $a->id, 'symbol' => $a->symbol, 'name' => (string) $a->name])
+            ->values();
+
+        // Normalise each stored row to its canonical coin (match by symbol, since
+        // balances pool per coin and a stored id may be any network of that coin),
+        // so nothing is silently dropped and duplicates collapse.
+        $priorities = $user->spendingPriority()->with('asset')->orderBy('position')->get()
+            ->map(fn ($p) => $p->asset ? $coins->firstWhere('symbol', $p->asset->symbol) : null)
+            ->filter()->unique('assetId')->values();
 
         $kycStatus = $user->kyc_status;
 
@@ -76,6 +90,7 @@ class SettingsController extends Controller
             'phoneVerified' => ! is_null($user->phone_verified_at),
             'hasPhone' => filled($user->phone),
             'priorities' => $priorities,
+            'coins' => $coins,
             'devices' => $devices,
             'sessions' => $sessions,
             'kyc' => ['key' => $kycStatus->value, 'label' => $kycStatus->label(), 'color' => $kycStatus->color()],
@@ -123,6 +138,36 @@ class SettingsController extends Controller
         $user->save();
 
         return redirect()->route('settings.index', ['tab' => 'profile'])->with('success', 'Profile updated.');
+    }
+
+    /**
+     * Rewrite the user's spending-priority order (Settings › Preferences). The
+     * posted `order` is the full ordered list of canonical asset ids; we dedupe,
+     * validate they're real active assets, and reinsert positions 1..N.
+     */
+    public function saveSpendingPriority(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'order' => ['array'],
+            'order.*' => ['integer', Rule::exists('assets', 'id')->where('is_active', true)],
+        ]);
+
+        $user = $request->user();
+        $ids = collect($validated['order'] ?? [])->map(fn ($v) => (int) $v)->unique()->values();
+
+        DB::transaction(function () use ($user, $ids) {
+            UserSpendingPriority::where('user_id', $user->id)->delete();
+            foreach ($ids as $position => $assetId) {
+                UserSpendingPriority::create([
+                    'user_id' => $user->id,
+                    'position' => $position + 1,
+                    'asset_id' => $assetId,
+                ]);
+            }
+        });
+
+        return redirect()->route('settings.index', ['tab' => 'preferences'])
+            ->with('success', 'Spending priority updated.');
     }
 
     public function updatePassword(Request $request): RedirectResponse

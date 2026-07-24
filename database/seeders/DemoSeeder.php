@@ -24,6 +24,7 @@ use App\Models\Asset;
 use App\Models\Conversion;
 use App\Models\DepositMethod;
 use App\Models\User;
+use App\Models\UserSpendingPriority;
 use App\Support\Money;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -79,6 +80,9 @@ class DemoSeeder extends Seeder
             ));
         }
 
+        // Spending priority (Settings › Preferences) — stablecoin-first order.
+        $this->seedSpendingPriority($demo);
+
         // A few more consumers for admin lists (and transfer counterparties).
         // Explicit (not factory) so it runs in --no-dev production where faker
         // is absent; keyed by email so re-seeding doesn't pile up duplicates.
@@ -119,6 +123,31 @@ class DemoSeeder extends Seeder
                 'base_currency' => 'BDT',
             ],
         ))->all();
+    }
+
+    /**
+     * Spending priority for the demo account only — the order coins are drawn
+     * down when spending (Settings › Preferences). Stablecoin-first; skips coins
+     * that don't exist. Idempotent: reset to this order on each seed.
+     */
+    private function seedSpendingPriority(User $demo): void
+    {
+        $order = ['USDT', 'USDC', 'BDT', 'ETH', 'BTC', 'BNB', 'TRX'];
+
+        UserSpendingPriority::where('user_id', $demo->id)->delete();
+
+        $position = 1;
+        foreach ($order as $symbol) {
+            $asset = Asset::where('symbol', $symbol)->where('is_active', true)->orderBy('id')->first();
+            if (! $asset) {
+                continue;
+            }
+            UserSpendingPriority::create([
+                'user_id' => $demo->id,
+                'position' => $position++,
+                'asset_id' => $asset->id,
+            ]);
+        }
     }
 
     /** @param  array<int, User>  $others */
