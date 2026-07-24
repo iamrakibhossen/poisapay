@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             NotificationTemplateSeeder::class,
             DepositMethodSeeder::class,
             WithdrawalMethodSeeder::class,
+            P2pSeeder::class,
             DemoSeeder::class,
         ]);
     }
