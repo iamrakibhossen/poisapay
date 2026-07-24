@@ -90,7 +90,9 @@ class RequestWithdrawalAction
 
             // Velocity limiting: breaching the rolling-24h cap forces manual review.
             $velocityHit = $this->velocity->exceededWithdrawalVelocity($user);
-            $mustReview = $assessment->requiresManualReview() || $velocityHit;
+            // Fiat cash-outs always await admin approval (an operator settles the payout
+            // rail off-platform); crypto auto-approves unless risk/velocity flags it.
+            $mustReview = $assessment->requiresManualReview() || $velocityHit || $asset->isFiat();
 
             // Fiat cash-outs carry a method rail fee; crypto withdrawals do not pass
             // through a network fee — the platform absorbs gas and charges only its %.

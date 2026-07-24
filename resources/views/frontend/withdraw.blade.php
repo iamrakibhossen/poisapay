@@ -72,6 +72,7 @@
                                     max: {{ (float) $fiatDetail['max'] }},
                                     available: {{ (float) $fiatDetail['availableDecimal'] }},
                                     dp: {{ $dp }},
+                                    feePercent: {{ (float) $fiatDetail['feePercent'] }},
                                     submitting: false,
                                     get isNew() { return this.target === 'new'; },
                                     get account() { return this.accounts.find(a => String(a.id) === String(this.target)) ?? null; },
@@ -81,7 +82,8 @@
                                     },
                                     get amountNum() { const n = parseFloat(this.amount); return isNaN(n) || n < 0 ? 0 : n; },
                                     get feeAmount() { if (!this.method) return 0; return this.method.feeFixed + this.amountNum * this.method.feeBps / 10000; },
-                                    get totalDebited() { return this.amountNum + this.feeAmount; },
+                                    get platformFee() { return this.amountNum * this.feePercent / 100; },
+                                    get totalDebited() { return this.amountNum + this.feeAmount + this.platformFee; },
                                     get exceeds() { return this.totalDebited > this.available + 1e-9; },
                                     get belowMin() { return this.method && this.amountNum > 0 && this.amountNum < this.method.minNum; },
                                     get aboveMax() { return this.method && this.method.maxNum !== null && this.amountNum > this.method.maxNum; },
@@ -205,8 +207,11 @@
                                             <div class="flex justify-between text-neutral-600">
                                                 <span>{{ __('You receive') }}</span><span class="tabular font-medium text-neutral-900"><span x-text="fmt(amountNum)"></span> {{ $fiatDetail['symbol'] }}</span>
                                             </div>
-                                            <div class="flex justify-between text-neutral-600" x-show="method">
+                                            <div class="flex justify-between text-neutral-600" x-show="method && feeAmount > 0">
                                                 <span>{{ __('Payout fee') }}</span><span class="tabular font-medium text-neutral-900"><span x-text="fmt(feeAmount)"></span> {{ $fiatDetail['symbol'] }}</span>
+                                            </div>
+                                            <div class="flex justify-between text-neutral-600" x-show="feePercent > 0">
+                                                <span>{{ __('Platform fee') }} (<span x-text="feePercent"></span>%)</span><span class="tabular font-medium text-neutral-900"><span x-text="fmt(platformFee)"></span> {{ $fiatDetail['symbol'] }}</span>
                                             </div>
                                             <div class="flex justify-between border-t border-neutral-200 pt-2 font-semibold text-neutral-900">
                                                 <span>{{ __('Total debited') }}</span><span class="tabular" x-bind:class="exceeds ? 'text-red-500' : ''"><span x-text="fmt(totalDebited)"></span> {{ $fiatDetail['symbol'] }}</span>
