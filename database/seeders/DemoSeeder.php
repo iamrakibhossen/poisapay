@@ -80,14 +80,45 @@ class DemoSeeder extends Seeder
         }
 
         // A few more consumers for admin lists (and transfer counterparties).
-        $others = User::factory()->count(12)->create();
+        // Explicit (not factory) so it runs in --no-dev production where faker
+        // is absent; keyed by email so re-seeding doesn't pile up duplicates.
+        $others = $this->extraConsumers();
 
         // Give the demo account a realistic history across every module so the
         // history pages, "View all" links and the withdrawal progress tracker
         // aren't empty on a fresh seed. Idempotent: skip once activity exists.
         if (! Conversion::where('user_id', $demo->id)->exists()) {
-            $this->seedActivity($demo, $others->take(3)->all());
+            $this->seedActivity($demo, array_slice($others, 0, 3));
         }
+    }
+
+    /**
+     * A dozen ordinary consumers for admin lists and transfer counterparties.
+     * Deterministic + idempotent (no faker), so it's production-safe.
+     *
+     * @return array<int, User>
+     */
+    private function extraConsumers(): array
+    {
+        $names = [
+            'Karim Ahmed', 'Fatima Begum', 'Sohel Rana', 'Nusrat Jahan', 'Imran Khan',
+            'Ayesha Siddiqua', 'Tanvir Hasan', 'Sadia Islam', 'Rafiq Mia', 'Jannatul Ferdous',
+            'Hasan Mahmud', 'Mariam Akter',
+        ];
+
+        return collect($names)->map(fn (string $name, int $i) => User::updateOrCreate(
+            ['email' => 'consumer'.($i + 1).'@poisapay.test'],
+            [
+                'name' => $name,
+                'phone' => '+88017'.str_pad((string) ($i + 1), 8, '0', STR_PAD_LEFT),
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+                'kyc_tier' => KycTier::Basic,
+                'kyc_status' => KycStatus::Approved,
+                'referral_code' => 'REF'.str_pad((string) ($i + 1), 5, '0', STR_PAD_LEFT),
+                'base_currency' => 'BDT',
+            ],
+        ))->all();
     }
 
     /** @param  array<int, User>  $others */

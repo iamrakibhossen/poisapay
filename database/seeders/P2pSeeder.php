@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Enums\KycStatus;
+use App\Enums\KycTier;
 use App\Enums\P2pAdStatus;
 use App\Enums\P2pAdType;
 use App\Enums\P2pPriceType;
@@ -12,6 +14,7 @@ use App\Models\P2pAd;
 use App\Models\P2pMerchantProfile;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * Populate the P2P marketplace with a handful of merchants running live buy/sell
@@ -50,7 +53,21 @@ class P2pSeeder extends Seeder
         ];
 
         foreach ($merchants as $i => [$name, $level, $rating, $trades, $ads]) {
-            $user = User::factory()->create(['name' => $name]);
+            // Explicit create (not factory) so it runs in --no-dev production
+            // where faker is absent; keyed by email for idempotency.
+            $user = User::updateOrCreate(
+                ['email' => 'merchant'.($i + 1).'@poisapay.test'],
+                [
+                    'name' => $name,
+                    'phone' => '+88018'.str_pad((string) ($i + 1), 8, '0', STR_PAD_LEFT),
+                    'password' => Hash::make('password'),
+                    'email_verified_at' => now(),
+                    'kyc_tier' => KycTier::Full,
+                    'kyc_status' => KycStatus::Approved,
+                    'referral_code' => 'MERCH'.str_pad((string) ($i + 1), 4, '0', STR_PAD_LEFT),
+                    'base_currency' => 'BDT',
+                ],
+            );
 
             P2pMerchantProfile::updateOrCreate(
                 ['user_id' => $user->id],
@@ -70,20 +87,22 @@ class P2pSeeder extends Seeder
 
             foreach ($ads as $j => $ad) {
                 $floating = isset($ad['margin']);
-                P2pAd::factory()
-                    ->when($ad['side'] === P2pAdType::Buy, fn ($f) => $f->buy())
-                    ->when($floating, fn ($f) => $f->floating($ad['margin']))
-                    ->create([
-                        'user_id' => $user->id,
-                        'asset_id' => $usdt->id,
-                        'fiat_currency' => 'BDT',
-                        'fixed_price' => $floating ? null : $ad['price'],
-                        'price_type' => $floating ? P2pPriceType::Floating : P2pPriceType::Fixed,
-                        'min_order' => '500.00',
-                        'max_order' => '150000.00',
-                        'status' => P2pAdStatus::Active,
-                        'priority' => $level,
-                    ]);
+                P2pAd::create([
+                    'user_id' => $user->id,
+                    'side' => $ad['side'],
+                    'asset_id' => $usdt->id,
+                    'fiat_currency' => 'BDT',
+                    'price_type' => $floating ? P2pPriceType::Floating : P2pPriceType::Fixed,
+                    'fixed_price' => $floating ? null : $ad['price'],
+                    'margin_bps' => $floating ? $ad['margin'] : null,
+                    'min_order' => '500.00',
+                    'max_order' => '150000.00',
+                    'available_amount' => '1000000000',   // 1,000 USDT (6dp)
+                    'total_amount' => '1000000000',
+                    'payment_window_min' => 15,
+                    'status' => P2pAdStatus::Active,
+                    'priority' => $level,
+                ]);
             }
         }
     }
