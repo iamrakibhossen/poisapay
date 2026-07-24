@@ -139,11 +139,12 @@ Route::middleware('auth')->group(function () {
     Route::controller(SettingsController::class)->prefix('settings')->name('settings.')->group(function () {
         Route::put('/profile', 'saveProfile')->name('profile');
         Route::put('/password', 'updatePassword')->name('password');
-        Route::post('/2fa/enable', 'enableTwoFactor')->name('2fa.enable');
-        Route::post('/2fa/confirm', 'confirmTwoFactor')->name('2fa.confirm');
-        Route::post('/2fa/disable', 'disableTwoFactor')->name('2fa.disable');
-        Route::post('/phone/otp', 'sendPhoneOtp')->name('phone.otp');
-        Route::post('/phone/verify', 'verifyPhone')->name('phone.verify');
+        // 2FA/OTP endpoints are brute-force targets — throttle code checks; OTP sends are stricter.
+        Route::post('/2fa/enable', 'enableTwoFactor')->middleware('throttle:10,1')->name('2fa.enable');
+        Route::post('/2fa/confirm', 'confirmTwoFactor')->middleware('throttle:10,1')->name('2fa.confirm');
+        Route::post('/2fa/disable', 'disableTwoFactor')->middleware('throttle:10,1')->name('2fa.disable');
+        Route::post('/phone/otp', 'sendPhoneOtp')->middleware('throttle:6,1')->name('phone.otp');
+        Route::post('/phone/verify', 'verifyPhone')->middleware('throttle:10,1')->name('phone.verify');
         Route::delete('/devices/{id}', 'revokeDevice')->name('device.revoke');
         Route::get('/{tab?}', 'index')->name('index')
             ->where('tab', 'profile|security|password|verification|devices|preferences|sessions');

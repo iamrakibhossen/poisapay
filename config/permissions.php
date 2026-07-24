@@ -17,7 +17,7 @@ return [
         'review-kyc', 'approve-kyc', 'view-compliance', 'file-sar',
 
         // Money movement
-        'view-deposits', 'view-withdrawals', 'approve-withdrawals', 'view-transfers',
+        'view-deposits', 'approve-deposits', 'view-withdrawals', 'approve-withdrawals', 'view-transfers',
 
         // Treasury / ledger
         'view-ledger', 'view-treasury', 'manage-treasury', 'view-reconciliation', 'withdraw-profit',
@@ -85,7 +85,7 @@ return [
     'roles' => [
         'admin' => [
             'view-dashboard', 'view-users', 'manage-users', 'freeze-users', 'review-kyc', 'approve-kyc',
-            'view-deposits', 'view-withdrawals', 'approve-withdrawals', 'view-transfers', 'view-ledger',
+            'view-deposits', 'approve-deposits', 'view-withdrawals', 'approve-withdrawals', 'view-transfers', 'view-ledger',
             'view-treasury', 'manage-assets', 'manage-cards', 'manage-card-providers', 'manage-card-disputes', 'view-merchants',
             'view-p2p', 'manage-p2p',
             'view-rewards', 'view-reports', 'export-reports', 'manage-pages', 'manage-faqs',
@@ -98,7 +98,7 @@ return [
         ],
         'treasury' => [
             'view-dashboard', 'view-treasury', 'manage-treasury', 'view-reconciliation',
-            'view-withdrawals', 'approve-withdrawals', 'view-ledger', 'view-reports',
+            'view-deposits', 'approve-deposits', 'view-withdrawals', 'approve-withdrawals', 'view-ledger', 'view-reports',
         ],
         'support' => [
             'view-dashboard', 'view-users', 'view-deposits', 'view-withdrawals', 'view-merchants', 'view-pages',

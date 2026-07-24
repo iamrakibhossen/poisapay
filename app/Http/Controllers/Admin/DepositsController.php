@@ -51,7 +51,7 @@ class DepositsController extends Controller
 
     public function approve(string $id): RedirectResponse
     {
-        abort_unless(auth('admin')->user()?->can('view-deposits') || auth('admin')->user()?->hasRole('super-admin'), 403);
+        abort_unless(auth('admin')->user()?->can('approve-deposits') || auth('admin')->user()?->hasRole('super-admin'), 403);
 
         try {
             $deposit = Deposit::findOrFail($id);
@@ -65,7 +65,7 @@ class DepositsController extends Controller
 
     public function reject(string $id): RedirectResponse
     {
-        abort_unless(auth('admin')->user()?->can('view-deposits') || auth('admin')->user()?->hasRole('super-admin'), 403);
+        abort_unless(auth('admin')->user()?->can('approve-deposits') || auth('admin')->user()?->hasRole('super-admin'), 403);
 
         try {
             $deposit = Deposit::findOrFail($id);
