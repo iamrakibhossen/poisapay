@@ -139,7 +139,9 @@ class PlaceOrder
                 'product_id' => $product->getKey(),
                 'variant_id' => $variant?->getKey(),
                 'kind' => OrderItemKind::Main,
-                'name_snapshot' => $product->name,
+                'name_snapshot' => $variant
+                    ? $product->name.' ('.implode(' · ', array_values($variant->options ?? [])).')'
+                    : $product->name,
                 'unit_amount' => $break['unit'],
                 'quantity' => $data->quantity,
                 'line_total_amount' => $charge['product_total'],

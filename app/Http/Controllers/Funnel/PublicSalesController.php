@@ -11,6 +11,8 @@ use App\Sell\DTOs\CheckoutData;
 use App\Sell\Enums\SalesPageStatus;
 use App\Sell\Exceptions\SellException;
 use App\Sell\Models\Order;
+use App\Sell\Models\Product;
+use App\Sell\Models\ProductVariant;
 use App\Sell\Models\SalesPage;
 use App\Sell\Services\AnalyticsService;
 use App\Sell\Services\CouponService;
@@ -53,10 +55,85 @@ class PublicSalesController extends Controller
         }
 
         $page = $this->publishedPage($slug);
+        $product = $page->product;
 
-        return $page->product->requires_shipping
+        if ($product->has_variants) {
+            // Keep any variation picked on the sales page. Physical goods can also
+            // pick/change it on the shipping step; digital must choose here.
+            $variant = $this->resolveVariant($product, (array) $request->input('options', []));
+            if ($variant) {
+                $request->session()->put($this->variantKey($page), $variant->getKey());
+            } elseif (! $product->requires_shipping) {
+                return redirect()->route('funnel.sales', ['slug' => $slug])
+                    ->withErrors(['buy' => __('Please choose an option before continuing.')]);
+            }
+        } else {
+            $request->session()->forget($this->variantKey($page));
+        }
+
+        return $product->requires_shipping
             ? redirect()->route('funnel.shipping', ['slug' => $slug])
             : redirect()->route('funnel.pay', ['slug' => $slug]);
+    }
+
+    /** Session key holding the chosen variant for a page's in-progress checkout. */
+    private function variantKey(SalesPage $page): string
+    {
+        return "sell:variant:{$page->getKey()}";
+    }
+
+    /**
+     * Variant option catalog for a product (Size => [S, M, L], …) — powers the
+     * buyer's variation selectors on both the sales and checkout pages.
+     *
+     * @return array<string, list<string>>
+     */
+    private function variantOptionCatalog(Product $product): array
+    {
+        if (! $product->has_variants) {
+            return [];
+        }
+
+        $catalog = [];
+        foreach ($product->variants()->where('is_active', true)->orderBy('position')->get() as $v) {
+            foreach ($v->options ?? [] as $name => $val) {
+                $catalog[$name] ??= [];
+                if (! in_array($val, $catalog[$name], true)) {
+                    $catalog[$name][] = $val;
+                }
+            }
+        }
+
+        return $catalog;
+    }
+
+    /** Match submitted options ({Size:M, Color:Black}) to one active variant. */
+    private function resolveVariant(Product $product, array $options): ?ProductVariant
+    {
+        $options = array_filter($options, fn ($v) => $v !== null && $v !== '');
+
+        foreach ($product->variants()->where('is_active', true)->get() as $variant) {
+            $vo = $variant->options ?? [];
+            if (count($vo) === count($options) && empty(array_diff_assoc($vo, $options))) {
+                return $variant;
+            }
+        }
+
+        return null;
+    }
+
+    /** The variant chosen earlier in this checkout (or null for simple products). */
+    private function selectedVariant(SalesPage $page, Request $request): ?ProductVariant
+    {
+        if (! $page->product->has_variants) {
+            return null;
+        }
+
+        $id = $request->session()->get($this->variantKey($page));
+
+        return $id
+            ? ProductVariant::where('product_id', $page->product_id)->where('is_active', true)->find($id)
+            : null;
     }
 
     /** Shipping-address step (physical products only). Pre-fills any saved address. */
@@ -71,6 +148,9 @@ class PublicSalesController extends Controller
             return redirect()->route('funnel.pay', ['slug' => $slug]);
         }
 
+        // Variation is chosen here for physical goods — pre-select the current one.
+        $variant = $this->selectedVariant($page, $request);
+
         return view('funnel.shipping', [
             'slug' => $slug,
             'page' => $page,
@@ -78,26 +158,29 @@ class PublicSalesController extends Controller
             'seller' => $page->seller,
             'address' => $request->session()->get($this->shipKey($page), []),
             'countries' => $this->countries(),
-            'summary' => $this->orderSummary($page),
+            'variantOptions' => $this->variantOptionCatalog($page->product),
+            'selectedOptions' => $variant?->options ?? [],
+            'summary' => $this->orderSummary($page, $variant),
         ]);
     }
 
     /**
      * Formatted order summary for a page (product price, shipping, total) — shown
-     * beside the shipping form and on the payment page.
+     * beside the shipping form and on the payment page. Priced for the chosen variant.
      *
-     * @return array{product:string, subtotal:string, shipping:string, shippingFree:bool, total:string}
+     * @return array{product:string, variation:?string, subtotal:string, shipping:string, shippingFree:bool, total:string}
      */
-    private function orderSummary(SalesPage $page): array
+    private function orderSummary(SalesPage $page, ?ProductVariant $variant = null): array
     {
         $product = $page->product;
         $asset = $product->priceAsset;
 
-        $subtotal = (int) $this->pricing->line($product, null, 1, $page->seller)['line_total'];
+        $subtotal = (int) $this->pricing->line($product, $variant, 1, $page->seller)['line_total'];
         $shipping = $this->pricing->shippingFee($product);
 
         return [
             'product' => $product->name,
+            'variation' => $variant ? implode(' · ', array_values($variant->options ?? [])) : null,
             'subtotal' => $asset->money((string) $subtotal)->format(2),
             'shipping' => $shipping > 0 ? $asset->money((string) $shipping)->format(2) : __('Free'),
             'shippingFree' => $shipping === 0,
@@ -113,7 +196,8 @@ class PublicSalesController extends Controller
         }
 
         $page = $this->publishedPage($slug);
-        if (! $page->product->requires_shipping) {
+        $product = $page->product;
+        if (! $product->requires_shipping) {
             return redirect()->route('funnel.pay', ['slug' => $slug]);
         }
 
@@ -127,6 +211,15 @@ class PublicSalesController extends Controller
             'country' => ['required', 'string', 'size:2'],
             'notes' => ['nullable', 'string', 'max:500'],
         ]);
+
+        // Capture the chosen variation here (for variant products).
+        if ($product->has_variants) {
+            $variant = $this->resolveVariant($product, (array) $request->input('options', []));
+            if (! $variant) {
+                return back()->withInput()->withErrors(['options' => __('Please choose a variation.')]);
+            }
+            $request->session()->put($this->variantKey($page), $variant->getKey());
+        }
 
         $request->session()->put($this->shipKey($page), $validated);
 
@@ -145,6 +238,15 @@ class PublicSalesController extends Controller
         $seller = $page->seller;
         $asset = $product->priceAsset;
 
+        // Variant products need a variation chosen — physical picks it on the
+        // shipping step, digital on the sales page.
+        $variant = $this->selectedVariant($page, $request);
+        if ($product->has_variants && ! $variant) {
+            return $product->requires_shipping
+                ? redirect()->route('funnel.shipping', ['slug' => $slug])
+                : redirect()->route('funnel.sales', ['slug' => $slug])->withErrors(['buy' => __('Please choose an option before continuing.')]);
+        }
+
         // Physical goods must have a delivery address before payment.
         $shipping = $request->session()->get($this->shipKey($page));
         if ($product->requires_shipping && empty($shipping)) {
@@ -153,7 +255,7 @@ class PublicSalesController extends Controller
 
         $this->analytics->track($page, AnalyticsService::CHECKOUT_START, $request, dedupeOncePerSession: true);
 
-        $break = $this->pricing->line($product, null, 1, $seller);
+        $break = $this->pricing->line($product, $variant, 1, $seller);
         $subtotal = (int) $break['line_total'];
 
         // Optional discount code (?coupon=CODE) — previewed, never charged here.
@@ -193,6 +295,7 @@ class PublicSalesController extends Controller
             'ownProduct' => $seller->user_id === $request->user()->getKey(),
             'idempotencyKey' => $idempotencyKey,
             'shipping' => $shipping,
+            'variation' => $variant ? implode(' · ', array_values($variant->options ?? [])) : null,
         ]);
     }
 
@@ -209,6 +312,15 @@ class PublicSalesController extends Controller
             'coupon_code' => ['nullable', 'string', 'max:40'],
         ]);
 
+        // Variant products need a variation chosen — physical picks it on the
+        // shipping step, digital on the sales page.
+        $variant = $this->selectedVariant($page, $request);
+        if ($page->product->has_variants && ! $variant) {
+            return $page->product->requires_shipping
+                ? redirect()->route('funnel.shipping', ['slug' => $slug])
+                : redirect()->route('funnel.sales', ['slug' => $slug])->withErrors(['buy' => __('Please choose an option before continuing.')]);
+        }
+
         // Physical goods can't be paid for without the address captured earlier.
         $shipping = $request->session()->get($this->shipKey($page));
         if ($page->product->requires_shipping && empty($shipping)) {
@@ -218,6 +330,7 @@ class PublicSalesController extends Controller
         try {
             $order = $placeOrder->execute($request->user(), CheckoutData::fromArray([
                 'product_id' => $page->product_id,
+                'variant_id' => $variant?->getKey(),
                 'quantity' => 1,
                 'sales_page_id' => $page->getKey(),
                 'idempotency_key' => $validated['idempotency_key'],
@@ -228,7 +341,7 @@ class PublicSalesController extends Controller
             return back()->withErrors(['pay' => $e->getMessage()]);
         }
 
-        $request->session()->forget(["sell:idem:{$page->getKey()}", $this->shipKey($page)]);
+        $request->session()->forget(["sell:idem:{$page->getKey()}", $this->shipKey($page), $this->variantKey($page)]);
         $this->analytics->track($page, AnalyticsService::PURCHASE, $request, orderId: $order->getKey());
 
         return redirect()->route('funnel.thankyou', ['slug' => $slug])->with('order_id', $order->getKey());
@@ -310,6 +423,7 @@ class PublicSalesController extends Controller
         return [
             'slug' => $page->slug,
             'name' => $page->name,
+            'variantOptions' => $this->variantOptionCatalog($product),
             'theme' => [
                 'accent' => $theme['accent'] ?? '#2563eb',
                 'btn' => $theme['btn'] ?? 'rounded',

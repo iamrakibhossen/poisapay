@@ -22,7 +22,7 @@
                 {{-- Order summary --}}
                 <div class="space-y-2 text-sm">
                     <div class="flex items-center justify-between">
-                        <span class="text-neutral-600">{{ $product->name }}</span>
+                        <span class="text-neutral-600">{{ $product->name }}@if ($variation)<span class="ms-1 text-xs text-neutral-400">({{ $variation }})</span>@endif</span>
                         <span class="tabular font-medium text-neutral-900">{{ $subtotal }}</span>
                     </div>
                     @if ($discount)

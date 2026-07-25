@@ -27,8 +27,28 @@
                 <p class="mt-1 text-sm text-neutral-500">{{ __('Enter your delivery address to continue to payment.') }}</p>
             </div>
 
-            <form method="POST" action="{{ route('funnel.shipping.save', ['slug' => $slug]) }}" class="mt-5 space-y-4 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+            <form id="ship-form" method="POST" action="{{ route('funnel.shipping.save', ['slug' => $slug]) }}" class="mt-5 space-y-4 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
                 @csrf
+
+                {{-- Variation (variant products choose it right here) --}}
+                @if (! empty($variantOptions))
+                    <div class="rounded-xl border border-neutral-200 bg-neutral-50/60 p-3.5">
+                        <p class="mb-2 text-xs font-semibold text-neutral-700">{{ __('Choose your variation') }}</p>
+                        <div class="grid gap-3 sm:grid-cols-2">
+                            @foreach ($variantOptions as $name => $values)
+                                <div>
+                                    <label class="{{ $lbl }}">{{ $name }}</label>
+                                    <select name="options[{{ $name }}]" required class="{{ $inp }}">
+                                        @foreach ($values as $v)
+                                            <option value="{{ $v }}" @selected(old('options.'.$name, $selectedOptions[$name] ?? '') === $v)>{{ $v }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            @endforeach
+                        </div>
+                        @error('options')<p class="mt-2 text-xs text-rose-600">{{ $message }}</p>@enderror
+                    </div>
+                @endif
                 <div>
                     <label class="{{ $lbl }}">{{ __('Full name') }}</label>
                     <input name="name" value="{{ old('name', $address['name'] ?? '') }}" class="{{ $inp }}" required />
@@ -43,7 +63,6 @@
                     <label class="{{ $lbl }}">{{ __('Address') }}</label>
                     <input name="line1" value="{{ old('line1', $address['line1'] ?? '') }}" placeholder="{{ __('House, road, area') }}" class="{{ $inp }}" required />
                     @error('line1')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
-                    <input name="line2" value="{{ old('line2', $address['line2'] ?? '') }}" placeholder="{{ __('Apartment, suite (optional)') }}" class="{{ $inp }} mt-2" />
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
@@ -68,10 +87,6 @@
                     <label class="{{ $lbl }}">{{ __('Delivery notes') }} <span class="text-neutral-400">({{ __('optional') }})</span></label>
                     <textarea name="notes" rows="2" placeholder="{{ __('Landmark, preferred time…') }}" class="{{ $inp }}">{{ old('notes', $address['notes'] ?? '') }}</textarea>
                 </div>
-
-                <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 py-3.5 text-sm font-semibold text-white transition hover:bg-brand-700">
-                    {{ __('Continue to payment') }} <x-heroicon-o-arrow-right class="h-4 w-4" />
-                </button>
             </form>
 
             <a href="{{ route('funnel.sales', ['slug' => $slug]) }}" class="mt-5 block text-center text-xs font-medium text-neutral-400 hover:text-neutral-600 lg:text-left">← {{ __('Back to the page') }}</a>
@@ -85,6 +100,7 @@
                         <span class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600"><x-heroicon-o-cube class="h-6 w-6" /></span>
                         <div class="min-w-0">
                             <p class="truncate text-sm font-medium text-neutral-900">{{ $summary['product'] }}</p>
+                            @if ($summary['variation'])<p class="text-xs text-neutral-500">{{ $summary['variation'] }}</p>@endif
                             <p class="text-xs text-neutral-400">{{ __('Sold by') }} {{ $seller->displayName() }}</p>
                         </div>
                     </div>
@@ -102,7 +118,11 @@
                             <dd class="tabular">{{ $summary['total'] }}</dd>
                         </div>
                     </dl>
-                    <p class="mt-4 flex items-center justify-center gap-1.5 text-[11px] text-neutral-400">
+
+                    <button type="submit" form="ship-form" class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 py-3.5 text-sm font-semibold text-white transition hover:bg-brand-700">
+                        {{ __('Continue to payment') }} <x-heroicon-o-arrow-right class="h-4 w-4" />
+                    </button>
+                    <p class="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-neutral-400">
                         <x-heroicon-o-lock-closed class="h-3.5 w-3.5" /> {{ __('Secure checkout · buyer protection') }}
                     </p>
                 </div>

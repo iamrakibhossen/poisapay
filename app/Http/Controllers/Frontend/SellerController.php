@@ -413,16 +413,35 @@ class SellerController extends Controller
         return redirect()->route('sell.reviews')->with('success', __('Reply posted.'));
     }
 
-    public function customers(Request $request): View
+    /** Real customers: everyone who has placed a paid order, ranked by spend. */
+    public function customers(Request $request, SellerService $sellers): View
     {
-        return view('frontend.seller.customers', [
-            'customers' => [
-                ['name' => 'Aisha Karim', 'email' => 'aisha@example.com', 'orders' => 4, 'spent' => '$246', 'since' => 'Jan 2026'],
-                ['name' => 'Tanvir Hasan', 'email' => 'tanvir@example.com', 'orders' => 2, 'spent' => '$88', 'since' => 'Mar 2026'],
-                ['name' => 'Maria Lopez', 'email' => 'maria@example.com', 'orders' => 1, 'spent' => '$49', 'since' => 'Jul 2026'],
-                ['name' => 'Karim Ahmed', 'email' => 'karim@example.com', 'orders' => 3, 'spent' => '$154', 'since' => 'Feb 2026'],
-            ],
-        ]);
+        $seller = $sellers->forUser($request->user());
+
+        $orders = $seller
+            ? $seller->orders()->with(['buyer', 'asset'])
+                ->whereNotIn('status', [OrderStatus::Pending->value, OrderStatus::Cancelled->value])
+                ->get()
+            : collect();
+
+        $asset = $seller?->settlementAsset ?? $orders->first()?->asset;
+        $fmt = fn (int $base) => $asset ? $asset->money((string) $base)->format(2) : number_format($base / 100, 2);
+
+        $customers = $orders->groupBy('buyer_user_id')->map(function ($group) use ($fmt) {
+            $buyer = $group->first()->buyer;
+            $spent = (int) $group->sum(fn ($o) => (int) $o->total_amount);
+
+            return [
+                'name' => $buyer?->name ?? __('Customer'),
+                'email' => $buyer?->email ?? '—',
+                'orders' => $group->count(),
+                'spent' => $fmt($spent),
+                'spentRaw' => $spent,
+                'since' => $group->min('created_at')?->format('M Y') ?? '—',
+            ];
+        })->sortByDesc('spentRaw')->values()->all();
+
+        return view('frontend.seller.customers', ['customers' => $customers]);
     }
 
     /** Real discount codes for the seller, plus their products for scoping. */
