@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Sell\Builder;
 
 use App\Sell\Builder\Contracts\BlockType;
+use App\Sell\SellServiceProvider;
 use InvalidArgumentException;
 
 /**
  * The catalogue of every block the builder knows about. Single lookup point for
  * the insert palette, the generated property panel, validation, and render
- * dispatch. Bound as a singleton in {@see \App\Sell\SellServiceProvider}.
+ * dispatch. Bound as a singleton in {@see SellServiceProvider}.
  */
 final class BlockRegistry
 {

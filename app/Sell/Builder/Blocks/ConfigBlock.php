@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Sell\Builder\Blocks;
 
 use App\Sell\Builder\BlockCategory;
+use App\Sell\Builder\BlockLibrary;
 
 /**
  * A block defined entirely by data — type, label, icon, category, schema, and
  * whether it's a container. Because every block renders from a Blade partial named
  * after its type, the vast majority of blocks need no bespoke PHP: they are just a
- * config entry (see {@see \App\Sell\Builder\BlockLibrary}) + a Blade partial.
+ * config entry (see {@see BlockLibrary}) + a Blade partial.
  *
  * A block that genuinely needs PHP logic can still extend {@see AbstractBlock}
  * directly and override render().

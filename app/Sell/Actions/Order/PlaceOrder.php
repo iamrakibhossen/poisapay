@@ -184,7 +184,16 @@ class PlaceOrder
             }
 
             // The Ledger moves the money — one balanced, idempotent entry.
-            $sellerAccount = $resolver->forUser($seller->user, LedgerAccountType::UserAvailable, $assetId);
+            // With the earnings-hold flag on, the seller's net lands in their HELD
+            // balance (user:locked) and is released to spendable once the buyer's
+            // refund window passes (poisapay:sell-release-earnings). Off (default):
+            // net is spendable immediately, as before.
+            $holdEarnings = feature('sell_earnings_hold', false);
+            $sellerAccount = $resolver->forUser(
+                $seller->user,
+                $holdEarnings ? LedgerAccountType::UserLocked : LedgerAccountType::UserAvailable,
+                $assetId,
+            );
             $commissionAccount = $resolver->system(LedgerAccountType::SellCommissionIncome, $assetId);
 
             $ledgerLines = [
@@ -208,6 +217,7 @@ class PlaceOrder
                 'ledger_entry_id' => $entry->id,
                 'paid_at' => now(),
                 'refund_window_ends_at' => now()->addDays((int) getSetting('sell_refund_window_days', 14)),
+                'earnings_held' => $holdEarnings,
             ]);
 
             $order->events()->create([

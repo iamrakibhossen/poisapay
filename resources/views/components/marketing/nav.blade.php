@@ -5,6 +5,7 @@
     $navLinks = [
         ['href' => route('products.show', 'virtual-card'), 'label' => __('Virtual Cards'), 'active' => $onProduct('virtual-card')],
         ['href' => route('products.show', 'wallet'), 'label' => __('Wallet'), 'active' => $onProduct('wallet')],
+        ['href' => route('products.show', 'sell'), 'label' => __('Sell'), 'active' => $onProduct('sell')],
         ['href' => route('products.show', 'exchange'), 'label' => __('Exchange'), 'active' => $onProduct('exchange')],
         ['href' => route('merchants'), 'label' => __('Merchants'), 'active' => request()->routeIs('merchants')],
         ['href' => route('faqs.public'), 'label' => __('Help Center'), 'active' => request()->routeIs('faqs.public')],

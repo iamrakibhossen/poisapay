@@ -106,6 +106,38 @@ class ProductController extends Controller
                 ['q' => 'Can I swap between crypto and fiat?', 'a' => 'Yes. You can convert between supported crypto assets and fiat currencies in either direction.'],
             ],
         ],
+        'sell' => [
+            'eyebrow' => 'Sell',
+            'icon' => 'building-storefront',
+            'title' => 'Sell anything, get paid in crypto',
+            'lead' => 'Launch a high-converting sales page in minutes with a drag-and-drop builder, then sell digital or physical products with instant wallet, card and crypto checkout — order bumps and 1-click upsells built in.',
+            'cta' => ['label' => 'Start selling', 'route' => 'sell'],
+            'stats' => [
+                ['value' => 'Drag & drop', 'label' => 'Page builder'],
+                ['value' => 'Instant', 'label' => 'Checkout'],
+                ['value' => '1-click', 'label' => 'Upsells'],
+                ['value' => '৳0', 'label' => 'To start'],
+            ],
+            'features' => [
+                ['icon' => 'squares-2x2', 'title' => 'Visual page builder', 'desc' => 'Design high-converting sales pages with a real drag-and-drop block editor — no code, live preview, undo/redo.'],
+                ['icon' => 'credit-card', 'title' => 'Instant checkout', 'desc' => 'Buyers pay with their PoisaPay wallet, card or crypto — funds settle straight to your balance.'],
+                ['icon' => 'arrow-trending-up', 'title' => 'Bumps & upsells', 'desc' => 'Lift order value with checkout order bumps and 1-click post-purchase upsells.'],
+                ['icon' => 'cube', 'title' => 'Any product type', 'desc' => 'Sell digital downloads, license keys, memberships, subscriptions, services or physical goods.'],
+                ['icon' => 'globe-alt', 'title' => 'Custom domains', 'desc' => 'Connect your own domain and publish a branded storefront for every page.'],
+                ['icon' => 'chart-bar', 'title' => 'Built-in analytics', 'desc' => 'Track views, conversion and revenue for every page and funnel step.'],
+            ],
+            'steps' => [
+                ['title' => 'Create your product', 'desc' => 'Add a digital or physical product and set your price in your own currency.'],
+                ['title' => 'Build your page', 'desc' => 'Drag in blocks — hero, features, testimonials, FAQ, checkout — and hit publish.'],
+                ['title' => 'Share & get paid', 'desc' => 'Send your link; buyers check out instantly and the money lands in your balance.'],
+            ],
+            'faqs' => [
+                ['q' => 'What can I sell?', 'a' => 'Digital downloads, license keys, memberships, subscriptions, services, physical goods and bundles.'],
+                ['q' => 'How do I get paid?', 'a' => 'Payments settle straight to your PoisaPay balance — wallet, card and crypto checkout are all built in.'],
+                ['q' => 'Do I need to code?', 'a' => 'No. The page builder is fully visual — drag blocks, edit inline and publish. Templates get you started in seconds.'],
+                ['q' => 'Can I use my own domain?', 'a' => 'Yes — connect a custom domain to publish a branded storefront for your sales pages.'],
+            ],
+        ],
     ];
 
     public function show(string $product): View

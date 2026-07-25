@@ -201,6 +201,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/purchases/{order}/messages', [\App\Http\Controllers\Frontend\PurchasesController::class, 'messages'])->name('purchases.messages');
     Route::post('/purchases/{order}/messages', [\App\Http\Controllers\Frontend\PurchasesController::class, 'sendMessage'])->name('purchases.messages.send');
     Route::post('/purchases/{order}/review', [\App\Http\Controllers\Frontend\PurchasesController::class, 'submitReview'])->name('purchases.review');
+    Route::post('/purchases/{order}/refund', [\App\Http\Controllers\Frontend\PurchasesController::class, 'requestRefund'])->name('purchases.refund');
+    Route::post('/purchases/refund/{refundRequest}/cancel', [\App\Http\Controllers\Frontend\PurchasesController::class, 'cancelRefund'])->name('purchases.refund.cancel');
+    Route::post('/purchases/refund/{refundRequest}/escalate', [\App\Http\Controllers\Frontend\PurchasesController::class, 'escalateRefund'])->name('purchases.refund.escalate');
 });
 
 // Operator console lives in its own route file (DollarHub-style separation).

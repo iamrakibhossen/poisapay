@@ -74,5 +74,24 @@ class SellException extends RuntimeException
     {
         return new self($why);
     }
-}
 
+    public static function notRefundable(): self
+    {
+        return new self('This order can no longer be refunded.');
+    }
+
+    public static function refundRequestOpen(): self
+    {
+        return new self('There is already an open refund request for this order.');
+    }
+
+    public static function invalidRefundAmount(): self
+    {
+        return new self('The refund amount is more than what remains on this order.');
+    }
+
+    public static function refundRequestClosed(): self
+    {
+        return new self('This refund request has already been resolved.');
+    }
+}

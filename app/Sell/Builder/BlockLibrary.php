@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Sell\Builder;
 
 use App\Sell\Builder\Blocks\ConfigBlock;
+use App\Sell\SellServiceProvider;
 
 /**
  * The declarative catalogue of every built-in block. This is the ONE place a block
  * is introduced: add an entry here + a Blade partial at
  * resources/views/builder/blocks/{type}.blade.php — no other file changes.
  *
- * {@see \App\Sell\SellServiceProvider} feeds these into the {@see BlockRegistry}.
+ * {@see SellServiceProvider} feeds these into the {@see BlockRegistry}.
  */
 final class BlockLibrary
 {
@@ -42,6 +43,20 @@ final class BlockLibrary
             ]),
             new ConfigBlock('divider', 'Divider', 'minus', BlockCategory::Layout, schema: [
                 'style' => [Field::color('color', 'Colour', '#e2e8f0')],
+            ]),
+            new ConfigBlock('header', 'Header / Nav', 'bars-3', BlockCategory::Layout, schema: [
+                'content' => [
+                    Field::text('brand', 'Brand name', ''), // blank → the store name
+                    Field::toggle('showLogo', 'Show logo mark', true),
+                    Field::repeater('links', 'Menu links', [Field::text('label', 'Label', ''), Field::link('href', 'URL', '#')], [
+                        ['label' => 'Features', 'href' => '#features'],
+                        ['label' => 'Pricing', 'href' => '#pricing'],
+                        ['label' => 'FAQ', 'href' => '#faq'],
+                    ]),
+                    Field::text('cta', 'Button label', 'Buy now'),
+                    Field::toggle('sticky', 'Stick to top', true),
+                    Field::number('height', 'Height (px)', 64, 44, 120),
+                ],
             ]),
 
             // ─── Content ───────────────────────────────────────────────────────

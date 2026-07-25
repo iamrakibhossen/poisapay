@@ -6,13 +6,21 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Sell\Actions\Order\SendMessage;
+use App\Sell\Actions\Refund\CancelRefundRequest;
+use App\Sell\Actions\Refund\EscalateRefundRequest;
+use App\Sell\Actions\Refund\RequestRefund;
 use App\Sell\Actions\Review\SubmitReview;
 use App\Sell\Enums\OrderStatus;
 use App\Sell\Enums\ProductType;
+use App\Sell\Enums\RefundRequestStatus;
+use App\Sell\Exceptions\SellException;
 use App\Sell\Models\Order;
 use App\Sell\Models\OrderItem;
+use App\Sell\Models\RefundRequest;
+use App\Support\Money;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -35,7 +43,7 @@ class PurchasesController extends Controller
         'service' => 'briefcase', 'bundle' => 'squares-2x2',
     ];
 
-    public function index(\Illuminate\Http\Request $request): View
+    public function index(Request $request): View
     {
         $items = OrderItem::query()
             ->whereHas('order', fn ($q) => $q->where('buyer_user_id', $request->user()->getKey())
@@ -95,13 +103,100 @@ class PurchasesController extends Controller
                     'tracking' => $addr['tracking'] ?? '—',
                     'timeline' => $this->shipmentTimeline($model->status, $placed),
                 ] : null,
+                'refund' => $this->refundPanel($model, $money),
             ],
             'items' => $model->items->map(fn (OrderItem $i) => $this->present($i->setRelation('order', $model)))->all(),
         ]);
     }
 
+    /**
+     * Refund state for the buyer's order page: whether they can open a request,
+     * how much is still refundable, and the current request (with its next actions).
+     *
+     * @param  callable(int|string): string  $money
+     * @return array<string, mixed>
+     */
+    private function refundPanel(Order $model, callable $money): array
+    {
+        $remaining = RefundRequest::remainingRefundable($model);
+        $request = RefundRequest::where('order_id', $model->id)->latest()->first();
+        $open = $request && $request->status->isOpen();
+
+        return [
+            'canRequest' => $model->status->isPaid() && $remaining > 0 && ! $open,
+            'remaining' => $money($remaining),
+            'remainingDecimal' => number_format($remaining / (10 ** ($model->asset?->decimals ?? 2)), $model->asset?->decimals ?? 2, '.', ''),
+            'symbol' => $model->asset?->symbol,
+            'request' => $request ? [
+                'id' => $request->id,
+                'status' => $request->status->label(),
+                'statusColor' => $request->status->color(),
+                'type' => $request->type,
+                'amount' => $money($request->amount_requested),
+                'reason' => $request->reason,
+                'note' => $request->resolution_note,
+                'canCancel' => $request->status === RefundRequestStatus::Requested,
+                'canEscalate' => $request->status === RefundRequestStatus::Rejected,
+            ] : null,
+        ];
+    }
+
+    /** Buyer opens a refund request (full or partial) against their order. */
+    public function requestRefund(Request $request, RequestRefund $action, string $order): RedirectResponse
+    {
+        $model = Order::where('buyer_user_id', $request->user()->getKey())->findOrFail($order);
+
+        $validated = $request->validate([
+            'type' => ['required', 'in:full,partial'],
+            'amount' => ['nullable', 'numeric', 'min:0.01', 'required_if:type,partial'],
+            'reason' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $amount = null;
+        if ($validated['type'] === 'partial') {
+            $decimals = $model->asset?->decimals ?? 2;
+            $amount = (int) Money::ofDecimal((string) $validated['amount'], $decimals, $model->asset?->symbol ?? '')->baseString();
+        }
+
+        try {
+            $action->execute($model, $request->user(), $validated['type'], $amount, $validated['reason'] ?? '');
+        } catch (SellException $e) {
+            return back()->withErrors(['refund' => $e->getMessage()]);
+        }
+
+        return redirect()->route('purchases.show', $model->id)->with('success', __('Your refund request was submitted.'));
+    }
+
+    /** Buyer withdraws their own pending request. */
+    public function cancelRefund(Request $request, CancelRefundRequest $action, string $refundRequest): RedirectResponse
+    {
+        $req = RefundRequest::where('buyer_user_id', $request->user()->getKey())->findOrFail($refundRequest);
+
+        try {
+            $action->execute($req);
+        } catch (SellException $e) {
+            return back()->withErrors(['refund' => $e->getMessage()]);
+        }
+
+        return redirect()->route('purchases.show', $req->order_id)->with('success', __('Refund request cancelled.'));
+    }
+
+    /** Buyer escalates a rejected request to support. */
+    public function escalateRefund(Request $request, EscalateRefundRequest $action, string $refundRequest): RedirectResponse
+    {
+        $req = RefundRequest::where('buyer_user_id', $request->user()->getKey())->findOrFail($refundRequest);
+
+        try {
+            $action->execute($req);
+        } catch (SellException $e) {
+            return back()->withErrors(['refund' => $e->getMessage()]);
+        }
+
+        return redirect()->route('purchases.show', $req->order_id)->with('success', __('Your request was escalated to support.'));
+    }
+
     /** Re-download a purchased digital file. Ownership is re-verified here. */
-    public function download(\Illuminate\Http\Request $request, string $item): StreamedResponse|RedirectResponse
+    public function download(Request $request, string $item): StreamedResponse|RedirectResponse
     {
         $orderItem = OrderItem::query()
             ->whereHas('order', fn ($q) => $q->where('buyer_user_id', $request->user()->getKey())
@@ -177,7 +272,7 @@ class PurchasesController extends Controller
                 $request->user(), $model, $validated['product_id'],
                 (int) $validated['rating'], $validated['title'] ?? null, $validated['body'] ?? null,
             );
-        } catch (\App\Sell\Exceptions\SellException $e) {
+        } catch (SellException $e) {
             return back()->withErrors(['review' => $e->getMessage()]);
         }
 
@@ -257,7 +352,7 @@ class PurchasesController extends Controller
      *
      * @return list<array{0:string,1:string,2:bool}>
      */
-    private function shipmentTimeline(OrderStatus $status, ?\Illuminate\Support\Carbon $placed): array
+    private function shipmentTimeline(OrderStatus $status, ?Carbon $placed): array
     {
         $rank = [
             OrderStatus::Paid->value => 1, OrderStatus::Processing->value => 1,

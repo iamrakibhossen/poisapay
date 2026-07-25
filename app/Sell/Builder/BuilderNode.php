@@ -70,6 +70,22 @@ final class BuilderNode
     }
 
     /**
+     * This node plus every descendant, depth-first — handy for scanning a document
+     * (e.g. collecting FAQ nodes for JSON-LD).
+     *
+     * @return list<BuilderNode>
+     */
+    public function flatten(): array
+    {
+        $out = [$this];
+        foreach ($this->children as $child) {
+            array_push($out, ...$child->flatten());
+        }
+
+        return $out;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function toArray(): array

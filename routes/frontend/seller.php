@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Frontend\SellerController;
+use App\Sell\Http\Controllers\PageBuilderController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -18,9 +19,14 @@ Route::controller(SellerController::class)->group(function () {
     Route::post('/sell/apply', 'submitApplication')->name('sell.apply.submit');
     Route::get('/sell/sales-pages', 'salesPages')->name('sell.sales-pages');
     Route::post('/sell/sales-pages', 'storeSalesPage')->name('sell.sales-pages.store');
-    Route::get('/sell/sales-pages/{slug}/edit', 'editSalesPage')->name('sell.sales-page.edit');
-    Route::post('/sell/sales-pages/{slug}', 'saveSalesPage')->name('sell.sales-page.update');
-    Route::post('/sell/sales-pages/{slug}/publish', 'publishSalesPage')->name('sell.sales-page.publish');
+    // Visual block-tree builder (rich Alpine editor + JSON endpoints).
+    Route::get('/sell/sales-pages/{slug}/edit', [PageBuilderController::class, 'edit'])->name('sell.sales-page.edit');
+    Route::patch('/sell/sales-pages/{slug}/document', [PageBuilderController::class, 'save'])->name('sell.sales-page.document');
+    Route::post('/sell/sales-pages/{slug}/preview', [PageBuilderController::class, 'preview'])->name('sell.sales-page.preview');
+    Route::post('/sell/sales-pages/{slug}/settings', [PageBuilderController::class, 'settings'])->name('sell.sales-page.update');
+    Route::post('/sell/sales-pages/{slug}/publish', [PageBuilderController::class, 'publish'])->name('sell.sales-page.publish');
+    Route::post('/sell/sales-pages/{slug}/duplicate', [PageBuilderController::class, 'duplicate'])->name('sell.sales-page.duplicate');
+    Route::post('/sell/sales-pages/{slug}/revisions/{revision}/restore', [PageBuilderController::class, 'restore'])->name('sell.sales-page.restore');
     Route::get('/sell/funnels', 'funnels')->name('sell.funnels');
     Route::get('/sell/products', 'products')->name('sell.products');
     Route::get('/sell/products/create', 'createProduct')->name('sell.products.create');
@@ -31,6 +37,9 @@ Route::controller(SellerController::class)->group(function () {
     Route::get('/sell/orders', 'orders')->name('sell.orders');
     Route::get('/sell/orders/{id}', 'order')->name('sell.order');
     Route::post('/sell/orders/{id}/status', 'fulfilOrder')->name('sell.order.status');
+    Route::post('/sell/orders/{id}/refund', 'refundOrder')->name('sell.order.refund');
+    Route::post('/sell/orders/{id}/refund-requests/{refundRequest}/approve', 'approveRefundRequest')->name('sell.order.refund-request.approve');
+    Route::post('/sell/orders/{id}/refund-requests/{refundRequest}/reject', 'rejectRefundRequest')->name('sell.order.refund-request.reject');
     Route::post('/sell/orders/{id}/messages', 'sendOrderMessage')->name('sell.order.message');
     Route::get('/sell/reviews', 'reviews')->name('sell.reviews');
     Route::post('/sell/reviews/{id}/reply', 'replyReview')->name('sell.reviews.reply');

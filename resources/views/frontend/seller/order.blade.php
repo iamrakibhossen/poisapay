@@ -69,6 +69,70 @@
                     </x-ui.card>
                 @endif
 
+                {{-- Buyer refund request awaiting the seller --}}
+                @if ($order['openRefund'])
+                    @php $rr = $order['openRefund']; @endphp
+                    <x-ui.card>
+                        <div class="mb-2 flex items-center justify-between">
+                            <p class="text-sm font-semibold text-neutral-900">{{ __('Refund request') }}</p>
+                            <x-ui.badge :color="$rr['statusColor']" dot>{{ $rr['status'] }}</x-ui.badge>
+                        </div>
+                        <p class="text-sm text-neutral-600">{{ __('The buyer requested a :type refund of', ['type' => $rr['type']]) }} <span class="font-semibold text-neutral-900">{{ $rr['amount'] }}</span>.</p>
+                        @if ($rr['reason'])<p class="mt-2 rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-500">“{{ $rr['reason'] }}”</p>@endif
+                        @if ($rr['escalated'])<p class="mt-2 text-xs font-medium text-blue-600">{{ __('Escalated to support — an operator may also resolve this.') }}</p>@endif
+                        @error('refund')<p class="mt-2 text-xs text-rose-600">{{ $message }}</p>@enderror
+
+                        <form method="POST" action="{{ route('sell.order.refund-request.approve', ['id' => $order['id'], 'refundRequest' => $rr['id']]) }}" class="mt-3 space-y-2">
+                            @csrf
+                            <textarea name="note" rows="2" class="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" placeholder="{{ __('Optional note to the buyer') }}"></textarea>
+                            <div class="flex gap-2">
+                                <button type="submit" class="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-brand-600"><x-heroicon-o-check class="h-4 w-4" /> {{ __('Approve & refund') }}</button>
+                                <button type="submit" formaction="{{ route('sell.order.refund-request.reject', ['id' => $order['id'], 'refundRequest' => $rr['id']]) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 px-3.5 py-2 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-50"><x-heroicon-o-x-mark class="h-4 w-4" /> {{ __('Decline') }}</button>
+                            </div>
+                        </form>
+                    </x-ui.card>
+                @endif
+
+                {{-- Refund — reverse the payment to the buyer --}}
+                @if ($order['refundedAt'])
+                    <x-ui.card>
+                        <div class="flex items-center gap-3">
+                            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-rose-50 text-rose-500"><x-heroicon-o-arrow-uturn-left class="h-4 w-4" /></span>
+                            <div>
+                                <p class="text-sm font-semibold text-neutral-900">{{ __('Refunded') }}</p>
+                                <p class="text-xs text-neutral-500">{{ __('The buyer was repaid on :date.', ['date' => $order['refundedAt']]) }}</p>
+                            </div>
+                        </div>
+                    </x-ui.card>
+                @elseif ($order['refundable'])
+                    <x-ui.card>
+                        <p class="mb-1 text-sm font-semibold text-neutral-900">{{ __('Refund') }}</p>
+                        <p class="mb-3 text-xs text-neutral-500">{{ __('Return :amount to the buyer and reverse your earnings. This can’t be undone.', ['amount' => $order['refundTotal']]) }}</p>
+                        @error('refund')<p class="mb-2 text-xs text-rose-600">{{ $message }}</p>@enderror
+                        <button type="button" x-on:click="$dispatch('open-modal', 'refund-order')"
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3.5 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50">
+                            <x-heroicon-o-arrow-uturn-left class="h-4 w-4" /> {{ __('Refund order') }}
+                        </button>
+                    </x-ui.card>
+
+                    <x-ui.modal name="refund-order" :title="__('Refund this order?')"
+                        :subtitle="__('The buyer will be repaid :amount to their PoisaPay wallet.', ['amount' => $order['refundTotal']])">
+                        <form method="POST" action="{{ route('sell.order.refund', ['id' => $order['id']]) }}" class="space-y-4">
+                            @csrf
+                            <x-ui.textarea name="reason" :label="__('Reason (optional)')" rows="3"
+                                :placeholder="__('Shared on the order timeline — e.g. buyer request, item unavailable.')" />
+                            <div class="flex justify-end gap-2">
+                                <button type="button" x-on:click="$dispatch('close-modal', 'refund-order')"
+                                    class="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-50">{{ __('Cancel') }}</button>
+                                <button type="submit"
+                                    class="inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700">
+                                    <x-heroicon-o-arrow-uturn-left class="h-4 w-4" /> {{ __('Refund :amount', ['amount' => $order['refundTotal']]) }}
+                                </button>
+                            </div>
+                        </form>
+                    </x-ui.modal>
+                @endif
+
                 {{-- Conversation — order-scoped, shared with the buyer --}}
                 <x-ui.card>
                     <div class="mb-3 flex items-center justify-between">

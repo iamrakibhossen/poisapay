@@ -23,7 +23,7 @@ class SalesPage extends Model
 
     protected $fillable = [
         'seller_id', 'product_id', 'name', 'slug', 'status',
-        'sections', 'theme', 'seo', 'tracking', 'version', 'published_at',
+        'sections', 'draft', 'theme', 'seo', 'tracking', 'version', 'published_at',
         'bump_product_id', 'bump_price_amount', 'bump_headline', 'bump_description',
         'upsell_product_id', 'upsell_price_amount', 'upsell_headline', 'upsell_description',
     ];
@@ -33,6 +33,7 @@ class SalesPage extends Model
         return [
             'status' => SalesPageStatus::class,
             'sections' => 'array',
+            'draft' => 'array',
             'theme' => 'array',
             'seo' => 'array',
             'tracking' => 'array',
@@ -90,5 +91,24 @@ class SalesPage extends Model
     public function isPublished(): bool
     {
         return $this->status->isLive();
+    }
+
+    public function revisions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PageRevision::class)->latest('version');
+    }
+
+    /** The working document shown in the builder (draft, falling back to the live doc). */
+    public function draftDocument(): \App\Sell\Builder\BuilderDocument
+    {
+        return (new \App\Sell\Builder\SchemaMigrator())
+            ->toDocument($this->draft ?? $this->sections, $this->theme ?? []);
+    }
+
+    /** The published document rendered to buyers. */
+    public function publishedDocument(): \App\Sell\Builder\BuilderDocument
+    {
+        return (new \App\Sell\Builder\SchemaMigrator())
+            ->toDocument($this->sections, $this->theme ?? []);
     }
 }

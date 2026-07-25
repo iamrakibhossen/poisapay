@@ -6,6 +6,13 @@
         ->whereNotIn('status', ['pending', 'cancelled'])
         ->exists(), false, false);
 
+    // Only approved sellers see "Sell" — everyone else reaches onboarding from the
+    // marketing site (/products/sell), not the app nav.
+    $isSeller = auth()->check() && rescue(
+        fn () => app(\App\Sell\Services\SellerService::class)->forUser(auth()->user())?->canSell() ?? false,
+        false, false,
+    );
+
     // Grouped user navigation — clean sections like the DollarHub admin shell.
     $groups = [
         [
@@ -13,7 +20,7 @@
             'items' => array_values(array_filter([
                 ['route' => 'dashboard', 'label' => __('Dashboard'), 'icon' => 'home'],
                 ['route' => 'wallet', 'label' => __('Wallet'), 'icon' => 'wallet'],
-                $hasPurchases ? ['route' => 'purchases', 'label' => __('My Purchases'), 'icon' => 'shopping-bag'] : null,
+                (feature('sell_enabled', false) && $isSeller) ? ['route' => 'sell', 'label' => __('Sell'), 'icon' => 'rocket-launch'] : null,
             ])),
         ],
         [
@@ -30,10 +37,10 @@
             'heading' => __('Products'),
             'items' => array_values(array_filter([
                 ['route' => 'cards', 'label' => __('Cards'), 'icon' => 'credit-card'],
-                ['route' => 'rewards', 'label' => __('Rewards'), 'icon' => 'gift'],
                 ['route' => 'merchant', 'label' => __('Merchant'), 'icon' => 'building-storefront'],
-                ['route' => 'sell', 'label' => __('Sell'), 'icon' => 'rocket-launch'],
                 feature('p2p_enabled', false) ? ['route' => 'p2p', 'label' => 'P2P', 'icon' => 'user-group'] : null,
+                $hasPurchases ? ['route' => 'purchases', 'label' => __('My Purchases'), 'icon' => 'shopping-bag'] : null,
+                ['route' => 'rewards', 'label' => __('Rewards'), 'icon' => 'gift'],
             ])),
         ],
         [

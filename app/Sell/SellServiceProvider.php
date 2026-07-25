@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Sell;
 
+use App\Sell\Builder\BlockLibrary;
+use App\Sell\Builder\BlockRegistry;
 use App\Sell\Contracts\AuditableEvent;
 use App\Sell\Listeners\AuditSellEvent;
 use App\Sell\Models\Product;
+use App\Sell\Models\RefundRequest;
 use App\Sell\Models\SalesPage;
 use App\Sell\Models\Seller;
 use App\Sell\Policies\ProductPolicy;
+use App\Sell\Policies\RefundRequestPolicy;
 use App\Sell\Policies\SalesPagePolicy;
 use App\Sell\Policies\SellerPolicy;
 use App\Sell\Services\SalesPageService;
@@ -29,11 +33,14 @@ class SellServiceProvider extends ServiceProvider
         Seller::class => SellerPolicy::class,
         Product::class => ProductPolicy::class,
         SalesPage::class => SalesPagePolicy::class,
+        RefundRequest::class => RefundRequestPolicy::class,
     ];
 
     public function register(): void
     {
-        //
+        // The block catalogue is a process-wide singleton: one source of truth for
+        // the palette, generated property panel, validation, and render dispatch.
+        $this->app->singleton(BlockRegistry::class, fn () => new BlockRegistry(BlockLibrary::all()));
     }
 
     public function boot(): void

@@ -35,6 +35,8 @@ use App\Http\Controllers\Admin\LedgerController;
 use App\Http\Controllers\Admin\LiquidityController;
 use App\Http\Controllers\Admin\LogViewerController;
 use App\Http\Controllers\Admin\MerchantsController;
+use App\Sell\Http\Controllers\Admin\RefundAdminController;
+use App\Sell\Http\Controllers\Admin\SellerAdminController;
 use App\Http\Controllers\Admin\MessagingController;
 use App\Http\Controllers\Admin\P2pController;
 use App\Http\Controllers\Admin\P2pPaymentMethodController;
@@ -340,6 +342,19 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/merchants/{id}/fee', 'saveFee')->name('merchants.fee');
         });
 
+        // ── Sellers (Sell marketplace) ──
+        Route::controller(SellerAdminController::class)->group(function () {
+            Route::get('/sellers', 'index')->name('sellers');
+            Route::post('/sellers/{seller}/plan', 'updatePlan')->name('sellers.plan');
+        });
+        // ── Refund review (escalated buyer refund requests) ──
+        Route::controller(RefundAdminController::class)->group(function () {
+            Route::get('/sell-refunds', 'index')->name('sell-refunds');
+            Route::get('/sell-refunds/{refundRequest}', 'show')->name('sell-refunds.show');
+            Route::post('/sell-refunds/{refundRequest}/approve', 'approve')->name('sell-refunds.approve');
+            Route::post('/sell-refunds/{refundRequest}/reject', 'reject')->name('sell-refunds.reject');
+        });
+
         // ── Compliance cases + alerts (Wave 5, RBAC) ──
         Route::controller(ComplianceController::class)->group(function () {
             Route::get('/compliance', 'index')->name('compliance');
@@ -399,7 +414,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // ── Platform settings (controller + Blade forms, not Livewire) ──
         Route::controller(SettingController::class)->group(function () {
-            $sections = 'general|branding|auth|deposit|withdrawal|transfer|kyc|risk|exchange|cards|merchant|p2p|credit|rewards|compliance|localization|announcement';
+            $sections = 'general|branding|auth|deposit|withdrawal|transfer|kyc|risk|exchange|cards|merchant|sell|p2p|credit|rewards|compliance|localization|announcement';
             Route::get('/settings/{section?}', 'index')->where('section', $sections)->name('settings');
             Route::put('/settings/{section}', 'update')->where('section', $sections)->name('settings.update');
         });

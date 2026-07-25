@@ -11,6 +11,7 @@
         'exchange' => ['label' => __('Exchange'), 'icon' => 'arrow-path-rounded-square'],
         'cards' => ['label' => __('Cards'), 'icon' => 'credit-card'],
         'merchant' => ['label' => __('Merchant'), 'icon' => 'building-storefront'],
+        'sell' => ['label' => __('Sell'), 'icon' => 'rocket-launch'],
         'p2p' => ['label' => __('P2P'), 'icon' => 'user-group'],
         'rewards' => ['label' => __('Rewards'), 'icon' => 'gift'],
         'compliance' => ['label' => __('Compliance'), 'icon' => 'shield-exclamation'],

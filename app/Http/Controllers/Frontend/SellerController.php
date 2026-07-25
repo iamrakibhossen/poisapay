@@ -7,11 +7,13 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Models\Asset;
 use App\Sell\Actions\Coupon\CreateCoupon;
+use App\Sell\Actions\Order\RefundOrder;
 use App\Sell\Actions\Order\SendMessage;
 use App\Sell\Actions\Order\SetOrderStatus;
 use App\Sell\Actions\Product\CreateProduct;
 use App\Sell\Actions\Product\SetProductStatus;
 use App\Sell\Actions\Product\UpdateProduct;
+use App\Sell\Actions\Refund\ResolveRefundRequest;
 use App\Sell\Actions\Review\ReplyToReview;
 use App\Sell\Actions\SalesPage\CreateSalesPage;
 use App\Sell\Actions\SalesPage\SetSalesPageStatus;
@@ -20,20 +22,29 @@ use App\Sell\Actions\Seller\SubmitSellerApplication;
 use App\Sell\DTOs\ProductData;
 use App\Sell\DTOs\SalesPageData;
 use App\Sell\DTOs\SellerApplicationData;
+use App\Sell\Enums\CouponType;
+use App\Sell\Enums\OrderItemKind;
 use App\Sell\Enums\OrderStatus;
 use App\Sell\Enums\ProductStatus;
+use App\Sell\Enums\RefundRequestStatus;
 use App\Sell\Enums\SalesPageStatus;
-use App\Sell\Enums\SellerStatus;
 use App\Sell\Exceptions\SellException;
+use App\Sell\Models\AnalyticsEvent;
 use App\Sell\Models\Order;
+use App\Sell\Models\OrderItem;
 use App\Sell\Models\Product;
+use App\Sell\Models\RefundRequest;
 use App\Sell\Models\SalesPage;
 use App\Sell\Models\Seller;
 use App\Sell\Services\AnalyticsService;
 use App\Sell\Services\SellerService;
 use App\Support\Money;
+use Brick\Math\BigInteger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -73,12 +84,44 @@ class SellerController extends Controller
 
         $counts = ['products' => 0, 'published' => 0, 'pages' => 0, 'sales' => 0];
         $stats = ['revenue' => '—', 'available' => '—', 'pending' => '—', 'sales' => 0];
+        $attention = ['fulfil' => 0, 'unread' => 0, 'refunds' => 0];
+        $recentOrders = [];
+        $insights = null;
 
         if ($isSeller) {
             $counts['products'] = $seller->products()->count();
             $counts['published'] = $seller->products()->where('status', ProductStatus::Published->value)->count();
             $counts['pages'] = $seller->products()->has('salesPages')->count();
             [$stats, $counts['sales']] = $this->sellerStats($seller);
+
+            // Actionable signals — surfaced as a "needs attention" strip.
+            $attention['fulfil'] = $seller->orders()
+                ->whereIn('status', [OrderStatus::Paid->value, OrderStatus::Processing->value])->count();
+            $attention['unread'] = $seller->orders()->where('seller_unread', true)->count();
+            $attention['refunds'] = RefundRequest::where('seller_id', $seller->id)
+                ->whereIn('status', [
+                    RefundRequestStatus::Requested->value,
+                    RefundRequestStatus::Rejected->value,
+                    RefundRequestStatus::Escalated->value,
+                ])->count();
+
+            // Newest five real orders — a glanceable, clickable list.
+            $recentOrders = $seller->orders()->with(['items', 'buyer', 'asset'])
+                ->whereNotIn('status', [OrderStatus::Pending->value, OrderStatus::Cancelled->value])
+                ->latest()->limit(5)->get()
+                ->map(fn ($o) => [
+                    'id' => $o->id,
+                    'number' => $o->number,
+                    'buyer' => $o->buyer?->email ?? '—',
+                    'product' => $o->items->first()?->name_snapshot ?? '—',
+                    'amount' => $o->asset ? $o->asset->money((string) $o->total_amount)->format(2) : '—',
+                    'status' => $o->status->label(),
+                    'color' => $o->status->color(),
+                    'date' => $o->created_at->diffForHumans(),
+                    'unread' => (bool) $o->seller_unread,
+                ])->all();
+
+            $insights = $this->dashboardInsights($seller);
         }
 
         return view('frontend.seller.index', [
@@ -88,7 +131,69 @@ class SellerController extends Controller
             'counts' => $counts,
             'hasProducts' => $counts['products'] > 0,
             'stats' => $stats,
+            'attention' => $attention,
+            'recentOrders' => $recentOrders,
+            'insights' => $insights,
         ]);
+    }
+
+    /**
+     * Dashboard insights: a 30-day funnel (distinct sessions), rolling revenue /
+     * average order value, and the seller's best-selling products — all from real
+     * analytics events and paid orders. Mirrors the /sell/analytics maths.
+     *
+     * @return array{funnel:array<int,array{0:string,1:int,2:int}>, visitors:int, conversion:float, revenue30:string, orders30:int, aov:string, topProducts:array<int,array{name:string,units:int,net:string}>}
+     */
+    private function dashboardInsights(Seller $seller): array
+    {
+        $since = now()->subDays(30);
+
+        $rows = AnalyticsEvent::query()
+            ->where('seller_id', $seller->getKey())
+            ->where('occurred_at', '>=', $since)
+            ->selectRaw('type, count(distinct session_id) as sessions')
+            ->groupBy('type')->pluck('sessions', 'type');
+
+        $visitors = (int) ($rows[AnalyticsService::PAGE_VIEW] ?? 0);
+        $checkouts = (int) ($rows[AnalyticsService::CHECKOUT_START] ?? 0);
+        $purchases = (int) ($rows[AnalyticsService::PURCHASE] ?? 0);
+        $conversion = $visitors > 0 ? round($purchases / $visitors * 100, 1) : 0.0;
+        $pct = fn (int $n) => $visitors > 0 ? (int) round($n / $visitors * 100) : 0;
+
+        $paid = $seller->orders()->with('asset')
+            ->whereNotIn('status', [OrderStatus::Pending->value, OrderStatus::Cancelled->value])
+            ->where('created_at', '>=', $since)->get();
+        $asset = $seller->settlementAsset ?? $paid->first()?->asset;
+        $revenue30 = (int) $paid->sum(fn ($o) => (int) $o->seller_net_amount);
+        $orders30 = $paid->count();
+        $aov = $orders30 > 0 ? intdiv($revenue30, $orders30) : 0;
+        $fmt = fn (int $base) => $asset ? $asset->money((string) $base)->format(2) : number_format($base / 100, 2);
+
+        // Best sellers by units sold across all paid orders.
+        $topProducts = OrderItem::query()
+            ->join('sell_orders', 'sell_orders.id', '=', 'sell_order_items.order_id')
+            ->where('sell_orders.seller_id', $seller->id)
+            ->whereNotIn('sell_orders.status', [OrderStatus::Pending->value, OrderStatus::Cancelled->value])
+            ->selectRaw('name_snapshot, sum(quantity) as units, sum(sell_order_items.seller_net_amount) as net')
+            ->groupBy('name_snapshot')
+            ->orderByDesc('units')
+            ->limit(5)->get()
+            ->map(fn ($r) => ['name' => $r->name_snapshot ?? '—', 'units' => (int) $r->units, 'net' => $fmt((int) $r->net)])
+            ->all();
+
+        return [
+            'funnel' => [
+                [__('Visitors'), $visitors, 100],
+                [__('Checkout'), $checkouts, $pct($checkouts)],
+                [__('Purchased'), $purchases, $pct($purchases)],
+            ],
+            'visitors' => $visitors,
+            'conversion' => $conversion,
+            'revenue30' => $fmt($revenue30),
+            'orders30' => $orders30,
+            'aov' => $fmt($aov),
+            'topProducts' => $topProducts,
+        ];
     }
 
     /** Upload / replace the store logo (shown in the public storefront header). */
@@ -105,7 +210,7 @@ class SellerController extends Controller
 
         // Replace any previous file.
         if ($seller->logo_path) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($seller->logo_path);
+            Storage::disk('public')->delete($seller->logo_path);
         }
 
         $path = $request->file('logo')->store('sell/logos', 'public');
@@ -119,7 +224,7 @@ class SellerController extends Controller
     {
         $seller = $sellers->forUser($request->user());
         if ($seller?->logo_path) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($seller->logo_path);
+            Storage::disk('public')->delete($seller->logo_path);
             $seller->update(['logo_path' => null]);
         }
 
@@ -145,13 +250,16 @@ class SellerController extends Controller
 
         $settled = [OrderStatus::Delivered->value, OrderStatus::Completed->value];
         $sum = fn ($rows) => array_sum($rows->pluck('seller_net_amount')->map(fn ($v) => (int) $v)->all());
+        // status is an enum cast, so compare on ->value (whereIn against strings
+        // would compare enum objects and never match).
+        $isSettled = fn ($o) => in_array($o->status->value, $settled, true);
 
         $fmt = fn (int $base) => $asset ? $asset->money((string) $base)->format(2) : number_format($base / 100, 2);
 
         return [[
             'revenue' => $fmt($sum($paid)),
-            'available' => $fmt($sum($paid->whereIn('status', $settled))),
-            'pending' => $fmt($sum($paid->whereNotIn('status', $settled))),
+            'available' => $fmt($sum($paid->filter($isSettled))),
+            'pending' => $fmt($sum($paid->reject($isSettled))),
             'sales' => $paid->count(),
         ], $paid->count()];
     }
@@ -295,6 +403,11 @@ class SellerController extends Controller
                     array_filter($order->status->allowedNext(), fn (OrderStatus $s) => in_array($s->value, ['processing', 'shipped', 'delivered', 'completed'], true)),
                 )),
                 'carriers' => ['Sundarban', 'Pathao', 'RedX', 'Steadfast', 'DHL', 'Other'],
+                // Money can be reversed to the buyer while the order is paid & not final.
+                'refundable' => $order->status->canTransitionTo(OrderStatus::Refunded),
+                'refundedAt' => $order->refunded_at?->format('M j, Y'),
+                'refundTotal' => $fmt((int) $order->seller_net_amount + (int) $order->commission_amount),
+                'openRefund' => $this->openRefundFor($order, $fmt),
                 'events' => $order->events->sortBy('created_at')->map(fn ($e) => [
                     'label' => ucwords(str_replace('_', ' ', $e->type)),
                     'at' => $e->created_at->format('M j · g:i A'),
@@ -366,6 +479,80 @@ class SellerController extends Controller
             ->with('success', __('Order updated.'));
     }
 
+    /** Refund an order — returns the money to the buyer and reverses the earnings. */
+    public function refundOrder(Request $request, SellerService $sellers, RefundOrder $action, string $id): RedirectResponse
+    {
+        $order = $this->ownedOrder($sellers, $request, $id);
+        if (! $order instanceof Order) {
+            return $order;
+        }
+
+        $validated = $request->validate(['reason' => ['nullable', 'string', 'max:300']]);
+
+        try {
+            $action->full($order, $request->user(), $validated['reason'] ?? '');
+        } catch (SellException $e) {
+            return back()->withErrors(['refund' => $e->getMessage()]);
+        }
+
+        return redirect()->route('sell.order', ['id' => $order->id])
+            ->with('success', __('Order refunded — the buyer has been repaid.'));
+    }
+
+    /**
+     * The open (buyer-raised) refund request on this order, for the seller to action.
+     *
+     * @param  callable(int|string): string  $fmt
+     * @return array<string, mixed>|null
+     */
+    private function openRefundFor(Order $order, callable $fmt): ?array
+    {
+        $req = RefundRequest::where('order_id', $order->id)
+            ->whereIn('status', ['requested', 'escalated'])->latest()->first();
+
+        return $req ? [
+            'id' => $req->id,
+            'status' => $req->status->label(),
+            'statusColor' => $req->status->color(),
+            'type' => $req->type,
+            'amount' => $fmt($req->amount_requested),
+            'reason' => $req->reason,
+            'escalated' => $req->status->value === 'escalated',
+        ] : null;
+    }
+
+    /** Seller approves a buyer's refund request (posts the refund). */
+    public function approveRefundRequest(Request $request, SellerService $sellers, ResolveRefundRequest $action, string $id, string $refundRequest): RedirectResponse
+    {
+        return $this->resolveRefundRequest($request, $sellers, $action, $id, $refundRequest, approve: true);
+    }
+
+    /** Seller rejects a buyer's refund request. */
+    public function rejectRefundRequest(Request $request, SellerService $sellers, ResolveRefundRequest $action, string $id, string $refundRequest): RedirectResponse
+    {
+        return $this->resolveRefundRequest($request, $sellers, $action, $id, $refundRequest, approve: false);
+    }
+
+    private function resolveRefundRequest(Request $request, SellerService $sellers, ResolveRefundRequest $action, string $id, string $refundRequest, bool $approve): RedirectResponse
+    {
+        $order = $this->ownedOrder($sellers, $request, $id);
+        if (! $order instanceof Order) {
+            return $order;
+        }
+
+        $req = RefundRequest::where('order_id', $order->id)->findOrFail($refundRequest);
+        $note = $request->validate(['note' => ['nullable', 'string', 'max:1000']])['note'] ?? null;
+
+        try {
+            $approve ? $action->approve($req, $request->user(), $note) : $action->reject($req, $request->user(), $note);
+        } catch (SellException $e) {
+            return back()->withErrors(['refund' => $e->getMessage()]);
+        }
+
+        return redirect()->route('sell.order', ['id' => $order->id])
+            ->with('success', $approve ? __('Refund approved — the buyer has been repaid.') : __('Refund request declined.'));
+    }
+
     /** Resolve an order the current seller owns, or a redirect away. */
     private function ownedOrder(SellerService $sellers, Request $request, string $id): Order|RedirectResponse
     {
@@ -394,9 +581,9 @@ class SellerController extends Controller
                         'id' => $o->id,
                         'number' => $o->number,
                         'buyer' => $name,
-                        'initials' => \Illuminate\Support\Str::of($name)->explode(' ')->take(2)->map(fn ($w) => \Illuminate\Support\Str::substr($w, 0, 1))->implode(''),
+                        'initials' => Str::of($name)->explode(' ')->take(2)->map(fn ($w) => Str::substr($w, 0, 1))->implode(''),
                         'product' => $o->items->first()?->name_snapshot ?? '—',
-                        'preview' => \Illuminate\Support\Str::limit($last?->body ?? '', 80),
+                        'preview' => Str::limit($last?->body ?? '', 80),
                         'time' => $o->last_message_at?->diffForHumans(short: true) ?? '',
                         'unread' => (bool) $o->seller_unread,
                     ];
@@ -495,7 +682,7 @@ class SellerController extends Controller
                 return [
                     'id' => $c->id,
                     'code' => $c->code,
-                    'type' => $c->type === \App\Sell\Enums\CouponType::Percent
+                    'type' => $c->type === CouponType::Percent
                         ? number_format($c->value / 100, ($c->value % 100 ? 1 : 0)).'% off'
                         : ($c->product?->priceAsset?->money((string) $c->value)->format(2) ?? $c->value).' off',
                     'scope' => $c->product?->name ?? __('All products'),
@@ -597,7 +784,7 @@ class SellerController extends Controller
 
         if ($seller) {
             // Distinct sessions per funnel stage (a visitor counts once).
-            $rows = \App\Sell\Models\AnalyticsEvent::query()
+            $rows = AnalyticsEvent::query()
                 ->where('seller_id', $seller->getKey())
                 ->where('occurred_at', '>=', $since)
                 ->selectRaw('type, count(distinct session_id) as sessions')
@@ -617,7 +804,7 @@ class SellerController extends Controller
             $revenue = (int) $paid->sum(fn ($o) => (int) $o->seller_net_amount);
             $ordersCount = $paid->count();
 
-            $sources = \App\Sell\Models\AnalyticsEvent::query()
+            $sources = AnalyticsEvent::query()
                 ->where('seller_id', $seller->getKey())
                 ->where('type', AnalyticsService::PAGE_VIEW)
                 ->where('occurred_at', '>=', $since)
@@ -655,7 +842,7 @@ class SellerController extends Controller
     }
 
     /** Bucket a page-view event into a human traffic source. */
-    private function trafficSource(\App\Sell\Models\AnalyticsEvent $e): string
+    private function trafficSource(AnalyticsEvent $e): string
     {
         if (! empty($e->utm['source'])) {
             return ucfirst((string) $e->utm['source']);
@@ -664,6 +851,7 @@ class SellerController extends Controller
             return 'Direct / link';
         }
         $host = strtolower((string) parse_url($e->referrer, PHP_URL_HOST));
+
         return match (true) {
             str_contains($host, 'facebook'), str_contains($host, 'fb.') => 'Facebook',
             str_contains($host, 'google') => 'Google',
@@ -675,16 +863,72 @@ class SellerController extends Controller
         };
     }
 
-    public function earnings(Request $request): View
+    public function earnings(Request $request, SellerService $sellers): View|RedirectResponse
     {
+        $seller = $sellers->forUser($request->user());
+        if (! $seller || ! $seller->canSell()) {
+            return redirect()->route('sell');
+        }
+
+        [$balances, $recent] = $this->sellerEarnings($seller);
+
         return view('frontend.seller.earnings', [
-            'balances' => ['available' => '$1,842.50', 'pending' => '$430.00', 'withdrawn' => '$14,120.00', 'revenue' => '$16,392.50'],
-            'payouts' => [
-                ['amount' => '$1,200.00', 'method' => 'Bank transfer', 'status' => 'Paid', 'color' => 'success', 'date' => 'Jul 15, 2026'],
-                ['amount' => '$900.00', 'method' => 'USDT wallet', 'status' => 'Paid', 'color' => 'success', 'date' => 'Jun 30, 2026'],
-                ['amount' => '$430.00', 'method' => 'Bank transfer', 'status' => 'Processing', 'color' => 'warning', 'date' => 'Jul 25, 2026'],
-            ],
+            'balances' => $balances,
+            'recent' => $recent,
+            'assetCode' => ($seller->settlementAsset ?? $seller->orders()->first()?->asset)?->symbol,
+            'withdrawUrl' => route('withdraw.index'),
         ]);
+    }
+
+    /**
+     * Real seller earnings, computed from their orders. Net (price minus platform
+     * commission) is credited to the seller's PoisaPay wallet at purchase; here we
+     * split the lifetime total into what has cleared the refund window (Available)
+     * vs. what is still inside it (Pending), and build a recent-earnings feed.
+     *
+     * @return array{0: array<string, mixed>, 1: list<array<string, mixed>>}
+     */
+    private function sellerEarnings(Seller $seller): array
+    {
+        $asset = $seller->settlementAsset
+            ?? Asset::where('is_active', true)->where('decimals', '<=', 8)->orderBy('id')->first();
+
+        // Earning orders — everything paid that isn't cancelled or fully refunded.
+        $orders = $seller->orders()
+            ->when($asset, fn ($q) => $q->where('asset_id', $asset->id))
+            ->whereNotIn('status', [OrderStatus::Pending->value, OrderStatus::Cancelled->value, OrderStatus::Refunded->value])
+            ->with(['items' => fn ($q) => $q->where('kind', OrderItemKind::Main->value)])
+            ->latest('paid_at')
+            ->get(['id', 'number', 'status', 'seller_net_amount', 'asset_id', 'earnings_held', 'earnings_released_at', 'paid_at', 'created_at']);
+
+        $fmt = fn (int $base) => $asset ? $asset->money((string) $base)->format(2) : number_format($base / 100, 2);
+
+        // Available = spendable now (released, or credited instantly while the hold
+        // flag is off). Pending = still held during the buyer's refund window.
+        $isHeld = fn (Order $o) => $o->earnings_held && $o->earnings_released_at === null;
+        $sum = fn ($rows) => (int) $rows->sum(fn (Order $o) => (int) $o->seller_net_amount);
+
+        $pending = $sum($orders->filter($isHeld));
+        $available = $sum($orders->reject($isHeld));
+
+        $balances = [
+            'available' => $fmt($available),
+            'pending' => $fmt($pending),
+            'revenue' => $fmt($available + $pending),
+            'sales' => $orders->count(),
+        ];
+
+        $recent = $orders->take(10)->map(fn (Order $o) => [
+            'number' => $o->number,
+            'product' => $o->items->first()?->name_snapshot ?? __('Order'),
+            'amount' => $fmt((int) $o->seller_net_amount),
+            'status' => $isHeld($o) ? __('On hold') : __('Available'),
+            'color' => $isHeld($o) ? 'warning' : 'success',
+            'cleared' => ! $isHeld($o),
+            'date' => optional($o->paid_at ?? $o->created_at)->format('M j, Y'),
+        ])->values()->all();
+
+        return [$balances, $recent];
     }
 
     /**
@@ -1195,7 +1439,6 @@ class SellerController extends Controller
             'sku' => ['nullable', 'string', 'max:64'],
             'shipping_fee' => ['nullable', 'numeric', 'min:0'],
             'stock' => ['nullable', 'integer', 'min:0'],
-            'cod' => ['nullable', 'boolean'],
             // Physical variant matrix (Size/Color → per-variant price & stock)
             'variants' => ['nullable', 'array'],
             'variants.*.id' => ['nullable', 'string'],
@@ -1269,7 +1512,7 @@ class SellerController extends Controller
             throw ValidationException::withMessages(['price_asset_id' => __('Products can only be priced in fiat or stablecoins.')]);
         }
         $base = Money::ofDecimal($validated['price'], $asset->decimals, $asset->symbol)->baseString();
-        if (\Brick\Math\BigInteger::of($base)->isGreaterThan(PHP_INT_MAX)) {
+        if (BigInteger::of($base)->isGreaterThan(PHP_INT_MAX)) {
             throw ValidationException::withMessages(['price' => __('That price is too large.')]);
         }
 
@@ -1282,7 +1525,6 @@ class SellerController extends Controller
                 'sku' => $validated['sku'] ?? null,
                 'shipping_fee' => $validated['shipping_fee'] ?? null,
                 'stock' => $validated['stock'] ?? null,
-                'cod' => $request->boolean('cod') ?: null,
             ], fn ($v) => $v !== null);
 
             // Variant matrix: each row's decimal price → the asset's minor units.
@@ -1362,9 +1604,9 @@ class SellerController extends Controller
      * price and their minor-unit amounts overflow the int64 price column.
      * One asset per currency (the canonical/lowest id).
      *
-     * @return \Illuminate\Support\Collection<int, array{id:int,symbol:string,name:string}>
+     * @return Collection<int, array{id:int,symbol:string,name:string}>
      */
-    private function pricingAssets(): \Illuminate\Support\Collection
+    private function pricingAssets(): Collection
     {
         return Asset::where('is_active', true)
             ->where('decimals', '<=', 8)

@@ -20,6 +20,7 @@
         "alpinejs": "^3.15.12",
         "chart.js": "^4.5.1",
         "laravel-echo": "^2.4.0",
-        "pusher-js": "^8.5.0"
+        "pusher-js": "^8.5.0",
+        "sortablejs": "^1.15.7"
     }
 }

@@ -34,6 +34,9 @@ return [
         // Merchants
         'view-merchants', 'manage-merchants',
 
+        // Sellers (Sell marketplace)
+        'view-sellers', 'manage-sellers',
+
         // P2P
         'view-p2p', 'manage-p2p',
 
@@ -68,6 +71,7 @@ return [
         'Exchange' => ['exchange'],
         'Cards' => ['card'],
         'Merchants' => ['merchant'],
+        'Sellers' => ['seller'],
         'P2P' => ['p2p'],
         'Rewards' => ['reward'],
         'Support' => ['support'],
@@ -87,6 +91,7 @@ return [
             'view-dashboard', 'view-users', 'manage-users', 'freeze-users', 'review-kyc', 'approve-kyc',
             'view-deposits', 'approve-deposits', 'view-withdrawals', 'approve-withdrawals', 'view-transfers', 'view-ledger',
             'view-treasury', 'manage-assets', 'manage-cards', 'manage-card-providers', 'manage-card-disputes', 'view-merchants',
+            'view-sellers', 'manage-sellers',
             'view-p2p', 'manage-p2p',
             'view-rewards', 'view-reports', 'export-reports', 'manage-pages', 'manage-faqs',
             'manage-announcements', 'manage-settings', 'manage-feature-flags', 'view-activity-logs',

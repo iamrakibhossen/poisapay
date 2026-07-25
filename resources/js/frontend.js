@@ -4,6 +4,7 @@ import './chart';
 
 import Alpine from 'alpinejs';
 import persist from '@alpinejs/persist';
+import pageBuilder from './builder/index';
 
 /*
  * Entry for the authenticated user frontend (traditional server-rendered Blade).
@@ -12,6 +13,9 @@ import persist from '@alpinejs/persist';
  * from controllers and all mutations are plain form POSTs; there is no JSON API.
  */
 Alpine.plugin(persist);
+
+// Visual sales-page builder (seller area). Mounted with x-data="pageBuilder(cfg)".
+Alpine.data('pageBuilder', pageBuilder);
 
 /*
  * P2P order chat (Phase 2). Live delivery over the private `p2p.order.{id}`

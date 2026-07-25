@@ -31,6 +31,7 @@ class Order extends Model
         'coupon_id', 'status', 'subtotal_amount', 'discount_amount', 'tax_amount',
         'shipping_amount', 'total_amount', 'commission_amount', 'seller_net_amount',
         'asset_id', 'payment_method', 'ledger_entry_id', 'refund_window_ends_at',
+        'earnings_held', 'earnings_released_at', 'refunded_at', 'refunded_amount',
         'shipping_address', 'utm', 'idempotency_key', 'paid_at',
         'last_message_at', 'seller_unread', 'buyer_unread',
     ];
@@ -43,6 +44,9 @@ class Order extends Model
             'utm' => 'array',
             'paid_at' => 'datetime',
             'refund_window_ends_at' => 'datetime',
+            'earnings_held' => 'boolean',
+            'earnings_released_at' => 'datetime',
+            'refunded_at' => 'datetime',
             'last_message_at' => 'datetime',
             'seller_unread' => 'boolean',
             'buyer_unread' => 'boolean',

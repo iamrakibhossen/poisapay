@@ -131,11 +131,6 @@
                         <x-ui.input :label="__('SKU')" name="sku" placeholder="TEE-BLK-M" :value="old('sku', $attrs['sku'] ?? '')" />
                         <x-ui.input :label="__('Shipping fee')" name="shipping_fee" prefix="$" type="number" step="0.01" placeholder="5.00" :value="old('shipping_fee', $attrs['shipping_fee'] ?? '')" />
                     </div>
-                    <label class="flex items-center gap-2 text-sm text-neutral-600">
-                        <input type="checkbox" name="cod" value="1" @checked(old('cod', $attrs['cod'] ?? false)) class="h-4 w-4 rounded border-neutral-300 text-brand-600" />
-                        {{ __('Allow cash on delivery') }}
-                    </label>
-
                     {{-- Variations --}}
                     <div class="rounded-xl border border-neutral-200 p-4">
                         <label class="flex items-center justify-between gap-3">

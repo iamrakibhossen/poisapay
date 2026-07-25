@@ -20,7 +20,7 @@ final class RenderContext
      * @param  array<string, mixed>  $product
      * @param  array<string, mixed>  $seller
      * @param  array<string, mixed>  $offers
-     * @param  array<string, mixed>  $globals   resolved design tokens (colors/typography/buttons/…)
+     * @param  array<string, mixed>  $globals  resolved design tokens (colors/typography/buttons/…)
      */
     public function __construct(
         public readonly string $slug,

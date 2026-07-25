@@ -461,24 +461,19 @@ class PublicSalesController extends Controller
         $seller = $page->seller;
         $asset = $product->priceAsset;
 
-        $theme = $page->theme ?? [];
-        $sections = collect($page->sections ?? [])
-            ->filter(fn ($s) => (bool) ($s['enabled'] ?? true))
-            ->map(fn ($s) => ['type' => $s['type'], 'content' => $s['content'] ?? null])
-            ->values()
-            ->all();
+        // Render the published block-tree document with the one shared renderer —
+        // byte-identical to the editor's iframe preview.
+        $document = $page->publishedDocument();
+        $context = \App\Sell\Builder\RenderContext::fromSalesPage($page, $document->globals());
+        $rendered = app(\App\Sell\Builder\Renderer::class)->render($document, $context);
 
         $sellerName = $seller->displayName();
 
         return [
             'slug' => $page->slug,
             'name' => $page->name,
-            'theme' => [
-                'accent' => $theme['accent'] ?? '#2563eb',
-                'btn' => $theme['btn'] ?? 'rounded',
-                'font' => $theme['font'] ?? 'Inter',
-            ],
-            'sections' => $sections,
+            'bodyHtml' => $rendered['html'],
+            'headCss' => $rendered['css'],
             'product' => [
                 'name' => $product->name,
                 'summary' => $product->summary,
@@ -580,8 +575,9 @@ class PublicSalesController extends Controller
 
         $schemas = [$productSchema];
 
-        // FAQPage from the first enabled FAQ section with q/a pairs.
-        $faq = collect($page->sections ?? [])->firstWhere('type', 'faq')['content'] ?? [];
+        // FAQPage from the first FAQ block with q/a pairs (walks the block tree).
+        $faqNode = collect($page->publishedDocument()->root()->flatten())->firstWhere('type', 'faq');
+        $faq = $faqNode?->prop('items', []) ?? [];
         $questions = collect($faq)
             ->filter(fn ($q) => is_array($q) && ! empty($q['q']) && ! empty($q['a']))
             ->map(fn ($q) => [

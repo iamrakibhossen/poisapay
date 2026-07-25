@@ -144,6 +144,20 @@ class SettingController extends Controller
                 ],
                 'booleans' => ['merchant_enabled', 'merchant_auto_approve', 'merchant_allow_refunds'],
             ],
+            'sell' => [
+                'group' => 'sell',
+                'rules' => [
+                    'sell_enabled' => 'boolean',
+                    'sell_commission_bps_free' => 'required|integer|min:0|max:10000',
+                    'sell_commission_bps_pro' => 'required|integer|min:0|max:10000',
+                    'sell_commission_bps_business' => 'required|integer|min:0|max:10000',
+                    'sell_refund_window_days' => 'required|integer|min:0|max:365',
+                    'sell_earnings_hold' => 'boolean',
+                    'sell_download_limit' => 'required|integer|min:1|max:100',
+                    'sell_download_ttl_days' => 'required|integer|min:1|max:365',
+                ],
+                'booleans' => ['sell_enabled', 'sell_earnings_hold'],
+            ],
             'p2p' => [
                 'group' => 'p2p',
                 'rules' => [

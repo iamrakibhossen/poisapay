@@ -8,7 +8,7 @@ use App\Sell\Models\Product;
 use App\Sell\Models\SalesPage;
 use App\Sell\Models\Seller;
 
-it('renders the improved sales-page editor', function () {
+it('renders the block-tree builder and migrates a legacy page', function () {
     updateSetting('sell_enabled', true);
     $asset = testAsset('USDT', 6, 'tron');
     $u = User::factory()->create();
@@ -28,7 +28,7 @@ it('renders the improved sales-page editor', function () {
 
     $this->actingAs($u)->get(route('sell.sales-page.edit', ['slug' => 'rakib-hossen-2']))
         ->assertOk()
-        ->assertSee('Add section')
-        ->assertSee('How it works')   // new section available in catalog
-        ->assertSee('Old question one?'); // old faq normalized + still present
+        ->assertSee('Layers')            // new 3-pane builder chrome
+        ->assertSee('How it works')      // a block label in the palette (steps block)
+        ->assertSee('Old question one?'); // legacy faq migrated into the embedded document
 });

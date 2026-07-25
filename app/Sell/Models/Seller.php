@@ -25,6 +25,9 @@ class Seller extends Model
 
     protected $table = 'sell_sellers';
 
+    /** Seller plan tiers — each carries an admin-configurable commission rate. */
+    public const PLANS = ['free', 'pro', 'business'];
+
     protected $fillable = [
         'user_id', 'brand_name', 'logo_path', 'bio', 'website', 'country',
         'categories', 'status', 'commission_bps', 'settlement_asset_id',
@@ -82,10 +85,21 @@ class Seller extends Model
         return $this->hasMany(Coupon::class);
     }
 
-    /** Effective commission in bps — own override, else the platform default. */
+    /**
+     * Effective commission in bps: an explicit per-seller override wins; otherwise
+     * the admin-configured rate for this seller's plan, falling back to the legacy
+     * platform default. All rates are admin-controllable under Settings › Sell.
+     */
     public function commissionBps(): int
     {
-        return $this->commission_bps ?? (int) getSetting('sell_commission_bps', 1000);
+        if ($this->commission_bps !== null) {
+            return (int) $this->commission_bps;
+        }
+
+        $plan = in_array($this->plan, self::PLANS, true) ? $this->plan : 'free';
+        $default = (int) getSetting('sell_commission_bps', 1000);
+
+        return (int) getSetting("sell_commission_bps_{$plan}", $default);
     }
 
     public function canSell(): bool

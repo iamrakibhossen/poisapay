@@ -14,12 +14,20 @@
                 <p class="mx-auto mt-4 max-w-md text-lg text-slate-600 lg:mx-0">{{ $product['lead'] }}</p>
 
                 <div class="mt-8 flex flex-col items-center gap-3 sm:flex-row lg:justify-start justify-center">
-                    @auth
-                        <a href="{{ route('dashboard') }}" class="pp-btn pp-btn-primary pp-btn-lg">{{ __('Go to dashboard') }}</a>
+                    @if (! empty($product['cta']))
+                        {{-- Product-specific primary CTA (e.g. "Start selling"). --}}
+                        <a href="{{ route($product['cta']['route']) }}" class="pp-btn pp-btn-primary pp-btn-lg">{{ __($product['cta']['label']) }}</a>
+                        @guest
+                            <a href="{{ route('login') }}" class="pp-btn pp-btn-ghost pp-btn-lg">{{ __('Log in') }}</a>
+                        @endguest
                     @else
-                        <a href="{{ route('register') }}" class="pp-btn pp-btn-primary pp-btn-lg">{{ __('Get started free') }}</a>
-                        <a href="{{ route('login') }}" class="pp-btn pp-btn-ghost pp-btn-lg">{{ __('Log in') }}</a>
-                    @endauth
+                        @auth
+                            <a href="{{ route('dashboard') }}" class="pp-btn pp-btn-primary pp-btn-lg">{{ __('Go to dashboard') }}</a>
+                        @else
+                            <a href="{{ route('register') }}" class="pp-btn pp-btn-primary pp-btn-lg">{{ __('Get started free') }}</a>
+                            <a href="{{ route('login') }}" class="pp-btn pp-btn-ghost pp-btn-lg">{{ __('Log in') }}</a>
+                        @endauth
+                    @endif
                 </div>
 
                 <p class="mt-5 inline-flex items-center gap-1.5 text-xs font-medium text-slate-400">
@@ -115,6 +123,36 @@
                                     </div>
                                 </div>
                                 <p class="mt-3 text-center text-xs text-slate-400">{{ __('Rate 1 ETH ≈ :rate :currency · spread shown up front', ['rate' => number_format($cvRate, 2), 'currency' => $cvBase]) }}</p>
+                            </div>
+                            @break
+
+                        @case('sell')
+                            {{-- Sales-page / checkout mockup --}}
+                            <div class="glass-card p-6">
+                                <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                                    <div class="flex items-center gap-3">
+                                        <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-white" style="background:linear-gradient(135deg,var(--brand),var(--brand-600))">
+                                            <x-heroicon-o-cube class="h-5 w-5" />
+                                        </span>
+                                        <div class="min-w-0">
+                                            <p class="truncate text-sm font-bold text-slate-900">{{ __('Pro Toolkit') }}</p>
+                                            <p class="text-[11px] uppercase tracking-wide text-slate-400">{{ __('Digital download') }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="mt-4 flex items-baseline gap-2">
+                                        <span class="text-2xl font-bold text-slate-900">$49</span>
+                                        <span class="text-sm text-slate-400 line-through">$99</span>
+                                    </div>
+                                    <button type="button" class="mt-4 w-full rounded-xl py-3 text-sm font-semibold text-white shadow-sm" style="background:var(--brand)">{{ __('Buy now') }}</button>
+                                    <div class="mt-3 flex items-center gap-2 rounded-xl border-2 border-dashed p-3 text-xs" style="border-color:color-mix(in srgb,var(--brand) 40%,transparent);background:color-mix(in srgb,var(--brand) 5%,transparent)">
+                                        <span class="grid h-5 w-5 shrink-0 place-items-center rounded-md text-white" style="background:var(--brand)"><x-heroicon-s-plus class="h-3.5 w-3.5" /></span>
+                                        <span class="font-medium text-slate-700">{{ __('Add the bonus pack') }}</span>
+                                        <span class="ml-auto font-semibold" style="color:var(--brand)">+$19</span>
+                                    </div>
+                                </div>
+                                <p class="mt-4 inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-400">
+                                    <x-heroicon-o-bolt class="h-3.5 w-3.5" style="color:var(--brand)" /> {{ __('Wallet · card · crypto checkout') }}
+                                </p>
                             </div>
                             @break
 
