@@ -763,6 +763,10 @@ class SellerController extends Controller
         // The seller's products: names for the switcher, facts for live copy resync.
         $sellerProducts = Product::where('seller_id', $page->seller_id)->with('priceAsset')->orderBy('name')->get();
 
+        // Offer prices shown to the seller in decimal (their pricing currency).
+        $asset = $page->product?->priceAsset;
+        $toDec = fn (?int $minor) => $minor === null ? '' : rtrim(rtrim(number_format($minor / (10 ** ($asset?->decimals ?? 2)), $asset?->decimals ?? 2, '.', ''), '0'), '.');
+
         return view('frontend.seller.sales-pages', [
             'page' => $page,
             'slug' => $page->slug,
@@ -773,6 +777,17 @@ class SellerController extends Controller
             'published' => $page->status === SalesPageStatus::Published,
             'seed' => $this->builderSeed($page, $info),
             'themes' => ['#2563eb' => 'Blue', '#7c3aed' => 'Violet', '#059669' => 'Emerald', '#e11d48' => 'Rose', '#ea580c' => 'Orange', '#0f172a' => 'Slate'],
+            'offers' => [
+                'bump_product_id' => $page->bump_product_id,
+                'bump_price' => $toDec($page->bump_price_amount),
+                'bump_headline' => $page->bump_headline,
+                'bump_description' => $page->bump_description,
+                'upsell_product_id' => $page->upsell_product_id,
+                'upsell_price' => $toDec($page->upsell_price_amount),
+                'upsell_headline' => $page->upsell_headline,
+                'upsell_description' => $page->upsell_description,
+            ],
+            'currencySymbol' => $asset?->symbol ?? '',
         ]);
     }
 
@@ -821,9 +836,59 @@ class SellerController extends Controller
         }
 
         $action->execute($page, $this->salesPageDataFromRequest($request, $page));
+        $this->applyOffers($page->fresh(), $request);
 
         return redirect()->route('sell.sales-page.edit', ['slug' => $page->slug])
             ->with('success', __('Changes saved.'));
+    }
+
+    /**
+     * Persist the page's order-bump + upsell offers. Prices are entered in the
+     * main product's currency (decimal) and stored as minor units. Offer products
+     * must belong to the seller and share the main product's currency.
+     */
+    private function applyOffers(SalesPage $page, Request $request): void
+    {
+        $validated = $request->validate([
+            'bump_product_id' => ['nullable', 'string'],
+            'bump_price' => ['nullable', 'numeric', 'min:0'],
+            'bump_headline' => ['nullable', 'string', 'max:160'],
+            'bump_description' => ['nullable', 'string', 'max:400'],
+            'upsell_product_id' => ['nullable', 'string'],
+            'upsell_price' => ['nullable', 'numeric', 'min:0'],
+            'upsell_headline' => ['nullable', 'string', 'max:160'],
+            'upsell_description' => ['nullable', 'string', 'max:400'],
+        ]);
+
+        $asset = $page->product?->priceAsset;
+        $decimals = $asset?->decimals ?? 2;
+        $toMinor = fn ($v) => ($v === null || $v === '') ? null
+            : (int) Money::ofDecimal((string) $v, $decimals, $asset?->symbol ?? '')->baseString();
+
+        // A picked product only counts if the seller owns it and it's same-currency.
+        $resolve = function (?string $id) use ($page, $asset): ?string {
+            if (! $id) {
+                return null;
+            }
+            $p = Product::where('seller_id', $page->seller_id)->whereKey($id)->first();
+
+            return ($p && (int) $p->price_asset_id === (int) $asset?->id && $p->getKey() !== $page->product_id)
+                ? $p->getKey() : null;
+        };
+
+        $bumpId = $resolve($validated['bump_product_id'] ?? null);
+        $upsellId = $resolve($validated['upsell_product_id'] ?? null);
+
+        $page->update([
+            'bump_product_id' => $bumpId,
+            'bump_price_amount' => $bumpId ? $toMinor($validated['bump_price'] ?? null) : null,
+            'bump_headline' => $bumpId ? ($validated['bump_headline'] ?? null) : null,
+            'bump_description' => $bumpId ? ($validated['bump_description'] ?? null) : null,
+            'upsell_product_id' => $upsellId,
+            'upsell_price_amount' => $upsellId ? $toMinor($validated['upsell_price'] ?? null) : null,
+            'upsell_headline' => $upsellId ? ($validated['upsell_headline'] ?? null) : null,
+            'upsell_description' => $upsellId ? ($validated['upsell_description'] ?? null) : null,
+        ]);
     }
 
     /**
@@ -845,6 +910,7 @@ class SellerController extends Controller
 
         // Persist current builder edits alongside the publish toggle.
         $update->execute($page, $this->salesPageDataFromRequest($request, $page));
+        $this->applyOffers($page->fresh(), $request);
 
         $goLive = $page->status !== SalesPageStatus::Published;
 

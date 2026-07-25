@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace App\Sell\DTOs;
 
+use App\Sell\Enums\OrderItemKind;
+
 /** Validated checkout intent. `idempotencyKey` makes a re-submit a no-op. */
 final readonly class CheckoutData
 {
     /**
      * @param  array<string, mixed>|null  $shippingAddress  buyer delivery details (physical only)
+     * @param  bool  $bump  accept the sales page's configured order bump (a second line)
+     * @param  int|null  $overrideAmount  replace the main unit price (a 1-click upsell at a special price)
+     * @param  string|null  $parentOrderId  the order a 1-click upsell followed (attribution)
      */
     public function __construct(
         public string $productId,
@@ -19,6 +24,10 @@ final readonly class CheckoutData
         public string $idempotencyKey,
         public ?string $couponCode = null,
         public ?array $shippingAddress = null,
+        public bool $bump = false,
+        public OrderItemKind $kind = OrderItemKind::Main,
+        public ?int $overrideAmount = null,
+        public ?string $parentOrderId = null,
     ) {}
 
     /**
@@ -39,6 +48,10 @@ final readonly class CheckoutData
             shippingAddress: ! empty($input['shipping_address']) && is_array($input['shipping_address'])
                 ? $input['shipping_address']
                 : null,
+            bump: (bool) ($input['bump'] ?? false),
+            kind: $input['kind'] ?? OrderItemKind::Main,
+            overrideAmount: isset($input['override_amount']) ? (int) $input['override_amount'] : null,
+            parentOrderId: $input['parent_order_id'] ?? null,
         );
     }
 }

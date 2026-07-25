@@ -270,6 +270,23 @@ class PublicSalesController extends Controller
         $total = $asset->money((string) $totalAmount);
         $balance = $this->ledger->availableBalance($request->user(), (int) $product->price_asset_id);
 
+        // Order bump — an optional add-on the buyer can accept at checkout.
+        $bump = null;
+        $bp = $page->bumpProduct;
+        if ($bp && (int) $bp->price_asset_id === (int) $product->price_asset_id
+            && $bp->getKey() !== $product->getKey() && $bp->status->isBuyable()) {
+            $bumpAmt = (int) $page->bumpAmount();
+            $listAmt = (int) $bp->price_amount;
+            $bump = [
+                'name' => $bp->name,
+                'headline' => $page->bump_headline ?: __('Add :name', ['name' => $bp->name]),
+                'desc' => $page->bump_description,
+                'amount' => $asset->money((string) $bumpAmt)->format(2),
+                'compare' => ($page->bump_price_amount !== null && $listAmt > $bumpAmt) ? $asset->money((string) $listAmt)->format(2) : null,
+                'amountRaw' => $bumpAmt,
+            ];
+        }
+
         // One idempotency key per buyer+page so a refresh/double-submit never double-charges.
         $sessionKey = "sell:idem:{$page->getKey()}";
         $idempotencyKey = $request->session()->get($sessionKey);
@@ -296,6 +313,12 @@ class PublicSalesController extends Controller
             'idempotencyKey' => $idempotencyKey,
             'shipping' => $shipping,
             'variation' => $variant ? implode(' · ', array_values($variant->options ?? [])) : null,
+            // Raw minor-unit amounts + asset meta for live (bump) total math in the browser.
+            'bump' => $bump,
+            'totalRaw' => $totalAmount,
+            'balanceRaw' => (int) $balance->baseString(),
+            'assetDecimals' => (int) $asset->decimals,
+            'assetSymbol' => $asset->symbol,
         ]);
     }
 
@@ -310,6 +333,7 @@ class PublicSalesController extends Controller
         $validated = $request->validate([
             'idempotency_key' => ['required', 'string', 'max:190'],
             'coupon_code' => ['nullable', 'string', 'max:40'],
+            'bump' => ['nullable', 'boolean'],
         ]);
 
         // Variant products need a variation chosen — physical picks it on the
@@ -336,6 +360,7 @@ class PublicSalesController extends Controller
                 'idempotency_key' => $validated['idempotency_key'],
                 'coupon_code' => $validated['coupon_code'] ?? null,
                 'shipping_address' => $shipping,
+                'bump' => (bool) ($validated['bump'] ?? false),
             ]));
         } catch (SellException $e) {
             return back()->withErrors(['pay' => $e->getMessage()]);
@@ -356,6 +381,7 @@ class PublicSalesController extends Controller
             $order = Order::with('items')
                 ->where('buyer_user_id', $request->user()->getKey())
                 ->find($orderId);
+            $request->session()->keep('order_id'); // survive a refresh / the upsell POST
         }
 
         return view('funnel.thank-you', [
@@ -365,7 +391,80 @@ class PublicSalesController extends Controller
             'seller' => $page->seller,
             'order' => $order,
             'total' => $order ? $page->product->priceAsset->money((string) $order->total_amount)->format(2) : null,
+            'upsell' => $order ? $this->upsellOffer($page, $order) : null,
         ]);
+    }
+
+    /**
+     * The 1-click upsell offer for a just-placed order, or null if there's no
+     * upsell, it's the same product, currency mismatches, or it was already taken.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function upsellOffer(SalesPage $page, Order $order): ?array
+    {
+        $up = $page->upsellProduct;
+        $asset = $page->product->priceAsset;
+
+        if (! $up || ! $up->status->isBuyable()
+            || (int) $up->price_asset_id !== (int) $page->product->price_asset_id
+            || $up->getKey() === $page->product_id) {
+            return null;
+        }
+        // Already upsold from this order? Don't offer again.
+        if (Order::where('parent_order_id', $order->getKey())->exists()) {
+            return null;
+        }
+
+        $amount = (int) $page->upsellAmount();
+        $list = (int) $up->price_amount;
+
+        return [
+            'headline' => $page->upsell_headline ?: __('One-time offer: add :name', ['name' => $up->name]),
+            'description' => $page->upsell_description,
+            'name' => $up->name,
+            'price' => $asset->money((string) $amount)->format(2),
+            'compare' => ($page->upsell_price_amount !== null && $list > $amount) ? $asset->money((string) $list)->format(2) : null,
+        ];
+    }
+
+    /** Accept the 1-click upsell — a new order at the page's upsell price, charged instantly. */
+    public function upsellAccept(Request $request, string $slug, PlaceOrder $placeOrder): RedirectResponse
+    {
+        if (! $request->user()) {
+            return redirect()->guest(route('login'));
+        }
+
+        $page = $this->publishedPage($slug);
+        $orderId = $request->input('order_id') ?: $request->session()->get('order_id');
+        $order = $orderId
+            ? Order::where('buyer_user_id', $request->user()->getKey())->find($orderId)
+            : null;
+
+        // Nothing to accept, or the offer no longer applies → back to thank-you.
+        if (! $order || ! $this->upsellOffer($page, $order)) {
+            return redirect()->route('funnel.thankyou', ['slug' => $slug])->with('order_id', $orderId);
+        }
+
+        try {
+            $upsellOrder = $placeOrder->execute($request->user(), CheckoutData::fromArray([
+                'product_id' => $page->upsell_product_id,
+                'quantity' => 1,
+                'sales_page_id' => $page->getKey(),
+                'parent_order_id' => $order->getKey(),
+                'kind' => \App\Sell\Enums\OrderItemKind::Upsell,
+                'override_amount' => $page->upsellAmount(),
+                'idempotency_key' => 'sell:upsell:'.$order->getKey(), // one upsell per order
+            ]));
+        } catch (SellException $e) {
+            return redirect()->route('funnel.thankyou', ['slug' => $slug])->withErrors(['upsell' => $e->getMessage()]);
+        }
+
+        $this->analytics->track($page, AnalyticsService::PURCHASE, $request, orderId: $upsellOrder->getKey());
+
+        return redirect()->route('funnel.thankyou', ['slug' => $slug])
+            ->with('order_id', $order->getKey())
+            ->with('success', __('Added to your order — enjoy!'));
     }
 
     /** Session key holding the in-progress shipping address for a page's checkout. */
@@ -388,7 +487,7 @@ class PublicSalesController extends Controller
     /** The published page for this slug, or a 404 (also 404 if its product isn't buyable). */
     private function publishedPage(string $slug): SalesPage
     {
-        $page = SalesPage::with(['product.priceAsset', 'seller.user'])
+        $page = SalesPage::with(['product.priceAsset', 'seller.user', 'bumpProduct', 'upsellProduct'])
             ->where('slug', $slug)
             ->where('status', SalesPageStatus::Published)
             ->first();

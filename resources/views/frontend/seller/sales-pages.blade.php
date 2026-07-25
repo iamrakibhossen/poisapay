@@ -181,6 +181,54 @@
                         </select>
                     </x-ui.card>
 
+                    {{-- Offers: order bump (checkout) + 1-click upsell (thank-you) --}}
+                    <x-ui.card class="mb-4" x-data="{ open: {{ ($offers['bump_product_id'] || $offers['upsell_product_id']) ? 'true' : 'false' }} }">
+                        <button type="button" x-on:click="open = ! open" class="flex w-full items-center justify-between">
+                            <span>
+                                <span class="block text-left text-sm font-semibold text-neutral-900">{{ __('Offers') }} <span class="ms-1 rounded-full bg-brand-50 px-1.5 py-0.5 text-[10px] font-semibold text-brand-600">{{ __('boost revenue') }}</span></span>
+                                <span class="block text-left text-xs text-neutral-500">{{ __('Order bump at checkout + 1-click upsell after.') }}</span>
+                            </span>
+                            <x-heroicon-o-chevron-down class="h-4 w-4 text-neutral-400 transition" x-bind:class="open && 'rotate-180'" />
+                        </button>
+
+                        <div x-show="open" x-cloak class="mt-4 space-y-5">
+                            {{-- Order bump --}}
+                            <div class="space-y-2">
+                                <p class="text-xs font-semibold uppercase tracking-wide text-neutral-400">{{ __('Order bump') }} <span class="normal-case text-neutral-400">· {{ __('shown at checkout') }}</span></p>
+                                <select name="bump_product_id" class="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                                    <option value="">{{ __('No order bump') }}</option>
+                                    @foreach ($products as $id => $pname)
+                                        @continue((string) $id === (string) $page->product_id)
+                                        <option value="{{ $id }}" @selected($offers['bump_product_id'] === $id)>{{ $pname }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <input name="bump_price" value="{{ $offers['bump_price'] }}" type="number" step="0.01" placeholder="{{ __('Price') }} ({{ $currencySymbol }})" class="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
+                                    <input name="bump_headline" value="{{ $offers['bump_headline'] }}" maxlength="160" placeholder="{{ __('Headline') }}" class="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
+                                </div>
+                                <input name="bump_description" value="{{ $offers['bump_description'] }}" maxlength="400" placeholder="{{ __('Short description (optional)') }}" class="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
+                            </div>
+
+                            {{-- Upsell --}}
+                            <div class="space-y-2 border-t border-neutral-100 pt-4">
+                                <p class="text-xs font-semibold uppercase tracking-wide text-neutral-400">{{ __('1-click upsell') }} <span class="normal-case text-neutral-400">· {{ __('shown after purchase') }}</span></p>
+                                <select name="upsell_product_id" class="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                                    <option value="">{{ __('No upsell') }}</option>
+                                    @foreach ($products as $id => $pname)
+                                        @continue((string) $id === (string) $page->product_id)
+                                        <option value="{{ $id }}" @selected($offers['upsell_product_id'] === $id)>{{ $pname }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <input name="upsell_price" value="{{ $offers['upsell_price'] }}" type="number" step="0.01" placeholder="{{ __('Price') }} ({{ $currencySymbol }})" class="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
+                                    <input name="upsell_headline" value="{{ $offers['upsell_headline'] }}" maxlength="160" placeholder="{{ __('Headline') }}" class="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
+                                </div>
+                                <input name="upsell_description" value="{{ $offers['upsell_description'] }}" maxlength="400" placeholder="{{ __('Short description (optional)') }}" class="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
+                            </div>
+                            <p class="text-[11px] text-neutral-400">{{ __('Offer products must use the same currency as this product. Leave price blank to use the product’s own price.') }}</p>
+                        </div>
+                    </x-ui.card>
+
                     <x-ui.card>
                         <div class="mb-3 flex items-center justify-between">
                             <div>

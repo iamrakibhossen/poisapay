@@ -6,6 +6,36 @@
         <h1 class="mt-6 text-3xl font-bold tracking-tight text-neutral-900">{{ __('Payment successful') }}</h1>
         <p class="mt-2 text-neutral-600">{{ __('Thank you for your purchase of') }} <span class="font-semibold text-neutral-900">{{ $product->name }}</span>.</p>
 
+        @if (session('success'))
+            <div class="mt-6 w-full rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">{{ session('success') }}</div>
+        @endif
+        @error('upsell')<p class="mt-4 text-sm text-rose-600">{{ $message }}</p>@enderror
+
+        {{-- 1-click upsell — one tap, no re-entry of payment --}}
+        @if (! empty($upsell))
+            <div class="mt-8 w-full overflow-hidden rounded-2xl border-2 border-brand-300 bg-gradient-to-br from-white to-brand-50/60 text-left shadow-sm">
+                <div class="border-b border-brand-100 bg-brand-50/60 px-5 py-2 text-center text-[11px] font-semibold uppercase tracking-wider text-brand-700">{{ __('Wait — one-time offer') }}</div>
+                <div class="p-5">
+                    <p class="text-base font-bold text-neutral-900">{{ $upsell['headline'] }}</p>
+                    @if ($upsell['description'])<p class="mt-1 text-sm text-neutral-600">{{ $upsell['description'] }}</p>@endif
+                    <div class="mt-3 flex items-baseline gap-2">
+                        <span class="text-2xl font-extrabold text-neutral-900">{{ $upsell['price'] }}</span>
+                        @if ($upsell['compare'])<span class="text-sm text-neutral-400 line-through">{{ $upsell['compare'] }}</span>@endif
+                    </div>
+                    <form method="POST" action="{{ route('funnel.upsell', ['slug' => $slug]) }}" x-data="{ loading: false }" x-on:submit="loading = true" class="mt-4">
+                        @csrf
+                        <input type="hidden" name="order_id" value="{{ $order->id }}" />
+                        <button type="submit" x-bind:disabled="loading"
+                            class="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 py-3.5 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-60">
+                            <span x-show="! loading" class="flex items-center gap-2"><x-heroicon-o-bolt class="h-4 w-4" /> {{ __('Yes, add it for') }} {{ $upsell['price'] }} — {{ __('one click') }}</span>
+                            <span x-show="loading" x-cloak>{{ __('Adding…') }}</span>
+                        </button>
+                    </form>
+                    <p class="mt-2 text-center text-[11px] text-neutral-400">{{ __('Charged to your PoisaPay wallet · no card re-entry') }}</p>
+                </div>
+            </div>
+        @endif
+
         {{-- Order card --}}
         <div class="mt-8 w-full rounded-2xl border border-neutral-200 bg-white p-5 text-left shadow-sm">
             @if ($order)

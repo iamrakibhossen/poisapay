@@ -24,6 +24,8 @@ class SalesPage extends Model
     protected $fillable = [
         'seller_id', 'product_id', 'name', 'slug', 'status',
         'sections', 'theme', 'seo', 'tracking', 'version', 'published_at',
+        'bump_product_id', 'bump_price_amount', 'bump_headline', 'bump_description',
+        'upsell_product_id', 'upsell_price_amount', 'upsell_headline', 'upsell_description',
     ];
 
     protected function casts(): array
@@ -35,6 +37,8 @@ class SalesPage extends Model
             'seo' => 'array',
             'tracking' => 'array',
             'published_at' => 'datetime',
+            'bump_price_amount' => 'integer',
+            'upsell_price_amount' => 'integer',
         ];
     }
 
@@ -46,6 +50,36 @@ class SalesPage extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function bumpProduct(): BelongsTo
+    {
+        return $this->belongsTo(Product::class, 'bump_product_id');
+    }
+
+    public function upsellProduct(): BelongsTo
+    {
+        return $this->belongsTo(Product::class, 'upsell_product_id');
+    }
+
+    /** Effective bump price (minor units) — the override, else the product's price. */
+    public function bumpAmount(): ?int
+    {
+        if (! $this->bumpProduct) {
+            return null;
+        }
+
+        return $this->bump_price_amount ?? (int) $this->bumpProduct->price_amount;
+    }
+
+    /** Effective upsell price (minor units) — the override, else the product's price. */
+    public function upsellAmount(): ?int
+    {
+        if (! $this->upsellProduct) {
+            return null;
+        }
+
+        return $this->upsell_price_amount ?? (int) $this->upsellProduct->price_amount;
     }
 
     public function domain(): HasOne

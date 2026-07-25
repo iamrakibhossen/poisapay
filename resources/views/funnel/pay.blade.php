@@ -11,11 +11,21 @@
             </div>
         </header>
 
-        <main class="mx-auto max-w-md px-4 py-8">
+        <main class="mx-auto max-w-md px-4 py-8"
+            x-data="{
+                bump: false,
+                bumpRaw: {{ $bump['amountRaw'] ?? 0 }},
+                baseRaw: {{ $totalRaw }},
+                balanceRaw: {{ $balanceRaw }},
+                fmt(m) { return (m / Math.pow(10, {{ $assetDecimals }})).toFixed(2) + ' {{ $assetSymbol }}'; },
+                get totalRaw() { return this.baseRaw + (this.bump ? this.bumpRaw : 0); },
+                get totalStr() { return this.fmt(this.totalRaw); },
+                get sufficient() { return this.balanceRaw >= this.totalRaw; },
+            }">
             {{-- Amount --}}
             <div class="text-center">
                 <p class="text-sm text-neutral-500">{{ __('Paying') }} <span class="font-medium text-neutral-700">{{ $seller->displayName() }}</span></p>
-                <p class="tabular mt-1 text-4xl font-bold tracking-tight text-neutral-900">{{ $total }}</p>
+                <p class="tabular mt-1 text-4xl font-bold tracking-tight text-neutral-900" x-text="totalStr">{{ $total }}</p>
             </div>
 
             <div class="mt-6 space-y-4 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
@@ -37,11 +47,34 @@
                             <span class="tabular font-medium text-neutral-900">{{ $shipFee }}</span>
                         </div>
                     @endif
+                    @if ($bump)
+                        <div class="flex items-center justify-between text-neutral-600" x-show="bump" x-cloak>
+                            <span>＋ {{ $bump['name'] }}</span>
+                            <span class="tabular font-medium text-neutral-900">{{ $bump['amount'] }}</span>
+                        </div>
+                    @endif
                     <div class="flex items-center justify-between border-t border-neutral-100 pt-2 font-semibold text-neutral-900">
                         <span>{{ __('Total') }}</span>
-                        <span class="tabular">{{ $total }}</span>
+                        <span class="tabular" x-text="totalStr">{{ $total }}</span>
                     </div>
                 </div>
+
+                {{-- Order bump — one-tap add-on --}}
+                @if ($bump)
+                    <label class="block cursor-pointer rounded-xl border-2 p-3.5 transition"
+                        :class="bump ? 'border-brand-500 bg-brand-50/50' : 'border-dashed border-neutral-300 hover:border-neutral-400'">
+                        <div class="flex items-start gap-3">
+                            <input type="checkbox" x-model="bump" class="mt-0.5 h-4 w-4 shrink-0 rounded border-neutral-300 text-brand-600 focus:ring-brand-500" />
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-sm font-semibold text-neutral-900">{{ $bump['headline'] }}</span>
+                                    <span class="shrink-0 text-sm font-semibold text-brand-700">+{{ $bump['amount'] }}@if ($bump['compare'])<span class="ms-1 text-xs font-normal text-neutral-400 line-through">{{ $bump['compare'] }}</span>@endif</span>
+                                </div>
+                                @if ($bump['desc'])<p class="mt-0.5 text-xs text-neutral-500">{{ $bump['desc'] }}</p>@endif
+                            </div>
+                        </div>
+                    </label>
+                @endif
 
                 {{-- Ship-to summary (physical goods) --}}
                 @if (! empty($shipping))
@@ -85,6 +118,7 @@
                         @csrf
                         <input type="hidden" name="idempotency_key" value="{{ $idempotencyKey }}" />
                         @if ($couponCode)<input type="hidden" name="coupon_code" value="{{ $couponCode }}" />@endif
+                        @if ($bump)<input type="hidden" name="bump" :value="bump ? '1' : '0'" />@endif
                         <div class="rounded-xl border-2 {{ $sufficient ? 'border-brand-500 bg-brand-50/40' : 'border-neutral-200' }} p-3.5">
                             <div class="flex items-center gap-3">
                                 <span class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-brand-500 text-white"><x-heroicon-o-wallet class="h-5 w-5" /></span>
@@ -104,12 +138,15 @@
                             @endunless
                         </div>
 
-                        <button type="submit" @disabled(! $sufficient)
+                        <button type="submit"
                             class="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 py-3.5 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
-                            x-bind:disabled="loading">
-                            <span x-show="! loading" class="flex items-center gap-2"><x-heroicon-o-lock-closed class="h-4 w-4" /> {{ __('Confirm & pay') }} {{ $total }}</span>
+                            x-bind:disabled="loading || ! sufficient">
+                            <span x-show="! loading" class="flex items-center gap-2"><x-heroicon-o-lock-closed class="h-4 w-4" /> {{ __('Confirm & pay') }} <span x-text="totalStr"></span></span>
                             <span x-show="loading" x-cloak>{{ __('Processing…') }}</span>
                         </button>
+                        <p x-show="! sufficient" x-cloak class="mt-2 text-center text-xs text-amber-700">
+                            {{ __('Not enough balance for this total.') }} <a href="{{ route('deposit.index') }}" class="font-semibold underline">{{ __('Add funds') }}</a>
+                        </p>
 
                         <div class="mt-3 flex items-center justify-center gap-3 text-[11px] text-neutral-400">
                             <span class="inline-flex items-center gap-1"><x-heroicon-o-shield-check class="h-3.5 w-3.5" /> {{ __('Buyer protection') }}</span>

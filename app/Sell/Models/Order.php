@@ -27,7 +27,7 @@ class Order extends Model
     protected $table = 'sell_orders';
 
     protected $fillable = [
-        'number', 'seller_id', 'buyer_user_id', 'sales_page_id', 'funnel_id',
+        'number', 'seller_id', 'buyer_user_id', 'sales_page_id', 'parent_order_id', 'funnel_id',
         'coupon_id', 'status', 'subtotal_amount', 'discount_amount', 'tax_amount',
         'shipping_amount', 'total_amount', 'commission_amount', 'seller_net_amount',
         'asset_id', 'payment_method', 'ledger_entry_id', 'refund_window_ends_at',

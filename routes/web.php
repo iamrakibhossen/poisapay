@@ -52,6 +52,7 @@ Route::controller(\App\Http\Controllers\Funnel\PublicSalesController::class)->gr
     Route::get('/p/{slug}/pay', 'pay')->name('funnel.pay');
     Route::post('/p/{slug}/pay', 'payConfirm')->name('funnel.pay.confirm');
     Route::get('/p/{slug}/thank-you', 'thankYou')->name('funnel.thankyou');
+    Route::post('/p/{slug}/upsell', 'upsellAccept')->name('funnel.upsell');
 });
 Route::get('/prices', PricesController::class)->name('marketing.prices'); // live crypto→BDT prices page (HTML)
 Route::get('/rates', RatesController::class)->name('marketing.rates');  // live crypto→BDT reference rates (JSON feed for the prices page)

@@ -17,8 +17,10 @@ use App\Sell\Exceptions\SellException;
 use App\Sell\Models\Coupon;
 use App\Sell\Models\Download;
 use App\Sell\Models\Order;
+use App\Sell\Models\OrderItem;
 use App\Sell\Models\Product;
 use App\Sell\Models\ProductVariant;
+use App\Sell\Models\SalesPage;
 use App\Sell\Services\CouponService;
 use App\Sell\Services\PricingService;
 use App\Support\Money;
@@ -29,13 +31,15 @@ use Illuminate\Support\Str;
  * The Sell money path. A buyer pays with their PoisaPay wallet; the Ledger (single
  * source of truth) moves the money in one balanced entry:
  *
- *   DR buyer user:available (total)
- *   CR sell:commission_income (platform cut)
+ *   DR buyer user:available (order total)
+ *   CR sell:commission_income (platform cut, summed over all lines)
  *   CR seller user:available (net)
  *
- * The Sell order stores only a *record* of that entry (ledger_entry_id) — it never
- * re-derives balances. Idempotent by the order's key (a replay returns the same
- * order, never a second charge); stock is decremented atomically (no oversell).
+ * An order may carry more than one line: the main product plus an optional
+ * order bump (a second product added at checkout). Both settle in the SAME
+ * balanced entry. The bump's product + price are resolved server-side from the
+ * sales page — never trusted from the client. Idempotent by the order key;
+ * variant stock decremented atomically (no oversell).
  */
 class PlaceOrder
 {
@@ -62,33 +66,57 @@ class PlaceOrder
 
         $variant = $data->variantId ? ProductVariant::whereKey($data->variantId)->firstOrFail() : null;
         $assetId = (int) $product->price_asset_id;
-        $break = $this->pricing->line($product, $variant, $data->quantity, $seller);
+        $bps = $seller->commissionBps();
 
-        // Apply a discount code if supplied. Commission (and the seller's net) are
-        // recomputed on the *discounted* total — the platform cut follows the money.
-        $subtotal = $break['line_total'];
+        // ── Main line ── (override price supports a 1-click upsell at a special price)
+        $mainUnit = $data->overrideAmount ?? ($variant?->price_amount ?? (int) $product->price_amount);
+        $mainSubtotal = $mainUnit * max(1, $data->quantity);
+
+        // Coupon applies to the main product only (recomputes its commission share).
         $coupon = $data->couponCode !== null
-            ? $this->coupons->validate($seller, $product, $data->couponCode, $subtotal, $buyer)
+            ? $this->coupons->validate($seller, $product, $data->couponCode, $mainSubtotal, $buyer)
             : null;
-        $discount = $coupon?->discountFor($subtotal) ?? 0;
+        $discount = $coupon?->discountFor($mainSubtotal) ?? 0;
+        $mainProductTotal = $mainSubtotal - $discount;
 
-        // Flat shipping fee for physical goods (from product attributes). Commission
-        // is taken on the discounted product amount only; shipping passes to the seller.
-        $shipping = $this->pricing->shippingFee($product);
-        $productNet = $subtotal - $discount;
-        $commission = intdiv($productNet * $seller->commissionBps(), 10_000);
+        $lines = [[
+            'product' => $product,
+            'variant' => $variant,
+            'kind' => $data->kind,
+            'unit' => $mainUnit,
+            'quantity' => $data->quantity,
+            'subtotal' => $mainSubtotal,
+            'product_total' => $mainProductTotal,
+            'commission' => intdiv($mainProductTotal * $bps, 10_000),
+            'name' => $variant
+                ? $product->name.' ('.implode(' · ', array_values($variant->options ?? [])).')'
+                : $product->name,
+        ]];
+
+        // ── Order bump ── (server-authoritative: product + price come from the page)
+        if ($data->bump && $data->salesPageId) {
+            $bumpLine = $this->bumpLine($data->salesPageId, $product, $assetId, $bps);
+            if ($bumpLine) {
+                $lines[] = $bumpLine;
+            }
+        }
+
+        $shipping = $this->pricing->shippingFee($product); // main product only
+
+        $subtotal = (int) array_sum(array_column($lines, 'subtotal'));
+        $productTotal = (int) array_sum(array_column($lines, 'product_total'));
+        $commissionTotal = (int) array_sum(array_column($lines, 'commission'));
         $charge = [
             'subtotal' => $subtotal,
             'discount' => $discount,
             'shipping' => $shipping,
-            'product_total' => $productNet,
-            'total' => $productNet + $shipping,
-            'commission' => $commission,
-            'net' => $productNet - $commission + $shipping,
+            'total' => $productTotal + $shipping,
+            'commission' => $commissionTotal,
+            'net' => $productTotal - $commissionTotal + $shipping,
             'coupon_id' => $coupon?->getKey(),
         ];
 
-        return DB::transaction(function () use ($buyer, $data, $product, $seller, $variant, $assetId, $break, $charge): Order {
+        return DB::transaction(function () use ($buyer, $data, $product, $seller, $variant, $assetId, $lines, $charge): Order {
             // Idempotency — a replay returns the existing order, no second charge.
             $existing = Order::where('idempotency_key', $data->idempotencyKey)->first();
             if ($existing) {
@@ -106,7 +134,7 @@ class PlaceOrder
                 throw SellException::insufficientBalance();
             }
 
-            // Atomic stock decrement for a tracked variant (no oversell).
+            // Atomic stock decrement for a tracked main variant (no oversell).
             if ($variant && $variant->stock !== null) {
                 $ok = ProductVariant::whereKey($variant->id)->where('stock', '>=', $data->quantity)
                     ->decrement('stock', $data->quantity);
@@ -120,6 +148,7 @@ class PlaceOrder
                 'seller_id' => $seller->getKey(),
                 'buyer_user_id' => $buyer->getKey(),
                 'sales_page_id' => $data->salesPageId,
+                'parent_order_id' => $data->parentOrderId,
                 'funnel_id' => $data->funnelId,
                 'coupon_id' => $charge['coupon_id'],
                 'status' => OrderStatus::Pending,
@@ -135,19 +164,20 @@ class PlaceOrder
                 'shipping_address' => $product->requires_shipping ? $data->shippingAddress : null,
             ]);
 
-            $order->items()->create([
-                'product_id' => $product->getKey(),
-                'variant_id' => $variant?->getKey(),
-                'kind' => OrderItemKind::Main,
-                'name_snapshot' => $variant
-                    ? $product->name.' ('.implode(' · ', array_values($variant->options ?? [])).')'
-                    : $product->name,
-                'unit_amount' => $break['unit'],
-                'quantity' => $data->quantity,
-                'line_total_amount' => $charge['product_total'],
-                'commission_amount' => $charge['commission'],
-                'seller_net_amount' => $charge['product_total'] - $charge['commission'],
-            ]);
+            foreach ($lines as $line) {
+                $item = $order->items()->create([
+                    'product_id' => $line['product']->getKey(),
+                    'variant_id' => $line['variant']?->getKey(),
+                    'kind' => $line['kind'],
+                    'name_snapshot' => $line['name'],
+                    'unit_amount' => $line['unit'],
+                    'quantity' => $line['quantity'],
+                    'line_total_amount' => $line['product_total'],
+                    'commission_amount' => $line['commission'],
+                    'seller_net_amount' => $line['product_total'] - $line['commission'],
+                ]);
+                $this->grantDigitalDelivery($item, $line['product'], $buyer);
+            }
 
             if ($charge['coupon_id'] !== null) {
                 Coupon::whereKey($charge['coupon_id'])->increment('used_count');
@@ -157,18 +187,18 @@ class PlaceOrder
             $sellerAccount = $resolver->forUser($seller->user, LedgerAccountType::UserAvailable, $assetId);
             $commissionAccount = $resolver->system(LedgerAccountType::SellCommissionIncome, $assetId);
 
-            $lines = [
+            $ledgerLines = [
                 PostingLine::debit($buyerAccount->id, $assetId, (string) $charge['total']),
                 PostingLine::credit($sellerAccount->id, $assetId, (string) $charge['net']),
             ];
             if ($charge['commission'] > 0) {
-                $lines[] = PostingLine::credit($commissionAccount->id, $assetId, (string) $charge['commission']);
+                $ledgerLines[] = PostingLine::credit($commissionAccount->id, $assetId, (string) $charge['commission']);
             }
 
             $entry = $this->ledger->post(new EntryData(
                 type: 'sell.purchase',
                 idempotencyKey: 'sell:order:'.$order->getKey(),
-                lines: $lines,
+                lines: $ledgerLines,
                 memo: "Order {$order->number}: {$product->name}",
                 metadata: ['order_id' => $order->getKey(), 'seller_id' => $seller->getKey()],
             ));
@@ -187,22 +217,53 @@ class PlaceOrder
                 'data' => ['ledger_entry_id' => $entry->id],
             ]);
 
-            $this->grantDigitalDelivery($order, $product, $buyer);
-
             OrderPlaced::dispatch($order->refresh());
 
             return $order;
         });
     }
 
-    /** Issue signed, count-limited download grants for a digital product's files. */
-    private function grantDigitalDelivery(Order $order, Product $product, User $buyer): void
+    /**
+     * Resolve the sales page's configured order bump into a line, or null if it
+     * isn't a valid add-on (missing, unbuyable, different currency, or the same
+     * product as the main item). Price is taken from the page, never the client.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function bumpLine(string $salesPageId, Product $main, int $assetId, int $bps): ?array
+    {
+        $page = SalesPage::with('bumpProduct')->find($salesPageId);
+        $bump = $page?->bumpProduct;
+
+        if (! $bump
+            || ! $bump->status->isBuyable()
+            || (int) $bump->price_asset_id !== $assetId
+            || $bump->getKey() === $main->getKey()) {
+            return null;
+        }
+
+        $unit = (int) $page->bumpAmount();
+
+        return [
+            'product' => $bump,
+            'variant' => null,
+            'kind' => OrderItemKind::OrderBump,
+            'unit' => $unit,
+            'quantity' => 1,
+            'subtotal' => $unit,
+            'product_total' => $unit,
+            'commission' => intdiv($unit * $bps, 10_000),
+            'name' => $bump->name,
+        ];
+    }
+
+    /** Issue signed, count-limited download grants for a digital line's files. */
+    private function grantDigitalDelivery(OrderItem $item, Product $product, User $buyer): void
     {
         if (! $product->type->isDigitalDelivery()) {
             return;
         }
 
-        $item = $order->items()->first();
         foreach ($product->files()->where('is_current', true)->get() as $file) {
             Download::create([
                 'order_item_id' => $item->getKey(),
@@ -214,5 +275,4 @@ class PlaceOrder
             ]);
         }
     }
-
 }
