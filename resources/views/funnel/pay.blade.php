@@ -78,6 +78,25 @@
                         <span class="tabular text-sm font-semibold text-neutral-900" x-text="fmt(productRaw)">{{ $subtotal }}</span>
                     </div>
 
+                    {{-- Variation — chosen right on the product --}}
+                    @if (! empty($variantCatalog))
+                        <div class="mt-4 space-y-3 border-t border-neutral-100 pt-4">
+                            @foreach ($variantCatalog as $name => $values)
+                                <div>
+                                    <p class="mb-1.5 text-xs font-medium text-neutral-600">{{ $name }}</p>
+                                    <div class="flex flex-wrap gap-2">
+                                        @foreach ($values as $v)
+                                            <button type="button" x-on:click="options['{{ $name }}'] = @js($v)"
+                                                :class="options['{{ $name }}'] === @js($v) ? 'border-brand-500 bg-brand-50 text-brand-700 ring-1 ring-brand-500' : 'border-neutral-200 text-neutral-600 hover:border-neutral-300'"
+                                                class="rounded-lg border px-3.5 py-2 text-sm font-medium transition">{{ $v }}</button>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endforeach
+                            @error('options')<p class="text-xs text-rose-600">{{ $message }}</p>@enderror
+                        </div>
+                    @endif
+
                     <dl class="mt-4 space-y-1.5 border-t border-neutral-100 pt-3 text-sm">
                         @if ($discount)
                             <div class="flex items-center justify-between text-emerald-600">
@@ -138,28 +157,10 @@
                     @if ($couponCode)<input type="hidden" name="coupon_code" value="{{ $couponCode }}" />@endif
                     @if ($bump)<input type="hidden" name="bump" :value="bump ? '1' : '0'" />@endif
 
-                    {{-- Variation — segmented pills --}}
-                    @if (! empty($variantCatalog))
-                        <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-                            <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-neutral-500">{{ __('Choose your options') }}</p>
-                            <div class="space-y-4">
-                                @foreach ($variantCatalog as $name => $values)
-                                    <div>
-                                        <p class="mb-1.5 text-xs font-medium text-neutral-600">{{ $name }}</p>
-                                        <input type="hidden" name="options[{{ $name }}]" :value="options['{{ $name }}']" />
-                                        <div class="flex flex-wrap gap-2">
-                                            @foreach ($values as $v)
-                                                <button type="button" x-on:click="options['{{ $name }}'] = @js($v)"
-                                                    :class="options['{{ $name }}'] === @js($v) ? 'border-brand-500 bg-brand-50 text-brand-700 ring-1 ring-brand-500' : 'border-neutral-200 text-neutral-600 hover:border-neutral-300'"
-                                                    class="rounded-lg border px-3.5 py-2 text-sm font-medium transition">{{ $v }}</button>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                            @error('options')<p class="mt-2 text-xs text-rose-600">{{ $message }}</p>@enderror
-                        </div>
-                    @endif
+                    {{-- Chosen variation travels with the form (selected on the product above). --}}
+                    @foreach ($variantCatalog as $name => $values)
+                        <input type="hidden" name="options[{{ $name }}]" :value="options['{{ $name }}']" />
+                    @endforeach
 
                     {{-- Shipping address --}}
                     @if ($requiresShipping)
