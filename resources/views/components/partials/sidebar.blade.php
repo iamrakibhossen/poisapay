@@ -25,7 +25,7 @@
                 ['route' => 'cards', 'label' => __('Cards'), 'icon' => 'credit-card'],
                 ['route' => 'rewards', 'label' => __('Rewards'), 'icon' => 'gift'],
                 ['route' => 'merchant', 'label' => __('Merchant'), 'icon' => 'building-storefront'],
-                ['route' => 'seller', 'label' => __('Sell'), 'icon' => 'rocket-launch'],
+                ['route' => 'sell', 'label' => __('Sell'), 'icon' => 'rocket-launch'],
                 feature('p2p_enabled', false) ? ['route' => 'p2p', 'label' => 'P2P', 'icon' => 'user-group'] : null,
             ])),
         ],

@@ -51,7 +51,7 @@
                             <p class="text-xs text-neutral-400"><span x-text="threads[active].subject"></span> · <span x-text="threads[active].product"></span></p>
                         </div>
                     </div>
-                    <a href="{{ route('seller.orders') }}" class="text-xs font-medium text-brand-600 hover:text-brand-700">{{ __('View order') }}</a>
+                    <a href="{{ route('sell.orders') }}" class="text-xs font-medium text-brand-600 hover:text-brand-700">{{ __('View order') }}</a>
                 </div>
 
                 {{-- Messages --}}

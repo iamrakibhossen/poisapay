@@ -1,16 +1,29 @@
-<x-layouts.app :title="__('Create product')">
+@php
+    $editing = ! empty($product);
+    $attrs = $editing ? ($product->attributes ?? []) : [];
+    $priceValue = $editing && $product->priceAsset ? $product->priceAsset->money($product->price_amount)->toDecimal() : '';
+    $typeValue = $editing ? $product->type->value : 'digital';
+@endphp
+<x-layouts.app :title="$editing ? __('Edit product') : __('Create product')">
     <div class="mx-auto mt-6 max-w-3xl space-y-6">
         <div>
-            <a href="{{ route('seller.products') }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-neutral-500 transition hover:text-neutral-900">
+            <a href="{{ route('sell.products') }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-neutral-500 transition hover:text-neutral-900">
                 <x-heroicon-o-chevron-left class="h-4 w-4" /> {{ __('Products') }}
             </a>
-            <h1 class="mt-2 text-2xl font-semibold tracking-tight text-neutral-900">{{ __('Create product') }}</h1>
-            <p class="mt-1 text-sm text-neutral-500">{{ __('A shareable sales page is generated automatically when you publish.') }}</p>
+            <h1 class="mt-2 text-2xl font-semibold tracking-tight text-neutral-900">{{ $editing ? __('Edit product') : __('Create product') }}</h1>
+            <p class="mt-1 text-sm text-neutral-500">
+                {{ $editing ? __('Changes go live on the sales page immediately.') : __('A shareable sales page is generated automatically when you publish.') }}
+            </p>
         </div>
 
-        <form method="POST" action="{{ route('seller.products.store') }}" class="space-y-6"
-            x-data="{ type: @js(old('type', 'digital')), price: @js(old('price', '')) }">
+        @if ($errors->has('product'))
+            <x-ui.alert type="danger">{{ $errors->first('product') }}</x-ui.alert>
+        @endif
+
+        <form method="POST" action="{{ $editing ? route('sell.products.update', $product->id) : route('sell.products.store') }}" class="space-y-6"
+            x-data="{ type: @js(old('type', $typeValue)), price: @js(old('price', $priceValue)) }">
             @csrf
+            @if ($editing) @method('PUT') @endif
 
             {{-- Type --}}
             <x-ui.card>
@@ -36,15 +49,15 @@
             {{-- Basics --}}
             <x-ui.card>
                 <h2 class="mb-4 text-sm font-semibold text-neutral-900">{{ __('Details') }}</h2>
-                <x-ui.input :label="__('Product name')" name="name" icon="cube" :value="old('name')"
+                <x-ui.input :label="__('Product name')" name="name" icon="cube" :value="old('name', $editing ? $product->name : '')"
                     :error="$errors->first('name')" placeholder="LaunchKit — Laravel SaaS Boilerplate" required />
                 <div class="mt-4">
-                    <x-ui.input :label="__('Short tagline')" name="summary" icon="sparkles" :value="old('summary')"
+                    <x-ui.input :label="__('Short tagline')" name="summary" icon="sparkles" :value="old('summary', $editing ? $product->summary : '')"
                         :error="$errors->first('summary')" placeholder="Ship your SaaS in a weekend, not a quarter." />
                 </div>
                 <div class="mt-4">
                     <x-ui.textarea :label="__('Description')" name="description" rows="4"
-                        :hint="__('This appears on your sales page.')" :error="$errors->first('description')">{{ old('description') }}</x-ui.textarea>
+                        :hint="__('This appears on your sales page.')" :error="$errors->first('description')">{{ old('description', $editing ? $product->description : '') }}</x-ui.textarea>
                 </div>
             </x-ui.card>
 
@@ -58,7 +71,7 @@
                     </div>
                     <x-ui.select :label="__('Currency')" name="price_asset_id">
                         @foreach ($assets as $a)
-                            <option value="{{ $a['id'] }}" @selected((string) old('price_asset_id') === (string) $a['id'])>{{ $a['symbol'] }}</option>
+                            <option value="{{ $a['id'] }}" @selected((string) old('price_asset_id', $editing ? $product->price_asset_id : '') === (string) $a['id'])>{{ $a['symbol'] }}</option>
                         @endforeach
                     </x-ui.select>
                 </div>
@@ -97,12 +110,12 @@
                     }">
                     <p class="text-sm text-neutral-500">{{ __('This item ships to the buyer. They enter a delivery address at checkout.') }}</p>
                     <div class="grid gap-4 sm:grid-cols-3">
-                        <x-ui.input :label="__('Weight (g)')" name="weight" type="number" placeholder="250" />
-                        <x-ui.input :label="__('SKU')" name="sku" placeholder="TEE-BLK-M" />
-                        <x-ui.input :label="__('Shipping fee')" name="shipping_fee" prefix="$" type="number" step="0.01" placeholder="5.00" />
+                        <x-ui.input :label="__('Weight (g)')" name="weight" type="number" placeholder="250" :value="old('weight', $attrs['weight'] ?? '')" />
+                        <x-ui.input :label="__('SKU')" name="sku" placeholder="TEE-BLK-M" :value="old('sku', $attrs['sku'] ?? '')" />
+                        <x-ui.input :label="__('Shipping fee')" name="shipping_fee" prefix="$" type="number" step="0.01" placeholder="5.00" :value="old('shipping_fee', $attrs['shipping_fee'] ?? '')" />
                     </div>
                     <label class="flex items-center gap-2 text-sm text-neutral-600">
-                        <input type="checkbox" name="cod" value="1" class="h-4 w-4 rounded border-neutral-300 text-brand-600" />
+                        <input type="checkbox" name="cod" value="1" @checked(old('cod', $attrs['cod'] ?? false)) class="h-4 w-4 rounded border-neutral-300 text-brand-600" />
                         {{ __('Allow cash on delivery') }}
                     </label>
 
@@ -169,7 +182,7 @@
 
                         {{-- Simple stock when no variations --}}
                         <div x-show="! hasVariations" x-cloak class="mt-4">
-                            <x-ui.input :label="__('Stock')" name="stock" type="number" placeholder="100" class="max-w-[200px]" />
+                            <x-ui.input :label="__('Stock')" name="stock" type="number" placeholder="100" class="max-w-[200px]" :value="old('stock', $attrs['stock'] ?? '')" />
                         </div>
                     </div>
                 </div>
@@ -182,8 +195,8 @@
             </x-ui.card>
 
             <div class="flex items-center justify-end gap-3">
-                <x-ui.button href="{{ route('seller.products') }}" variant="secondary">{{ __('Cancel') }}</x-ui.button>
-                <x-ui.button type="submit" icon="check">{{ __('Create product') }}</x-ui.button>
+                <x-ui.button href="{{ route('sell.products') }}" variant="secondary">{{ __('Cancel') }}</x-ui.button>
+                <x-ui.button type="submit" icon="check">{{ $editing ? __('Save changes') : __('Create product') }}</x-ui.button>
             </div>
         </form>
     </div>

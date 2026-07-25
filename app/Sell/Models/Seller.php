@@ -57,6 +57,11 @@ class Seller extends Model
         return $this->hasMany(Product::class);
     }
 
+    public function salesPages(): HasMany
+    {
+        return $this->hasMany(SalesPage::class);
+    }
+
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);

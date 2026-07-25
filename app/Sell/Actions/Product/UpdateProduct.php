@@ -30,7 +30,11 @@ class UpdateProduct
                 'attributes' => $data->attributes,
             ]);
 
-            $this->syncVariants->execute($product, $data->variants);
+            // Only reconcile variants when the caller actually manages them —
+            // an empty set means "left untouched", not "deactivate all".
+            if ($data->variants !== []) {
+                $this->syncVariants->execute($product, $data->variants);
+            }
 
             ProductSaved::dispatch($product->refresh(), false);
 

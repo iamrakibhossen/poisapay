@@ -21,7 +21,7 @@
             ['label' => __('Date'), 'align' => 'right'],
         ]">
             @foreach ($orders as $o)
-                <tr class="cursor-pointer transition hover:bg-neutral-50/70" onclick="window.location='{{ route('seller.order', ['id' => $o['id']]) }}'">
+                <tr class="cursor-pointer transition hover:bg-neutral-50/70" onclick="window.location='{{ route('sell.order', ['id' => $o['id']]) }}'">
                     <td class="px-5 py-4 align-middle font-mono text-xs font-medium text-brand-600">{{ $o['id'] }}</td>
                     <td class="px-5 py-4 align-middle text-sm text-neutral-700">{{ $o['buyer'] }}</td>
                     <td class="px-5 py-4 align-middle text-sm font-medium text-neutral-900">{{ $o['product'] }}</td>

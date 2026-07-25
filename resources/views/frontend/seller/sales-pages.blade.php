@@ -1,10 +1,11 @@
 <x-layouts.app :title="__('Sales page')">
-    <div class="mt-6"
+    <form method="POST" action="{{ route('sell.sales-page.update', ['slug' => $slug]) }}" class="mt-6"
         x-data="{
             device: 'desktop',
             accent: '#2563eb',
             btn: 'rounded',
             font: 'Inter',
+            name: @js($seed['name'] ?? __('Untitled page')),
             editing: null,
             sections: { hero: true, features: true, benefits: true, testimonials: true, faq: true, guarantee: true, countdown: false, cta: true },
             order: ['hero', 'features', 'benefits', 'testimonials', 'faq', 'guarantee', 'countdown', 'cta'],
@@ -22,25 +23,51 @@
             get btnRadius() { return this.btn === 'pill' ? '9999px' : this.btn === 'square' ? '2px' : '12px'; },
             move(i, d) { const j = i + d; if (j < 0 || j >= this.order.length) return; [this.order[i], this.order[j]] = [this.order[j], this.order[i]]; },
             edit(key) { this.sections[key] = true; this.editing = key; },
+            get builderJson() { return JSON.stringify({ theme: { accent: this.accent, btn: this.btn, font: this.font }, sections: this.order.map(k => ({ type: k, enabled: !! this.sections[k], content: this.content[k] ?? null })) }); },
+            ...@js($seed),
         }"
         :style="{ '--accent': accent }">
+        @csrf
+        <input type="hidden" name="name" :value="name" />
+        <input type="hidden" name="builder" :value="builderJson" />
 
         {{-- Toolbar --}}
         <div class="flex flex-wrap items-center justify-between gap-3">
-            <div>
-                <a href="{{ route('seller.sales-pages') }}" class="inline-flex items-center gap-1 text-xs font-medium text-neutral-500 transition hover:text-neutral-900">
+            <div class="min-w-0">
+                <a href="{{ route('sell.sales-pages') }}" class="inline-flex items-center gap-1 text-xs font-medium text-neutral-500 transition hover:text-neutral-900">
                     <x-heroicon-o-chevron-left class="h-3.5 w-3.5" /> {{ __('Sales pages') }}
                 </a>
-                <h1 class="mt-1 text-xl font-semibold tracking-tight text-neutral-900">{{ __('Sales page') }}</h1>
-                <p class="text-xs text-neutral-500">{{ $product }} · <span class="font-mono">/p/{{ $slug }}</span></p>
+                <input x-model="name" maxlength="120"
+                    class="mt-1 w-full max-w-md rounded-md border border-transparent bg-transparent px-1 py-0.5 text-xl font-semibold tracking-tight text-neutral-900 transition hover:border-neutral-200 focus:border-brand-500 focus:bg-white focus:ring-1 focus:ring-brand-500"
+                    :aria-label="'{{ __('Page name') }}'" />
+                <p class="px-1 text-xs text-neutral-500">
+                    {{ $product }} · <span class="font-mono">/p/{{ $slug }}</span>
+                    @if ($published)
+                        <span class="ms-1 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> {{ __('Live') }}</span>
+                    @else
+                        <span class="ms-1 inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-semibold text-neutral-500">{{ __('Draft') }}</span>
+                    @endif
+                </p>
+                @error('publish')<p class="px-1 text-xs text-rose-600">{{ $message }}</p>@enderror
             </div>
             <div class="flex items-center gap-2">
                 <div class="flex rounded-lg border border-neutral-200 p-0.5">
                     <button type="button" x-on:click="device = 'desktop'" :class="device === 'desktop' ? 'bg-neutral-900 text-white' : 'text-neutral-500'" class="grid h-7 w-8 place-items-center rounded-md transition"><x-heroicon-o-computer-desktop class="h-4 w-4" /></button>
                     <button type="button" x-on:click="device = 'mobile'" :class="device === 'mobile' ? 'bg-neutral-900 text-white' : 'text-neutral-500'" class="grid h-7 w-8 place-items-center rounded-md transition"><x-heroicon-o-device-phone-mobile class="h-4 w-4" /></button>
                 </div>
-                <x-ui.button href="{{ route('funnel.sales', ['slug' => $slug]) }}" target="_blank" variant="secondary" size="sm" icon="arrow-top-right-on-square">{{ __('View live') }}</x-ui.button>
-                <x-ui.button size="sm" icon="check">{{ __('Publish') }}</x-ui.button>
+                @if ($published)
+                    <x-ui.button href="{{ route('funnel.sales', ['slug' => $slug]) }}" target="_blank" variant="secondary" size="sm" icon="arrow-top-right-on-square">{{ __('View live') }}</x-ui.button>
+                @endif
+                {{-- Save keeps the page as-is; Publish (formaction) persists + goes live. --}}
+                <x-ui.button type="submit" variant="secondary" size="sm" icon="check">{{ __('Save') }}</x-ui.button>
+                <button type="submit" formaction="{{ route('sell.sales-page.publish', ['slug' => $slug]) }}"
+                    class="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold text-white transition {{ $published ? 'bg-neutral-700 hover:bg-neutral-800' : 'bg-brand-500 hover:bg-brand-600' }}">
+                    @if ($published)
+                        <x-heroicon-o-eye-slash class="h-4 w-4" /> {{ __('Unpublish') }}
+                    @else
+                        <x-heroicon-o-rocket-launch class="h-4 w-4" /> {{ __('Publish') }}
+                    @endif
+                </button>
             </div>
         </div>
 
@@ -282,5 +309,5 @@
                 </div>
             </div>
         </div>
-    </div>
+    </form>
 </x-layouts.app>

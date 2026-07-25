@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Route;
  * separate `admin` guard — mirroring the platform's guard split.
  */
 
-Route::middleware(['web', 'auth'])->prefix('api/sell')->name('sell.')->group(function () {
+Route::middleware(['web', 'auth'])->prefix('api/sell')->name('sell.api.')->group(function () {
     Route::post('/apply', [SellerApplicationController::class, 'store'])->name('apply');
 
     // Checkout (buyer-facing — any authenticated user)
@@ -34,9 +34,9 @@ Route::middleware(['web', 'auth'])->prefix('api/sell')->name('sell.')->group(fun
 });
 
 // Public sales page — cache-first, no auth.
-Route::middleware('web')->get('/api/sell/public/pages/{slug}', [PublicPageController::class, 'show'])->name('sell.public.page');
+Route::middleware('web')->get('/api/sell/public/pages/{slug}', [PublicPageController::class, 'show'])->name('sell.api.public.page');
 
-Route::middleware(['web', 'auth:admin'])->prefix('api/admin/sell/sellers')->name('sell.admin.sellers.')->group(function () {
+Route::middleware(['web', 'auth:admin'])->prefix('api/admin/sell/sellers')->name('sell.api.admin.sellers.')->group(function () {
     Route::post('/{seller}/approve', [SellerReviewController::class, 'approve'])->name('approve');
     Route::post('/{seller}/reject', [SellerReviewController::class, 'reject'])->name('reject');
     Route::post('/{seller}/suspend', [SellerReviewController::class, 'suspend'])->name('suspend');

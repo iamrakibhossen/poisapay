@@ -14,7 +14,7 @@
         }">
         {{-- Header --}}
         <div>
-            <a href="{{ route('seller.orders') }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-neutral-500 transition hover:text-neutral-900">
+            <a href="{{ route('sell.orders') }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-neutral-500 transition hover:text-neutral-900">
                 <x-heroicon-o-chevron-left class="h-4 w-4" /> {{ __('Orders') }}
             </a>
             <div class="mt-2 flex flex-wrap items-center justify-between gap-3">

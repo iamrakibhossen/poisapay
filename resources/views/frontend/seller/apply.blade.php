@@ -33,7 +33,7 @@
         </div>
 
         {{-- Application form --}}
-        <form method="POST" action="{{ route('seller.apply.submit') }}"
+        <form method="POST" action="{{ route('sell.apply.submit') }}"
             x-data="{ selected: {{ Illuminate\Support\Js::from(old('categories', [])) }} }" class="space-y-6">
             @csrf
 
@@ -44,10 +44,9 @@
                     <p class="text-xs text-neutral-500">{{ __('This is how buyers and our review team see you.') }}</p>
                 </div>
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <x-ui.input :label="__('Display name')" name="display_name" icon="user" :value="old('display_name')"
-                        :error="$errors->first('display_name')" placeholder="Rahim Studios" required />
-                    <x-ui.input :label="__('Brand name (optional)')" name="brand_name" icon="sparkles" :value="old('brand_name')"
-                        :error="$errors->first('brand_name')" placeholder="Rahim" />
+                    <x-ui.input :label="__('Store / brand name')" name="brand_name" icon="sparkles" :value="old('brand_name')"
+                        :hint="__('Shown to buyers; defaults to your account name if blank.')"
+                        :error="$errors->first('brand_name')" placeholder="Rahim Studios" />
                 </div>
                 <div class="mt-4">
                     <x-ui.textarea :label="__('Seller bio')" name="bio" rows="3"
