@@ -11,6 +11,7 @@ use App\Sell\Actions\Order\SetOrderStatus;
 use App\Sell\Actions\Product\CreateProduct;
 use App\Sell\Actions\Product\SetProductStatus;
 use App\Sell\Actions\Product\UpdateProduct;
+use App\Sell\Actions\Review\ReplyToReview;
 use App\Sell\Actions\SalesPage\CreateSalesPage;
 use App\Sell\Actions\SalesPage\SetSalesPageStatus;
 use App\Sell\Actions\SalesPage\UpdateSalesPage;
@@ -24,6 +25,7 @@ use App\Sell\Enums\SalesPageStatus;
 use App\Sell\Enums\SellerStatus;
 use App\Sell\Exceptions\SellException;
 use App\Sell\Models\Order;
+use App\Sell\Models\Product;
 use App\Sell\Models\SalesPage;
 use App\Sell\Models\Seller;
 use App\Sell\Services\SellerService;
@@ -367,16 +369,46 @@ class SellerController extends Controller
         return view('frontend.seller.inbox', ['threads' => $threads]);
     }
 
-    public function reviews(Request $request): View
+    /** Real reviews across the seller's products, newest first, with an average. */
+    public function reviews(Request $request, SellerService $sellers): View
     {
+        $seller = $sellers->forUser($request->user());
+
+        $reviews = $seller
+            ? $seller->reviews()->with(['buyer', 'product'])->where('status', 'published')->latest()->limit(200)->get()
+            : collect();
+
         return view('frontend.seller.reviews', [
-            'summary' => ['avg' => '4.9', 'count' => 214],
-            'reviews' => [
-                ['buyer' => 'Aisha K.', 'product' => 'LaunchKit', 'rating' => 5, 'body' => 'I launched my MVP in 4 days. Paid for itself instantly.', 'date' => '2 days ago', 'reply' => null],
-                ['buyer' => 'Tanvir H.', 'product' => 'Premium UI Kit', 'rating' => 5, 'body' => 'Clean components, saved me hours.', 'date' => '4 days ago', 'reply' => 'Thanks Tanvir — glad it helped!'],
-                ['buyer' => 'Maria L.', 'product' => 'LaunchKit', 'rating' => 4, 'body' => 'Great starter. Docs could be a bit deeper.', 'date' => '1 week ago', 'reply' => null],
+            'summary' => [
+                'avg' => $reviews->count() ? number_format((float) $reviews->avg('rating'), 1) : '—',
+                'count' => $reviews->count(),
             ],
+            'reviews' => $reviews->map(fn ($r) => [
+                'id' => $r->id,
+                'buyer' => $r->buyer?->name ?? __('Buyer'),
+                'product' => $r->product?->name ?? '—',
+                'rating' => (int) $r->rating,
+                'title' => $r->title,
+                'body' => $r->body,
+                'date' => $r->created_at->diffForHumans(),
+                'reply' => $r->seller_reply,
+            ])->all(),
         ]);
+    }
+
+    /** Seller replies (once) to a review on one of their products. */
+    public function replyReview(Request $request, SellerService $sellers, ReplyToReview $action, string $id): RedirectResponse
+    {
+        $seller = $sellers->forUser($request->user());
+        $review = $seller ? $seller->reviews()->find($id) : null;
+        if (! $review) {
+            return redirect()->route('sell.reviews');
+        }
+
+        $validated = $request->validate(['reply' => ['required', 'string', 'max:2000']]);
+        $action->execute($review, $validated['reply']);
+
+        return redirect()->route('sell.reviews')->with('success', __('Reply posted.'));
     }
 
     public function customers(Request $request): View
@@ -719,6 +751,7 @@ class SellerController extends Controller
             'types' => self::PRODUCT_TYPES,
             'assets' => $this->pricingAssets(),
             'product' => null,
+            'variantSeed' => $this->variantSeed(null),
         ]);
     }
 
@@ -750,10 +783,13 @@ class SellerController extends Controller
             return redirect()->route('sell');
         }
 
+        $product = $seller->products()->with(['priceAsset', 'variants'])->findOrFail($id);
+
         return view('frontend.seller.product-create', [
             'types' => self::PRODUCT_TYPES,
             'assets' => $this->pricingAssets(),
-            'product' => $seller->products()->with('priceAsset')->findOrFail($id),
+            'product' => $product,
+            'variantSeed' => $this->variantSeed($product),
         ]);
     }
 
@@ -794,6 +830,61 @@ class SellerController extends Controller
             'shipping_fee' => ['nullable', 'numeric', 'min:0'],
             'stock' => ['nullable', 'integer', 'min:0'],
             'cod' => ['nullable', 'boolean'],
+            // Physical variant matrix (Size/Color → per-variant price & stock)
+            'variants' => ['nullable', 'array'],
+            'variants.*.id' => ['nullable', 'string'],
+            'variants.*.options' => ['nullable', 'array'],
+            'variants.*.price' => ['nullable', 'numeric', 'min:0'],
+            'variants.*.stock' => ['nullable', 'integer', 'min:0'],
+            'variants.*.sku' => ['nullable', 'string', 'max:64'],
+        ];
+    }
+
+    /**
+     * Reconstruct the variant-matrix editor state from a product's live variants
+     * (or defaults for a fresh product) so editing shows real options/price/stock.
+     *
+     * @return array{has:bool, options:list<array{name:string,values:list<string>}>, rows:array<string,array<string,mixed>>}
+     */
+    private function variantSeed(?Product $product): array
+    {
+        $default = [
+            ['name' => 'Size', 'values' => ['S', 'M', 'L']],
+            ['name' => 'Color', 'values' => ['Black', 'White']],
+        ];
+
+        $variants = $product ? $product->variants->where('is_active', true)->sortBy('position') : collect();
+        if ($variants->isEmpty()) {
+            return ['has' => false, 'options' => $default, 'rows' => []];
+        }
+
+        $asset = $product->priceAsset;
+        $names = [];
+        $values = [];
+        $rows = [];
+        foreach ($variants as $var) {
+            $opts = $var->options ?? [];
+            foreach ($opts as $name => $val) {
+                if (! in_array($name, $names, true)) {
+                    $names[] = $name;
+                    $values[$name] = [];
+                }
+                if (! in_array($val, $values[$name], true)) {
+                    $values[$name][] = $val;
+                }
+            }
+            $rows[implode(' / ', array_values($opts))] = [
+                'id' => $var->id,
+                'price' => $var->price_amount !== null && $asset ? $asset->money((string) $var->price_amount)->toDecimal() : '',
+                'stock' => $var->stock,
+                'sku' => $var->sku,
+            ];
+        }
+
+        return [
+            'has' => true,
+            'options' => array_map(fn ($n) => ['name' => $n, 'values' => $values[$n]], $names),
+            'rows' => $rows,
         ];
     }
 
@@ -818,6 +909,7 @@ class SellerController extends Controller
 
         // Physical delivery details ride in attributes until per-variant stock lands.
         $attributes = [];
+        $variants = [];
         if ($validated['type'] === 'physical') {
             $attributes = array_filter([
                 'weight' => $validated['weight'] ?? null,
@@ -826,6 +918,23 @@ class SellerController extends Controller
                 'stock' => $validated['stock'] ?? null,
                 'cod' => $request->boolean('cod') ?: null,
             ], fn ($v) => $v !== null);
+
+            // Variant matrix: each row's decimal price → the asset's minor units.
+            foreach ($validated['variants'] ?? [] as $v) {
+                $opts = array_filter($v['options'] ?? [], fn ($x) => $x !== null && $x !== '');
+                if ($opts === []) {
+                    continue;
+                }
+                $variants[] = [
+                    'id' => $v['id'] ?? null,
+                    'options' => $opts,
+                    'price_amount' => isset($v['price']) && $v['price'] !== '' && $v['price'] !== null
+                        ? (int) Money::ofDecimal((string) $v['price'], $asset->decimals, $asset->symbol)->baseString()
+                        : null,
+                    'stock' => isset($v['stock']) && $v['stock'] !== '' ? (int) $v['stock'] : null,
+                    'sku' => $v['sku'] ?? null,
+                ];
+            }
         }
 
         return ProductData::fromArray([
@@ -837,6 +946,7 @@ class SellerController extends Controller
             'price_asset_id' => $asset->id,
             'requires_shipping' => $validated['type'] === 'physical',
             'attributes' => $attributes,
+            'variants' => $variants,
         ]);
     }
 

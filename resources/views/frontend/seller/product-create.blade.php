@@ -93,19 +93,36 @@
                 </div>
                 <div x-show="type === 'physical'" x-cloak class="space-y-4"
                     x-data="{
-                        hasVariations: true,
-                        options: [{ name: 'Size', values: ['S', 'M', 'L'], _new: '' }, { name: 'Color', values: ['Black', 'White'], _new: '' }],
-                        addOption() { this.options.push({ name: '', values: [], _new: '' }); },
-                        removeOption(i) { this.options.splice(i, 1); },
-                        addValue(o) { const v = o._new.trim(); if (v && ! o.values.includes(v)) o.values.push(v); o._new = ''; },
-                        removeValue(o, j) { o.values.splice(j, 1); },
-                        get variants() {
-                            let combos = [[]];
+                        seed: @js($variantSeed ?? ['has' => false, 'options' => [], 'rows' => []]),
+                        hasVariations: false,
+                        options: [],
+                        matrix: [],
+                        init() {
+                            this.options = JSON.parse(JSON.stringify(this.seed.options || [])).map(o => ({ ...o, _new: '' }));
+                            this.hasVariations = !! this.seed.has;
+                            this.rebuild();
+                        },
+                        addOption() { this.options.push({ name: '', values: [], _new: '' }); this.rebuild(); },
+                        removeOption(i) { this.options.splice(i, 1); this.rebuild(); },
+                        addValue(o) { const v = o._new.trim(); if (v && ! o.values.includes(v)) o.values.push(v); o._new = ''; this.rebuild(); },
+                        removeValue(o, j) { o.values.splice(j, 1); this.rebuild(); },
+                        combos() {
+                            let combos = [{}];
                             for (const o of this.options) {
+                                const name = (o.name || '').trim() || 'Option';
                                 if (! o.values.length) continue;
-                                combos = combos.flatMap(c => o.values.map(v => [...c, v]));
+                                combos = combos.flatMap(c => o.values.map(v => ({ ...c, [name]: v })));
                             }
-                            return combos.map(c => c.join(' / '));
+                            return combos;
+                        },
+                        keyOf(map) { return Object.values(map).join(' / '); },
+                        rebuild() {
+                            const prev = Object.fromEntries(this.matrix.map(r => [r.key, r]));
+                            this.matrix = this.combos().map(map => {
+                                const key = this.keyOf(map);
+                                const src = prev[key] || (this.seed.rows || {})[key] || {};
+                                return { key, options: map, id: src.id || '', price: src.price ?? '', stock: (src.stock ?? '') === null ? '' : (src.stock ?? ''), sku: src.sku ?? '' };
+                            });
                         },
                     }">
                     <p class="text-sm text-neutral-500">{{ __('This item ships to the buyer. They enter a delivery address at checkout.') }}</p>
@@ -138,7 +155,7 @@
                             <template x-for="(o, i) in options" :key="i">
                                 <div class="rounded-lg border border-neutral-200 bg-neutral-50/60 p-3">
                                     <div class="flex items-center gap-2">
-                                        <input x-model="o.name" placeholder="{{ __('Option name (e.g. Size)') }}"
+                                        <input x-model="o.name" x-on:input.debounce.250ms="rebuild()" placeholder="{{ __('Option name (e.g. Size)') }}"
                                             class="flex-1 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
                                         <button type="button" x-on:click="removeOption(i)" class="rounded-md p-1.5 text-neutral-400 hover:bg-rose-50 hover:text-rose-600"><x-heroicon-o-x-mark class="h-4 w-4" /></button>
                                     </div>
@@ -159,31 +176,48 @@
                                 <x-heroicon-o-plus class="h-3.5 w-3.5" /> {{ __('Add option') }}
                             </button>
 
-                            {{-- Generated variant matrix --}}
+                            {{-- Generated variant matrix — one row per option combination.
+                                 Only rendered (so only submitted) when variations are on and
+                                 the product is physical; each row posts as variants[i][…]. --}}
                             <div class="overflow-hidden rounded-lg border border-neutral-200">
                                 <div class="flex items-center justify-between bg-neutral-50 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
-                                    <span>{{ __('Variant') }}</span>
-                                    <span><span x-text="variants.length"></span> {{ __('variants') }}</span>
+                                    <span>{{ __('Variant') }} · {{ __('price') }} · {{ __('stock') }}</span>
+                                    <span><span x-text="matrix.length"></span> {{ __('variants') }}</span>
                                 </div>
                                 <div class="divide-y divide-neutral-100">
-                                    <template x-for="v in variants" :key="v">
-                                        <div class="flex items-center gap-2 px-3 py-2">
-                                            <span class="flex-1 text-sm font-medium text-neutral-800" x-text="v"></span>
-                                            <div class="flex items-center rounded-md border border-neutral-200 bg-white px-2 text-xs text-neutral-400"><span>$</span><input type="text" placeholder="25.00" class="w-16 border-0 py-1 text-sm focus:ring-0" /></div>
-                                            <input type="number" placeholder="{{ __('Stock') }}" class="w-20 rounded-md border border-neutral-200 px-2 py-1 text-sm focus:border-brand-500 focus:ring-0" />
+                                    <template x-if="type === 'physical' && hasVariations">
+                                        <div>
+                                            <template x-for="(row, i) in matrix" :key="row.key">
+                                                <div class="flex items-center gap-2 px-3 py-2">
+                                                    <span class="flex-1 text-sm font-medium text-neutral-800" x-text="row.key"></span>
+                                                    <template x-if="row.id"><input type="hidden" :name="`variants[${i}][id]`" :value="row.id" /></template>
+                                                    <template x-for="(val, name) in row.options" :key="name">
+                                                        <input type="hidden" :name="`variants[${i}][options][${name}]`" :value="val" />
+                                                    </template>
+                                                    <div class="flex items-center rounded-md border border-neutral-200 bg-white px-2 text-xs text-neutral-400">
+                                                        <span>$</span>
+                                                        <input type="text" :name="`variants[${i}][price]`" x-model="row.price" placeholder="{{ __('inherit') }}" class="w-16 border-0 py-1 text-sm focus:ring-0" />
+                                                    </div>
+                                                    <input type="number" :name="`variants[${i}][stock]`" x-model="row.stock" placeholder="{{ __('Stock') }}" class="w-20 rounded-md border border-neutral-200 px-2 py-1 text-sm focus:border-brand-500 focus:ring-0" />
+                                                    <input type="hidden" :name="`variants[${i}][sku]`" :value="row.sku" />
+                                                </div>
+                                            </template>
                                         </div>
                                     </template>
-                                    <template x-if="! variants.length">
+                                    <template x-if="! matrix.length">
                                         <p class="px-3 py-3 text-center text-xs text-neutral-400">{{ __('Add option values to generate variants.') }}</p>
                                     </template>
                                 </div>
                             </div>
+                            @error('variants')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
                         </div>
 
-                        {{-- Simple stock when no variations --}}
-                        <div x-show="! hasVariations" x-cloak class="mt-4">
-                            <x-ui.input :label="__('Stock')" name="stock" type="number" placeholder="100" class="max-w-[200px]" :value="old('stock', $attrs['stock'] ?? '')" />
-                        </div>
+                        {{-- Simple stock when no variations (only submitted when variations off) --}}
+                        <template x-if="! hasVariations">
+                            <div class="mt-4">
+                                <x-ui.input :label="__('Stock')" name="stock" type="number" placeholder="100" class="max-w-[200px]" :value="old('stock', $attrs['stock'] ?? '')" />
+                            </div>
+                        </template>
                     </div>
                 </div>
                 <div x-show="type === 'service'" x-cloak class="text-sm text-neutral-500">

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Sell\Actions\Order\SendMessage;
+use App\Sell\Actions\Review\SubmitReview;
 use App\Sell\Enums\OrderStatus;
 use App\Sell\Enums\ProductType;
 use App\Sell\Models\Order;
@@ -41,7 +42,7 @@ class PurchasesController extends Controller
                 ->whereNotIn('status', [OrderStatus::Pending->value, OrderStatus::Cancelled->value]))
             ->with([
                 'order.asset', 'order.seller.user',
-                'product.files', 'variant', 'licenses',
+                'product.files', 'product.reviews', 'variant', 'licenses',
             ])
             ->latest()
             ->get();
@@ -108,6 +109,33 @@ class PurchasesController extends Controller
         return redirect()->route('purchases.messages', $model->id);
     }
 
+    /** Buyer submits (or updates) a review for a product they purchased. */
+    public function submitReview(Request $request, SubmitReview $action, string $order): RedirectResponse
+    {
+        $model = $this->ownedOrder($request, $order);
+        if (! $model instanceof Order) {
+            return $model;
+        }
+
+        $validated = $request->validate([
+            'product_id' => ['required', 'string'],
+            'rating' => ['required', 'integer', 'min:1', 'max:5'],
+            'title' => ['nullable', 'string', 'max:160'],
+            'body' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        try {
+            $action->execute(
+                $request->user(), $model, $validated['product_id'],
+                (int) $validated['rating'], $validated['title'] ?? null, $validated['body'] ?? null,
+            );
+        } catch (\App\Sell\Exceptions\SellException $e) {
+            return back()->withErrors(['review' => $e->getMessage()]);
+        }
+
+        return redirect()->route('purchases')->with('success', __('Thanks for your review!'));
+    }
+
     /** Resolve an order the signed-in buyer owns, or a redirect back to purchases. */
     private function ownedOrder(Request $request, string $orderId): Order|RedirectResponse
     {
@@ -135,6 +163,12 @@ class PurchasesController extends Controller
             'price' => $order->asset->money((string) $item->line_total_amount)->format(2),
             'messagesUrl' => route('purchases.messages', $order->id),
             'unread' => (bool) $order->buyer_unread,
+            'orderId' => $order->id,
+            'productId' => $item->product_id,
+            'canReview' => $order->status->isPaid() && $item->product_id !== null,
+            'review' => ($rv = $item->product?->reviews->firstWhere('order_id', $order->id))
+                ? ['rating' => (int) $rv->rating, 'title' => $rv->title, 'body' => $rv->body, 'reply' => $rv->seller_reply]
+                : null,
         ];
 
         if ($type === ProductType::Digital) {
