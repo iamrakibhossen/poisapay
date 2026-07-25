@@ -14,7 +14,7 @@
                         <span class="grid h-8 w-8 place-items-center rounded-lg bg-neutral-100 text-neutral-500"><x-dynamic-component :component="'heroicon-o-'.$icon" class="h-4 w-4" /></span>
                     </div>
                     <p class="tabular mt-2 text-xl font-bold tracking-tight {{ $tone }}">{{ $value }}</p>
-                    <p class="mt-0.5 text-[11px] font-medium text-emerald-600">{{ $delta }} {{ __('vs prev') }}</p>
+                    @if ($delta)<p class="mt-0.5 text-[11px] font-medium text-emerald-600">{{ $delta }} {{ __('vs prev') }}</p>@else<p class="mt-0.5 text-[11px] text-neutral-400">{{ __('Last 30 days') }}</p>@endif
                 </div>
             @endforeach
         </div>
@@ -42,7 +42,7 @@
             <x-ui.card>
                 <p class="mb-4 text-sm font-semibold text-neutral-900">{{ __('Traffic sources') }}</p>
                 <div class="space-y-3">
-                    @foreach ($sources as [$label, $pct])
+                    @forelse ($sources as [$label, $pct])
                         <div>
                             <div class="mb-1 flex items-center justify-between text-xs">
                                 <span class="font-medium text-neutral-700">{{ $label }}</span>
@@ -52,7 +52,9 @@
                                 <div class="h-full rounded-full bg-neutral-800" style="width: {{ $pct }}%"></div>
                             </div>
                         </div>
-                    @endforeach
+                    @empty
+                        <p class="py-6 text-center text-xs text-neutral-400">{{ __('No traffic yet — share your sales page to start collecting data.') }}</p>
+                    @endforelse
                 </div>
             </x-ui.card>
         </div>
@@ -63,9 +65,9 @@
                 <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-600"><x-heroicon-o-signal class="h-5 w-5" /></span>
                 <div class="flex-1">
                     <p class="text-sm font-semibold text-neutral-900">{{ __('Tracking & pixels') }}</p>
-                    <p class="text-xs text-neutral-500">{{ __('Meta Pixel + Conversion API, TikTok, Google Analytics and GTM connected per sales page.') }}</p>
+                    <p class="text-xs text-neutral-500">{{ __('Meta Pixel, TikTok, Google Analytics and GTM per sales page — coming soon.') }}</p>
                 </div>
-                <x-ui.badge color="success" dot>{{ __('Connected') }}</x-ui.badge>
+                <x-ui.badge color="gray" dot>{{ __('Soon') }}</x-ui.badge>
             </div>
         </x-ui.card>
     </div>

@@ -12,6 +12,7 @@ use App\Sell\Enums\SalesPageStatus;
 use App\Sell\Exceptions\SellException;
 use App\Sell\Models\Order;
 use App\Sell\Models\SalesPage;
+use App\Sell\Services\AnalyticsService;
 use App\Sell\Services\CouponService;
 use App\Sell\Services\PricingService;
 use Illuminate\Http\RedirectResponse;
@@ -33,11 +34,15 @@ class PublicSalesController extends Controller
         private readonly LedgerService $ledger,
         private readonly PricingService $pricing,
         private readonly CouponService $coupons,
+        private readonly AnalyticsService $analytics,
     ) {}
 
-    public function show(string $slug): View
+    public function show(Request $request, string $slug): View
     {
-        return view('funnel.sales', $this->pageViewModel($this->publishedPage($slug)));
+        $page = $this->publishedPage($slug);
+        $this->analytics->track($page, AnalyticsService::PAGE_VIEW, $request, dedupeOncePerSession: true);
+
+        return view('funnel.sales', $this->pageViewModel($page));
     }
 
     /** Buy → shipping step for physical goods, else straight to the payment page. */
@@ -73,7 +78,31 @@ class PublicSalesController extends Controller
             'seller' => $page->seller,
             'address' => $request->session()->get($this->shipKey($page), []),
             'countries' => $this->countries(),
+            'summary' => $this->orderSummary($page),
         ]);
+    }
+
+    /**
+     * Formatted order summary for a page (product price, shipping, total) — shown
+     * beside the shipping form and on the payment page.
+     *
+     * @return array{product:string, subtotal:string, shipping:string, shippingFree:bool, total:string}
+     */
+    private function orderSummary(SalesPage $page): array
+    {
+        $product = $page->product;
+        $asset = $product->priceAsset;
+
+        $subtotal = (int) $this->pricing->line($product, null, 1, $page->seller)['line_total'];
+        $shipping = $this->pricing->shippingFee($product);
+
+        return [
+            'product' => $product->name,
+            'subtotal' => $asset->money((string) $subtotal)->format(2),
+            'shipping' => $shipping > 0 ? $asset->money((string) $shipping)->format(2) : __('Free'),
+            'shippingFree' => $shipping === 0,
+            'total' => $asset->money((string) ($subtotal + $shipping))->format(2),
+        ];
     }
 
     /** Persist the address to the session, then continue to payment. */
@@ -122,6 +151,8 @@ class PublicSalesController extends Controller
             return redirect()->route('funnel.shipping', ['slug' => $slug]);
         }
 
+        $this->analytics->track($page, AnalyticsService::CHECKOUT_START, $request, dedupeOncePerSession: true);
+
         $break = $this->pricing->line($product, null, 1, $seller);
         $subtotal = (int) $break['line_total'];
 
@@ -129,7 +160,10 @@ class PublicSalesController extends Controller
         $couponCode = $request->query('coupon');
         $coupon = $this->coupons->preview($seller, $product, $couponCode, $subtotal, $request->user());
         $discount = $coupon?->discountFor($subtotal) ?? 0;
-        $totalAmount = $subtotal - $discount;
+
+        // Shipping is charged for physical goods (matches PlaceOrder).
+        $shipFee = $this->pricing->shippingFee($product);
+        $totalAmount = $subtotal - $discount + $shipFee;
 
         $total = $asset->money((string) $totalAmount);
         $balance = $this->ledger->availableBalance($request->user(), (int) $product->price_asset_id);
@@ -150,6 +184,7 @@ class PublicSalesController extends Controller
             'asset' => $asset,
             'subtotal' => $asset->money((string) $subtotal)->format(2),
             'discount' => $discount > 0 ? $asset->money((string) $discount)->format(2) : null,
+            'shipFee' => $shipFee > 0 ? $asset->money((string) $shipFee)->format(2) : null,
             'total' => $total->format(2),
             'couponCode' => $coupon?->code,
             'couponInvalid' => $couponCode !== null && trim((string) $couponCode) !== '' && $coupon === null,
@@ -194,6 +229,7 @@ class PublicSalesController extends Controller
         }
 
         $request->session()->forget(["sell:idem:{$page->getKey()}", $this->shipKey($page)]);
+        $this->analytics->track($page, AnalyticsService::PURCHASE, $request, orderId: $order->getKey());
 
         return redirect()->route('funnel.thankyou', ['slug' => $slug])->with('order_id', $order->getKey());
     }

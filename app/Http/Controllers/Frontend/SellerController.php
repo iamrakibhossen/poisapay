@@ -29,6 +29,7 @@ use App\Sell\Models\Order;
 use App\Sell\Models\Product;
 use App\Sell\Models\SalesPage;
 use App\Sell\Models\Seller;
+use App\Sell\Services\AnalyticsService;
 use App\Sell\Services\SellerService;
 use App\Support\Money;
 use Illuminate\Http\RedirectResponse;
@@ -532,25 +533,92 @@ class SellerController extends Controller
         return redirect()->route('sell.coupons')->with('success', __('Coupon deleted.'));
     }
 
-    public function analytics(Request $request): View
+    /** Real 30-day funnel analytics from recorded events + paid orders. */
+    public function analytics(Request $request, SellerService $sellers): View
     {
+        $seller = $sellers->forUser($request->user());
+
+        $since = now()->subDays(30);
+        $blank = ['visitors' => 0, 'checkouts' => 0, 'purchases' => 0];
+
+        if ($seller) {
+            // Distinct sessions per funnel stage (a visitor counts once).
+            $rows = \App\Sell\Models\AnalyticsEvent::query()
+                ->where('seller_id', $seller->getKey())
+                ->where('occurred_at', '>=', $since)
+                ->selectRaw('type, count(distinct session_id) as sessions')
+                ->groupBy('type')->pluck('sessions', 'type');
+
+            $counts = [
+                'visitors' => (int) ($rows[AnalyticsService::PAGE_VIEW] ?? 0),
+                'checkouts' => (int) ($rows[AnalyticsService::CHECKOUT_START] ?? 0),
+                'purchases' => (int) ($rows[AnalyticsService::PURCHASE] ?? 0),
+            ];
+
+            // Revenue (seller net) + order count from real paid orders in-window.
+            $paid = $seller->orders()->with('asset')
+                ->whereNotIn('status', [OrderStatus::Pending->value, OrderStatus::Cancelled->value])
+                ->where('created_at', '>=', $since)->get();
+            $asset = $seller->settlementAsset ?? $paid->first()?->asset;
+            $revenue = (int) $paid->sum(fn ($o) => (int) $o->seller_net_amount);
+            $ordersCount = $paid->count();
+
+            $sources = \App\Sell\Models\AnalyticsEvent::query()
+                ->where('seller_id', $seller->getKey())
+                ->where('type', AnalyticsService::PAGE_VIEW)
+                ->where('occurred_at', '>=', $since)
+                ->get(['referrer', 'utm'])
+                ->groupBy(fn ($e) => $this->trafficSource($e))
+                ->map->count()->sortDesc();
+            $sourceTotal = max(1, $sources->sum());
+        } else {
+            $counts = $blank;
+            $asset = null;
+            $revenue = $ordersCount = 0;
+            $sources = collect();
+            $sourceTotal = 1;
+        }
+
+        $fmt = fn (int $base) => $asset ? $asset->money((string) $base)->format(2) : number_format($base / 100, 2);
+        $conversion = $counts['visitors'] > 0 ? round($counts['purchases'] / $counts['visitors'] * 100, 1) : 0.0;
+        $aov = $ordersCount > 0 ? intdiv($revenue, $ordersCount) : 0;
+        $pct = fn (int $n) => $counts['visitors'] > 0 ? (int) round($n / $counts['visitors'] * 100) : 0;
+
         return view('frontend.seller.analytics', [
             'kpis' => [
-                ['Visitors · 30d', '12,480', 'eye', 'text-neutral-900', '+18%'],
-                ['Conversion', '3.2%', 'cursor-arrow-rays', 'text-emerald-600', '+0.4pt'],
-                ['Revenue · 30d', '$6,120', 'banknotes', 'text-neutral-900', '+24%'],
-                ['Avg. order value', '$71.40', 'shopping-cart', 'text-neutral-900', '+$6'],
+                ['Visitors · 30d', number_format($counts['visitors']), 'eye', 'text-neutral-900', null],
+                ['Conversion', $conversion.'%', 'cursor-arrow-rays', 'text-emerald-600', null],
+                ['Revenue · 30d', $fmt($revenue), 'banknotes', 'text-neutral-900', null],
+                ['Avg. order value', $fmt($aov), 'shopping-cart', 'text-neutral-900', null],
             ],
             'funnel' => [
-                ['Page views', 12480, 100],
-                ['Checkout started', 1090, 9],
-                ['Purchased', 399, 3],
-                ['Upsell accepted', 88, 1],
+                ['Page views', $counts['visitors'], 100],
+                ['Checkout started', $counts['checkouts'], $pct($counts['checkouts'])],
+                ['Purchased', $counts['purchases'], $pct($counts['purchases'])],
             ],
-            'sources' => [
-                ['Facebook Ads', 46], ['Direct / link', 24], ['Google', 16], ['YouTube', 9], ['Other', 5],
-            ],
+            'sources' => $sources->take(6)->map(fn ($n, $name) => [$name, (int) round($n / $sourceTotal * 100)])->values()->all(),
         ]);
+    }
+
+    /** Bucket a page-view event into a human traffic source. */
+    private function trafficSource(\App\Sell\Models\AnalyticsEvent $e): string
+    {
+        if (! empty($e->utm['source'])) {
+            return ucfirst((string) $e->utm['source']);
+        }
+        if (empty($e->referrer)) {
+            return 'Direct / link';
+        }
+        $host = strtolower((string) parse_url($e->referrer, PHP_URL_HOST));
+        return match (true) {
+            str_contains($host, 'facebook'), str_contains($host, 'fb.') => 'Facebook',
+            str_contains($host, 'google') => 'Google',
+            str_contains($host, 'youtube') => 'YouTube',
+            str_contains($host, 't.co'), str_contains($host, 'twitter'), str_contains($host, 'x.com') => 'X / Twitter',
+            str_contains($host, 'instagram') => 'Instagram',
+            $host === '' => 'Direct / link',
+            default => 'Other',
+        };
     }
 
     public function earnings(Request $request): View

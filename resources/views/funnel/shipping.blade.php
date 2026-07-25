@@ -12,7 +12,7 @@
             </div>
         </header>
 
-        <main class="mx-auto max-w-md px-4 py-8">
+        <main class="mx-auto max-w-4xl px-4 py-8">
             {{-- Steps: shipping → payment --}}
             <div class="mb-6 flex items-center justify-center gap-2 text-xs font-medium">
                 <span class="inline-flex items-center gap-1.5 text-brand-600"><span class="grid h-5 w-5 place-items-center rounded-full bg-brand-600 text-[11px] text-white">1</span> {{ __('Shipping') }}</span>
@@ -20,12 +20,14 @@
                 <span class="inline-flex items-center gap-1.5 text-neutral-400"><span class="grid h-5 w-5 place-items-center rounded-full bg-neutral-200 text-[11px]">2</span> {{ __('Payment') }}</span>
             </div>
 
-            <div class="text-center">
+            <div class="grid gap-6 lg:grid-cols-[1fr_320px]">
+            <div>
+            <div>
                 <h1 class="text-lg font-bold tracking-tight text-neutral-900">{{ __('Where should we ship it?') }}</h1>
-                <p class="mt-1 text-sm text-neutral-500">{{ $product->name }}</p>
+                <p class="mt-1 text-sm text-neutral-500">{{ __('Enter your delivery address to continue to payment.') }}</p>
             </div>
 
-            <form method="POST" action="{{ route('funnel.shipping.save', ['slug' => $slug]) }}" class="mt-6 space-y-4 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+            <form method="POST" action="{{ route('funnel.shipping.save', ['slug' => $slug]) }}" class="mt-5 space-y-4 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
                 @csrf
                 <div>
                     <label class="{{ $lbl }}">{{ __('Full name') }}</label>
@@ -72,7 +74,40 @@
                 </button>
             </form>
 
-            <a href="{{ route('funnel.sales', ['slug' => $slug]) }}" class="mt-5 block text-center text-xs font-medium text-neutral-400 hover:text-neutral-600">← {{ __('Back to the page') }}</a>
+            <a href="{{ route('funnel.sales', ['slug' => $slug]) }}" class="mt-5 block text-center text-xs font-medium text-neutral-400 hover:text-neutral-600 lg:text-left">← {{ __('Back to the page') }}</a>
+            </div>
+
+            {{-- Right: order summary --}}
+            <aside class="lg:sticky lg:top-8 lg:self-start">
+                <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+                    <p class="text-sm font-semibold text-neutral-900">{{ __('Order summary') }}</p>
+                    <div class="mt-4 flex items-center gap-3 border-b border-neutral-100 pb-4">
+                        <span class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600"><x-heroicon-o-cube class="h-6 w-6" /></span>
+                        <div class="min-w-0">
+                            <p class="truncate text-sm font-medium text-neutral-900">{{ $summary['product'] }}</p>
+                            <p class="text-xs text-neutral-400">{{ __('Sold by') }} {{ $seller->displayName() }}</p>
+                        </div>
+                    </div>
+                    <dl class="mt-4 space-y-2 text-sm">
+                        <div class="flex items-center justify-between">
+                            <dt class="text-neutral-500">{{ __('Product') }}</dt>
+                            <dd class="tabular font-medium text-neutral-900">{{ $summary['subtotal'] }}</dd>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <dt class="text-neutral-500">{{ __('Shipping') }}</dt>
+                            <dd class="tabular font-medium {{ $summary['shippingFree'] ? 'text-emerald-600' : 'text-neutral-900' }}">{{ $summary['shipping'] }}</dd>
+                        </div>
+                        <div class="flex items-center justify-between border-t border-neutral-100 pt-3 text-base font-bold text-neutral-900">
+                            <dt>{{ __('Total') }}</dt>
+                            <dd class="tabular">{{ $summary['total'] }}</dd>
+                        </div>
+                    </dl>
+                    <p class="mt-4 flex items-center justify-center gap-1.5 text-[11px] text-neutral-400">
+                        <x-heroicon-o-lock-closed class="h-3.5 w-3.5" /> {{ __('Secure checkout · buyer protection') }}
+                    </p>
+                </div>
+            </aside>
+            </div>
         </main>
     </div>
 </x-layouts.sales>

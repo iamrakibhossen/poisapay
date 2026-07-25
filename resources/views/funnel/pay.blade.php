@@ -31,6 +31,12 @@
                             <span class="tabular font-medium">−{{ $discount }}</span>
                         </div>
                     @endif
+                    @if ($shipFee)
+                        <div class="flex items-center justify-between text-neutral-600">
+                            <span>{{ __('Shipping') }}</span>
+                            <span class="tabular font-medium text-neutral-900">{{ $shipFee }}</span>
+                        </div>
+                    @endif
                     <div class="flex items-center justify-between border-t border-neutral-100 pt-2 font-semibold text-neutral-900">
                         <span>{{ __('Total') }}</span>
                         <span class="tabular">{{ $total }}</span>

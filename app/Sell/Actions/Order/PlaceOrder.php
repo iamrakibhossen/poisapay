@@ -71,12 +71,20 @@ class PlaceOrder
             ? $this->coupons->validate($seller, $product, $data->couponCode, $subtotal, $buyer)
             : null;
         $discount = $coupon?->discountFor($subtotal) ?? 0;
+
+        // Flat shipping fee for physical goods (from product attributes). Commission
+        // is taken on the discounted product amount only; shipping passes to the seller.
+        $shipping = $this->pricing->shippingFee($product);
+        $productNet = $subtotal - $discount;
+        $commission = intdiv($productNet * $seller->commissionBps(), 10_000);
         $charge = [
             'subtotal' => $subtotal,
             'discount' => $discount,
-            'total' => $total = $subtotal - $discount,
-            'commission' => $commission = intdiv($total * $seller->commissionBps(), 10_000),
-            'net' => $total - $commission,
+            'shipping' => $shipping,
+            'product_total' => $productNet,
+            'total' => $productNet + $shipping,
+            'commission' => $commission,
+            'net' => $productNet - $commission + $shipping,
             'coupon_id' => $coupon?->getKey(),
         ];
 
@@ -117,6 +125,7 @@ class PlaceOrder
                 'status' => OrderStatus::Pending,
                 'subtotal_amount' => $charge['subtotal'],
                 'discount_amount' => $charge['discount'],
+                'shipping_amount' => $charge['shipping'],
                 'total_amount' => $charge['total'],
                 'commission_amount' => $charge['commission'],
                 'seller_net_amount' => $charge['net'],
@@ -133,9 +142,9 @@ class PlaceOrder
                 'name_snapshot' => $product->name,
                 'unit_amount' => $break['unit'],
                 'quantity' => $data->quantity,
-                'line_total_amount' => $charge['total'],
+                'line_total_amount' => $charge['product_total'],
                 'commission_amount' => $charge['commission'],
-                'seller_net_amount' => $charge['net'],
+                'seller_net_amount' => $charge['product_total'] - $charge['commission'],
             ]);
 
             if ($charge['coupon_id'] !== null) {
@@ -203,4 +212,5 @@ class PlaceOrder
             ]);
         }
     }
+
 }
