@@ -8,6 +8,7 @@ use App\Sell\Enums\OrderItemKind;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property OrderItemKind $kind
@@ -42,5 +43,17 @@ class OrderItem extends Model
     public function variant(): BelongsTo
     {
         return $this->belongsTo(ProductVariant::class, 'variant_id');
+    }
+
+    /** License keys issued for this line (License-type products). */
+    public function licenses(): HasMany
+    {
+        return $this->hasMany(License::class);
+    }
+
+    /** Signed download grants issued for this line (digital products). */
+    public function downloads(): HasMany
+    {
+        return $this->hasMany(Download::class);
     }
 }

@@ -10,6 +10,10 @@
             </div>
         </div>
 
+        @if (session('error'))
+            <x-ui.alert type="danger">{{ session('error') }}</x-ui.alert>
+        @endif
+
         @if (count($purchases))
             <div class="space-y-3">
                 @foreach ($purchases as $p)
@@ -23,7 +27,7 @@
                                 <p class="text-xs text-neutral-500">{{ __('by') }} {{ $p['seller'] }} · {{ $p['date'] }} · {{ $p['price'] }}</p>
 
                                 @if (($p['type'] ?? '') === 'digital')
-                                    <p class="mt-1 inline-flex items-center gap-1 text-xs text-neutral-400"><x-heroicon-o-document class="h-3.5 w-3.5" /> {{ $p['file'] }}</p>
+                                    <p class="mt-1 inline-flex items-center gap-1 text-xs text-neutral-400"><x-heroicon-o-document class="h-3.5 w-3.5" /> {{ $p['file'] ?? __('File pending from seller') }}</p>
                                 @elseif (($p['type'] ?? '') === 'physical')
                                     <p class="mt-1 inline-flex items-center gap-2 text-xs">
                                         <x-ui.badge color="info" dot>{{ $p['shipStatus'] }}</x-ui.badge>
@@ -37,8 +41,14 @@
                                     <x-ui.button x-on:click="showKey = ! showKey" variant="secondary" size="sm" icon="key">{{ $p['action'] }}</x-ui.button>
                                 @elseif (($p['type'] ?? '') === 'physical')
                                     <x-ui.button x-on:click="showTrack = ! showTrack" variant="secondary" size="sm" icon="truck">{{ $p['action'] }}</x-ui.button>
+                                @elseif (($p['type'] ?? '') === 'digital')
+                                    @if (! empty($p['downloadUrl']))
+                                        <x-ui.button href="{{ $p['downloadUrl'] }}" size="sm" icon="arrow-down-tray">{{ $p['action'] }}</x-ui.button>
+                                    @else
+                                        <x-ui.button size="sm" icon="clock" variant="secondary" disabled>{{ __('File pending') }}</x-ui.button>
+                                    @endif
                                 @else
-                                    <x-ui.button size="sm" icon="arrow-down-tray">{{ $p['action'] }}</x-ui.button>
+                                    <x-ui.button size="sm" variant="secondary" icon="arrow-top-right-on-square">{{ $p['action'] ?? __('View') }}</x-ui.button>
                                 @endif
                             </div>
                         </div>
@@ -46,8 +56,13 @@
                         {{-- License key reveal --}}
                         @if (($p['type'] ?? '') === 'license')
                             <div x-show="showKey" x-cloak x-transition class="mt-3 flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50/60 p-3">
-                                <code class="flex-1 truncate font-mono text-sm text-neutral-800">{{ $p['licenseKey'] }}</code>
-                                <span class="rounded-md bg-white px-2 py-1 text-xs font-medium text-neutral-500 ring-1 ring-neutral-200">{{ __('Copy') }}</span>
+                                @if (! empty($p['licenseKey']))
+                                    <code class="flex-1 truncate font-mono text-sm text-neutral-800" x-ref="key-{{ $loop->index }}">{{ $p['licenseKey'] }}</code>
+                                    <button type="button" x-on:click="navigator.clipboard.writeText($refs['key-{{ $loop->index }}'].textContent)"
+                                        class="rounded-md bg-white px-2 py-1 text-xs font-medium text-neutral-500 ring-1 ring-neutral-200 hover:text-brand-600">{{ __('Copy') }}</button>
+                                @else
+                                    <p class="flex-1 text-sm text-neutral-500">{{ __('Your key is being issued — it’ll appear here shortly.') }}</p>
+                                @endif
                             </div>
                         @endif
 

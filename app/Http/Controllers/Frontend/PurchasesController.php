@@ -5,44 +5,135 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Sell\Enums\OrderStatus;
+use App\Sell\Enums\ProductType;
+use App\Sell\Models\OrderItem;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Customer portal — "My Purchases" (funnel platform). Buyers re-download files,
  * track orders, view license keys and invoices.
  *
- * FRONTEND-FIRST: renders from sample purchases so the UX is reviewable.
+ * Wired to real Sell orders: each paid order line the signed-in user bought
+ * becomes a purchase card, typed by the product (digital download, physical
+ * shipment, or license key). Files are served through {@see self::download()},
+ * which re-checks ownership on every request.
  */
 class PurchasesController extends Controller
 {
-    public function index(Request $request): View
+    /** Heroicon per product type. */
+    private const ICONS = [
+        'digital' => 'cube', 'physical' => 'truck', 'license' => 'key',
+        'membership' => 'user-group', 'subscription' => 'arrow-path',
+        'service' => 'briefcase', 'bundle' => 'squares-2x2',
+    ];
+
+    public function index(\Illuminate\Http\Request $request): View
     {
-        return view('frontend.purchases', [
-            'purchases' => [
-                [
-                    'name' => 'LaunchKit — Laravel SaaS Boilerplate', 'type' => 'digital', 'icon' => 'cube',
-                    'seller' => 'Rahim Studios', 'date' => 'Jul 20, 2026', 'price' => '$49',
-                    'file' => 'launchkit-v1.0.zip', 'action' => 'Download',
-                ],
-                [
-                    'name' => 'PoisaHub Dev Tee (Black · M)', 'type' => 'physical', 'icon' => 'truck',
-                    'seller' => 'Rahim Studios', 'date' => 'Jul 12, 2026', 'price' => '$25',
-                    'shipStatus' => 'Shipped', 'tracking' => 'BD-7712-9920', 'carrier' => 'Pathao', 'action' => 'Track order',
-                    'address' => 'House 14, Road 7, Dhanmondi, Dhaka 1209',
-                    'timeline' => [
-                        ['Order placed', 'Jul 12 · 10:22 AM', true],
-                        ['Shipped', 'Jul 13 · 4:05 PM · Pathao', true],
-                        ['Out for delivery', 'Expected Jul 15', false],
-                        ['Delivered', 'Pending', false],
-                    ],
-                ],
-                [
-                    'name' => 'SaaS Pro License', 'type' => 'license', 'icon' => 'key',
-                    'seller' => 'Rahim Studios', 'date' => 'Jun 28, 2026', 'price' => '$79',
-                    'licenseKey' => 'LK-9F2A-7C4E-1B80-XZ21', 'action' => 'View key',
-                ],
-            ],
-        ]);
+        $items = OrderItem::query()
+            ->whereHas('order', fn ($q) => $q->where('buyer_user_id', $request->user()->getKey())
+                ->whereNotIn('status', [OrderStatus::Pending->value, OrderStatus::Cancelled->value]))
+            ->with([
+                'order.asset', 'order.seller.user',
+                'product.files', 'variant', 'licenses',
+            ])
+            ->latest()
+            ->get();
+
+        $purchases = $items->map(fn (OrderItem $item) => $this->present($item))->all();
+
+        return view('frontend.purchases', ['purchases' => $purchases]);
+    }
+
+    /** Re-download a purchased digital file. Ownership is re-verified here. */
+    public function download(\Illuminate\Http\Request $request, string $item): StreamedResponse|RedirectResponse
+    {
+        $orderItem = OrderItem::query()
+            ->whereHas('order', fn ($q) => $q->where('buyer_user_id', $request->user()->getKey())
+                ->whereNotIn('status', [OrderStatus::Pending->value, OrderStatus::Cancelled->value]))
+            ->with('product.files')
+            ->findOrFail($item);
+
+        $file = $orderItem->product?->files->firstWhere('is_current', true)
+            ?? $orderItem->product?->files->first();
+
+        if (! $file || ! Storage::disk($file->disk)->exists($file->path)) {
+            return back()->with('error', __('This file isn’t available for download yet.'));
+        }
+
+        return Storage::disk($file->disk)->download($file->path, $file->original_name);
+    }
+
+    /** @return array<string, mixed> the view-model for one purchase card. */
+    private function present(OrderItem $item): array
+    {
+        $order = $item->order;
+        $type = $item->product?->type ?? ProductType::Digital;
+        $placed = $order->paid_at ?? $order->created_at;
+
+        $card = [
+            'name' => $item->name_snapshot,
+            'type' => $type->value,
+            'icon' => self::ICONS[$type->value] ?? 'cube',
+            'seller' => $order->seller?->displayName() ?? __('Seller'),
+            'date' => $placed?->format('M j, Y') ?? '—',
+            'price' => $order->asset->money((string) $item->line_total_amount)->format(2),
+        ];
+
+        if ($type === ProductType::Digital) {
+            $file = $item->product?->files->firstWhere('is_current', true) ?? $item->product?->files->first();
+            $card['file'] = $file?->original_name;
+            $card['downloadUrl'] = $file ? route('purchases.download', $item->id) : null;
+            $card['action'] = __('Download');
+        } elseif ($type === ProductType::License) {
+            $card['licenseKey'] = optional($item->licenses->first())->key();
+            $card['action'] = __('View key');
+        } elseif ($type === ProductType::Physical) {
+            $addr = $order->shipping_address ?? [];
+            $card['shipStatus'] = $order->status->label();
+            $card['carrier'] = $addr['carrier'] ?? $order->events->firstWhere('type', 'shipped')?->data['carrier'] ?? '—';
+            $card['tracking'] = $addr['tracking'] ?? $order->events->firstWhere('type', 'shipped')?->data['tracking'] ?? '—';
+            $card['address'] = $this->formatAddress($addr);
+            $card['timeline'] = $this->shipmentTimeline($order->status, $placed);
+            $card['action'] = __('Track order');
+        } else {
+            $card['action'] = __('View');
+        }
+
+        return $card;
+    }
+
+    /** @param array<string, mixed> $addr */
+    private function formatAddress(array $addr): string
+    {
+        return implode(', ', array_filter([
+            $addr['line1'] ?? null, $addr['city'] ?? null,
+            $addr['postcode'] ?? null, $addr['country'] ?? null,
+        ])) ?: __('No address on file');
+    }
+
+    /**
+     * Buyer-facing shipment timeline derived from the order status — each step is
+     * "done" once the order has reached at least that stage.
+     *
+     * @return list<array{0:string,1:string,2:bool}>
+     */
+    private function shipmentTimeline(OrderStatus $status, ?\Illuminate\Support\Carbon $placed): array
+    {
+        $rank = [
+            OrderStatus::Paid->value => 1, OrderStatus::Processing->value => 1,
+            OrderStatus::Shipped->value => 2, OrderStatus::Delivered->value => 3,
+            OrderStatus::Completed->value => 3,
+        ][$status->value] ?? 1;
+
+        return [
+            [__('Order placed'), $placed?->format('M j · g:i A') ?? '—', $rank >= 1],
+            [__('Shipped'), $rank >= 2 ? __('In transit') : __('Pending'), $rank >= 2],
+            [__('Out for delivery'), $rank >= 3 ? __('Delivered') : __('Pending'), $rank >= 3],
+            [__('Delivered'), $rank >= 3 ? __('Complete') : __('Pending'), $rank >= 3],
+        ];
     }
 }
