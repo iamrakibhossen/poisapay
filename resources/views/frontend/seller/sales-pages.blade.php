@@ -44,9 +44,25 @@
                 countdown: 'Offer ends in',
                 cta: { heading: 'Start building today', btn: 'Get it for $49 →' },
             },
+            productsInfo: @js($productsInfo ?? []),
             get btnRadius() { return this.btn === 'pill' ? '9999px' : this.btn === 'square' ? '2px' : '12px'; },
             move(i, d) { const j = i + d; if (j < 0 || j >= this.order.length) return; [this.order[i], this.order[j]] = [this.order[j], this.order[i]]; },
             edit(key) { this.sections[key] = true; this.editing = key; },
+            /* Repoint the page at another product → resync the hero + product-section copy to it. */
+            switchProduct(id) {
+                const p = this.productsInfo[id];
+                if (! p) return;
+                this.content.hero.headline = p.name ?? this.content.hero.headline;
+                this.content.hero.tagline = p.summary ?? '';
+                this.content.hero.desc = p.description ?? '';
+                this.content.hero.price = p.price ?? '—';
+                this.content.hero.compare = p.compare ?? '';
+                this.content.product.name = p.name ?? this.content.product.name;
+                this.content.product.type = p.type ?? this.content.product.type;
+                this.content.product.summary = p.summary ?? '';
+                this.content.product.price = p.price ?? '—';
+                this.content.product.compare = p.compare ?? '';
+            },
             get builderJson() { return JSON.stringify({ theme: { accent: this.accent, btn: this.btn, font: this.font }, sections: this.order.map(k => ({ type: k, enabled: !! this.sections[k], content: this.content[k] ?? null })) }); },
             ...@js($seed),
         }"
@@ -101,6 +117,18 @@
 
                 {{-- ---- Sections list (when nothing is being edited) ---- --}}
                 <div x-show="editing === null">
+                    {{-- Product this page sells — switchable (only the seller's own products). --}}
+                    <x-ui.card class="mb-4">
+                        <p class="mb-1 text-sm font-semibold text-neutral-900">{{ __('Product') }}</p>
+                        <p class="mb-3 text-xs text-neutral-500">{{ __('What this page sells. Changing it repoints checkout — save to refresh the preview.') }}</p>
+                        <select name="product_id" x-on:change="switchProduct($event.target.value)"
+                            class="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                            @foreach ($products as $id => $pname)
+                                <option value="{{ $id }}" @selected((string) $page->product_id === (string) $id)>{{ $pname }}</option>
+                            @endforeach
+                        </select>
+                    </x-ui.card>
+
                     <x-ui.card>
                         <p class="mb-1 text-sm font-semibold text-neutral-900">{{ __('Sections') }}</p>
                         <p class="mb-3 text-xs text-neutral-500">{{ __('Toggle, reorder, or click a section to edit its content.') }}</p>

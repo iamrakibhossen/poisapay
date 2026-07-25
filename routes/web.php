@@ -47,6 +47,8 @@ Route::get('/pages/{slug}', [PageController::class, 'show'])->name('page.show');
 Route::controller(\App\Http\Controllers\Funnel\PublicSalesController::class)->group(function () {
     Route::get('/p/{slug}', 'show')->name('funnel.sales');
     Route::post('/p/{slug}/checkout', 'checkout')->name('funnel.checkout');
+    Route::get('/p/{slug}/shipping', 'shipping')->name('funnel.shipping');
+    Route::post('/p/{slug}/shipping', 'shippingSave')->name('funnel.shipping.save');
     Route::get('/p/{slug}/pay', 'pay')->name('funnel.pay');
     Route::post('/p/{slug}/pay', 'payConfirm')->name('funnel.pay.confirm');
     Route::get('/p/{slug}/thank-you', 'thankYou')->name('funnel.thankyou');

@@ -34,6 +34,9 @@ Route::controller(SellerController::class)->group(function () {
     Route::post('/sell/reviews/{id}/reply', 'replyReview')->name('sell.reviews.reply');
     Route::get('/sell/customers', 'customers')->name('sell.customers');
     Route::get('/sell/coupons', 'coupons')->name('sell.coupons');
+    Route::post('/sell/coupons', 'storeCoupon')->name('sell.coupons.store');
+    Route::post('/sell/coupons/{id}/toggle', 'toggleCoupon')->name('sell.coupons.toggle');
+    Route::delete('/sell/coupons/{id}', 'destroyCoupon')->name('sell.coupons.destroy');
     Route::get('/sell/analytics', 'analytics')->name('sell.analytics');
     Route::get('/sell/earnings', 'earnings')->name('sell.earnings');
     Route::get('/sell/domains', 'domains')->name('sell.domains');

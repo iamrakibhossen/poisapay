@@ -69,5 +69,10 @@ class SellException extends RuntimeException
     {
         return new self('This item is out of stock.');
     }
+
+    public static function invalidCoupon(string $why = 'This coupon code is not valid.'): self
+    {
+        return new self($why);
+    }
 }
 

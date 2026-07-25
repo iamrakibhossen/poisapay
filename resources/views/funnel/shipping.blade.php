@@ -1,0 +1,78 @@
+<x-layouts.sales :title="__('Shipping details')">
+    @php $inp = 'w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500'; $lbl = 'mb-1 block text-xs font-medium text-neutral-600'; @endphp
+    <div class="min-h-screen bg-neutral-50">
+        {{-- PoisaPay-hosted bar --}}
+        <header class="border-b border-neutral-200 bg-white">
+            <div class="mx-auto flex max-w-md items-center justify-between px-4 py-3.5">
+                <div class="flex items-center gap-2">
+                    <span class="grid h-8 w-8 place-items-center rounded-lg bg-brand-500 text-white"><x-heroicon-s-bolt class="h-4 w-4" /></span>
+                    <span class="text-sm font-bold text-neutral-900">PoisaPay</span>
+                </div>
+                <span class="inline-flex items-center gap-1 text-xs font-medium text-emerald-600"><x-heroicon-s-lock-closed class="h-3.5 w-3.5" /> {{ __('Secure checkout') }}</span>
+            </div>
+        </header>
+
+        <main class="mx-auto max-w-md px-4 py-8">
+            {{-- Steps: shipping → payment --}}
+            <div class="mb-6 flex items-center justify-center gap-2 text-xs font-medium">
+                <span class="inline-flex items-center gap-1.5 text-brand-600"><span class="grid h-5 w-5 place-items-center rounded-full bg-brand-600 text-[11px] text-white">1</span> {{ __('Shipping') }}</span>
+                <span class="h-px w-6 bg-neutral-300"></span>
+                <span class="inline-flex items-center gap-1.5 text-neutral-400"><span class="grid h-5 w-5 place-items-center rounded-full bg-neutral-200 text-[11px]">2</span> {{ __('Payment') }}</span>
+            </div>
+
+            <div class="text-center">
+                <h1 class="text-lg font-bold tracking-tight text-neutral-900">{{ __('Where should we ship it?') }}</h1>
+                <p class="mt-1 text-sm text-neutral-500">{{ $product->name }}</p>
+            </div>
+
+            <form method="POST" action="{{ route('funnel.shipping.save', ['slug' => $slug]) }}" class="mt-6 space-y-4 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+                @csrf
+                <div>
+                    <label class="{{ $lbl }}">{{ __('Full name') }}</label>
+                    <input name="name" value="{{ old('name', $address['name'] ?? '') }}" class="{{ $inp }}" required />
+                    @error('name')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <label class="{{ $lbl }}">{{ __('Phone') }}</label>
+                    <input name="phone" value="{{ old('phone', $address['phone'] ?? '') }}" placeholder="+8801XXXXXXXXX" class="{{ $inp }}" required />
+                    @error('phone')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <label class="{{ $lbl }}">{{ __('Address') }}</label>
+                    <input name="line1" value="{{ old('line1', $address['line1'] ?? '') }}" placeholder="{{ __('House, road, area') }}" class="{{ $inp }}" required />
+                    @error('line1')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
+                    <input name="line2" value="{{ old('line2', $address['line2'] ?? '') }}" placeholder="{{ __('Apartment, suite (optional)') }}" class="{{ $inp }} mt-2" />
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="{{ $lbl }}">{{ __('City') }}</label>
+                        <input name="city" value="{{ old('city', $address['city'] ?? '') }}" class="{{ $inp }}" required />
+                        @error('city')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label class="{{ $lbl }}">{{ __('Postcode') }}</label>
+                        <input name="postcode" value="{{ old('postcode', $address['postcode'] ?? '') }}" class="{{ $inp }}" />
+                    </div>
+                </div>
+                <div>
+                    <label class="{{ $lbl }}">{{ __('Country') }}</label>
+                    <select name="country" class="{{ $inp }}" required>
+                        @foreach ($countries as $code => $cname)
+                            <option value="{{ $code }}" @selected(old('country', $address['country'] ?? auth()->user()?->country ?? 'BD') === $code)>{{ $cname }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="{{ $lbl }}">{{ __('Delivery notes') }} <span class="text-neutral-400">({{ __('optional') }})</span></label>
+                    <textarea name="notes" rows="2" placeholder="{{ __('Landmark, preferred time…') }}" class="{{ $inp }}">{{ old('notes', $address['notes'] ?? '') }}</textarea>
+                </div>
+
+                <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 py-3.5 text-sm font-semibold text-white transition hover:bg-brand-700">
+                    {{ __('Continue to payment') }} <x-heroicon-o-arrow-right class="h-4 w-4" />
+                </button>
+            </form>
+
+            <a href="{{ route('funnel.sales', ['slug' => $slug]) }}" class="mt-5 block text-center text-xs font-medium text-neutral-400 hover:text-neutral-600">← {{ __('Back to the page') }}</a>
+        </main>
+    </div>
+</x-layouts.sales>

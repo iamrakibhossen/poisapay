@@ -77,6 +77,11 @@ class Seller extends Model
         return $this->hasMany(Review::class);
     }
 
+    public function coupons(): HasMany
+    {
+        return $this->hasMany(Coupon::class);
+    }
+
     /** Effective commission in bps — own override, else the platform default. */
     public function commissionBps(): int
     {

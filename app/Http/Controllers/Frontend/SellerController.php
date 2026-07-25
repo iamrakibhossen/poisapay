@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Asset;
+use App\Sell\Actions\Coupon\CreateCoupon;
 use App\Sell\Actions\Order\SendMessage;
 use App\Sell\Actions\Order\SetOrderStatus;
 use App\Sell\Actions\Product\CreateProduct;
@@ -423,15 +424,112 @@ class SellerController extends Controller
         ]);
     }
 
-    public function coupons(Request $request): View
+    /** Real discount codes for the seller, plus their products for scoping. */
+    public function coupons(Request $request, SellerService $sellers): View
     {
-        return view('frontend.seller.coupons', [
-            'coupons' => [
-                ['code' => 'LAUNCH20', 'type' => '20% off', 'used' => 142, 'limit' => 500, 'status' => 'Active', 'color' => 'success', 'expires' => 'Aug 31, 2026'],
-                ['code' => 'BLACKFRIDAY', 'type' => '$15 off', 'used' => 0, 'limit' => 1000, 'status' => 'Scheduled', 'color' => 'warning', 'expires' => 'Nov 29, 2026'],
-                ['code' => 'EARLYBIRD', 'type' => '30% off', 'used' => 200, 'limit' => 200, 'status' => 'Expired', 'color' => 'gray', 'expires' => 'Jun 1, 2026'],
-            ],
+        $seller = $sellers->forUser($request->user());
+
+        $coupons = $seller
+            ? $seller->coupons()->with('product')->latest()->get()->map(function ($c) {
+                $status = ! $c->is_active ? ['Disabled', 'gray']
+                    : ($c->starts_at && $c->starts_at->isFuture() ? ['Scheduled', 'warning']
+                    : ($c->ends_at && $c->ends_at->isPast() ? ['Expired', 'gray']
+                    : (($c->usage_limit !== null && $c->used_count >= $c->usage_limit) ? ['Used up', 'gray']
+                    : ['Active', 'success'])));
+
+                return [
+                    'id' => $c->id,
+                    'code' => $c->code,
+                    'type' => $c->type === \App\Sell\Enums\CouponType::Percent
+                        ? number_format($c->value / 100, ($c->value % 100 ? 1 : 0)).'% off'
+                        : ($c->product?->priceAsset?->money((string) $c->value)->format(2) ?? $c->value).' off',
+                    'scope' => $c->product?->name ?? __('All products'),
+                    'used' => (int) $c->used_count,
+                    'limit' => $c->usage_limit,
+                    'status' => $status[0],
+                    'color' => $status[1],
+                    'active' => (bool) $c->is_active,
+                    'expires' => $c->ends_at?->format('M j, Y') ?? '—',
+                ];
+            })->all()
+            : [];
+
+        $products = $seller ? $seller->products()->orderBy('name')->pluck('name', 'id')->all() : [];
+
+        return view('frontend.seller.coupons', compact('coupons', 'products'));
+    }
+
+    /** Create a discount code. Fixed-amount values are entered in the seller's pricing currency. */
+    public function storeCoupon(Request $request, SellerService $sellers, CreateCoupon $action): RedirectResponse
+    {
+        $seller = $sellers->forUser($request->user());
+        if (! ($seller?->canSell() ?? false)) {
+            return redirect()->route('sell');
+        }
+
+        $validated = $request->validate([
+            'code' => ['required', 'string', 'max:40', 'regex:/^[A-Za-z0-9_-]+$/'],
+            'type' => ['required', 'in:percent,fixed'],
+            'value' => ['required', 'numeric', 'min:0.01'],
+            'product_id' => ['nullable', 'string'],
+            'usage_limit' => ['nullable', 'integer', 'min:1'],
+            'per_customer_limit' => ['nullable', 'integer', 'min:1'],
+            'ends_at' => ['nullable', 'date'],
         ]);
+
+        // Percent capped at 100; fixed amount → minor units of the product's (or a pricing) asset.
+        $value = $validated['value'];
+        if ($validated['type'] === 'percent') {
+            $value = min(100, (float) $value);
+        } else {
+            $pid = $validated['product_id'] ?? null;
+            if ($pid) {
+                $asset = $seller->products()->find($pid)?->priceAsset;
+            } else {
+                $pricing = $this->pricingAssets();
+                $asset = $pricing->isNotEmpty() ? Asset::find($pricing->first()['id']) : null;
+            }
+            $decimals = $asset?->decimals ?? 2;
+            $value = (int) round(((float) $value) * (10 ** $decimals));
+        }
+
+        try {
+            $action->execute($seller, [
+                'code' => $validated['code'],
+                'type' => $validated['type'],
+                'value' => $value,
+                'product_id' => ($validated['product_id'] ?? null) ?: null,
+                'usage_limit' => $validated['usage_limit'] ?? null,
+                'per_customer_limit' => $validated['per_customer_limit'] ?? null,
+                'ends_at' => $validated['ends_at'] ?? null,
+            ]);
+        } catch (SellException $e) {
+            return back()->withInput()->withErrors(['coupon' => $e->getMessage()]);
+        }
+
+        return redirect()->route('sell.coupons')->with('success', __('Coupon created.'));
+    }
+
+    /** Enable/disable a coupon. */
+    public function toggleCoupon(Request $request, SellerService $sellers, string $id): RedirectResponse
+    {
+        $seller = $sellers->forUser($request->user());
+        $coupon = $seller ? $seller->coupons()->find($id) : null;
+        if ($coupon) {
+            $coupon->update(['is_active' => ! $coupon->is_active]);
+        }
+
+        return redirect()->route('sell.coupons');
+    }
+
+    /** Soft-delete a coupon. */
+    public function destroyCoupon(Request $request, SellerService $sellers, string $id): RedirectResponse
+    {
+        $seller = $sellers->forUser($request->user());
+        $coupon = $seller ? $seller->coupons()->find($id) : null;
+        $coupon?->delete();
+
+        return redirect()->route('sell.coupons')->with('success', __('Coupon deleted.'));
     }
 
     public function analytics(Request $request): View
@@ -540,13 +638,16 @@ class SellerController extends Controller
 
         $info = $this->productInfo($page);
 
+        // The seller's products: names for the switcher, facts for live copy resync.
+        $sellerProducts = Product::where('seller_id', $page->seller_id)->with('priceAsset')->orderBy('name')->get();
+
         return view('frontend.seller.sales-pages', [
             'page' => $page,
             'slug' => $page->slug,
             'product' => $page->product?->name ?? __('Product'),
             'productInfo' => $info,
-            // Products the seller can point this page at (switchable in the builder).
-            'products' => Product::where('seller_id', $page->seller_id)->orderBy('name')->pluck('name', 'id')->all(),
+            'products' => $sellerProducts->pluck('name', 'id')->all(),
+            'productsInfo' => $sellerProducts->mapWithKeys(fn ($p) => [$p->id => $this->productFacts($p)])->all(),
             'published' => $page->status === SalesPageStatus::Published,
             'seed' => $this->builderSeed($page, $info),
             'themes' => ['#2563eb' => 'Blue', '#7c3aed' => 'Violet', '#059669' => 'Emerald', '#e11d48' => 'Rose', '#ea580c' => 'Orange', '#0f172a' => 'Slate'],
@@ -561,7 +662,20 @@ class SellerController extends Controller
      */
     private function productInfo(SalesPage $page): array
     {
-        $product = $page->product;
+        return $this->productFacts($page->product) + [
+            'seller' => $page->seller?->displayName() ?? $page->product?->seller?->displayName(),
+        ];
+    }
+
+    /**
+     * Display-ready facts for one product (name/type/summary/price…). Used both to
+     * seed the builder and, keyed by id, to resync section copy when the seller
+     * switches the page's product.
+     *
+     * @return array<string, string|null>
+     */
+    private function productFacts(?Product $product): array
+    {
         $asset = $product?->priceAsset;
 
         return [
@@ -573,7 +687,6 @@ class SellerController extends Controller
             'compare' => $product && $asset && $product->compare_price_amount
                 ? $asset->money((string) $product->compare_price_amount)->format(2)
                 : null,
-            'seller' => $page->seller?->displayName() ?? $product?->seller?->displayName(),
         ];
     }
 

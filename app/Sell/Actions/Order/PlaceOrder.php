@@ -14,10 +14,12 @@ use App\Sell\Enums\OrderItemKind;
 use App\Sell\Enums\OrderStatus;
 use App\Sell\Events\OrderPlaced;
 use App\Sell\Exceptions\SellException;
+use App\Sell\Models\Coupon;
 use App\Sell\Models\Download;
 use App\Sell\Models\Order;
 use App\Sell\Models\Product;
 use App\Sell\Models\ProductVariant;
+use App\Sell\Services\CouponService;
 use App\Sell\Services\PricingService;
 use App\Support\Money;
 use Illuminate\Support\Facades\DB;
@@ -40,6 +42,7 @@ class PlaceOrder
     public function __construct(
         private readonly LedgerService $ledger,
         private readonly PricingService $pricing,
+        private readonly CouponService $coupons,
     ) {}
 
     public function execute(User $buyer, CheckoutData $data): Order
@@ -61,7 +64,23 @@ class PlaceOrder
         $assetId = (int) $product->price_asset_id;
         $break = $this->pricing->line($product, $variant, $data->quantity, $seller);
 
-        return DB::transaction(function () use ($buyer, $data, $product, $seller, $variant, $assetId, $break): Order {
+        // Apply a discount code if supplied. Commission (and the seller's net) are
+        // recomputed on the *discounted* total — the platform cut follows the money.
+        $subtotal = $break['line_total'];
+        $coupon = $data->couponCode !== null
+            ? $this->coupons->validate($seller, $product, $data->couponCode, $subtotal, $buyer)
+            : null;
+        $discount = $coupon?->discountFor($subtotal) ?? 0;
+        $charge = [
+            'subtotal' => $subtotal,
+            'discount' => $discount,
+            'total' => $total = $subtotal - $discount,
+            'commission' => $commission = intdiv($total * $seller->commissionBps(), 10_000),
+            'net' => $total - $commission,
+            'coupon_id' => $coupon?->getKey(),
+        ];
+
+        return DB::transaction(function () use ($buyer, $data, $product, $seller, $variant, $assetId, $break, $charge): Order {
             // Idempotency — a replay returns the existing order, no second charge.
             $existing = Order::where('idempotency_key', $data->idempotencyKey)->first();
             if ($existing) {
@@ -74,7 +93,7 @@ class PlaceOrder
             // Guard the buyer's balance under lock.
             $balanceRow = DB::table('account_balances')->where('account_id', $buyerAccount->id)->lockForUpdate()->first();
             $available = Money::ofBase($balanceRow->balance ?? '0', $product->priceAsset->decimals, $product->priceAsset->symbol);
-            $total = Money::ofBase((string) $break['line_total'], $product->priceAsset->decimals, $product->priceAsset->symbol);
+            $total = Money::ofBase((string) $charge['total'], $product->priceAsset->decimals, $product->priceAsset->symbol);
             if ($available->isLessThan($total)) {
                 throw SellException::insufficientBalance();
             }
@@ -94,14 +113,17 @@ class PlaceOrder
                 'buyer_user_id' => $buyer->getKey(),
                 'sales_page_id' => $data->salesPageId,
                 'funnel_id' => $data->funnelId,
+                'coupon_id' => $charge['coupon_id'],
                 'status' => OrderStatus::Pending,
-                'subtotal_amount' => $break['line_total'],
-                'total_amount' => $break['line_total'],
-                'commission_amount' => $break['commission'],
-                'seller_net_amount' => $break['net'],
+                'subtotal_amount' => $charge['subtotal'],
+                'discount_amount' => $charge['discount'],
+                'total_amount' => $charge['total'],
+                'commission_amount' => $charge['commission'],
+                'seller_net_amount' => $charge['net'],
                 'asset_id' => $assetId,
                 'payment_method' => 'poisapay',
                 'idempotency_key' => $data->idempotencyKey,
+                'shipping_address' => $product->requires_shipping ? $data->shippingAddress : null,
             ]);
 
             $order->items()->create([
@@ -111,21 +133,25 @@ class PlaceOrder
                 'name_snapshot' => $product->name,
                 'unit_amount' => $break['unit'],
                 'quantity' => $data->quantity,
-                'line_total_amount' => $break['line_total'],
-                'commission_amount' => $break['commission'],
-                'seller_net_amount' => $break['net'],
+                'line_total_amount' => $charge['total'],
+                'commission_amount' => $charge['commission'],
+                'seller_net_amount' => $charge['net'],
             ]);
+
+            if ($charge['coupon_id'] !== null) {
+                Coupon::whereKey($charge['coupon_id'])->increment('used_count');
+            }
 
             // The Ledger moves the money — one balanced, idempotent entry.
             $sellerAccount = $resolver->forUser($seller->user, LedgerAccountType::UserAvailable, $assetId);
             $commissionAccount = $resolver->system(LedgerAccountType::SellCommissionIncome, $assetId);
 
             $lines = [
-                PostingLine::debit($buyerAccount->id, $assetId, (string) $break['line_total']),
-                PostingLine::credit($sellerAccount->id, $assetId, (string) $break['net']),
+                PostingLine::debit($buyerAccount->id, $assetId, (string) $charge['total']),
+                PostingLine::credit($sellerAccount->id, $assetId, (string) $charge['net']),
             ];
-            if ($break['commission'] > 0) {
-                $lines[] = PostingLine::credit($commissionAccount->id, $assetId, (string) $break['commission']);
+            if ($charge['commission'] > 0) {
+                $lines[] = PostingLine::credit($commissionAccount->id, $assetId, (string) $charge['commission']);
             }
 
             $entry = $this->ledger->post(new EntryData(
