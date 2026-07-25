@@ -13,7 +13,7 @@ class Download extends Model
 {
     use HasUuids;
 
-    protected $table = 'sell_downloads';
+    protected $table = 'shop_downloads';
 
     protected $fillable = [
         'order_item_id', 'product_file_id', 'buyer_user_id', 'token',

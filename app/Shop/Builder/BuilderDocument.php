@@ -7,7 +7,7 @@ namespace App\Shop\Builder;
 /**
  * The whole page document: a schema version, the root node (a `page` container
  * whose children are sections), and the global design tokens. This is what lives
- * in `sell_sales_pages.draft` / `.sections` (jsonb).
+ * in `shop_sales_pages.draft` / `.sections` (jsonb).
  */
 final class BuilderDocument
 {

@@ -16,7 +16,7 @@ class License extends Model
 {
     use HasUuids;
 
-    protected $table = 'sell_licenses';
+    protected $table = 'shop_licenses';
 
     protected $fillable = ['product_id', 'order_item_id', 'key_ciphertext', 'status', 'delivered_at'];
 

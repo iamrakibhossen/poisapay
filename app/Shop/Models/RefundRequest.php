@@ -21,7 +21,7 @@ class RefundRequest extends Model
 {
     use HasUuids;
 
-    protected $table = 'sell_refund_requests';
+    protected $table = 'shop_refund_requests';
 
     protected $fillable = [
         'order_id', 'seller_id', 'buyer_user_id', 'type',

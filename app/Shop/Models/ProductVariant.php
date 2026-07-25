@@ -12,7 +12,7 @@ class ProductVariant extends Model
 {
     use HasUuids;
 
-    protected $table = 'sell_product_variants';
+    protected $table = 'shop_product_variants';
 
     protected $fillable = [
         'product_id', 'sku', 'options', 'price_amount', 'stock',

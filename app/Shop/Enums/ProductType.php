@@ -6,7 +6,7 @@ namespace App\Shop\Enums;
 
 /**
  * Product delivery type. Extensible: add a case + its behaviour flags — no schema
- * change (type-specific data lives in sell_products.attributes jsonb).
+ * change (type-specific data lives in shop_products.attributes jsonb).
  */
 enum ProductType: string
 {

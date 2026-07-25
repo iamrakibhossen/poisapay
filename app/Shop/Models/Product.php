@@ -23,7 +23,7 @@ class Product extends Model
     use HasUuids;
     use SoftDeletes;
 
-    protected $table = 'sell_products';
+    protected $table = 'shop_products';
 
     protected $fillable = [
         'seller_id', 'type', 'name', 'slug', 'summary', 'description', 'status',

@@ -171,10 +171,10 @@ class SellerController extends Controller
 
         // Best sellers by units sold across all paid orders.
         $topProducts = OrderItem::query()
-            ->join('sell_orders', 'sell_orders.id', '=', 'sell_order_items.order_id')
-            ->where('sell_orders.seller_id', $seller->id)
-            ->whereNotIn('sell_orders.status', [OrderStatus::Pending->value, OrderStatus::Cancelled->value])
-            ->selectRaw('name_snapshot, sum(quantity) as units, sum(sell_order_items.seller_net_amount) as net')
+            ->join('shop_orders', 'shop_orders.id', '=', 'shop_order_items.order_id')
+            ->where('shop_orders.seller_id', $seller->id)
+            ->whereNotIn('shop_orders.status', [OrderStatus::Pending->value, OrderStatus::Cancelled->value])
+            ->selectRaw('name_snapshot, sum(quantity) as units, sum(shop_order_items.seller_net_amount) as net')
             ->groupBy('name_snapshot')
             ->orderByDesc('units')
             ->limit(5)->get()

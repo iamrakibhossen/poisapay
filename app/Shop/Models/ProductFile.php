@@ -12,7 +12,7 @@ class ProductFile extends Model
 {
     use HasUuids;
 
-    protected $table = 'sell_product_files';
+    protected $table = 'shop_product_files';
 
     protected $fillable = [
         'product_id', 'version', 'changelog', 'disk', 'path', 'original_name',

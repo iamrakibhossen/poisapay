@@ -19,7 +19,7 @@ class Coupon extends Model
     use HasUuids;
     use SoftDeletes;
 
-    protected $table = 'sell_coupons';
+    protected $table = 'shop_coupons';
 
     protected $fillable = [
         'seller_id', 'product_id', 'code', 'type', 'value', 'min_order_amount',

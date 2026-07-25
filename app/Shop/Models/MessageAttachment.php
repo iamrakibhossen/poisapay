@@ -12,7 +12,7 @@ class MessageAttachment extends Model
 {
     use HasUuids;
 
-    protected $table = 'sell_message_attachments';
+    protected $table = 'shop_message_attachments';
 
     protected $fillable = ['message_id', 'disk', 'path', 'original_name', 'size_bytes', 'mime'];
 

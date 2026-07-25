@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
  */
 class AnalyticsService
 {
-    /** Event types (mirror the sell_analytics_events.type column). */
+    /** Event types (mirror the shop_analytics_events.type column). */
     public const PAGE_VIEW = 'page_view';
     public const CHECKOUT_START = 'checkout_start';
     public const PURCHASE = 'purchase';

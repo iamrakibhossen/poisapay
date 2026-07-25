@@ -21,8 +21,8 @@ class CheckoutRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'product_id' => ['required', 'uuid', Rule::exists('sell_products', 'id')->whereNull('deleted_at')],
-            'variant_id' => ['nullable', 'uuid', Rule::exists('sell_product_variants', 'id')],
+            'product_id' => ['required', 'uuid', Rule::exists('shop_products', 'id')->whereNull('deleted_at')],
+            'variant_id' => ['nullable', 'uuid', Rule::exists('shop_product_variants', 'id')],
             'quantity' => ['integer', 'min:1', 'max:999'],
             'sales_page_id' => ['nullable', 'uuid'],
             'funnel_id' => ['nullable', 'uuid'],

@@ -15,10 +15,10 @@ return new class extends Migration
     public function up(): void
     {
         // ── Sales pages (a product may have many) ───────────────────────────────
-        Schema::create('sell_sales_pages', function (Blueprint $table) {
+        Schema::create('shop_sales_pages', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('seller_id')->constrained('sell_sellers')->cascadeOnDelete();
-            $table->foreignUuid('product_id')->constrained('sell_products')->cascadeOnDelete();
+            $table->foreignUuid('seller_id')->constrained('shop_sellers')->cascadeOnDelete();
+            $table->foreignUuid('product_id')->constrained('shop_products')->cascadeOnDelete();
             $table->string('name', 160);
             $table->string('slug', 200);                          // public /p/{slug}
             $table->string('status', 16)->default('draft');      // SalesPageStatus
@@ -35,14 +35,14 @@ return new class extends Migration
             $table->index('product_id');
         });
         // Public lookup: unique slug among live rows; partial index for published only.
-        DB::statement('CREATE UNIQUE INDEX sell_sales_pages_slug_unique ON sell_sales_pages (slug) WHERE deleted_at IS NULL');
-        DB::statement("CREATE INDEX sell_sales_pages_published ON sell_sales_pages (seller_id) WHERE status = 'published' AND deleted_at IS NULL");
+        DB::statement('CREATE UNIQUE INDEX shop_sales_pages_slug_unique ON shop_sales_pages (slug) WHERE deleted_at IS NULL');
+        DB::statement("CREATE INDEX shop_sales_pages_published ON shop_sales_pages (seller_id) WHERE status = 'published' AND deleted_at IS NULL");
 
         // ── Custom domains (one per sales page) ─────────────────────────────────
-        Schema::create('sell_domains', function (Blueprint $table) {
+        Schema::create('shop_domains', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('seller_id')->constrained('sell_sellers')->cascadeOnDelete();
-            $table->foreignUuid('sales_page_id')->unique()->constrained('sell_sales_pages')->cascadeOnDelete();
+            $table->foreignUuid('seller_id')->constrained('shop_sellers')->cascadeOnDelete();
+            $table->foreignUuid('sales_page_id')->unique()->constrained('shop_sales_pages')->cascadeOnDelete();
             $table->string('host', 253)->unique();               // fqdn
             $table->string('status', 16)->default('pending');    // DomainStatus
             $table->string('verification_token', 64)->nullable();
@@ -54,10 +54,10 @@ return new class extends Migration
         });
 
         // ── Funnels (graph of post-purchase steps) ──────────────────────────────
-        Schema::create('sell_funnels', function (Blueprint $table) {
+        Schema::create('shop_funnels', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('seller_id')->constrained('sell_sellers')->cascadeOnDelete();
-            $table->foreignUuid('product_id')->constrained('sell_products')->cascadeOnDelete(); // front product
+            $table->foreignUuid('seller_id')->constrained('shop_sellers')->cascadeOnDelete();
+            $table->foreignUuid('product_id')->constrained('shop_products')->cascadeOnDelete(); // front product
             $table->string('name', 160);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
@@ -66,10 +66,10 @@ return new class extends Migration
             $table->index(['seller_id', 'is_active']);
         });
 
-        Schema::create('sell_funnel_steps', function (Blueprint $table) {
+        Schema::create('shop_funnel_steps', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('funnel_id')->constrained('sell_funnels')->cascadeOnDelete();
-            $table->foreignUuid('offer_product_id')->constrained('sell_products');
+            $table->foreignUuid('funnel_id')->constrained('shop_funnels')->cascadeOnDelete();
+            $table->foreignUuid('offer_product_id')->constrained('shop_products');
             $table->string('kind', 16);                          // FunnelStepType
             $table->unsignedSmallInteger('position')->default(0);
             $table->uuid('parent_step_id')->nullable();          // downsell hangs off an upsell (graph, no fixed depth)
@@ -84,9 +84,9 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('sell_funnel_steps');
-        Schema::dropIfExists('sell_funnels');
-        Schema::dropIfExists('sell_domains');
-        Schema::dropIfExists('sell_sales_pages');
+        Schema::dropIfExists('shop_funnel_steps');
+        Schema::dropIfExists('shop_funnels');
+        Schema::dropIfExists('shop_domains');
+        Schema::dropIfExists('shop_sales_pages');
     }
 };

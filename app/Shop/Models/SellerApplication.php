@@ -13,7 +13,7 @@ class SellerApplication extends Model
 {
     use HasUuids;
 
-    protected $table = 'sell_seller_applications';
+    protected $table = 'shop_seller_applications';
 
     protected $fillable = [
         'seller_id', 'snapshot', 'status', 'submitted_at', 'decided_by', 'decided_at', 'notes',

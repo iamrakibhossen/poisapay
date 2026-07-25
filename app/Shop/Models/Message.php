@@ -20,7 +20,7 @@ class Message extends Model
 
     public const UPDATED_AT = null;
 
-    protected $table = 'sell_messages';
+    protected $table = 'shop_messages';
 
     protected $fillable = ['order_id', 'author_type', 'author_id', 'body', 'read_at'];
 

@@ -15,7 +15,7 @@ class OrderEvent extends Model
 
     public const UPDATED_AT = null;
 
-    protected $table = 'sell_order_events';
+    protected $table = 'shop_order_events';
 
     protected $fillable = ['order_id', 'type', 'actor_type', 'actor_id', 'data'];
 

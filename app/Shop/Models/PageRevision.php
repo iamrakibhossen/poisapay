@@ -22,7 +22,7 @@ class PageRevision extends Model
 
     public const UPDATED_AT = null; // append-only; created_at only
 
-    protected $table = 'sell_page_revisions';
+    protected $table = 'shop_page_revisions';
 
     protected $fillable = ['sales_page_id', 'author_user_id', 'version', 'label', 'document'];
 

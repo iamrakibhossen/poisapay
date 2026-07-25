@@ -18,7 +18,7 @@ class SavedBlock extends Model
 {
     use HasUuids;
 
-    protected $table = 'sell_saved_blocks';
+    protected $table = 'shop_saved_blocks';
 
     protected $fillable = ['seller_id', 'name', 'kind', 'node'];
 

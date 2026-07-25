@@ -21,10 +21,10 @@ return new class extends Migration
         // aggregating orders on (seller_id, buyer_user_id) — see the orders index.
 
         // ── Coupons ─────────────────────────────────────────────────────────────
-        Schema::create('sell_coupons', function (Blueprint $table) {
+        Schema::create('shop_coupons', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('seller_id')->constrained('sell_sellers')->cascadeOnDelete();
-            $table->foreignUuid('product_id')->nullable()->constrained('sell_products')->cascadeOnDelete(); // null = seller-wide
+            $table->foreignUuid('seller_id')->constrained('shop_sellers')->cascadeOnDelete();
+            $table->foreignUuid('product_id')->nullable()->constrained('shop_products')->cascadeOnDelete(); // null = seller-wide
             $table->string('code', 40);
             $table->string('type', 10);                           // CouponType: percent|fixed
             $table->integer('value');                             // bps (percent) or minor units (fixed)
@@ -43,14 +43,14 @@ return new class extends Migration
         });
 
         // ── Orders ──────────────────────────────────────────────────────────────
-        Schema::create('sell_orders', function (Blueprint $table) {
+        Schema::create('shop_orders', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('number', 20)->unique();               // human ref PH-XXXXX
-            $table->foreignUuid('seller_id')->constrained('sell_sellers');
+            $table->foreignUuid('seller_id')->constrained('shop_sellers');
             $table->foreignUuid('buyer_user_id')->constrained('users');   // buyers are core users
-            $table->foreignUuid('sales_page_id')->nullable()->constrained('sell_sales_pages')->nullOnDelete();
-            $table->foreignUuid('funnel_id')->nullable()->constrained('sell_funnels')->nullOnDelete();
-            $table->foreignUuid('coupon_id')->nullable()->constrained('sell_coupons')->nullOnDelete();
+            $table->foreignUuid('sales_page_id')->nullable()->constrained('shop_sales_pages')->nullOnDelete();
+            $table->foreignUuid('funnel_id')->nullable()->constrained('shop_funnels')->nullOnDelete();
+            $table->foreignUuid('coupon_id')->nullable()->constrained('shop_coupons')->nullOnDelete();
             $table->string('status', 24)->default('pending');     // OrderStatus (state machine)
             $table->bigInteger('subtotal_amount')->default(0);
             $table->bigInteger('discount_amount')->default(0);
@@ -80,16 +80,16 @@ return new class extends Migration
             $table->index(['seller_id', 'created_at']);           // unfiltered list + revenue windows
         });
         // Vesting sweep reads only unvested paid orders — keep that index tiny (partial).
-        DB::statement("CREATE INDEX sell_orders_vesting ON sell_orders (refund_window_ends_at) WHERE status = 'paid' AND refund_window_ends_at IS NOT NULL");
+        DB::statement("CREATE INDEX shop_orders_vesting ON shop_orders (refund_window_ends_at) WHERE status = 'paid' AND refund_window_ends_at IS NOT NULL");
         // Seller inbox: only orders that have a conversation (partial keeps it tiny).
-        DB::statement('CREATE INDEX sell_orders_inbox ON sell_orders (seller_id, last_message_at DESC) WHERE last_message_at IS NOT NULL');
+        DB::statement('CREATE INDEX shop_orders_inbox ON shop_orders (seller_id, last_message_at DESC) WHERE last_message_at IS NOT NULL');
 
         // ── Order items (main + bumps + accepted upsells) ───────────────────────
-        Schema::create('sell_order_items', function (Blueprint $table) {
+        Schema::create('shop_order_items', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('order_id')->constrained('sell_orders')->cascadeOnDelete();
-            $table->foreignUuid('product_id')->constrained('sell_products');
-            $table->foreignUuid('variant_id')->nullable()->constrained('sell_product_variants');
+            $table->foreignUuid('order_id')->constrained('shop_orders')->cascadeOnDelete();
+            $table->foreignUuid('product_id')->constrained('shop_products');
+            $table->foreignUuid('variant_id')->nullable()->constrained('shop_product_variants');
             $table->string('kind', 12)->default('main');          // OrderItemKind
             $table->string('name_snapshot', 190);                 // denormalized: product name at purchase
             $table->bigInteger('unit_amount');
@@ -105,9 +105,9 @@ return new class extends Migration
         });
 
         // ── Order events (append-only lifecycle log) ────────────────────────────
-        Schema::create('sell_order_events', function (Blueprint $table) {
+        Schema::create('shop_order_events', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('order_id')->constrained('sell_orders')->cascadeOnDelete();
+            $table->foreignUuid('order_id')->constrained('shop_orders')->cascadeOnDelete();
             $table->string('type', 40);
             $table->string('actor_type', 12)->default('system');  // buyer|seller|operator|system
             $table->uuid('actor_id')->nullable();
@@ -118,9 +118,9 @@ return new class extends Migration
         });
 
         // ── Shipments (physical fulfilment) ─────────────────────────────────────
-        Schema::create('sell_shipments', function (Blueprint $table) {
+        Schema::create('shop_shipments', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('order_id')->constrained('sell_orders')->cascadeOnDelete();
+            $table->foreignUuid('order_id')->constrained('shop_orders')->cascadeOnDelete();
             $table->string('carrier', 40)->nullable();
             $table->string('tracking_number', 100)->nullable();
             $table->string('status', 16)->default('pending');     // pending|shipped|delivered
@@ -135,10 +135,10 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('sell_shipments');
-        Schema::dropIfExists('sell_order_events');
-        Schema::dropIfExists('sell_order_items');
-        Schema::dropIfExists('sell_orders');
-        Schema::dropIfExists('sell_coupons');
+        Schema::dropIfExists('shop_shipments');
+        Schema::dropIfExists('shop_order_events');
+        Schema::dropIfExists('shop_order_items');
+        Schema::dropIfExists('shop_orders');
+        Schema::dropIfExists('shop_coupons');
     }
 };

@@ -16,7 +16,7 @@ return new class extends Migration
     public function up(): void
     {
         // ── Sellers ────────────────────────────────────────────────────────────
-        Schema::create('sell_sellers', function (Blueprint $table) {
+        Schema::create('shop_sellers', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->unique()->constrained('users')->cascadeOnDelete();
             // Public store name; falls back to the core User's name when null.
@@ -39,9 +39,9 @@ return new class extends Migration
             $table->index(['status', 'created_at']);
         });
 
-        Schema::create('sell_seller_applications', function (Blueprint $table) {
+        Schema::create('shop_seller_applications', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('seller_id')->constrained('sell_sellers')->cascadeOnDelete();
+            $table->foreignUuid('seller_id')->constrained('shop_sellers')->cascadeOnDelete();
             $table->jsonb('snapshot');
             $table->string('status', 16)->default('pending');     // pending|approved|rejected
             $table->timestamp('submitted_at');
@@ -54,9 +54,9 @@ return new class extends Migration
         });
 
         // ── Products ───────────────────────────────────────────────────────────
-        Schema::create('sell_products', function (Blueprint $table) {
+        Schema::create('shop_products', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('seller_id')->constrained('sell_sellers')->cascadeOnDelete();
+            $table->foreignUuid('seller_id')->constrained('shop_sellers')->cascadeOnDelete();
             $table->string('type', 24)->default('digital');       // ProductType (extensible)
             $table->string('name', 190);
             $table->string('slug', 200);
@@ -82,13 +82,13 @@ return new class extends Migration
             $table->index(['type', 'status']);
         });
         // Slug unique per seller (only among live rows); FTS search vector + GIN.
-        DB::statement('CREATE UNIQUE INDEX sell_products_seller_slug_unique ON sell_products (seller_id, slug) WHERE deleted_at IS NULL');
-        DB::statement("ALTER TABLE sell_products ADD COLUMN search_vector tsvector GENERATED ALWAYS AS (to_tsvector('simple', coalesce(name,'') || ' ' || coalesce(summary,''))) STORED");
-        DB::statement('CREATE INDEX sell_products_search_gin ON sell_products USING gin (search_vector)');
+        DB::statement('CREATE UNIQUE INDEX shop_products_seller_slug_unique ON shop_products (seller_id, slug) WHERE deleted_at IS NULL');
+        DB::statement("ALTER TABLE shop_products ADD COLUMN search_vector tsvector GENERATED ALWAYS AS (to_tsvector('simple', coalesce(name,'') || ' ' || coalesce(summary,''))) STORED");
+        DB::statement('CREATE INDEX shop_products_search_gin ON shop_products USING gin (search_vector)');
 
-        Schema::create('sell_product_variants', function (Blueprint $table) {
+        Schema::create('shop_product_variants', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('product_id')->constrained('sell_products')->cascadeOnDelete();
+            $table->foreignUuid('product_id')->constrained('shop_products')->cascadeOnDelete();
             $table->string('sku', 64)->nullable();
             $table->jsonb('options');                             // {Size:"M", Color:"Black"}
             $table->bigInteger('price_amount')->nullable();       // null => inherit product price
@@ -102,9 +102,9 @@ return new class extends Migration
             $table->unique(['product_id', 'sku']);
         });
 
-        Schema::create('sell_product_files', function (Blueprint $table) {
+        Schema::create('shop_product_files', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('product_id')->constrained('sell_products')->cascadeOnDelete();
+            $table->foreignUuid('product_id')->constrained('shop_products')->cascadeOnDelete();
             $table->string('version', 32)->nullable();
             $table->text('changelog')->nullable();
             $table->string('disk', 32);                           // private disk (s3/r2/minio)
@@ -119,9 +119,9 @@ return new class extends Migration
             $table->index(['product_id', 'is_current']);
         });
 
-        Schema::create('sell_product_media', function (Blueprint $table) {
+        Schema::create('shop_product_media', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('product_id')->constrained('sell_products')->cascadeOnDelete();
+            $table->foreignUuid('product_id')->constrained('shop_products')->cascadeOnDelete();
             $table->string('kind', 12)->default('image');         // image|video
             $table->string('url', 400);
             $table->unsignedSmallInteger('position')->default(0);
@@ -133,11 +133,11 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('sell_product_media');
-        Schema::dropIfExists('sell_product_files');
-        Schema::dropIfExists('sell_product_variants');
-        Schema::dropIfExists('sell_products');
-        Schema::dropIfExists('sell_seller_applications');
-        Schema::dropIfExists('sell_sellers');
+        Schema::dropIfExists('shop_product_media');
+        Schema::dropIfExists('shop_product_files');
+        Schema::dropIfExists('shop_product_variants');
+        Schema::dropIfExists('shop_products');
+        Schema::dropIfExists('shop_seller_applications');
+        Schema::dropIfExists('shop_sellers');
     }
 };

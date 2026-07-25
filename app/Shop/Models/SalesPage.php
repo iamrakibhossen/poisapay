@@ -19,7 +19,7 @@ class SalesPage extends Model
     use HasUuids;
     use SoftDeletes;
 
-    protected $table = 'sell_sales_pages';
+    protected $table = 'shop_sales_pages';
 
     protected $fillable = [
         'seller_id', 'product_id', 'name', 'slug', 'status',

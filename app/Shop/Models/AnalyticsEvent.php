@@ -19,7 +19,7 @@ class AnalyticsEvent extends Model
 
     public $timestamps = false;
 
-    protected $table = 'sell_analytics_events';
+    protected $table = 'shop_analytics_events';
 
     protected $fillable = [
         'seller_id', 'sales_page_id', 'order_id', 'type',

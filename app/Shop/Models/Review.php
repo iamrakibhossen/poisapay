@@ -18,7 +18,7 @@ class Review extends Model
 {
     use HasUuids;
 
-    protected $table = 'sell_reviews';
+    protected $table = 'shop_reviews';
 
     protected $fillable = [
         'seller_id', 'product_id', 'order_id', 'buyer_user_id',

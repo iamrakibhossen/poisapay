@@ -24,7 +24,7 @@ class Order extends Model
 {
     use HasUuids;
 
-    protected $table = 'sell_orders';
+    protected $table = 'shop_orders';
 
     protected $fillable = [
         'number', 'seller_id', 'buyer_user_id', 'sales_page_id', 'parent_order_id', 'funnel_id',

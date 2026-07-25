@@ -15,11 +15,11 @@ return new class extends Migration
     public function up(): void
     {
         // ── Raw event stream (write-cheap, never read by dashboards) ────────────
-        Schema::create('sell_analytics_events', function (Blueprint $table) {
+        Schema::create('shop_analytics_events', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('seller_id')->constrained('sell_sellers')->cascadeOnDelete();
-            $table->foreignUuid('sales_page_id')->nullable()->constrained('sell_sales_pages')->nullOnDelete();
-            $table->foreignUuid('order_id')->nullable()->constrained('sell_orders')->nullOnDelete();
+            $table->foreignUuid('seller_id')->constrained('shop_sellers')->cascadeOnDelete();
+            $table->foreignUuid('sales_page_id')->nullable()->constrained('shop_sales_pages')->nullOnDelete();
+            $table->foreignUuid('order_id')->nullable()->constrained('shop_orders')->nullOnDelete();
             $table->string('type', 24);                           // page_view|checkout_start|purchase|upsell_view|upsell_accept|upsell_skip
             $table->string('session_id', 64)->nullable();
             $table->string('ip_hash', 64)->nullable();
@@ -33,10 +33,10 @@ return new class extends Migration
         });
 
         // ── Per-day aggregates (what dashboards read) ───────────────────────────
-        Schema::create('sell_daily_stats', function (Blueprint $table) {
+        Schema::create('shop_daily_stats', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('seller_id')->constrained('sell_sellers')->cascadeOnDelete();
-            $table->foreignUuid('sales_page_id')->nullable()->constrained('sell_sales_pages')->cascadeOnDelete();
+            $table->foreignUuid('seller_id')->constrained('shop_sellers')->cascadeOnDelete();
+            $table->foreignUuid('sales_page_id')->nullable()->constrained('shop_sales_pages')->cascadeOnDelete();
             $table->date('day');
             $table->unsignedBigInteger('visitors')->default(0);
             $table->unsignedBigInteger('checkouts')->default(0);
@@ -53,7 +53,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('sell_daily_stats');
-        Schema::dropIfExists('sell_analytics_events');
+        Schema::dropIfExists('shop_daily_stats');
+        Schema::dropIfExists('shop_analytics_events');
     }
 };

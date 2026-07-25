@@ -17,10 +17,10 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('sell_refund_requests', function (Blueprint $table) {
+        Schema::create('shop_refund_requests', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('order_id')->constrained('sell_orders')->cascadeOnDelete();
-            $table->foreignUuid('seller_id')->constrained('sell_sellers')->cascadeOnDelete(); // denormalised for seller queries
+            $table->foreignUuid('order_id')->constrained('shop_orders')->cascadeOnDelete();
+            $table->foreignUuid('seller_id')->constrained('shop_sellers')->cascadeOnDelete(); // denormalised for seller queries
             $table->foreignUuid('buyer_user_id')->constrained('users')->cascadeOnDelete();
             $table->string('type', 12)->default('full');            // full | partial
             $table->bigInteger('amount_requested');                  // minor units
@@ -41,13 +41,13 @@ return new class extends Migration
         });
 
         // The SLA scan: only ever looks at still-open, un-actioned requests.
-        DB::statement("CREATE INDEX sell_refund_requests_sla ON sell_refund_requests (sla_due_at) WHERE status = 'requested'");
+        DB::statement("CREATE INDEX shop_refund_requests_sla ON shop_refund_requests (sla_due_at) WHERE status = 'requested'");
         // At most one open request per order (guards double-submits / races).
-        DB::statement("CREATE UNIQUE INDEX sell_refund_requests_one_open ON sell_refund_requests (order_id) WHERE status IN ('requested','escalated')");
+        DB::statement("CREATE UNIQUE INDEX shop_refund_requests_one_open ON shop_refund_requests (order_id) WHERE status IN ('requested','escalated')");
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('sell_refund_requests');
+        Schema::dropIfExists('shop_refund_requests');
     }
 };

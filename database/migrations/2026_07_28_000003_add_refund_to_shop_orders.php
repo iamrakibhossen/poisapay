@@ -15,7 +15,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('sell_orders', function (Blueprint $table) {
+        Schema::table('shop_orders', function (Blueprint $table) {
             $table->timestamp('refunded_at')->nullable()->after('earnings_released_at');
             $table->bigInteger('refunded_amount')->nullable()->after('refunded_at'); // minor units returned to buyer
         });
@@ -23,7 +23,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('sell_orders', function (Blueprint $table) {
+        Schema::table('shop_orders', function (Blueprint $table) {
             $table->dropColumn(['refunded_at', 'refunded_amount']);
         });
     }

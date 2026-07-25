@@ -21,7 +21,7 @@ class SalesPageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'product_id' => ['required', 'uuid', Rule::exists('sell_products', 'id')->whereNull('deleted_at')],
+            'product_id' => ['required', 'uuid', Rule::exists('shop_products', 'id')->whereNull('deleted_at')],
             'name' => ['required', 'string', 'max:160'],
             'sections' => ['array', 'max:60'],
             'sections.*.type' => ['required', 'string', 'max:40'],

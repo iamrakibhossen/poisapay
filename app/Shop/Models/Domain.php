@@ -12,7 +12,7 @@ class Domain extends Model
 {
     use HasUuids;
 
-    protected $table = 'sell_domains';
+    protected $table = 'shop_domains';
 
     protected $fillable = [
         'seller_id', 'sales_page_id', 'host', 'status',

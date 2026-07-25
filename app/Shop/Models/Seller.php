@@ -23,7 +23,7 @@ class Seller extends Model
     use HasUuids;
     use SoftDeletes;
 
-    protected $table = 'sell_sellers';
+    protected $table = 'shop_sellers';
 
     /** Seller plan tiers — each carries an admin-configurable commission rate. */
     public const PLANS = ['free', 'pro', 'business'];

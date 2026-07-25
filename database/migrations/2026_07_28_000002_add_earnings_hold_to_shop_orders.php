@@ -17,19 +17,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('sell_orders', function (Blueprint $table) {
+        Schema::table('shop_orders', function (Blueprint $table) {
             $table->boolean('earnings_held')->default(false)->after('seller_net_amount');
             $table->timestamp('earnings_released_at')->nullable()->after('earnings_held');
         });
 
         // The release scan: held earnings not yet released, past their window.
-        DB::statement('CREATE INDEX sell_orders_earnings_release ON sell_orders (refund_window_ends_at) WHERE earnings_held AND earnings_released_at IS NULL');
+        DB::statement('CREATE INDEX shop_orders_earnings_release ON shop_orders (refund_window_ends_at) WHERE earnings_held AND earnings_released_at IS NULL');
     }
 
     public function down(): void
     {
-        DB::statement('DROP INDEX IF EXISTS sell_orders_earnings_release');
-        Schema::table('sell_orders', function (Blueprint $table) {
+        DB::statement('DROP INDEX IF EXISTS shop_orders_earnings_release');
+        Schema::table('shop_orders', function (Blueprint $table) {
             $table->dropColumn(['earnings_held', 'earnings_released_at']);
         });
     }
