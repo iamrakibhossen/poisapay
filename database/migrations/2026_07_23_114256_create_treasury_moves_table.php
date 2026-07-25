@@ -29,6 +29,12 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('status');
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('settle_entry_id');
+            $table->foreign('settle_entry_id')->references('id')->on('journal_entries')->nullOnDelete();
+            $table->index('onchain_tx_id');
+            $table->foreign('onchain_tx_id')->references('id')->on('onchain_txs')->nullOnDelete();
+
         });
     }
 

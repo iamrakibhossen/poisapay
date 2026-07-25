@@ -37,6 +37,11 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->index(['status', 'created_at']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('settlement_asset_id');
+            $table->index('reviewed_by');
+            $table->foreign('reviewed_by')->references('id')->on('admins')->nullOnDelete();
+
         });
 
         Schema::create('shop_seller_applications', function (Blueprint $table) {
@@ -51,6 +56,10 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['seller_id', 'submitted_at']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('decided_by');
+            $table->foreign('decided_by')->references('id')->on('admins')->nullOnDelete();
+
         });
 
         // ── Products ───────────────────────────────────────────────────────────
@@ -80,6 +89,9 @@ return new class extends Migration
             // Tenant catalog list: equality(seller,status) → sort(created_at).
             $table->index(['seller_id', 'status', 'created_at']);
             $table->index(['type', 'status']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('price_asset_id');
+
         });
         // Slug unique per seller (only among live rows); FTS search vector + GIN.
         DB::statement('CREATE UNIQUE INDEX shop_products_seller_slug_unique ON shop_products (seller_id, slug) WHERE deleted_at IS NULL');

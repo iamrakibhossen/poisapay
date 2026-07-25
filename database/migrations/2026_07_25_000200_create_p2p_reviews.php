@@ -25,6 +25,9 @@ return new class extends Migration
 
             $table->unique(['order_id', 'rater_id'], 'uq_p2p_review_order_rater');
             $table->index(['ratee_id', 'created_at'], 'ix_p2p_review_ratee');
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('rater_id');
+
         });
 
         Schema::table('p2p_merchant_profiles', function (Blueprint $table) {

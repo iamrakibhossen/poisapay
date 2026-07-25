@@ -29,6 +29,9 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['status', 'created_at']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('user_id');
+
         });
 
         Schema::create('screening_results', function (Blueprint $table) {
@@ -57,6 +60,10 @@ return new class extends Migration
 
             $table->foreign('reward_entry_id')->references('id')->on('journal_entries')->nullOnDelete();
             $table->unique(['referrer_id', 'referee_id'], 'uq_referral_pair');
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('referee_id');
+            $table->index('reward_entry_id');
+
         });
         DB::statement('ALTER TABLE referrals ADD CONSTRAINT ck_no_self_referral CHECK (referrer_id <> referee_id)');
 
@@ -71,6 +78,11 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('entry_id')->references('id')->on('journal_entries')->nullOnDelete();
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('asset_id');
+            $table->index('entry_id');
+            $table->index('user_id');
+
         });
     }
 

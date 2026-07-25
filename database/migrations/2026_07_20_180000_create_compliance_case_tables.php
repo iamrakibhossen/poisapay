@@ -29,6 +29,9 @@ return new class extends Migration
 
             $table->index(['status', 'severity', 'created_at']);
             $table->index(['user_id', 'created_at']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('resolved_by');
+
         });
 
         // An investigation grouping one or more alerts for a user.
@@ -52,6 +55,10 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['status', 'risk_level', 'created_at']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('opened_by');
+            $table->index('user_id');
+
         });
 
         Schema::table('aml_alerts', function (Blueprint $table) {

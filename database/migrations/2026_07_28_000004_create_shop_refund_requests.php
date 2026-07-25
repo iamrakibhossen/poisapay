@@ -38,6 +38,11 @@ return new class extends Migration
 
             $table->index(['seller_id', 'status']);
             $table->index('buyer_user_id');
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('ledger_entry_id');
+            $table->foreign('ledger_entry_id')->references('id')->on('journal_entries')->nullOnDelete();
+            $table->index('resolver_id');
+
         });
 
         // The SLA scan: only ever looks at still-open, un-actioned requests.

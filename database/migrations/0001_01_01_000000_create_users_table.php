@@ -47,6 +47,9 @@ return new class extends Migration
 
             $table->index('kyc_tier');
             $table->index('kyc_status');
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('referred_by');
+
         });
 
         // Self-referential FK added after the table (and its PK) exists.

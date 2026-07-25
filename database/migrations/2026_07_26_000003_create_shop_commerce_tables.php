@@ -40,6 +40,9 @@ return new class extends Migration
 
             $table->unique(['seller_id', 'code']);
             $table->index(['seller_id', 'is_active']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('product_id');
+
         });
 
         // ── Orders ──────────────────────────────────────────────────────────────
@@ -78,6 +81,14 @@ return new class extends Migration
             $table->index(['buyer_user_id', 'created_at']);       // buyer's "My Purchases"
             $table->index(['seller_id', 'buyer_user_id', 'created_at']); // per-seller customer history + derived customers list
             $table->index(['seller_id', 'created_at']);           // unfiltered list + revenue windows
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('asset_id');
+            $table->index('coupon_id');
+            $table->index('funnel_id');
+            $table->index('sales_page_id');
+            $table->index('ledger_entry_id');
+            $table->foreign('ledger_entry_id')->references('id')->on('journal_entries')->nullOnDelete();
+
         });
         // Vesting sweep reads only unvested paid orders — keep that index tiny (partial).
         DB::statement("CREATE INDEX shop_orders_vesting ON shop_orders (refund_window_ends_at) WHERE status = 'paid' AND refund_window_ends_at IS NOT NULL");
@@ -102,6 +113,9 @@ return new class extends Migration
 
             $table->index(['order_id']);
             $table->index(['product_id', 'created_at']);          // per-product sales analytics feed
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('variant_id');
+
         });
 
         // ── Order events (append-only lifecycle log) ────────────────────────────

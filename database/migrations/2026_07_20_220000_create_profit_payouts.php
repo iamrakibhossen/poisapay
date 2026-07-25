@@ -27,6 +27,10 @@ return new class extends Migration
 
             $table->foreign('entry_id')->references('id')->on('journal_entries')->nullOnDelete();
             $table->index(['asset_id', 'created_at']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('created_by');
+            $table->index('entry_id');
+
         });
     }
 

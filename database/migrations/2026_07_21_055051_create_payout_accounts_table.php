@@ -28,6 +28,10 @@ return new class extends Migration
 
             $table->unique(['user_id', 'withdrawal_method_id', 'account_number'], 'uq_payout_account');
             $table->index(['user_id', 'asset_id']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('asset_id');
+            $table->index('withdrawal_method_id');
+
         });
     }
 

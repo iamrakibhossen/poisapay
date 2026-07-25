@@ -60,6 +60,9 @@ return new class extends Migration
             $table->timestamps();
 
             // Defence in depth: refuse anything that looks like an xpriv (§9.3, CHECK).
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('chain_id');
+
         });
         DB::statement("ALTER TABLE custody_xpubs ADD CONSTRAINT ck_never_xpriv CHECK (xpub NOT LIKE 'xprv%' AND xpub NOT LIKE 'tprv%' AND xpub NOT LIKE '%priv%')");
     }

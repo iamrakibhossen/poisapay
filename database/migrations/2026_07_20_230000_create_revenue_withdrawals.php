@@ -38,6 +38,12 @@ return new class extends Migration
             $table->foreign('reversal_entry_id')->references('id')->on('journal_entries')->nullOnDelete();
             $table->index(['status', 'created_at']);
             $table->index(['asset_id', 'status']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('approved_by');
+            $table->index('created_by');
+            $table->index('entry_id');
+            $table->index('reversal_entry_id');
+
         });
     }
 

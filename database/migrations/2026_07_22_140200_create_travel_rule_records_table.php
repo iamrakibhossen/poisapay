@@ -28,6 +28,9 @@ return new class extends Migration
             $table->foreign('withdrawal_id')->references('id')->on('withdrawals')->nullOnDelete();
             $table->index('status');
             $table->index('withdrawal_id');
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('asset_id');
+
         });
     }
 

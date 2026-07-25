@@ -24,6 +24,9 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['identifier', 'purpose']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('user_id');
+
         });
 
         Schema::create('user_devices', function (Blueprint $table) {
@@ -64,6 +67,9 @@ return new class extends Migration
             $table->index(['action', 'created_at']);
             $table->index(['actor_type', 'actor_id']);
             $table->index('sequence', 'ix_audit_sequence');
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('user_id');
+
         });
 
         Schema::create('webhook_endpoints', function (Blueprint $table) {
@@ -74,6 +80,9 @@ return new class extends Migration
             $table->jsonb('events');                       // subscribed event names
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('user_id');
+
         });
 
         Schema::create('webhook_deliveries', function (Blueprint $table) {
@@ -88,6 +97,9 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['status', 'next_retry_at']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('endpoint_id');
+
         });
 
         Schema::create('support_tickets', function (Blueprint $table) {
@@ -101,6 +113,10 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['status', 'priority']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('assigned_to');
+            $table->index('user_id');
+
         });
 
         Schema::create('support_messages', function (Blueprint $table) {
@@ -111,6 +127,10 @@ return new class extends Migration
             $table->text('body');
             $table->boolean('is_staff')->default(false);
             $table->timestamps();
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('author_id');
+            $table->index('ticket_id');
+
         });
 
         Schema::create('reconciliation_runs', function (Blueprint $table) {

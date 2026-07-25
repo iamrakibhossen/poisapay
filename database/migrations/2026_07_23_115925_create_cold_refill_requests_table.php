@@ -32,6 +32,12 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['asset_id', 'status']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('approved_by');
+            $table->index('chain_id');
+            $table->index('settle_entry_id');
+            $table->foreign('settle_entry_id')->references('id')->on('journal_entries')->nullOnDelete();
+
         });
     }
 

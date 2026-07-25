@@ -51,6 +51,9 @@ return new class extends Migration
             $table->foreignUuid('sent_by')->nullable()->constrained('admins');
             $table->timestamp('sent_at')->nullable();
             $table->timestamps();
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('sent_by');
+
         });
     }
 

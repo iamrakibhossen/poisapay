@@ -30,6 +30,9 @@ return new class extends Migration
             // Rollup job scans by page + time window.
             $table->index(['sales_page_id', 'occurred_at']);
             $table->index(['seller_id', 'type', 'occurred_at']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('order_id');
+
         });
 
         // ── Per-day aggregates (what dashboards read) ───────────────────────────

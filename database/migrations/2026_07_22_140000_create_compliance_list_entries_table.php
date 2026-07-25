@@ -27,6 +27,10 @@ return new class extends Migration
 
             $table->index(['list', 'kind']);
             $table->index('value');
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('added_by');
+            $table->foreign('added_by')->references('id')->on('admins')->nullOnDelete();
+
         });
     }
 

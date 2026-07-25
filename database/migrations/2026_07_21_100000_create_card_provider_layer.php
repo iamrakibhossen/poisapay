@@ -34,6 +34,9 @@ return new class extends Migration
 
             $table->unique(['user_id', 'card_provider_id'], 'uq_provider_account_user_program');
             $table->unique(['driver', 'provider_ref'], 'uq_provider_account_token');
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('card_provider_id');
+
         });
 
         // Every provider API call (both directions) — secrets redacted before store.
@@ -57,6 +60,9 @@ return new class extends Migration
             $table->index(['driver', 'created_at']);
             $table->index('card_id');
             $table->index('operation');
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('card_provider_id');
+
         });
 
         // Generic per-card provider key/values (avoids provider-specific columns).

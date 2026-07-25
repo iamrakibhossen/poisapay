@@ -29,6 +29,10 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('order_item_id');
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('buyer_user_id');
+            $table->index('product_file_id');
+
         });
 
         Schema::create('shop_download_events', function (Blueprint $table) {
@@ -74,6 +78,10 @@ return new class extends Migration
 
             $table->unique(['order_id', 'product_id']);           // one review per purchase
             $table->index(['product_id', 'status', 'created_at']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('buyer_user_id');
+            $table->index('seller_id');
+
         });
 
         // ── Order-centric messaging ─────────────────────────────────────────────
@@ -91,6 +99,9 @@ return new class extends Migration
             $table->timestamp('created_at')->useCurrent();
 
             $table->index(['order_id', 'created_at']);            // conversation pagination
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('author_id');
+
         });
 
         Schema::create('shop_message_attachments', function (Blueprint $table) {

@@ -33,6 +33,9 @@ return new class extends Migration
             $table->timestamp('created_at')->nullable();
 
             $table->index(['sales_page_id', 'version']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('author_user_id');
+
         });
 
         Schema::create('shop_saved_blocks', function (Blueprint $table) {

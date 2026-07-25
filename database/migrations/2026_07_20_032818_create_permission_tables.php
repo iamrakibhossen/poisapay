@@ -109,6 +109,7 @@ return new class extends Migration
                 ->onDelete('cascade');
 
             $table->primary([$pivotPermission, $pivotRole], 'role_has_permissions_permission_id_role_id_primary');
+            $table->index($pivotRole);   // FK support: look up permissions by role (PK leads on permission_id)
         });
 
         app('cache')

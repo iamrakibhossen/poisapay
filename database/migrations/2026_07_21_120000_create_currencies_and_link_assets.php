@@ -32,6 +32,9 @@ return new class extends Migration
             // Nullable + additive: existing rows are backfilled below, and the
             // ledger never needs this column. Follows the chain_id FK convention.
             $table->foreignId('currency_id')->nullable()->after('id')->constrained('currencies')->nullOnDelete();
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('currency_id');
+
         });
 
         $this->backfill();

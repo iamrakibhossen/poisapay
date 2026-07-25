@@ -25,6 +25,9 @@ return new class extends Migration
             $table->unique(['chain_id', 'address'], 'uq_addr_chain_address');   // §7.2
             $table->unique(['xpub_id', 'derivation_index'], 'uq_addr_xpub_index');
             $table->index('address');
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('user_id');
+
         });
 
         Schema::create('onchain_txs', function (Blueprint $table) {
@@ -44,6 +47,9 @@ return new class extends Migration
 
             $table->unique(['chain_id', 'tx_hash', 'log_index'], 'uq_onchain_tx');
             $table->index(['status', 'chain_id']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('asset_id');
+
         });
 
         Schema::create('deposits', function (Blueprint $table) {
@@ -65,6 +71,10 @@ return new class extends Migration
             $table->unique('onchain_tx_id', 'uq_deposit_onchain_tx');
             $table->foreign('credit_entry_id')->references('id')->on('journal_entries')->nullOnDelete();
             $table->index(['user_id', 'status']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('credit_entry_id');
+            $table->index('deposit_address_id');
+
         });
 
         Schema::create('withdrawals', function (Blueprint $table) {
@@ -99,6 +109,12 @@ return new class extends Migration
             $table->foreign('onchain_tx_id')->references('id')->on('onchain_txs')->nullOnDelete();
             $table->index(['status', 'created_at']);
             $table->index(['user_id', 'status']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('approved_by');
+            $table->index('lock_entry_id');
+            $table->index('onchain_tx_id');
+            $table->index('settle_entry_id');
+
         });
 
         Schema::create('sweeps', function (Blueprint $table) {
@@ -117,6 +133,11 @@ return new class extends Migration
             $table->foreign('onchain_tx_id')->references('id')->on('onchain_txs')->nullOnDelete();
             $table->unique('nonce_context', 'uq_sweep_nonce_context');
             $table->index('status');
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('deposit_address_id');
+            $table->index('onchain_tx_id');
+            $table->index('settle_entry_id');
+
         });
 
         Schema::create('broadcast_attempts', function (Blueprint $table) {

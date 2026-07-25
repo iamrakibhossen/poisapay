@@ -45,6 +45,9 @@ return new class extends Migration
             $table->string('source', 12)->default('onchain')->after('asset_id'); // onchain | manual
             $table->foreignUuid('deposit_method_id')->nullable()->after('deposit_address_id')->constrained('deposit_methods')->nullOnDelete();
             $table->string('reference', 120)->nullable()->after('onchain_tx_id'); // payer's txn reference
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('deposit_method_id');
+
         });
     }
 

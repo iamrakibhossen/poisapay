@@ -26,6 +26,9 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['key', 'is_active']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('asset_id');
+
         });
     }
 

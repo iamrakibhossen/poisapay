@@ -42,6 +42,9 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['user_id', 'is_active']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('payment_method_id');
+
         });
 
         // ── Merchant reputation profile (P2P-specific stats) ──
@@ -91,6 +94,9 @@ return new class extends Migration
 
             $table->index(['side', 'status', 'asset_id'], 'ix_p2p_ads_book');
             $table->index(['user_id', 'status']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('asset_id');
+
         });
 
         Schema::create('p2p_ad_payment_methods', function (Blueprint $table) {
@@ -98,6 +104,9 @@ return new class extends Migration
             $table->foreignUuid('payment_method_id')->constrained('p2p_payment_methods');
 
             $table->primary(['ad_id', 'payment_method_id']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('payment_method_id');
+
         });
 
         // ── Orders ──
@@ -130,6 +139,10 @@ return new class extends Migration
             $table->index('buyer_id');
             $table->index('seller_id');
             $table->index('ad_id');
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('asset_id');
+            $table->index('payment_method_id');
+
         });
 
         // ── Escrow custody record (links lock/release journal entries) ──
@@ -147,6 +160,12 @@ return new class extends Migration
             $table->foreign('lock_entry_id')->references('id')->on('journal_entries')->nullOnDelete();
             $table->foreign('release_entry_id')->references('id')->on('journal_entries')->nullOnDelete();
             $table->unique('order_id', 'uq_p2p_escrow_order');
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('asset_id');
+            $table->index('lock_entry_id');
+            $table->index('release_entry_id');
+            $table->index('user_id');
+
         });
 
         // ── Chat + timeline ──
@@ -162,6 +181,10 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['order_id', 'created_at'], 'ix_p2p_msg_order');
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('sender_id');
+            $table->foreign('sender_id')->references('id')->on('users')->nullOnDelete();
+
         });
 
         Schema::create('p2p_order_events', function (Blueprint $table) {
@@ -193,6 +216,11 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique('order_id', 'uq_p2p_dispute_order');
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('assigned_admin_id');
+            $table->index('opened_by');
+            $table->index('resolved_by');
+
         });
 
         Schema::create('p2p_dispute_evidence', function (Blueprint $table) {
@@ -203,6 +231,9 @@ return new class extends Migration
             $table->string('path', 255);
             $table->string('note', 255)->nullable();
             $table->timestamps();
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('dispute_id');
+
         });
 
         $this->seedPaymentMethodCatalog();

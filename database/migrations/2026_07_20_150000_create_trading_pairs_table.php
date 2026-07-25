@@ -22,6 +22,9 @@ return new class extends Migration
 
             $table->unique(['from_asset_id', 'to_asset_id'], 'uq_trading_pair');
             $table->index(['is_active']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('to_asset_id');
+
         });
     }
 

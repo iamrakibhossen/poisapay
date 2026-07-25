@@ -64,6 +64,9 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->index(['seller_id', 'is_active']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('product_id');
+
         });
 
         Schema::create('shop_funnel_steps', function (Blueprint $table) {
@@ -79,6 +82,13 @@ return new class extends Migration
 
             $table->index(['funnel_id', 'position']);
             $table->index('parent_step_id');
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('offer_product_id');
+        });
+
+        // Self-reference added after create (PG needs the PK to exist first).
+        Schema::table('shop_funnel_steps', function (Blueprint $table) {
+            $table->foreign('parent_step_id')->references('id')->on('shop_funnel_steps')->nullOnDelete();
         });
     }
 

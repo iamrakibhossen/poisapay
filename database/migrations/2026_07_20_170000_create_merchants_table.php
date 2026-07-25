@@ -27,6 +27,9 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['status', 'created_at']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('settlement_asset_id');
+
         });
     }
 

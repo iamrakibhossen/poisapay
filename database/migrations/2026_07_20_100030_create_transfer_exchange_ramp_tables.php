@@ -28,6 +28,9 @@ return new class extends Migration
             $table->foreign('entry_id')->references('id')->on('journal_entries')->nullOnDelete();
             $table->index(['sender_id', 'created_at']);
             $table->index(['recipient_id', 'created_at']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('entry_id');
+
         });
 
         // §F2.2
@@ -67,6 +70,9 @@ return new class extends Migration
 
             $table->foreign('entry_id')->references('id')->on('journal_entries')->nullOnDelete();
             $table->index(['user_id', 'created_at']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('entry_id');
+
         });
 
         // §F1.2
@@ -76,6 +82,9 @@ return new class extends Migration
             $table->foreignId('asset_id')->constrained('assets');
             $table->primary(['user_id', 'asset_id']);
             $table->unique(['user_id', 'position'], 'uq_priority_pos');
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('asset_id');
+
         });
 
         Schema::create('ramp_orders', function (Blueprint $table) {
@@ -96,6 +105,10 @@ return new class extends Migration
             $table->unique(['rail', 'provider_ref'], 'uq_ramp_provider'); // idempotent vs PSP callback
             $table->unique('idempotency_key', 'uq_ramp_idempotency');
             $table->index(['user_id', 'status']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('entry_id');
+            $table->index('fiat_asset_id');
+
         });
     }
 

@@ -29,12 +29,19 @@ return new class extends Migration
             $table->bigInteger('upsell_price_amount')->nullable()->after('upsell_product_id');
             $table->string('upsell_headline', 160)->nullable()->after('upsell_price_amount');
             $table->string('upsell_description', 400)->nullable()->after('upsell_headline');
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('bump_product_id');
+            $table->index('upsell_product_id');
+
         });
 
         Schema::table('shop_orders', function (Blueprint $table) {
             // Links a 1-click upsell order back to the order it followed.
             $table->foreignUuid('parent_order_id')->nullable()->after('sales_page_id')
                 ->constrained('shop_orders')->nullOnDelete();
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('parent_order_id');
+
         });
     }
 

@@ -20,6 +20,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['dispute_id', 'created_at'], 'ix_p2p_dispute_note');
+            $table->index('admin_id');
         });
     }
 

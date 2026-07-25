@@ -27,6 +27,10 @@ return new class extends Migration
             $table->index(['user_id', 'is_favorite']);
             $table->index(['user_id', 'status'], 'ix_addressbook_user_status');
             $table->unique(['user_id', 'address', 'chain_id'], 'uq_addressbook_user_address');
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('asset_id');
+            $table->index('chain_id');
+
         });
 
         Schema::create('user_favorite_assets', function (Blueprint $table) {
@@ -34,6 +38,9 @@ return new class extends Migration
             $table->foreignId('asset_id')->constrained('assets')->cascadeOnDelete();
             $table->unsignedSmallInteger('position')->default(0);
             $table->primary(['user_id', 'asset_id']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('asset_id');
+
         });
     }
 

@@ -27,6 +27,11 @@ return new class extends Migration
             $table->foreign('entry_id')->references('id')->on('journal_entries')->nullOnDelete();
             $table->unique(['merchant_id', 'reference'], 'uq_invoice_reference'); // idempotent creation
             $table->index(['status', 'created_at']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('asset_id');
+            $table->index('entry_id');
+            $table->index('payer_id');
+
         });
     }
 

@@ -33,6 +33,9 @@ return new class extends Migration
         Schema::table('cards', function (Blueprint $table) {
             $table->foreignUuid('card_provider_id')->nullable()->after('user_id')
                 ->constrained('card_providers')->nullOnDelete();
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('card_provider_id');
+
         });
     }
 

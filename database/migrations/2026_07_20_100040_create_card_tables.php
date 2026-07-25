@@ -36,6 +36,14 @@ return new class extends Migration
 
             $table->unique('issuer_card_ref', 'uq_issuer_card');
             $table->index(['user_id', 'status']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('frozen_by');
+            $table->index('replaced_by');
+        });
+
+        // Self-reference added after create (PG needs the PK to exist first).
+        Schema::table('cards', function (Blueprint $table) {
+            $table->foreign('replaced_by')->references('id')->on('cards')->nullOnDelete();
         });
         // Defence in depth: refuse anything that looks like a raw PAN (§F3.5).
         DB::statement(<<<'SQL'
@@ -65,6 +73,11 @@ return new class extends Migration
             $table->foreign('settle_entry_id')->references('id')->on('journal_entries')->nullOnDelete();
             $table->unique('network_auth_id', 'uq_network_auth'); // re-sent auths never double-hold
             $table->index(['card_id', 'created_at']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('hold_entry_id');
+            $table->index('quote_id');
+            $table->index('settle_entry_id');
+
         });
 
         Schema::create('card_disputes', function (Blueprint $table) {
@@ -77,6 +90,10 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('entry_id')->references('id')->on('journal_entries')->nullOnDelete();
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('authorization_id');
+            $table->index('entry_id');
+
         });
     }
 

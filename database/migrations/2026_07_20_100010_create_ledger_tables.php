@@ -27,6 +27,9 @@ return new class extends Migration
             // A user has at most one account of a given type per asset; system accounts are user-null.
             $table->unique(['type', 'user_id', 'asset_id'], 'uq_account_identity');
             $table->index(['user_id', 'asset_id']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('asset_id');
+
         });
 
         // Materialised balance, locked FOR UPDATE on every post (§7.2).
@@ -50,6 +53,9 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['type', 'created_at']);
+            // --- merged: FK indexes / constraints (was a trailing patch migration) ---
+            $table->index('reverses_entry_id');
+
         });
 
         // Self-referential correction linkage — added after the PK exists.
