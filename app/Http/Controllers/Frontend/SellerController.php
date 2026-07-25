@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Asset;
+use App\Sell\Actions\Order\SendMessage;
 use App\Sell\Actions\Order\SetOrderStatus;
 use App\Sell\Actions\Product\CreateProduct;
 use App\Sell\Actions\Product\SetProductStatus;
@@ -209,6 +210,11 @@ class SellerController extends Controller
             return $order;
         }
 
+        // Opening the order clears the seller's unread flag.
+        if ($order->seller_unread) {
+            $order->forceFill(['seller_unread' => false])->save();
+        }
+
         $asset = $order->asset;
         $fmt = fn ($base) => $asset ? $asset->money((string) (int) $base)->format(2) : '—';
         $addr = $order->shipping_address ?? [];
@@ -254,8 +260,44 @@ class SellerController extends Controller
                     'label' => ucwords(str_replace('_', ' ', $e->type)),
                     'at' => $e->created_at->format('M j · g:i A'),
                 ])->values()->all(),
+                'messages' => $this->conversation($order, 'seller'),
             ],
         ]);
+    }
+
+    /**
+     * The order's shared conversation as a view-model, tagged from the given
+     * viewer's perspective ('mine' vs 'theirs') so the bubble alignment is right.
+     *
+     * @return list<array{side:string,author:string,body:string,at:string}>
+     */
+    private function conversation(Order $order, string $viewer): array
+    {
+        return $order->messages()->orderBy('created_at')->get()->map(fn ($m) => [
+            'side' => $m->author_type === $viewer ? 'mine' : 'theirs',
+            'author' => match ($m->author_type) {
+                'seller' => $order->seller?->displayName() ?? __('Seller'),
+                'buyer' => $order->buyer?->name ?? __('Buyer'),
+                'operator' => __('Support'),
+                default => __('System'),
+            },
+            'body' => $m->body,
+            'at' => $m->created_at->format('M j · g:i A'),
+        ])->all();
+    }
+
+    /** Seller posts a message to the order conversation. */
+    public function sendOrderMessage(Request $request, SellerService $sellers, SendMessage $action, string $id): RedirectResponse
+    {
+        $order = $this->ownedOrder($sellers, $request, $id);
+        if (! $order instanceof Order) {
+            return $order;
+        }
+
+        $validated = $request->validate(['body' => ['required', 'string', 'max:4000']]);
+        $action->execute($order, 'seller', $sellers->forUser($request->user())?->getKey(), $validated['body']);
+
+        return redirect()->route('sell.order', ['id' => $order->id]);
     }
 
     /** Advance an order along fulfilment (processing → shipped → delivered → completed). */
@@ -297,38 +339,32 @@ class SellerController extends Controller
     }
 
     /** Seller inbox — buyer message threads. FRONTEND-FIRST: sample conversations. */
-    public function inbox(Request $request): View
+    /** Seller inbox — orders that have a conversation, newest activity first. */
+    public function inbox(Request $request, SellerService $sellers): View
     {
-        return view('frontend.seller.inbox', [
-            'threads' => [
-                [
-                    'id' => 1, 'buyer' => 'Aisha Karim', 'initials' => 'AK', 'product' => 'LaunchKit',
-                    'subject' => 'Question about my order', 'time' => '2h', 'unread' => true,
-                    'messages' => [
-                        ['from' => 'buyer', 'body' => 'Hi! Does LaunchKit include future updates?', 'at' => '10:20 AM'],
-                        ['from' => 'seller', 'body' => 'Yes — lifetime updates are included with your purchase.', 'at' => '10:45 AM'],
-                        ['from' => 'buyer', 'body' => 'Perfect, thank you! One more — is there Livewire support?', 'at' => '10:47 AM'],
-                    ],
-                ],
-                [
-                    'id' => 2, 'buyer' => 'Tanvir Hasan', 'initials' => 'TH', 'product' => 'PoisaHub Dev Tee',
-                    'subject' => 'Shipping / delivery', 'time' => '1d', 'unread' => false,
-                    'messages' => [
-                        ['from' => 'buyer', 'body' => 'When will my order ship? Order PH-10427.', 'at' => 'Yesterday'],
-                        ['from' => 'seller', 'body' => 'Shipped today via Pathao — tracking BD-7712-9920.', 'at' => 'Yesterday'],
-                    ],
-                ],
-                [
-                    'id' => 3, 'buyer' => 'Maria Lopez', 'initials' => 'ML', 'product' => 'Premium UI Kit',
-                    'subject' => 'Problem with the product', 'time' => '3d', 'unread' => false,
-                    'messages' => [
-                        ['from' => 'buyer', 'body' => 'The Figma file link seems broken.', 'at' => 'Jul 22'],
-                        ['from' => 'seller', 'body' => 'Sorry about that — fixed and re-sent the link.', 'at' => 'Jul 22'],
-                        ['from' => 'buyer', 'body' => 'Got it, works now. Thanks!', 'at' => 'Jul 22'],
-                    ],
-                ],
-            ],
-        ]);
+        $seller = $sellers->forUser($request->user());
+
+        $threads = $seller
+            ? $seller->orders()->with(['buyer', 'items'])->has('messages')
+                ->orderByDesc('last_message_at')->limit(100)->get()
+                ->map(function ($o) {
+                    $last = $o->messages()->orderByDesc('created_at')->first();
+                    $name = $o->buyer?->name ?? __('Buyer');
+
+                    return [
+                        'id' => $o->id,
+                        'number' => $o->number,
+                        'buyer' => $name,
+                        'initials' => \Illuminate\Support\Str::of($name)->explode(' ')->take(2)->map(fn ($w) => \Illuminate\Support\Str::substr($w, 0, 1))->implode(''),
+                        'product' => $o->items->first()?->name_snapshot ?? '—',
+                        'preview' => \Illuminate\Support\Str::limit($last?->body ?? '', 80),
+                        'time' => $o->last_message_at?->diffForHumans(short: true) ?? '',
+                        'unread' => (bool) $o->seller_unread,
+                    ];
+                })->all()
+            : [];
+
+        return view('frontend.seller.inbox', ['threads' => $threads]);
     }
 
     public function reviews(Request $request): View
@@ -470,14 +506,41 @@ class SellerController extends Controller
             return $page; // redirect
         }
 
+        $info = $this->productInfo($page);
+
         return view('frontend.seller.sales-pages', [
             'page' => $page,
             'slug' => $page->slug,
             'product' => $page->product?->name ?? __('Product'),
+            'productInfo' => $info,
             'published' => $page->status === SalesPageStatus::Published,
-            'seed' => $this->builderSeed($page),
+            'seed' => $this->builderSeed($page, $info),
             'themes' => ['#2563eb' => 'Blue', '#7c3aed' => 'Violet', '#059669' => 'Emerald', '#e11d48' => 'Rose', '#ea580c' => 'Orange', '#0f172a' => 'Slate'],
         ]);
+    }
+
+    /**
+     * The real product behind a sales page — used to seed the builder's Product
+     * section with live name/price/summary instead of placeholder copy.
+     *
+     * @return array<string, string|null>
+     */
+    private function productInfo(SalesPage $page): array
+    {
+        $product = $page->product;
+        $asset = $product?->priceAsset;
+
+        return [
+            'name' => $product?->name,
+            'type' => $product?->type->label(),
+            'summary' => $product?->summary,
+            'description' => $product?->description,
+            'price' => $product && $asset ? $asset->money((string) $product->price_amount)->format(2) : null,
+            'compare' => $product && $asset && $product->compare_price_amount
+                ? $asset->money((string) $product->compare_price_amount)->format(2)
+                : null,
+            'seller' => $page->seller?->displayName() ?? $product?->seller?->displayName(),
+        ];
     }
 
     /** Persist the builder (name, sections, theme) without changing status. */
@@ -564,9 +627,10 @@ class SellerController extends Controller
      * Seed the Alpine builder: persisted layout/content if the page has any,
      * otherwise the default template so a fresh page opens ready to edit.
      *
+     * @param  array<string, string|null>  $info  live product facts (see {@see productInfo()})
      * @return array<string, mixed>
      */
-    private function builderSeed(SalesPage $page): array
+    private function builderSeed(SalesPage $page, array $info = []): array
     {
         $theme = $page->theme ?? [];
         $sections = $page->sections ?? [];
@@ -590,12 +654,42 @@ class SellerController extends Controller
                     $seed['content'][$s['type']] = $s['content'];
                 }
             }
+
+            // The Product section is newer than some saved pages — guarantee it
+            // exists (right after the hero) so every page shows the real product.
+            if (! in_array('product', $seed['order'], true)) {
+                $at = array_search('hero', $seed['order'], true);
+                array_splice($seed['order'], $at === false ? 0 : $at + 1, 0, 'product');
+                $seed['sections']['product'] = true;
+            }
+            if ($seed['content'] !== [] && ! isset($seed['content']['product'])) {
+                $seed['content']['product'] = $this->productSectionContent($info);
+            }
             if ($seed['content'] === []) {
                 unset($seed['content']); // keep the builder's rich default content
             }
         }
 
         return $seed;
+    }
+
+    /**
+     * Default copy for the Product section, seeded from the live product.
+     *
+     * @param  array<string, string|null>  $info
+     * @return array<string, string>
+     */
+    private function productSectionContent(array $info): array
+    {
+        return [
+            'name' => $info['name'] ?? __('Your product'),
+            'type' => $info['type'] ?? __('Digital download'),
+            'summary' => $info['summary'] ?? __('What this product includes and why it’s worth it.'),
+            'price' => $info['price'] ?? '—',
+            'compare' => $info['compare'] ?? '',
+            'btn' => __('Buy now'),
+            'note' => __('Instant, secure checkout — wallet, card, crypto, bank & mobile money.'),
+        ];
     }
 
     /** Funnel builder. FRONTEND-FIRST: a sample funnel so the flow is reviewable. */

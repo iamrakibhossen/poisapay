@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Sell\Actions\Order\SendMessage;
 use App\Sell\Enums\OrderStatus;
 use App\Sell\Enums\ProductType;
+use App\Sell\Models\Order;
 use App\Sell\Models\OrderItem;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -67,6 +70,55 @@ class PurchasesController extends Controller
         return Storage::disk($file->disk)->download($file->path, $file->original_name);
     }
 
+    /** Buyer's view of the order's shared conversation with the seller. */
+    public function messages(Request $request, string $order): View|RedirectResponse
+    {
+        $model = $this->ownedOrder($request, $order);
+        if (! $model instanceof Order) {
+            return $model;
+        }
+
+        if ($model->buyer_unread) {
+            $model->forceFill(['buyer_unread' => false])->save();
+        }
+
+        return view('frontend.purchase-messages', [
+            'order' => $model,
+            'seller' => $model->seller?->displayName() ?? __('Seller'),
+            'messages' => $model->messages()->orderBy('created_at')->get()->map(fn ($m) => [
+                'side' => $m->author_type === 'buyer' ? 'mine' : 'theirs',
+                'author' => $m->author_type === 'buyer' ? __('You') : ($model->seller?->displayName() ?? __('Seller')),
+                'body' => $m->body,
+                'at' => $m->created_at->format('M j · g:i A'),
+            ])->all(),
+        ]);
+    }
+
+    /** Buyer posts a message to the order conversation. */
+    public function sendMessage(Request $request, SendMessage $action, string $order): RedirectResponse
+    {
+        $model = $this->ownedOrder($request, $order);
+        if (! $model instanceof Order) {
+            return $model;
+        }
+
+        $validated = $request->validate(['body' => ['required', 'string', 'max:4000']]);
+        $action->execute($model, 'buyer', $request->user()->getKey(), $validated['body']);
+
+        return redirect()->route('purchases.messages', $model->id);
+    }
+
+    /** Resolve an order the signed-in buyer owns, or a redirect back to purchases. */
+    private function ownedOrder(Request $request, string $orderId): Order|RedirectResponse
+    {
+        $order = Order::with('seller')
+            ->where('buyer_user_id', $request->user()->getKey())
+            ->whereNotIn('status', [OrderStatus::Pending->value, OrderStatus::Cancelled->value])
+            ->find($orderId);
+
+        return $order ?? redirect()->route('purchases');
+    }
+
     /** @return array<string, mixed> the view-model for one purchase card. */
     private function present(OrderItem $item): array
     {
@@ -81,6 +133,8 @@ class PurchasesController extends Controller
             'seller' => $order->seller?->displayName() ?? __('Seller'),
             'date' => $placed?->format('M j, Y') ?? '—',
             'price' => $order->asset->money((string) $item->line_total_amount)->format(2),
+            'messagesUrl' => route('purchases.messages', $order->id),
+            'unread' => (bool) $order->buyer_unread,
         ];
 
         if ($type === ProductType::Digital) {

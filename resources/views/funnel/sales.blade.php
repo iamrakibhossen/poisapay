@@ -48,6 +48,37 @@
             @foreach ($sections as $section)
                 @php $c = $section['content'] ?? []; @endphp
                 @switch($section['type'])
+                    @case('product')
+                        <section class="border-t border-neutral-100 py-10">
+                            <div class="mx-auto max-w-md overflow-hidden rounded-2xl border border-neutral-200 shadow-sm">
+                                <div class="flex items-center gap-3 border-b border-neutral-100 px-5 py-4">
+                                    <span class="grid h-12 w-12 shrink-0 place-items-center rounded-xl text-white" style="background: var(--accent)">
+                                        <x-heroicon-o-cube class="h-6 w-6" />
+                                    </span>
+                                    <div class="min-w-0">
+                                        <p class="truncate text-sm font-bold">{{ $c['name'] ?? $product['name'] }}</p>
+                                        <p class="text-[11px] uppercase tracking-wide text-neutral-400">{{ $c['type'] ?? '' }}</p>
+                                    </div>
+                                </div>
+                                <div class="px-5 py-4">
+                                    <p class="text-sm text-neutral-600">{{ $c['summary'] ?? $product['summary'] }}</p>
+                                    <div class="mt-4 flex items-baseline gap-2">
+                                        <span class="text-2xl font-bold">{{ $c['price'] ?? $product['price'] }}</span>
+                                        @if (! empty($c['compare']) || $product['comparePrice'])
+                                            <span class="text-sm text-neutral-400 line-through">{{ $c['compare'] ?? $product['comparePrice'] }}</span>
+                                        @endif
+                                    </div>
+                                    <button type="submit" form="buy" class="mt-4 w-full py-3 text-sm font-semibold text-white transition hover:opacity-90" style="background: var(--accent); border-radius: {{ $radius }}">
+                                        {{ $c['btn'] ?? $btnLabel }}
+                                    </button>
+                                    @if (! empty($c['note']))
+                                        <p class="mt-2 text-center text-[11px] text-neutral-400">{{ $c['note'] }}</p>
+                                    @endif
+                                </div>
+                            </div>
+                        </section>
+                        @break
+
                     @case('features')
                         @if (! empty($c))
                             <section class="border-t border-neutral-100 py-10">

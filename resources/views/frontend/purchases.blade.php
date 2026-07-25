@@ -94,7 +94,7 @@
                         {{-- Quick links --}}
                         <div class="mt-3 flex flex-wrap gap-4 border-t border-neutral-100 pt-3 text-xs">
                             <a href="#" class="inline-flex items-center gap-1 font-medium text-neutral-500 hover:text-brand-600"><x-heroicon-o-document-text class="h-3.5 w-3.5" /> {{ __('Invoice') }}</a>
-                            <button type="button" x-on:click="$dispatch('open-modal', 'contact-{{ $loop->index }}')" class="inline-flex items-center gap-1 font-medium text-neutral-500 hover:text-brand-600"><x-heroicon-o-chat-bubble-left-right class="h-3.5 w-3.5" /> {{ __('Contact seller') }}</button>
+                            <a href="{{ $p['messagesUrl'] }}" class="inline-flex items-center gap-1 font-medium text-neutral-500 hover:text-brand-600"><x-heroicon-o-chat-bubble-left-right class="h-3.5 w-3.5" /> {{ __('Message seller') }}@if (! empty($p['unread']))<span class="ml-0.5 inline-block h-1.5 w-1.5 rounded-full bg-brand-500"></span>@endif</a>
                             <a href="#" class="inline-flex items-center gap-1 font-medium text-neutral-500 hover:text-rose-600"><x-heroicon-o-arrow-uturn-left class="h-3.5 w-3.5" /> {{ __('Request refund') }}</a>
                         </div>
                     </div>

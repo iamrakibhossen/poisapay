@@ -69,6 +69,36 @@
                     </x-ui.card>
                 @endif
 
+                {{-- Conversation — order-scoped, shared with the buyer --}}
+                <x-ui.card>
+                    <div class="mb-3 flex items-center justify-between">
+                        <p class="text-sm font-semibold text-neutral-900">{{ __('Messages') }}</p>
+                        <span class="inline-flex items-center gap-1 text-[11px] text-neutral-400"><x-heroicon-o-users class="h-3.5 w-3.5" /> {{ __('Buyer & seller') }}</span>
+                    </div>
+
+                    <div class="max-h-72 space-y-3 overflow-y-auto rounded-xl bg-neutral-50/50 p-3">
+                        @forelse ($order['messages'] as $m)
+                            <div class="flex {{ $m['side'] === 'mine' ? 'justify-end' : 'justify-start' }}">
+                                <div class="max-w-[78%]">
+                                    <p class="mb-0.5 text-[11px] text-neutral-400 {{ $m['side'] === 'mine' ? 'text-right' : '' }}">{{ $m['author'] }}</p>
+                                    <div class="rounded-2xl px-3.5 py-2 text-sm {{ $m['side'] === 'mine' ? 'rounded-br-sm bg-brand-500 text-white' : 'rounded-bl-sm border border-neutral-200 bg-white text-neutral-800' }}">{{ $m['body'] }}</div>
+                                    <p class="mt-0.5 text-[11px] text-neutral-300 {{ $m['side'] === 'mine' ? 'text-right' : '' }}">{{ $m['at'] }}</p>
+                                </div>
+                            </div>
+                        @empty
+                            <p class="py-6 text-center text-xs text-neutral-400">{{ __('No messages yet. Reply to the buyer here.') }}</p>
+                        @endforelse
+                    </div>
+
+                    <form method="POST" action="{{ route('sell.order.message', ['id' => $order['id']]) }}" class="mt-3 flex items-end gap-2">
+                        @csrf
+                        <textarea name="body" rows="1" required placeholder="{{ __('Reply to the buyer…') }}"
+                            class="max-h-28 min-h-[42px] flex-1 resize-none rounded-xl border border-neutral-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">{{ old('body') }}</textarea>
+                        <x-ui.button type="submit" icon="paper-airplane">{{ __('Send') }}</x-ui.button>
+                    </form>
+                    @error('body')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
+                </x-ui.card>
+
                 {{-- Activity — real order events --}}
                 @if (count($order['events']))
                     <x-ui.card>

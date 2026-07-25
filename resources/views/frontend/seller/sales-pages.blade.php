@@ -1,3 +1,26 @@
+@php
+    // Live product behind this page — seeds the Product section + hero so the
+    // builder opens showing the real product, not placeholder copy.
+    $pi = $productInfo ?? [];
+    $heroSeed = [
+        'headline' => $pi['name'] ?? 'Your product name',
+        'tagline' => $pi['summary'] ?? 'A short, punchy line that sells the outcome.',
+        'desc' => $pi['description'] ?: 'Describe what the buyer gets and why it’s worth it.',
+        'btn' => 'Buy now',
+        'price' => $pi['price'] ?? '—',
+        'compare' => $pi['compare'] ?? '',
+    ];
+    $productSeed = [
+        'name' => $pi['name'] ?? 'Your product',
+        'type' => $pi['type'] ?? 'Digital download',
+        'summary' => $pi['summary'] ?: 'What this product includes and why it’s worth it.',
+        'price' => $pi['price'] ?? '—',
+        'compare' => $pi['compare'] ?? '',
+        'btn' => 'Buy now',
+        'note' => 'Instant, secure checkout — wallet, card, crypto, bank & mobile money.',
+    ];
+    $brand = $pi['seller'] ?: __('Your store');
+@endphp
 <x-layouts.app :title="__('Sales page')">
     <form method="POST" action="{{ route('sell.sales-page.update', ['slug' => $slug]) }}" class="mt-6"
         x-data="{
@@ -7,11 +30,12 @@
             font: 'Inter',
             name: @js($seed['name'] ?? __('Untitled page')),
             editing: null,
-            sections: { hero: true, features: true, benefits: true, testimonials: true, faq: true, guarantee: true, countdown: false, cta: true },
-            order: ['hero', 'features', 'benefits', 'testimonials', 'faq', 'guarantee', 'countdown', 'cta'],
-            labels: { hero: 'Hero', features: 'Features', benefits: 'Benefits', testimonials: 'Testimonials', faq: 'FAQ', guarantee: 'Guarantee', countdown: 'Countdown', cta: 'Final CTA' },
+            sections: { hero: true, product: true, features: true, benefits: true, testimonials: true, faq: true, guarantee: true, countdown: false, cta: true },
+            order: ['hero', 'product', 'features', 'benefits', 'testimonials', 'faq', 'guarantee', 'countdown', 'cta'],
+            labels: { hero: 'Hero', product: 'Product', features: 'Features', benefits: 'Benefits', testimonials: 'Testimonials', faq: 'FAQ', guarantee: 'Guarantee', countdown: 'Countdown', cta: 'Final CTA' },
             content: {
-                hero: { headline: 'LaunchKit — Laravel SaaS Boilerplate', tagline: 'Ship your SaaS in a weekend, not a quarter.', desc: 'A production-ready Laravel starter with auth, billing, teams and a beautiful admin.', btn: 'Buy now', price: '$49', compare: '$99' },
+                hero: @js($heroSeed),
+                product: @js($productSeed),
                 features: ['Auth & teams', 'Billing built in', 'Beautiful UI', 'DX first'],
                 benefits: ['Save 100+ hours of setup', 'Clean, tested codebase', 'Lifetime updates', '6 months of support'],
                 testimonials: [{ name: 'Aisha K.', quote: 'I launched my MVP in 4 days.' }, { name: 'Tanvir H.', quote: 'Huge time saver for every project.' }],
@@ -146,6 +170,22 @@
                             </div>
                         </div>
 
+                        {{-- PRODUCT (the real product behind this page) --}}
+                        <div x-show="editing === 'product'" class="space-y-3">
+                            <div class="flex items-start gap-2 rounded-lg border border-brand-100 bg-brand-50/50 p-2.5 text-[11px] text-brand-700">
+                                <x-heroicon-o-cube class="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                                <span>{{ __('Seeded from your product. Editing here only changes this page’s copy — not the product itself.') }}</span>
+                            </div>
+                            <div><label class="{{ $lbl }}">{{ __('Name') }}</label><input class="{{ $inp }}" x-model="content.product.name" /></div>
+                            <div><label class="{{ $lbl }}">{{ __('Summary') }}</label><textarea rows="2" class="{{ $inp }}" x-model="content.product.summary"></textarea></div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div><label class="{{ $lbl }}">{{ __('Price') }}</label><input class="{{ $inp }}" x-model="content.product.price" /></div>
+                                <div><label class="{{ $lbl }}">{{ __('Compare') }}</label><input class="{{ $inp }}" x-model="content.product.compare" /></div>
+                                <div><label class="{{ $lbl }}">{{ __('Button') }}</label><input class="{{ $inp }}" x-model="content.product.btn" /></div>
+                            </div>
+                            <div><label class="{{ $lbl }}">{{ __('Note') }}</label><input class="{{ $inp }}" x-model="content.product.note" /></div>
+                        </div>
+
                         {{-- FEATURES --}}
                         <div x-show="editing === 'features'" class="space-y-2">
                             <template x-for="(f, i) in content.features" :key="i">
@@ -209,7 +249,7 @@
                         :class="device === 'mobile' ? 'max-w-[390px]' : 'max-w-full'" :style="{ fontFamily: font }">
 
                         <div class="flex items-center justify-between border-b border-neutral-100 px-5 py-3">
-                            <span class="text-sm font-bold">Rahim Studios</span>
+                            <span class="text-sm font-bold">{{ $brand }}</span>
                             <button class="px-4 py-2 text-xs font-semibold text-white" :style="{ background: accent, borderRadius: btnRadius }" x-text="content.hero.btn"></button>
                         </div>
 
@@ -228,6 +268,30 @@
                                         <div class="mt-6 flex items-center justify-center gap-3">
                                             <button class="px-6 py-3 text-sm font-semibold text-white" :style="{ background: accent, borderRadius: btnRadius }" x-text="content.hero.btn"></button>
                                             <span class="text-lg font-bold text-neutral-900"><span x-text="content.hero.price"></span> <span class="text-sm text-neutral-400 line-through" x-text="content.hero.compare"></span></span>
+                                        </div>
+                                    </section>
+                                </template>
+                                <template x-if="key === 'product'">
+                                    <section class="border-t border-neutral-100 px-6 py-9 sm:px-10">
+                                        <div class="mx-auto max-w-md overflow-hidden rounded-2xl border border-neutral-200 shadow-sm">
+                                            <div class="flex items-center gap-3 border-b border-neutral-100 px-5 py-4">
+                                                <span class="grid h-12 w-12 shrink-0 place-items-center rounded-xl text-white" :style="{ background: accent }">
+                                                    <x-heroicon-o-cube class="h-6 w-6" />
+                                                </span>
+                                                <div class="min-w-0">
+                                                    <p class="truncate text-sm font-bold text-neutral-900" x-text="content.product.name"></p>
+                                                    <p class="text-[11px] uppercase tracking-wide text-neutral-400" x-text="content.product.type"></p>
+                                                </div>
+                                            </div>
+                                            <div class="px-5 py-4">
+                                                <p class="text-sm text-neutral-600" x-text="content.product.summary"></p>
+                                                <div class="mt-4 flex items-baseline gap-2">
+                                                    <span class="text-2xl font-bold text-neutral-900" x-text="content.product.price"></span>
+                                                    <span class="text-sm text-neutral-400 line-through" x-show="content.product.compare" x-text="content.product.compare"></span>
+                                                </div>
+                                                <button class="mt-4 w-full py-3 text-sm font-semibold text-white" :style="{ background: accent, borderRadius: btnRadius }" x-text="content.product.btn"></button>
+                                                <p class="mt-2 text-center text-[11px] text-neutral-400" x-text="content.product.note"></p>
+                                            </div>
                                         </div>
                                     </section>
                                 </template>
