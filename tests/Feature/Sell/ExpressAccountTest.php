@@ -3,13 +3,13 @@
 declare(strict_types=1);
 
 use App\Models\User;
-use App\Sell\Enums\ProductStatus;
-use App\Sell\Enums\ProductType;
-use App\Sell\Enums\SalesPageStatus;
-use App\Sell\Enums\SellerStatus;
-use App\Sell\Models\Product;
-use App\Sell\Models\SalesPage;
-use App\Sell\Models\Seller;
+use App\Shop\Enums\ProductStatus;
+use App\Shop\Enums\ProductType;
+use App\Shop\Enums\SalesPageStatus;
+use App\Shop\Enums\SellerStatus;
+use App\Shop\Models\Product;
+use App\Shop\Models\SalesPage;
+use App\Shop\Models\Seller;
 use Illuminate\Support\Facades\Hash;
 
 beforeEach(function () {

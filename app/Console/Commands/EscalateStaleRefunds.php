@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Sell\Actions\Refund\EscalateRefundRequest;
-use App\Sell\Enums\RefundRequestStatus;
-use App\Sell\Models\RefundRequest;
+use App\Shop\Actions\Refund\EscalateRefundRequest;
+use App\Shop\Enums\RefundRequestStatus;
+use App\Shop\Models\RefundRequest;
 use Illuminate\Console\Command;
 
 /**

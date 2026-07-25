@@ -7,21 +7,21 @@ use App\Models\Admin;
 use App\Models\User;
 use App\Notifications\OperatorNotification;
 use App\Notifications\UserNotification;
-use App\Sell\Actions\Order\PlaceOrder;
-use App\Sell\Actions\Refund\CancelRefundRequest;
-use App\Sell\Actions\Refund\EscalateRefundRequest;
-use App\Sell\Actions\Refund\RequestRefund;
-use App\Sell\Actions\Refund\ResolveRefundRequest;
-use App\Sell\DTOs\CheckoutData;
-use App\Sell\Enums\OrderStatus;
-use App\Sell\Enums\ProductStatus;
-use App\Sell\Enums\ProductType;
-use App\Sell\Enums\RefundRequestStatus;
-use App\Sell\Enums\SellerStatus;
-use App\Sell\Exceptions\SellException;
-use App\Sell\Models\Product;
-use App\Sell\Models\RefundRequest;
-use App\Sell\Models\Seller;
+use App\Shop\Actions\Order\PlaceOrder;
+use App\Shop\Actions\Refund\CancelRefundRequest;
+use App\Shop\Actions\Refund\EscalateRefundRequest;
+use App\Shop\Actions\Refund\RequestRefund;
+use App\Shop\Actions\Refund\ResolveRefundRequest;
+use App\Shop\DTOs\CheckoutData;
+use App\Shop\Enums\OrderStatus;
+use App\Shop\Enums\ProductStatus;
+use App\Shop\Enums\ProductType;
+use App\Shop\Enums\RefundRequestStatus;
+use App\Shop\Enums\SellerStatus;
+use App\Shop\Exceptions\ShopException;
+use App\Shop\Models\Product;
+use App\Shop\Models\RefundRequest;
+use App\Shop\Models\Seller;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Notification;
 
@@ -110,7 +110,7 @@ it('blocks a second open request while one is pending', function () {
     app(RequestRefund::class)->execute($order, $this->buyer, 'partial', 10_000000, '');
 
     app(RequestRefund::class)->execute($order, $this->buyer, 'partial', 10_000000, '');
-})->throws(SellException::class);
+})->throws(ShopException::class);
 
 it('routes a rejected request through buyer escalation to an admin', function () {
     Notification::fake();
@@ -176,7 +176,7 @@ it('cannot approve an already-resolved request', function () {
     app(ResolveRefundRequest::class)->approve($req->fresh(), $this->sellerUser);
 
     app(ResolveRefundRequest::class)->approve($req->fresh(), $this->sellerUser);
-})->throws(SellException::class);
+})->throws(ShopException::class);
 
 // ─── HTTP / policy ──────────────────────────────────────────────────────────────
 

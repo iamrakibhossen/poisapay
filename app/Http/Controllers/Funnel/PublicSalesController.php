@@ -6,17 +6,17 @@ namespace App\Http\Controllers\Funnel;
 
 use App\Domain\Ledger\LedgerService;
 use App\Http\Controllers\Controller;
-use App\Sell\Actions\Order\PlaceOrder;
-use App\Sell\DTOs\CheckoutData;
-use App\Sell\Enums\SalesPageStatus;
-use App\Sell\Exceptions\SellException;
-use App\Sell\Models\Order;
-use App\Sell\Models\Product;
-use App\Sell\Models\ProductVariant;
-use App\Sell\Models\SalesPage;
-use App\Sell\Services\AnalyticsService;
-use App\Sell\Services\CouponService;
-use App\Sell\Services\PricingService;
+use App\Shop\Actions\Order\PlaceOrder;
+use App\Shop\DTOs\CheckoutData;
+use App\Shop\Enums\SalesPageStatus;
+use App\Shop\Exceptions\ShopException;
+use App\Shop\Models\Order;
+use App\Shop\Models\Product;
+use App\Shop\Models\ProductVariant;
+use App\Shop\Models\SalesPage;
+use App\Shop\Services\AnalyticsService;
+use App\Shop\Services\CouponService;
+use App\Shop\Services\PricingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -319,7 +319,7 @@ class PublicSalesController extends Controller
                 'shipping_address' => $shipping,
                 'bump' => (bool) ($validated['bump'] ?? false),
             ]));
-        } catch (SellException $e) {
+        } catch (ShopException $e) {
             return back()->withInput()->withErrors(['pay' => $e->getMessage()]);
         }
 
@@ -409,11 +409,11 @@ class PublicSalesController extends Controller
                 'quantity' => 1,
                 'sales_page_id' => $page->getKey(),
                 'parent_order_id' => $order->getKey(),
-                'kind' => \App\Sell\Enums\OrderItemKind::Upsell,
+                'kind' => \App\Shop\Enums\OrderItemKind::Upsell,
                 'override_amount' => $page->upsellAmount(),
                 'idempotency_key' => 'sell:upsell:'.$order->getKey(), // one upsell per order
             ]));
-        } catch (SellException $e) {
+        } catch (ShopException $e) {
             return redirect()->route('funnel.thankyou', ['slug' => $slug])->withErrors(['upsell' => $e->getMessage()]);
         }
 
@@ -464,8 +464,8 @@ class PublicSalesController extends Controller
         // Render the published block-tree document with the one shared renderer —
         // byte-identical to the editor's iframe preview.
         $document = $page->publishedDocument();
-        $context = \App\Sell\Builder\RenderContext::fromSalesPage($page, $document->globals());
-        $rendered = app(\App\Sell\Builder\Renderer::class)->render($document, $context);
+        $context = \App\Shop\Builder\RenderContext::fromSalesPage($page, $document->globals());
+        $rendered = app(\App\Shop\Builder\Renderer::class)->render($document, $context);
 
         $sellerName = $seller->displayName();
 

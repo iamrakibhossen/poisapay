@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Domain\Ledger\LedgerService;
-use App\Sell\Enums\OrderStatus;
-use App\Sell\Models\Order;
+use App\Shop\Enums\OrderStatus;
+use App\Shop\Models\Order;
 use App\Support\Money;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;

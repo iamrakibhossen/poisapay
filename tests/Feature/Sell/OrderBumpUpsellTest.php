@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 use App\Domain\Ledger\LedgerService;
 use App\Models\User;
-use App\Sell\Actions\Order\PlaceOrder;
-use App\Sell\DTOs\CheckoutData;
-use App\Sell\Enums\OrderItemKind;
-use App\Sell\Enums\ProductStatus;
-use App\Sell\Enums\ProductType;
-use App\Sell\Enums\SalesPageStatus;
-use App\Sell\Enums\SellerStatus;
-use App\Sell\Models\Product;
-use App\Sell\Models\SalesPage;
-use App\Sell\Models\Seller;
+use App\Shop\Actions\Order\PlaceOrder;
+use App\Shop\DTOs\CheckoutData;
+use App\Shop\Enums\OrderItemKind;
+use App\Shop\Enums\ProductStatus;
+use App\Shop\Enums\ProductType;
+use App\Shop\Enums\SalesPageStatus;
+use App\Shop\Enums\SellerStatus;
+use App\Shop\Models\Product;
+use App\Shop\Models\SalesPage;
+use App\Shop\Models\Seller;
 
 beforeEach(function () {
     updateSetting('sell_enabled', true);
@@ -84,12 +84,12 @@ it('ignores a bump in a different currency', function () use ($co) {
 });
 
 it('grants digital delivery for both the main and bump lines', function () use ($co) {
-    App\Sell\Models\ProductFile::create(['product_id' => $this->product->id, 'disk' => 'local', 'path' => 'm.zip', 'original_name' => 'm.zip', 'is_current' => true]);
-    App\Sell\Models\ProductFile::create(['product_id' => $this->bumpP->id, 'disk' => 'local', 'path' => 'b.zip', 'original_name' => 'b.zip', 'is_current' => true]);
+    App\Shop\Models\ProductFile::create(['product_id' => $this->product->id, 'disk' => 'local', 'path' => 'm.zip', 'original_name' => 'm.zip', 'is_current' => true]);
+    App\Shop\Models\ProductFile::create(['product_id' => $this->bumpP->id, 'disk' => 'local', 'path' => 'b.zip', 'original_name' => 'b.zip', 'is_current' => true]);
 
     $order = app(PlaceOrder::class)->execute($this->buyer, $co(['bump' => true]));
 
-    expect(App\Sell\Models\Download::where('buyer_user_id', $this->buyer->id)->count())->toBe(2);
+    expect(App\Shop\Models\Download::where('buyer_user_id', $this->buyer->id)->count())->toBe(2);
 });
 
 it('places a 1-click upsell as a new order at the override price, linked to the parent', function () use ($co) {

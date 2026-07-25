@@ -3,13 +3,13 @@
 declare(strict_types=1);
 
 use App\Models\User;
-use App\Sell\Actions\Order\PlaceOrder;
-use App\Sell\DTOs\CheckoutData;
-use App\Sell\Enums\ProductStatus;
-use App\Sell\Enums\ProductType;
-use App\Sell\Enums\SellerStatus;
-use App\Sell\Models\Product;
-use App\Sell\Models\Seller;
+use App\Shop\Actions\Order\PlaceOrder;
+use App\Shop\DTOs\CheckoutData;
+use App\Shop\Enums\ProductStatus;
+use App\Shop\Enums\ProductType;
+use App\Shop\Enums\SellerStatus;
+use App\Shop\Models\Product;
+use App\Shop\Models\Seller;
 
 beforeEach(function () {
     updateSetting('sell_enabled', true);

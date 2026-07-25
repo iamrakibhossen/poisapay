@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Frontend\SellerController;
-use App\Sell\Http\Controllers\PageBuilderController;
+use App\Shop\Http\Controllers\PageBuilderController;
 use Illuminate\Support\Facades\Route;
 
 /*

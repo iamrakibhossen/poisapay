@@ -1,7 +1,7 @@
 @php
     // Show "My Purchases" only once the user has actually bought something —
     // an indexed exists() on their orders (nothing to show → no menu item).
-    $hasPurchases = auth()->check() && rescue(fn () => \App\Sell\Models\Order::query()
+    $hasPurchases = auth()->check() && rescue(fn () => \App\Shop\Models\Order::query()
         ->where('buyer_user_id', auth()->id())
         ->whereNotIn('status', ['pending', 'cancelled'])
         ->exists(), false, false);
@@ -9,7 +9,7 @@
     // Only approved sellers see "Sell" — everyone else reaches onboarding from the
     // marketing site (/products/sell), not the app nav.
     $isSeller = auth()->check() && rescue(
-        fn () => app(\App\Sell\Services\SellerService::class)->forUser(auth()->user())?->canSell() ?? false,
+        fn () => app(\App\Shop\Services\SellerService::class)->forUser(auth()->user())?->canSell() ?? false,
         false, false,
     );
 

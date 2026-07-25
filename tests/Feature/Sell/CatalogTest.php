@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 use App\Models\AuditLog;
 use App\Models\User;
-use App\Sell\Actions\Product\CreateProduct;
-use App\Sell\Actions\Product\SetProductStatus;
-use App\Sell\Actions\Product\UpdateProduct;
-use App\Sell\DTOs\ProductData;
-use App\Sell\Enums\ProductStatus;
-use App\Sell\Enums\ProductType;
-use App\Sell\Enums\SellerStatus;
-use App\Sell\Exceptions\SellException;
-use App\Sell\Models\Product;
-use App\Sell\Models\Seller;
-use App\Sell\Services\CatalogService;
+use App\Shop\Actions\Product\CreateProduct;
+use App\Shop\Actions\Product\SetProductStatus;
+use App\Shop\Actions\Product\UpdateProduct;
+use App\Shop\DTOs\ProductData;
+use App\Shop\Enums\ProductStatus;
+use App\Shop\Enums\ProductType;
+use App\Shop\Enums\SellerStatus;
+use App\Shop\Exceptions\ShopException;
+use App\Shop\Models\Product;
+use App\Shop\Models\Seller;
+use App\Shop\Services\CatalogService;
 
 beforeEach(function () {
     updateSetting('sell_enabled', true);
@@ -79,7 +79,7 @@ it('refuses to publish a variant product with no active variants', function () u
     $p->update(['has_variants' => true]); // variant product with zero variants
 
     expect(fn () => app(SetProductStatus::class)->execute($p->fresh(), ProductStatus::Published))
-        ->toThrow(SellException::class);
+        ->toThrow(ShopException::class);
 });
 
 it('finds products by full-text search, scoped to the seller', function () use ($product) {
@@ -107,7 +107,7 @@ it('blocks a non-approved seller from creating products', function () use ($prod
     $this->seller->update(['status' => SellerStatus::PendingReview]);
 
     expect(fn () => app(CreateProduct::class)->execute($this->seller->fresh(), $product()))
-        ->toThrow(SellException::class);
+        ->toThrow(ShopException::class);
 });
 
 it('creates a product over the REST API and returns a resource', function () {

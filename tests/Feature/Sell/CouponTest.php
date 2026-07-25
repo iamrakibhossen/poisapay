@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 use App\Domain\Ledger\LedgerService;
 use App\Models\User;
-use App\Sell\Actions\Coupon\CreateCoupon;
-use App\Sell\Actions\Order\PlaceOrder;
-use App\Sell\DTOs\CheckoutData;
-use App\Sell\Enums\CouponType;
-use App\Sell\Enums\ProductStatus;
-use App\Sell\Enums\ProductType;
-use App\Sell\Enums\SellerStatus;
-use App\Sell\Exceptions\SellException;
-use App\Sell\Models\Coupon;
-use App\Sell\Models\Order;
-use App\Sell\Models\Product;
-use App\Sell\Models\Seller;
+use App\Shop\Actions\Coupon\CreateCoupon;
+use App\Shop\Actions\Order\PlaceOrder;
+use App\Shop\DTOs\CheckoutData;
+use App\Shop\Enums\CouponType;
+use App\Shop\Enums\ProductStatus;
+use App\Shop\Enums\ProductType;
+use App\Shop\Enums\SellerStatus;
+use App\Shop\Exceptions\ShopException;
+use App\Shop\Models\Coupon;
+use App\Shop\Models\Order;
+use App\Shop\Models\Product;
+use App\Shop\Models\Seller;
 
 beforeEach(function () {
     updateSetting('sell_enabled', true);
@@ -73,17 +73,17 @@ it('applies a fixed-amount coupon', function () use ($order) {
 it('rejects invalid, expired, and over-limit coupons', function () use ($order) {
     // unknown
     expect(fn () => app(PlaceOrder::class)->execute($this->buyer, $order(['coupon_code' => 'NOPE'])))
-        ->toThrow(SellException::class);
+        ->toThrow(ShopException::class);
 
     // expired
     Coupon::create(['seller_id' => $this->seller->id, 'code' => 'OLD', 'type' => CouponType::Percent, 'value' => 1000, 'is_active' => true, 'ends_at' => now()->subDay()]);
     expect(fn () => app(PlaceOrder::class)->execute($this->buyer, $order(['coupon_code' => 'OLD'])))
-        ->toThrow(SellException::class);
+        ->toThrow(ShopException::class);
 
     // usage limit reached
     Coupon::create(['seller_id' => $this->seller->id, 'code' => 'MAXED', 'type' => CouponType::Percent, 'value' => 1000, 'is_active' => true, 'usage_limit' => 1, 'used_count' => 1]);
     expect(fn () => app(PlaceOrder::class)->execute($this->buyer, $order(['coupon_code' => 'MAXED'])))
-        ->toThrow(SellException::class);
+        ->toThrow(ShopException::class);
 });
 
 it('enforces a per-customer limit', function () use ($order) {
@@ -92,7 +92,7 @@ it('enforces a per-customer limit', function () use ($order) {
     app(PlaceOrder::class)->execute($this->buyer, $order(['coupon_code' => 'ONCE', 'idempotency_key' => 'k1']));
 
     expect(fn () => app(PlaceOrder::class)->execute($this->buyer, $order(['coupon_code' => 'ONCE', 'idempotency_key' => 'k2'])))
-        ->toThrow(SellException::class);
+        ->toThrow(ShopException::class);
 });
 
 it('scopes a product-specific coupon to that product', function () use ($order) {
@@ -104,7 +104,7 @@ it('scopes a product-specific coupon to that product', function () use ($order) 
 
     // Applied to the wrong product → rejected.
     expect(fn () => app(PlaceOrder::class)->execute($this->buyer, $order(['coupon_code' => 'OTHERONLY'])))
-        ->toThrow(SellException::class);
+        ->toThrow(ShopException::class);
 });
 
 it('lets a seller create and list coupons over HTTP', function () {
@@ -120,9 +120,9 @@ it('lets a seller create and list coupons over HTTP', function () {
 
 it('shows the discount on the public pay page via ?coupon', function () {
     // Publish a sales page so the public route resolves.
-    \App\Sell\Models\SalesPage::create([
+    \App\Shop\Models\SalesPage::create([
         'seller_id' => $this->seller->id, 'product_id' => $this->product->id, 'name' => 'Main',
-        'slug' => 'launchkit-main', 'status' => \App\Sell\Enums\SalesPageStatus::Published,
+        'slug' => 'launchkit-main', 'status' => \App\Shop\Enums\SalesPageStatus::Published,
         'sections' => [], 'theme' => [], 'version' => 1, 'published_at' => now(),
     ]);
     Coupon::create(['seller_id' => $this->seller->id, 'code' => 'TAKE20', 'type' => CouponType::Percent, 'value' => 2000, 'is_active' => true]);

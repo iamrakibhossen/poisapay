@@ -1,9 +1,9 @@
 <x-layouts.app :title="__('Sell')">
     @php
-        $pending = $status === \App\Sell\Enums\SellerStatus::PendingReview;
-        $rejected = $status === \App\Sell\Enums\SellerStatus::Rejected;
-        $suspended = $status === \App\Sell\Enums\SellerStatus::Suspended;
-        $notApplied = $status === null || $status === \App\Sell\Enums\SellerStatus::Draft;
+        $pending = $status === \App\Shop\Enums\SellerStatus::PendingReview;
+        $rejected = $status === \App\Shop\Enums\SellerStatus::Rejected;
+        $suspended = $status === \App\Shop\Enums\SellerStatus::Suspended;
+        $notApplied = $status === null || $status === \App\Shop\Enums\SellerStatus::Draft;
     @endphp
 
     <div class="mt-6 space-y-6">

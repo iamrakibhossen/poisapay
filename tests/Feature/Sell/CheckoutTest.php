@@ -5,18 +5,18 @@ declare(strict_types=1);
 use App\Domain\Ledger\LedgerService;
 use App\Models\AuditLog;
 use App\Models\User;
-use App\Sell\Actions\Order\PlaceOrder;
-use App\Sell\DTOs\CheckoutData;
-use App\Sell\Enums\OrderStatus;
-use App\Sell\Enums\ProductStatus;
-use App\Sell\Enums\ProductType;
-use App\Sell\Enums\SellerStatus;
-use App\Sell\Exceptions\SellException;
-use App\Sell\Models\Download;
-use App\Sell\Models\Order;
-use App\Sell\Models\Product;
-use App\Sell\Models\ProductFile;
-use App\Sell\Models\Seller;
+use App\Shop\Actions\Order\PlaceOrder;
+use App\Shop\DTOs\CheckoutData;
+use App\Shop\Enums\OrderStatus;
+use App\Shop\Enums\ProductStatus;
+use App\Shop\Enums\ProductType;
+use App\Shop\Enums\SellerStatus;
+use App\Shop\Exceptions\ShopException;
+use App\Shop\Models\Download;
+use App\Shop\Models\Order;
+use App\Shop\Models\Product;
+use App\Shop\Models\ProductFile;
+use App\Shop\Models\Seller;
 
 beforeEach(function () {
     updateSetting('sell_enabled', true);
@@ -84,7 +84,7 @@ it('declines when the buyer wallet balance is insufficient', function () {
 
     expect(fn () => app(PlaceOrder::class)->execute($poor, CheckoutData::fromArray([
         'product_id' => $this->product->id, 'idempotency_key' => 'poor-1',
-    ])))->toThrow(SellException::class);
+    ])))->toThrow(ShopException::class);
 
     expect(Order::count())->toBe(0); // nothing partially written
 });
@@ -92,7 +92,7 @@ it('declines when the buyer wallet balance is insufficient', function () {
 it('refuses buying your own product', function () {
     expect(fn () => app(PlaceOrder::class)->execute($this->sellerUser, CheckoutData::fromArray([
         'product_id' => $this->product->id, 'idempotency_key' => 'own-1',
-    ])))->toThrow(SellException::class);
+    ])))->toThrow(ShopException::class);
 });
 
 it('refuses an unpublished product', function () {
@@ -100,7 +100,7 @@ it('refuses an unpublished product', function () {
 
     expect(fn () => app(PlaceOrder::class)->execute($this->buyer, CheckoutData::fromArray([
         'product_id' => $this->product->id, 'idempotency_key' => 'draft-1',
-    ])))->toThrow(SellException::class);
+    ])))->toThrow(ShopException::class);
 });
 
 it('checks out over the REST endpoint and returns a paid order', function () {

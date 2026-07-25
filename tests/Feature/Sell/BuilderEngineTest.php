@@ -3,18 +3,18 @@
 declare(strict_types=1);
 
 use App\Models\User;
-use App\Sell\Builder\BuilderDocument;
-use App\Sell\Builder\RenderContext;
-use App\Sell\Builder\Renderer;
-use App\Sell\Builder\SchemaMigrator;
-use App\Sell\Builder\StyleCompiler;
-use App\Sell\Enums\ProductStatus;
-use App\Sell\Enums\ProductType;
-use App\Sell\Enums\SalesPageStatus;
-use App\Sell\Enums\SellerStatus;
-use App\Sell\Models\Product;
-use App\Sell\Models\SalesPage;
-use App\Sell\Models\Seller;
+use App\Shop\Builder\BuilderDocument;
+use App\Shop\Builder\RenderContext;
+use App\Shop\Builder\Renderer;
+use App\Shop\Builder\SchemaMigrator;
+use App\Shop\Builder\StyleCompiler;
+use App\Shop\Enums\ProductStatus;
+use App\Shop\Enums\ProductType;
+use App\Shop\Enums\SalesPageStatus;
+use App\Shop\Enums\SellerStatus;
+use App\Shop\Models\Product;
+use App\Shop\Models\SalesPage;
+use App\Shop\Models\Seller;
 
 // ─── engine unit coverage ──────────────────────────────────────────────────────
 

@@ -6,38 +6,38 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Asset;
-use App\Sell\Actions\Coupon\CreateCoupon;
-use App\Sell\Actions\Order\RefundOrder;
-use App\Sell\Actions\Order\SendMessage;
-use App\Sell\Actions\Order\SetOrderStatus;
-use App\Sell\Actions\Product\CreateProduct;
-use App\Sell\Actions\Product\SetProductStatus;
-use App\Sell\Actions\Product\UpdateProduct;
-use App\Sell\Actions\Refund\ResolveRefundRequest;
-use App\Sell\Actions\Review\ReplyToReview;
-use App\Sell\Actions\SalesPage\CreateSalesPage;
-use App\Sell\Actions\SalesPage\SetSalesPageStatus;
-use App\Sell\Actions\SalesPage\UpdateSalesPage;
-use App\Sell\Actions\Seller\SubmitSellerApplication;
-use App\Sell\DTOs\ProductData;
-use App\Sell\DTOs\SalesPageData;
-use App\Sell\DTOs\SellerApplicationData;
-use App\Sell\Enums\CouponType;
-use App\Sell\Enums\OrderItemKind;
-use App\Sell\Enums\OrderStatus;
-use App\Sell\Enums\ProductStatus;
-use App\Sell\Enums\RefundRequestStatus;
-use App\Sell\Enums\SalesPageStatus;
-use App\Sell\Exceptions\SellException;
-use App\Sell\Models\AnalyticsEvent;
-use App\Sell\Models\Order;
-use App\Sell\Models\OrderItem;
-use App\Sell\Models\Product;
-use App\Sell\Models\RefundRequest;
-use App\Sell\Models\SalesPage;
-use App\Sell\Models\Seller;
-use App\Sell\Services\AnalyticsService;
-use App\Sell\Services\SellerService;
+use App\Shop\Actions\Coupon\CreateCoupon;
+use App\Shop\Actions\Order\RefundOrder;
+use App\Shop\Actions\Order\SendMessage;
+use App\Shop\Actions\Order\SetOrderStatus;
+use App\Shop\Actions\Product\CreateProduct;
+use App\Shop\Actions\Product\SetProductStatus;
+use App\Shop\Actions\Product\UpdateProduct;
+use App\Shop\Actions\Refund\ResolveRefundRequest;
+use App\Shop\Actions\Review\ReplyToReview;
+use App\Shop\Actions\SalesPage\CreateSalesPage;
+use App\Shop\Actions\SalesPage\SetSalesPageStatus;
+use App\Shop\Actions\SalesPage\UpdateSalesPage;
+use App\Shop\Actions\Seller\SubmitSellerApplication;
+use App\Shop\DTOs\ProductData;
+use App\Shop\DTOs\SalesPageData;
+use App\Shop\DTOs\SellerApplicationData;
+use App\Shop\Enums\CouponType;
+use App\Shop\Enums\OrderItemKind;
+use App\Shop\Enums\OrderStatus;
+use App\Shop\Enums\ProductStatus;
+use App\Shop\Enums\RefundRequestStatus;
+use App\Shop\Enums\SalesPageStatus;
+use App\Shop\Exceptions\ShopException;
+use App\Shop\Models\AnalyticsEvent;
+use App\Shop\Models\Order;
+use App\Shop\Models\OrderItem;
+use App\Shop\Models\Product;
+use App\Shop\Models\RefundRequest;
+use App\Shop\Models\SalesPage;
+use App\Shop\Models\Seller;
+use App\Shop\Services\AnalyticsService;
+use App\Shop\Services\SellerService;
 use App\Support\Money;
 use Brick\Math\BigInteger;
 use Illuminate\Http\RedirectResponse;
@@ -471,7 +471,7 @@ class SellerController extends Controller
                 'carrier' => $validated['carrier'] ?? null,
                 'tracking' => $validated['tracking'] ?? null,
             ]));
-        } catch (SellException $e) {
+        } catch (ShopException $e) {
             return back()->withErrors(['status' => $e->getMessage()]);
         }
 
@@ -491,7 +491,7 @@ class SellerController extends Controller
 
         try {
             $action->full($order, $request->user(), $validated['reason'] ?? '');
-        } catch (SellException $e) {
+        } catch (ShopException $e) {
             return back()->withErrors(['refund' => $e->getMessage()]);
         }
 
@@ -545,7 +545,7 @@ class SellerController extends Controller
 
         try {
             $approve ? $action->approve($req, $request->user(), $note) : $action->reject($req, $request->user(), $note);
-        } catch (SellException $e) {
+        } catch (ShopException $e) {
             return back()->withErrors(['refund' => $e->getMessage()]);
         }
 
@@ -745,7 +745,7 @@ class SellerController extends Controller
                 'per_customer_limit' => $validated['per_customer_limit'] ?? null,
                 'ends_at' => $validated['ends_at'] ?? null,
             ]);
-        } catch (SellException $e) {
+        } catch (ShopException $e) {
             return back()->withInput()->withErrors(['coupon' => $e->getMessage()]);
         }
 
@@ -986,7 +986,7 @@ class SellerController extends Controller
                 'product_id' => $validated['product_id'],
                 'name' => $validated['name'],
             ]));
-        } catch (SellException $e) {
+        } catch (ShopException $e) {
             return back()->withInput()->withErrors(['sales_page' => $e->getMessage()]);
         }
 
@@ -1190,7 +1190,7 @@ class SellerController extends Controller
                 $setProductStatus->execute($page->product, ProductStatus::Published);
             }
             $setStatus->execute($page->fresh(), $goLive ? SalesPageStatus::Published : SalesPageStatus::Draft);
-        } catch (SellException $e) {
+        } catch (ShopException $e) {
             return back()->withErrors(['publish' => $e->getMessage()]);
         }
 
@@ -1377,7 +1377,7 @@ class SellerController extends Controller
 
         try {
             $product = $action->execute($seller, $this->toProductData($validated, $request));
-        } catch (SellException $e) {
+        } catch (ShopException $e) {
             return back()->withInput()->withErrors(['product' => $e->getMessage()]);
         }
 
@@ -1416,7 +1416,7 @@ class SellerController extends Controller
 
         try {
             $action->execute($product, $this->toProductData($validated, $request));
-        } catch (SellException $e) {
+        } catch (ShopException $e) {
             return back()->withInput()->withErrors(['product' => $e->getMessage()]);
         }
 
@@ -1590,7 +1590,7 @@ class SellerController extends Controller
 
         try {
             $action->execute($request->user(), SellerApplicationData::fromArray($validated));
-        } catch (SellException $e) {
+        } catch (ShopException $e) {
             return back()->withInput()->withErrors(['apply' => $e->getMessage()]);
         }
 

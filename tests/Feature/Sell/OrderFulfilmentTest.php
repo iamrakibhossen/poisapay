@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 use App\Models\AuditLog;
 use App\Models\User;
-use App\Sell\Actions\Order\PlaceOrder;
-use App\Sell\Actions\Order\SetOrderStatus;
-use App\Sell\DTOs\CheckoutData;
-use App\Sell\Enums\OrderStatus;
-use App\Sell\Enums\ProductStatus;
-use App\Sell\Enums\ProductType;
-use App\Sell\Enums\SellerStatus;
-use App\Sell\Exceptions\SellException;
-use App\Sell\Models\Product;
-use App\Sell\Models\Seller;
+use App\Shop\Actions\Order\PlaceOrder;
+use App\Shop\Actions\Order\SetOrderStatus;
+use App\Shop\DTOs\CheckoutData;
+use App\Shop\Enums\OrderStatus;
+use App\Shop\Enums\ProductStatus;
+use App\Shop\Enums\ProductType;
+use App\Shop\Enums\SellerStatus;
+use App\Shop\Exceptions\ShopException;
+use App\Shop\Models\Product;
+use App\Shop\Models\Seller;
 
 beforeEach(function () {
     updateSetting('sell_enabled', true);
@@ -53,12 +53,12 @@ it('advances paid → processing → shipped and records events + audit', functi
 
 it('rejects an illegal transition (paid → delivered)', function () {
     expect(fn () => app(SetOrderStatus::class)->execute($this->order, OrderStatus::Delivered))
-        ->toThrow(SellException::class);
+        ->toThrow(ShopException::class);
 });
 
 it('refuses money-reversal states through fulfilment', function () {
     expect(fn () => app(SetOrderStatus::class)->execute($this->order, OrderStatus::Refunded))
-        ->toThrow(SellException::class);
+        ->toThrow(ShopException::class);
 });
 
 it('lets the owning seller advance the order over HTTP', function () {

@@ -71,7 +71,7 @@ class AdminAttention
                 + AmlAlert::whereIn('status', [AlertStatus::Open->value, AlertStatus::Escalated->value])->count(),
             'card_disputes_open' => CardDispute::whereIn('status', ['open', 'represented'])->count(),
             'p2p_disputes_open' => P2pDispute::whereIn('status', [P2pDisputeStatus::Open->value, P2pDisputeStatus::UnderReview->value])->count(),
-            'sell_refunds_escalated' => \App\Sell\Models\RefundRequest::where('status', \App\Sell\Enums\RefundRequestStatus::Escalated->value)->count(),
+            'sell_refunds_escalated' => \App\Shop\Models\RefundRequest::where('status', \App\Shop\Enums\RefundRequestStatus::Escalated->value)->count(),
             'sweeps_pending' => Sweep::where('status', SweepStatus::Pending->value)->count(),
             'support_open' => SupportTicket::where('status', SupportTicketStatus::Open->value)->count(),
             'webhooks_failed' => WebhookLog::where('status', '>=', 400)->where('resolved', false)->count(),

@@ -5,12 +5,12 @@ declare(strict_types=1);
 use App\Models\Admin;
 use App\Models\AuditLog;
 use App\Models\User;
-use App\Sell\Actions\Seller\SetSellerStatus;
-use App\Sell\Actions\Seller\SubmitSellerApplication;
-use App\Sell\DTOs\SellerApplicationData;
-use App\Sell\Enums\SellerStatus;
-use App\Sell\Exceptions\SellException;
-use App\Sell\Services\SellerService;
+use App\Shop\Actions\Seller\SetSellerStatus;
+use App\Shop\Actions\Seller\SubmitSellerApplication;
+use App\Shop\DTOs\SellerApplicationData;
+use App\Shop\Enums\SellerStatus;
+use App\Shop\Exceptions\ShopException;
+use App\Shop\Services\SellerService;
 
 beforeEach(function () {
     updateSetting('sell_enabled', true);
@@ -74,7 +74,7 @@ it('lets a rejected user re-apply, but not an approved one', function () use ($a
         ->and($seller->fresh()->applications()->count())->toBe(2);
 
     app(SetSellerStatus::class)->execute($seller->fresh(), SellerStatus::Approved, $this->admin);
-    expect(fn () => $apply($this->user, $data()))->toThrow(SellException::class);
+    expect(fn () => $apply($this->user, $data()))->toThrow(ShopException::class);
 });
 
 it('suspending an approved seller blocks selling', function () use ($apply, $data) {
@@ -88,7 +88,7 @@ it('suspending an approved seller blocks selling', function () use ($apply, $dat
 
 it('refuses applications when the module flag is off', function () use ($apply, $data) {
     updateSetting('sell_enabled', false);
-    expect(fn () => $apply($this->user, $data()))->toThrow(SellException::class);
+    expect(fn () => $apply($this->user, $data()))->toThrow(ShopException::class);
 });
 
 it('never treats a user as an approved seller when the flag is off', function () use ($apply, $data) {

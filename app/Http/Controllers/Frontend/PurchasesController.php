@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-use App\Sell\Actions\Order\SendMessage;
-use App\Sell\Actions\Refund\CancelRefundRequest;
-use App\Sell\Actions\Refund\EscalateRefundRequest;
-use App\Sell\Actions\Refund\RequestRefund;
-use App\Sell\Actions\Review\SubmitReview;
-use App\Sell\Enums\OrderStatus;
-use App\Sell\Enums\ProductType;
-use App\Sell\Enums\RefundRequestStatus;
-use App\Sell\Exceptions\SellException;
-use App\Sell\Models\Order;
-use App\Sell\Models\OrderItem;
-use App\Sell\Models\RefundRequest;
+use App\Shop\Actions\Order\SendMessage;
+use App\Shop\Actions\Refund\CancelRefundRequest;
+use App\Shop\Actions\Refund\EscalateRefundRequest;
+use App\Shop\Actions\Refund\RequestRefund;
+use App\Shop\Actions\Review\SubmitReview;
+use App\Shop\Enums\OrderStatus;
+use App\Shop\Enums\ProductType;
+use App\Shop\Enums\RefundRequestStatus;
+use App\Shop\Exceptions\ShopException;
+use App\Shop\Models\Order;
+use App\Shop\Models\OrderItem;
+use App\Shop\Models\RefundRequest;
 use App\Support\Money;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -160,7 +160,7 @@ class PurchasesController extends Controller
 
         try {
             $action->execute($model, $request->user(), $validated['type'], $amount, $validated['reason'] ?? '');
-        } catch (SellException $e) {
+        } catch (ShopException $e) {
             return back()->withErrors(['refund' => $e->getMessage()]);
         }
 
@@ -174,7 +174,7 @@ class PurchasesController extends Controller
 
         try {
             $action->execute($req);
-        } catch (SellException $e) {
+        } catch (ShopException $e) {
             return back()->withErrors(['refund' => $e->getMessage()]);
         }
 
@@ -188,7 +188,7 @@ class PurchasesController extends Controller
 
         try {
             $action->execute($req);
-        } catch (SellException $e) {
+        } catch (ShopException $e) {
             return back()->withErrors(['refund' => $e->getMessage()]);
         }
 
@@ -272,7 +272,7 @@ class PurchasesController extends Controller
                 $request->user(), $model, $validated['product_id'],
                 (int) $validated['rating'], $validated['title'] ?? null, $validated['body'] ?? null,
             );
-        } catch (SellException $e) {
+        } catch (ShopException $e) {
             return back()->withErrors(['review' => $e->getMessage()]);
         }
 

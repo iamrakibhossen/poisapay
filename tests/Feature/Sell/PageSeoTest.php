@@ -3,16 +3,16 @@
 declare(strict_types=1);
 
 use App\Models\User;
-use App\Sell\Actions\Order\PlaceOrder;
-use App\Sell\Actions\Review\SubmitReview;
-use App\Sell\DTOs\CheckoutData;
-use App\Sell\Enums\ProductStatus;
-use App\Sell\Enums\ProductType;
-use App\Sell\Enums\SalesPageStatus;
-use App\Sell\Enums\SellerStatus;
-use App\Sell\Models\Product;
-use App\Sell\Models\SalesPage;
-use App\Sell\Models\Seller;
+use App\Shop\Actions\Order\PlaceOrder;
+use App\Shop\Actions\Review\SubmitReview;
+use App\Shop\DTOs\CheckoutData;
+use App\Shop\Enums\ProductStatus;
+use App\Shop\Enums\ProductType;
+use App\Shop\Enums\SalesPageStatus;
+use App\Shop\Enums\SellerStatus;
+use App\Shop\Models\Product;
+use App\Shop\Models\SalesPage;
+use App\Shop\Models\Seller;
 
 beforeEach(function () {
     updateSetting('sell_enabled', true);

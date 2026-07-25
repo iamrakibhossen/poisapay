@@ -99,7 +99,7 @@
                         <form method="POST" action="{{ route('admin.sellers.plan', $seller->id) }}" class="space-y-4">
                             @csrf
                             <x-ui.select :label="__('Plan')" name="plan">
-                                @foreach (\App\Sell\Models\Seller::PLANS as $p)
+                                @foreach (\App\Shop\Models\Seller::PLANS as $p)
                                     <option value="{{ $p }}" @selected($seller->plan === $p)>{{ ucfirst($p) }}</option>
                                 @endforeach
                             </x-ui.select>

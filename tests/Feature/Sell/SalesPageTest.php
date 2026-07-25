@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 use App\Models\AuditLog;
 use App\Models\User;
-use App\Sell\Actions\SalesPage\CreateSalesPage;
-use App\Sell\Actions\SalesPage\SetSalesPageStatus;
-use App\Sell\Actions\SalesPage\UpdateSalesPage;
-use App\Sell\DTOs\SalesPageData;
-use App\Sell\Enums\ProductStatus;
-use App\Sell\Enums\ProductType;
-use App\Sell\Enums\SalesPageStatus;
-use App\Sell\Enums\SellerStatus;
-use App\Sell\Models\Product;
-use App\Sell\Models\Seller;
-use App\Sell\Services\SalesPageService;
+use App\Shop\Actions\SalesPage\CreateSalesPage;
+use App\Shop\Actions\SalesPage\SetSalesPageStatus;
+use App\Shop\Actions\SalesPage\UpdateSalesPage;
+use App\Shop\DTOs\SalesPageData;
+use App\Shop\Enums\ProductStatus;
+use App\Shop\Enums\ProductType;
+use App\Shop\Enums\SalesPageStatus;
+use App\Shop\Enums\SellerStatus;
+use App\Shop\Models\Product;
+use App\Shop\Models\Seller;
+use App\Shop\Services\SalesPageService;
 
 beforeEach(function () {
     updateSetting('sell_enabled', true);

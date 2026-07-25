@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 use App\Models\AuditLog;
 use App\Models\User;
-use App\Sell\Actions\Order\PlaceOrder;
-use App\Sell\Actions\Review\SubmitReview;
-use App\Sell\DTOs\CheckoutData;
-use App\Sell\Enums\ProductStatus;
-use App\Sell\Enums\ProductType;
-use App\Sell\Enums\SellerStatus;
-use App\Sell\Models\Product;
-use App\Sell\Models\Review;
-use App\Sell\Models\Seller;
+use App\Shop\Actions\Order\PlaceOrder;
+use App\Shop\Actions\Review\SubmitReview;
+use App\Shop\DTOs\CheckoutData;
+use App\Shop\Enums\ProductStatus;
+use App\Shop\Enums\ProductType;
+use App\Shop\Enums\SellerStatus;
+use App\Shop\Models\Product;
+use App\Shop\Models\Review;
+use App\Shop\Models\Seller;
 
 beforeEach(function () {
     updateSetting('sell_enabled', true);
@@ -54,7 +54,7 @@ it('rejects a review from someone who did not buy', function () {
     $stranger = User::factory()->create();
 
     expect(fn () => app(SubmitReview::class)->execute($stranger, $this->order, $this->product->id, 5, null, 'nope'))
-        ->toThrow(App\Sell\Exceptions\SellException::class);
+        ->toThrow(App\Shop\Exceptions\ShopException::class);
 });
 
 it('submits a review over HTTP and shows it in the seller reviews page', function () {
