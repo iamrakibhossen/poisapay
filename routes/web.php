@@ -42,6 +42,15 @@ Route::view('/', 'marketing.home')->name('home');
 Route::view('/merchants', 'marketing.merchants')->name('merchants');   // marketing (console lives at /merchant, behind auth)
 Route::get('/faqs', FaqController::class)->name('faqs.public');
 Route::get('/pages/{slug}', [PageController::class, 'show'])->name('page.show');
+
+// Funnel platform — public product sales pages (standalone, conversion-first).
+Route::controller(\App\Http\Controllers\Funnel\PublicSalesController::class)->group(function () {
+    Route::get('/p/{slug}', 'show')->name('funnel.sales');
+    Route::post('/p/{slug}/checkout', 'checkout')->name('funnel.checkout');
+    Route::get('/p/{slug}/pay', 'pay')->name('funnel.pay');
+    Route::post('/p/{slug}/pay', 'payConfirm')->name('funnel.pay.confirm');
+    Route::get('/p/{slug}/thank-you', 'thankYou')->name('funnel.thankyou');
+});
 Route::get('/prices', PricesController::class)->name('marketing.prices'); // live crypto→BDT prices page (HTML)
 Route::get('/rates', RatesController::class)->name('marketing.rates');  // live crypto→BDT reference rates (JSON feed for the prices page)
 Route::get('/status', StatusController::class)->name('status');         // live system status (footer)
@@ -178,6 +187,10 @@ Route::middleware('auth')->group(function () {
     require __DIR__.'/frontend/cards.php';
     require __DIR__.'/frontend/merchant.php';
     require __DIR__.'/frontend/p2p.php';
+    require __DIR__.'/frontend/seller.php';
+
+    // Customer portal — purchases, downloads, courses, license keys.
+    Route::get('/purchases', [\App\Http\Controllers\Frontend\PurchasesController::class, 'index'])->name('purchases');
 });
 
 // Operator console lives in its own route file (DollarHub-style separation).
