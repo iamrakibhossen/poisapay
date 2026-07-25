@@ -229,6 +229,49 @@
                         </div>
                     </x-ui.card>
 
+                    {{-- SEO & social preview --}}
+                    <x-ui.card class="mb-4" x-data="{
+                        open: {{ ($seo['title'] || $seo['description'] || $seo['og_image']) ? 'true' : 'false' }},
+                        title: @js($seo['title']),
+                        desc: @js($seo['description']),
+                        get titleOut() { return this.title || @js($product).concat(' · ').concat(@js($brand)); },
+                    }">
+                        <button type="button" x-on:click="open = ! open" class="flex w-full items-center justify-between">
+                            <span>
+                                <span class="block text-left text-sm font-semibold text-neutral-900">{{ __('SEO & sharing') }}</span>
+                                <span class="block text-left text-xs text-neutral-500">{{ __('How this page looks on Google & social.') }}</span>
+                            </span>
+                            <x-heroicon-o-chevron-down class="h-4 w-4 text-neutral-400 transition" x-bind:class="open && 'rotate-180'" />
+                        </button>
+
+                        <div x-show="open" x-cloak class="mt-4 space-y-3">
+                            {{-- Google preview --}}
+                            <div class="rounded-lg border border-neutral-200 bg-neutral-50/60 p-3">
+                                <p class="truncate text-xs text-emerald-700">{{ Str::of($publicUrl)->replace(['https://','http://'], '') }}</p>
+                                <p class="truncate text-sm font-medium text-[#1a0dab]" x-text="titleOut"></p>
+                                <p class="line-clamp-2 text-xs text-neutral-500" x-text="desc || @js($seo['description']) || '{{ __('Add a description to control the snippet Google shows.') }}'"></p>
+                            </div>
+
+                            <div>
+                                <label class="mb-1 block text-xs font-medium text-neutral-500">{{ __('Page title') }} <span class="text-neutral-300" x-text="'(' + title.length + '/70)'"></span></label>
+                                <input name="seo_title" x-model="title" maxlength="70" placeholder="{{ $product }} · {{ $brand }}" class="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
+                            </div>
+                            <div>
+                                <label class="mb-1 block text-xs font-medium text-neutral-500">{{ __('Meta description') }} <span class="text-neutral-300" x-text="'(' + desc.length + '/200)'"></span></label>
+                                <textarea name="seo_description" x-model="desc" rows="2" maxlength="200" placeholder="{{ __('A compelling one-liner that makes people click.') }}" class="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"></textarea>
+                            </div>
+                            <div>
+                                <label class="mb-1 block text-xs font-medium text-neutral-500">{{ __('Social image URL') }}</label>
+                                <input name="seo_og_image" value="{{ $seo['og_image'] }}" type="url" placeholder="https://…/cover.png" class="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
+                                <p class="mt-1 text-[11px] text-neutral-400">{{ __('Shown when the link is shared. Defaults to your store logo.') }}</p>
+                            </div>
+                            <label class="flex items-center gap-2 text-sm text-neutral-600">
+                                <input type="checkbox" name="seo_noindex" value="1" @checked($seo['noindex']) class="h-4 w-4 rounded border-neutral-300 text-brand-600 focus:ring-brand-500" />
+                                {{ __('Hide this page from search engines') }}
+                            </label>
+                        </div>
+                    </x-ui.card>
+
                     <x-ui.card>
                         <div class="mb-3 flex items-center justify-between">
                             <div>

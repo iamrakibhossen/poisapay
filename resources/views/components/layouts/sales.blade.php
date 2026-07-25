@@ -1,4 +1,11 @@
-@props(['title' => 'PoisaHub'])
+@props([
+    'title' => 'PoisaHub',
+    'description' => null,
+    'canonical' => null,
+    'robots' => 'index,follow',
+    'ogImage' => null,
+    'ogType' => 'website',
+])
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
@@ -6,7 +13,28 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <title>{{ $title }}</title>
+    @if ($description)<meta name="description" content="{{ $description }}">@endif
+    <meta name="robots" content="{{ $robots }}">
+    @if ($canonical)<link rel="canonical" href="{{ $canonical }}">@endif
+
+    {{-- Open Graph --}}
+    <meta property="og:type" content="{{ $ogType }}">
+    <meta property="og:title" content="{{ $title }}">
+    @if ($description)<meta property="og:description" content="{{ $description }}">@endif
+    @if ($canonical)<meta property="og:url" content="{{ $canonical }}">@endif
+    @if ($ogImage)<meta property="og:image" content="{{ $ogImage }}">@endif
+
+    {{-- Twitter --}}
+    <meta name="twitter:card" content="{{ $ogImage ? 'summary_large_image' : 'summary' }}">
+    <meta name="twitter:title" content="{{ $title }}">
+    @if ($description)<meta name="twitter:description" content="{{ $description }}">@endif
+    @if ($ogImage)<meta name="twitter:image" content="{{ $ogImage }}">@endif
+
+    {{-- Page-specific head (JSON-LD, etc.) --}}
+    {{ $head ?? '' }}
+
     @vite(['resources/css/app.css', 'resources/js/frontend.js'])
     @include('partials.brand-colors')
     <style>[x-cloak]{display:none!important}</style>

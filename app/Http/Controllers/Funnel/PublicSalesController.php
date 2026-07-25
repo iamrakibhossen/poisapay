@@ -545,6 +545,107 @@ class PublicSalesController extends Controller
                 'initials' => Str::of($sellerName)->explode(' ')->take(2)->map(fn ($w) => Str::substr($w, 0, 1))->implode(''),
                 'logo' => $seller->logoUrl(),
             ],
+            'meta' => $this->buildMeta($page, $sellerName),
+            'schema' => $this->buildSchema($page, $sellerName),
         ];
+    }
+
+    /**
+     * SEO/social meta for the page head — seller overrides (seo jsonb) first, then
+     * sensible product-derived fallbacks. Canonical is the connected domain when
+     * one exists, else the platform /p/{slug} URL.
+     *
+     * @return array<string, mixed>
+     */
+    private function buildMeta(SalesPage $page, string $sellerName): array
+    {
+        $seo = $page->seo ?? [];
+        $product = $page->product;
+
+        $canonical = $page->domain?->host
+            ? 'https://'.$page->domain->host
+            : route('funnel.sales', ['slug' => $page->slug]);
+
+        $ogImage = $seo['og_image'] ?? $page->seller->logoUrl();
+        if ($ogImage && ! str_starts_with($ogImage, 'http')) {
+            $ogImage = url($ogImage);
+        }
+
+        $description = $seo['description'] ?? Str::limit(strip_tags((string) ($product->summary ?: $product->description)), 155);
+
+        return [
+            'title' => $seo['title'] ?? ($product->name.' · '.$sellerName),
+            'description' => $description ?: null,
+            'canonical' => $canonical,
+            'robots' => ! empty($seo['noindex']) ? 'noindex,nofollow' : 'index,follow',
+            'ogImage' => $ogImage ?: null,
+        ];
+    }
+
+    /**
+     * schema.org JSON-LD: Product (+ Offer, AggregateRating, Review) and, when the
+     * page has an FAQ section, a FAQPage — both eligible for Google rich results.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function buildSchema(SalesPage $page, string $sellerName): array
+    {
+        $product = $page->product;
+        $asset = $product->priceAsset;
+        $canonical = route('funnel.sales', ['slug' => $page->slug]);
+        $priceDecimal = number_format($product->price_amount / (10 ** $asset->decimals), $asset->decimals, '.', '');
+
+        $reviews = $product->reviews()->where('status', 'published')->with('buyer')->latest()->get();
+
+        $productSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Product',
+            'name' => $product->name,
+            'description' => Str::limit(strip_tags((string) ($product->summary ?: $product->description)), 300) ?: $product->name,
+            'brand' => ['@type' => 'Brand', 'name' => $sellerName],
+            'offers' => [
+                '@type' => 'Offer',
+                'price' => $priceDecimal,
+                'priceCurrency' => $asset->symbol,
+                'availability' => 'https://schema.org/InStock',
+                'url' => $canonical,
+            ],
+        ];
+
+        if ($og = $page->seo['og_image'] ?? $page->seller->logoUrl()) {
+            $productSchema['image'] = str_starts_with($og, 'http') ? $og : url($og);
+        }
+
+        if ($reviews->isNotEmpty()) {
+            $productSchema['aggregateRating'] = [
+                '@type' => 'AggregateRating',
+                'ratingValue' => round((float) $reviews->avg('rating'), 1),
+                'reviewCount' => $reviews->count(),
+            ];
+            $productSchema['review'] = $reviews->take(5)->map(fn ($r) => array_filter([
+                '@type' => 'Review',
+                'reviewRating' => ['@type' => 'Rating', 'ratingValue' => (int) $r->rating, 'bestRating' => 5],
+                'author' => ['@type' => 'Person', 'name' => $r->buyer?->name ?? 'Verified buyer'],
+                'reviewBody' => $r->body ?: null,
+            ]))->values()->all();
+        }
+
+        $schemas = [$productSchema];
+
+        // FAQPage from the first enabled FAQ section with q/a pairs.
+        $faq = collect($page->sections ?? [])->firstWhere('type', 'faq')['content'] ?? [];
+        $questions = collect($faq)
+            ->filter(fn ($q) => is_array($q) && ! empty($q['q']) && ! empty($q['a']))
+            ->map(fn ($q) => [
+                '@type' => 'Question',
+                'name' => $q['q'],
+                'acceptedAnswer' => ['@type' => 'Answer', 'text' => $q['a']],
+            ])->values()->all();
+
+        if ($questions !== []) {
+            $schemas[] = ['@context' => 'https://schema.org', '@type' => 'FAQPage', 'mainEntity' => $questions];
+        }
+
+        return $schemas;
     }
 }

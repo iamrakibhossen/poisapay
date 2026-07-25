@@ -1,4 +1,15 @@
-<x-layouts.sales :title="$product['name']">
+<x-layouts.sales
+    :title="$meta['title']"
+    :description="$meta['description']"
+    :canonical="$meta['canonical']"
+    :robots="$meta['robots']"
+    :ogImage="$meta['ogImage']"
+    ogType="product">
+    <x-slot:head>
+        @foreach ($schema as $ld)
+            <script type="application/ld+json">{!! json_encode($ld, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+        @endforeach
+    </x-slot:head>
     @php
         $accent = $theme['accent'];
         $radius = $theme['btn'] === 'pill' ? '9999px' : ($theme['btn'] === 'square' ? '2px' : '12px');

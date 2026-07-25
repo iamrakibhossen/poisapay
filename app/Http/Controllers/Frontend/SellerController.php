@@ -788,6 +788,13 @@ class SellerController extends Controller
                 'upsell_description' => $page->upsell_description,
             ],
             'currencySymbol' => $asset?->symbol ?? '',
+            'seo' => [
+                'title' => $page->seo['title'] ?? '',
+                'description' => $page->seo['description'] ?? '',
+                'og_image' => $page->seo['og_image'] ?? '',
+                'noindex' => (bool) ($page->seo['noindex'] ?? false),
+            ],
+            'publicUrl' => route('funnel.sales', ['slug' => $page->slug]),
         ]);
     }
 
@@ -837,9 +844,28 @@ class SellerController extends Controller
 
         $action->execute($page, $this->salesPageDataFromRequest($request, $page));
         $this->applyOffers($page->fresh(), $request);
+        $this->applySeo($page->fresh(), $request);
 
         return redirect()->route('sell.sales-page.edit', ['slug' => $page->slug])
             ->with('success', __('Changes saved.'));
+    }
+
+    /** Persist per-page SEO/social overrides into the `seo` jsonb. */
+    private function applySeo(SalesPage $page, Request $request): void
+    {
+        $validated = $request->validate([
+            'seo_title' => ['nullable', 'string', 'max:70'],
+            'seo_description' => ['nullable', 'string', 'max:200'],
+            'seo_og_image' => ['nullable', 'url', 'max:300'],
+            'seo_noindex' => ['nullable', 'boolean'],
+        ]);
+
+        $page->update(['seo' => array_filter([
+            'title' => $validated['seo_title'] ?? null,
+            'description' => $validated['seo_description'] ?? null,
+            'og_image' => $validated['seo_og_image'] ?? null,
+            'noindex' => $request->boolean('seo_noindex') ?: null,
+        ], fn ($v) => $v !== null && $v !== '')]);
     }
 
     /**
@@ -911,6 +937,7 @@ class SellerController extends Controller
         // Persist current builder edits alongside the publish toggle.
         $update->execute($page, $this->salesPageDataFromRequest($request, $page));
         $this->applyOffers($page->fresh(), $request);
+        $this->applySeo($page->fresh(), $request);
 
         $goLive = $page->status !== SalesPageStatus::Published;
 
