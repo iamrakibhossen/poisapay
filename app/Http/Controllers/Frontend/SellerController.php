@@ -140,7 +140,7 @@ class SellerController extends Controller
     /**
      * Dashboard insights: a 30-day funnel (distinct sessions), rolling revenue /
      * average order value, and the seller's best-selling products — all from real
-     * analytics events and paid orders. Mirrors the /sell/analytics maths.
+     * analytics events and paid orders. Mirrors the /shop/analytics maths.
      *
      * @return array{funnel:array<int,array{0:string,1:int,2:int}>, visitors:int, conversion:float, revenue30:string, orders30:int, aov:string, topProducts:array<int,array{name:string,units:int,net:string}>}
      */

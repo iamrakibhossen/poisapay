@@ -63,7 +63,7 @@ class ReleaseSellerEarnings extends Command
                             (int) $fresh->asset_id,
                             Money::ofBase((string) $net, $order->asset->decimals, $order->asset->symbol),
                             'shop:release:'.$fresh->getKey(),
-                            'sell.earnings_release',
+                            'shop.earnings_release',
                             ['order_id' => $fresh->getKey(), 'seller_id' => $fresh->seller_id],
                         );
                     }
