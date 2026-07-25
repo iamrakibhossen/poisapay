@@ -13,7 +13,7 @@ use App\Shop\Exceptions\ShopException;
 use App\Shop\Services\SellerService;
 
 beforeEach(function () {
-    updateSetting('sell_enabled', true);
+    updateSetting('shop_enabled', true);
     $this->user = User::factory()->create();
     $this->admin = Admin::create([
         'name' => 'Op', 'username' => 'op', 'email' => 'op@poisapay.test',
@@ -87,7 +87,7 @@ it('suspending an approved seller blocks selling', function () use ($apply, $dat
 });
 
 it('refuses applications when the module flag is off', function () use ($apply, $data) {
-    updateSetting('sell_enabled', false);
+    updateSetting('shop_enabled', false);
     expect(fn () => $apply($this->user, $data()))->toThrow(ShopException::class);
 });
 
@@ -96,6 +96,6 @@ it('never treats a user as an approved seller when the flag is off', function ()
     app(SetSellerStatus::class)->execute($seller, SellerStatus::Approved, $this->admin);
     expect($this->sellers->isApprovedSeller($this->user->fresh()))->toBeTrue();
 
-    updateSetting('sell_enabled', false);
+    updateSetting('shop_enabled', false);
     expect($this->sellers->isApprovedSeller($this->user->fresh()))->toBeFalse();
 });

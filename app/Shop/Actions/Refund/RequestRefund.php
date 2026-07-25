@@ -52,7 +52,7 @@ class RequestRefund
                 'amount_requested' => $requested,
                 'reason' => $reason ?: null,
                 'status' => RefundRequestStatus::Requested,
-                'sla_due_at' => now()->addDays((int) getSetting('sell_refund_sla_days', 3)),
+                'sla_due_at' => now()->addDays((int) getSetting('shop_refund_sla_days', 3)),
             ]);
 
             RefundRequested::dispatch($request);

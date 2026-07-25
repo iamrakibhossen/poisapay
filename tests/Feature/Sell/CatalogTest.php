@@ -17,7 +17,7 @@ use App\Shop\Models\Seller;
 use App\Shop\Services\CatalogService;
 
 beforeEach(function () {
-    updateSetting('sell_enabled', true);
+    updateSetting('shop_enabled', true);
     $this->asset = testAsset('USDT', 6, 'tron');
     $this->user = User::factory()->create();
     $this->seller = Seller::create([

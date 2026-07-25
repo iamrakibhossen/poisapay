@@ -34,10 +34,10 @@ Schedule::command('p2p:process-timeouts')->everyMinute()->withoutOverlapping();
 
 // Sell: release held seller earnings to spendable once the refund window passes
 // (no-op unless the sell_earnings_hold flag is on).
-Schedule::command('poisapay:sell-release-earnings')->hourly()->withoutOverlapping();
+Schedule::command('poisapay:shop-release-earnings')->hourly()->withoutOverlapping();
 
 // Sell: escalate refund requests the seller ignored past their response SLA.
-Schedule::command('poisapay:sell-escalate-refunds')->hourly()->withoutOverlapping();
+Schedule::command('poisapay:shop-escalate-refunds')->hourly()->withoutOverlapping();
 
 // Analytics: rebuild materialised daily rollups + flush the report cache (hourly).
 Schedule::command('poisapay:analytics-rollup')->hourly()->withoutOverlapping()->runInBackground();

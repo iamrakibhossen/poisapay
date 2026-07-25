@@ -25,7 +25,7 @@ class SalesPageService
 
     public static function cacheKey(string $slug): string
     {
-        return "sell:page:{$slug}";
+        return "shop:page:{$slug}";
     }
 
     /**

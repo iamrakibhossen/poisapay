@@ -16,8 +16,8 @@ use App\Shop\Models\Product;
 use App\Shop\Models\Seller;
 
 beforeEach(function () {
-    updateSetting('sell_enabled', true);
-    updateSetting('sell_commission_bps', 1000); // 10%
+    updateSetting('shop_enabled', true);
+    updateSetting('shop_commission_bps', 1000); // 10%
     $this->ledger = app(LedgerService::class);
     $this->asset = testAsset('USDT', 6, 'tron');
 
@@ -61,7 +61,7 @@ it('refunds a paid order — buyer repaid, seller net + commission reversed', fu
 });
 
 it('refunds a held order out of the seller locked balance', function () {
-    updateSetting('sell_earnings_hold', true);
+    updateSetting('shop_earnings_hold', true);
     $order = ($this->buy)();
 
     expect(($this->locked)($this->sellerUser))->toBe('45000000')
@@ -99,12 +99,12 @@ it('is idempotent — refunding the same order twice does not double-refund', fu
 });
 
 it('never releases earnings for a refunded held order', function () {
-    updateSetting('sell_earnings_hold', true);
+    updateSetting('shop_earnings_hold', true);
     $order = ($this->buy)();
     app(RefundOrder::class)->full($order, $this->sellerUser);
 
     $this->travel(15)->days();
-    $this->artisan('poisapay:sell-release-earnings')->assertSuccessful();
+    $this->artisan('poisapay:shop-release-earnings')->assertSuccessful();
 
     // Money already returned to the buyer; nothing releases to the seller.
     expect(($this->locked)($this->sellerUser))->toBe('0')

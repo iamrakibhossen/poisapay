@@ -72,7 +72,7 @@ class AdminMenu
             ['heading' => __('Commerce'), 'items' => [
                 ['label' => __('Merchants'), 'icon' => 'heroicon-o-building-storefront', 'route' => 'admin.merchants', 'perm' => 'view-merchants'],
                 ['label' => __('Sellers'), 'icon' => 'heroicon-o-rocket-launch', 'route' => 'admin.sellers', 'perm' => 'view-sellers'],
-                ['label' => __('Refunds'), 'icon' => 'heroicon-o-arrow-uturn-left', 'route' => 'admin.shop-refunds', 'perm' => 'view-sellers', 'badge' => 'sell_refunds_escalated'],
+                ['label' => __('Refunds'), 'icon' => 'heroicon-o-arrow-uturn-left', 'route' => 'admin.shop-refunds', 'perm' => 'view-sellers', 'badge' => 'shop_refunds_escalated'],
                 ['label' => __('P2P'), 'icon' => 'heroicon-o-user-group', 'children' => [
                     ['label' => __('Orders'), 'route' => 'admin.p2p', 'perm' => 'view-p2p'],
                     ['label' => __('Disputes'), 'route' => 'admin.p2p-disputes', 'perm' => 'view-p2p', 'badge' => 'p2p_disputes_open'],

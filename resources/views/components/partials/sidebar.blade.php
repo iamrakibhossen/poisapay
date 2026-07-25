@@ -20,7 +20,7 @@
             'items' => array_values(array_filter([
                 ['route' => 'dashboard', 'label' => __('Dashboard'), 'icon' => 'home'],
                 ['route' => 'wallet', 'label' => __('Wallet'), 'icon' => 'wallet'],
-                (feature('sell_enabled', false) && $isSeller) ? ['route' => 'shop', 'label' => __('Sell'), 'icon' => 'rocket-launch'] : null,
+                (feature('shop_enabled', false) && $isSeller) ? ['route' => 'shop', 'label' => __('Sell'), 'icon' => 'rocket-launch'] : null,
             ])),
         ],
         [

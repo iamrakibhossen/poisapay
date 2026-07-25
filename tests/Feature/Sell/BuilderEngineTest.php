@@ -84,7 +84,7 @@ it('renders known blocks and safely skips unknown ones', function () {
 
 function makeBuilderPage(): array
 {
-    updateSetting('sell_enabled', true);
+    updateSetting('shop_enabled', true);
     $asset = testAsset('USDT', 6, 'tron');
     $user = User::factory()->create();
     $seller = Seller::create(['user_id' => $user->id, 'status' => SellerStatus::Approved, 'brand_name' => 'Acme', 'categories' => []]);

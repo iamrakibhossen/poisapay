@@ -9,7 +9,7 @@ use App\Shop\Models\SalesPage;
 use App\Shop\Models\Seller;
 
 it('renders the block-tree builder and migrates a legacy page', function () {
-    updateSetting('sell_enabled', true);
+    updateSetting('shop_enabled', true);
     $asset = testAsset('USDT', 6, 'tron');
     $u = User::factory()->create();
     $seller = Seller::create(['user_id' => $u->id, 'status' => SellerStatus::Approved, 'brand_name' => 'Rakib', 'categories' => []]);

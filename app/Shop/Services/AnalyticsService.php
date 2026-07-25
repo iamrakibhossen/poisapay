@@ -35,7 +35,7 @@ class AnalyticsService
             $sessionId = $request->hasSession() ? $request->session()->getId() : null;
 
             if ($dedupeOncePerSession && $sessionId !== null) {
-                $flag = "sell:seen:{$type}:{$page->getKey()}";
+                $flag = "shop:seen:{$type}:{$page->getKey()}";
                 if ($request->session()->get($flag)) {
                     return;
                 }

@@ -97,9 +97,9 @@ class Seller extends Model
         }
 
         $plan = in_array($this->plan, self::PLANS, true) ? $this->plan : 'free';
-        $default = (int) getSetting('sell_commission_bps', 1000);
+        $default = (int) getSetting('shop_commission_bps', 1000);
 
-        return (int) getSetting("sell_commission_bps_{$plan}", $default);
+        return (int) getSetting("shop_commission_bps_{$plan}", $default);
     }
 
     public function canSell(): bool

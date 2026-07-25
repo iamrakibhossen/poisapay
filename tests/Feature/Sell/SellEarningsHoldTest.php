@@ -13,7 +13,7 @@ use App\Shop\Models\Product;
 use App\Shop\Models\Seller;
 
 beforeEach(function () {
-    updateSetting('sell_enabled', true);
+    updateSetting('shop_enabled', true);
     $this->ledger = app(LedgerService::class);
     $this->asset = testAsset('USDT', 6, 'tron');
 
@@ -37,7 +37,7 @@ beforeEach(function () {
 });
 
 it('holds seller earnings in the locked balance when the flag is on', function () {
-    updateSetting('sell_earnings_hold', true);
+    updateSetting('shop_earnings_hold', true);
 
     $order = ($this->buy)();
     $net = (int) $order->seller_net_amount;
@@ -49,10 +49,10 @@ it('holds seller earnings in the locked balance when the flag is on', function (
 });
 
 it('does not release earnings while still inside the refund window', function () {
-    updateSetting('sell_earnings_hold', true);
+    updateSetting('shop_earnings_hold', true);
     $order = ($this->buy)();
 
-    $this->artisan('poisapay:sell-release-earnings')->assertSuccessful();
+    $this->artisan('poisapay:shop-release-earnings')->assertSuccessful();
 
     expect($order->fresh()->earnings_released_at)->toBeNull()
         ->and($this->ledger->availableBalance($this->sellerUser, $this->asset->id)->baseString())->toBe('0')
@@ -60,19 +60,19 @@ it('does not release earnings while still inside the refund window', function ()
 });
 
 it('releases held earnings to spendable once the refund window passes', function () {
-    updateSetting('sell_earnings_hold', true);
+    updateSetting('shop_earnings_hold', true);
     $order = ($this->buy)();
     $net = (int) $order->seller_net_amount;
 
     $this->travel(15)->days();
-    $this->artisan('poisapay:sell-release-earnings')->assertSuccessful();
+    $this->artisan('poisapay:shop-release-earnings')->assertSuccessful();
 
     expect($order->fresh()->earnings_released_at)->not->toBeNull()
         ->and($this->ledger->lockedBalance($this->sellerUser, $this->asset->id)->baseString())->toBe('0')
         ->and($this->ledger->availableBalance($this->sellerUser, $this->asset->id)->baseString())->toBe((string) $net);
 
     // Idempotent — a second run must not double-release.
-    $this->artisan('poisapay:sell-release-earnings')->assertSuccessful();
+    $this->artisan('poisapay:shop-release-earnings')->assertSuccessful();
     expect($this->ledger->availableBalance($this->sellerUser, $this->asset->id)->baseString())->toBe((string) $net);
 });
 
@@ -85,5 +85,5 @@ it('credits earnings instantly to spendable when the flag is off', function () {
         ->and($this->ledger->availableBalance($this->sellerUser, $this->asset->id)->baseString())->toBe((string) $net)
         ->and($this->ledger->lockedBalance($this->sellerUser, $this->asset->id)->baseString())->toBe('0');
 
-    $this->artisan('poisapay:sell-release-earnings')->assertSuccessful(); // no-op
+    $this->artisan('poisapay:shop-release-earnings')->assertSuccessful(); // no-op
 });

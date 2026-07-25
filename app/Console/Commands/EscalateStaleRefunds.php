@@ -16,7 +16,7 @@ use Illuminate\Console\Command;
  */
 class EscalateStaleRefunds extends Command
 {
-    protected $signature = 'poisapay:sell-escalate-refunds {--limit=200 : Max requests per run}';
+    protected $signature = 'poisapay:shop-escalate-refunds {--limit=200 : Max requests per run}';
 
     protected $description = 'Escalate refund requests the seller ignored past the response SLA.';
 

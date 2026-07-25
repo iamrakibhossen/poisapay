@@ -26,8 +26,8 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Notification;
 
 beforeEach(function () {
-    updateSetting('sell_enabled', true);
-    updateSetting('sell_commission_bps', 1000); // 10%
+    updateSetting('shop_enabled', true);
+    updateSetting('shop_commission_bps', 1000); // 10%
     $this->ledger = app(LedgerService::class);
     $this->asset = testAsset('USDT', 6, 'tron');
 
@@ -144,20 +144,20 @@ it('lets a buyer cancel their own pending request', function () {
 
 it('auto-escalates a request the seller ignores past the SLA and notifies operators', function () {
     Notification::fake();
-    updateSetting('sell_refund_sla_days', 3);
+    updateSetting('shop_refund_sla_days', 3);
     $admin = ($this->makeAdmin)();
     $order = ($this->order)();
     $req = app(RequestRefund::class)->execute($order, $this->buyer, 'full', null, '');
 
     $this->travel(4)->days();
-    $this->artisan('poisapay:sell-escalate-refunds')->assertSuccessful();
+    $this->artisan('poisapay:shop-escalate-refunds')->assertSuccessful();
 
     expect($req->fresh()->status)->toBe(RefundRequestStatus::Escalated);
     Notification::assertSentTo($admin, OperatorNotification::class);
 });
 
 it('approving from the held balance is earnings-hold compatible', function () {
-    updateSetting('sell_earnings_hold', true);
+    updateSetting('shop_earnings_hold', true);
     $order = ($this->order)();
 
     // Net is in the seller's LOCKED balance while held.

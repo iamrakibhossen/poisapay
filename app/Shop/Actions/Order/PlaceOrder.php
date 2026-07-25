@@ -51,7 +51,7 @@ class PlaceOrder
 
     public function execute(User $buyer, CheckoutData $data): Order
     {
-        if (! feature('sell_enabled', false)) {
+        if (! feature('shop_enabled', false)) {
             throw ShopException::disabled();
         }
 
@@ -186,15 +186,15 @@ class PlaceOrder
             // The Ledger moves the money — one balanced, idempotent entry.
             // With the earnings-hold flag on, the seller's net lands in their HELD
             // balance (user:locked) and is released to spendable once the buyer's
-            // refund window passes (poisapay:sell-release-earnings). Off (default):
+            // refund window passes (poisapay:shop-release-earnings). Off (default):
             // net is spendable immediately, as before.
-            $holdEarnings = feature('sell_earnings_hold', false);
+            $holdEarnings = feature('shop_earnings_hold', false);
             $sellerAccount = $resolver->forUser(
                 $seller->user,
                 $holdEarnings ? LedgerAccountType::UserLocked : LedgerAccountType::UserAvailable,
                 $assetId,
             );
-            $commissionAccount = $resolver->system(LedgerAccountType::SellCommissionIncome, $assetId);
+            $commissionAccount = $resolver->system(LedgerAccountType::ShopCommissionIncome, $assetId);
 
             $ledgerLines = [
                 PostingLine::debit($buyerAccount->id, $assetId, (string) $charge['total']),
@@ -206,7 +206,7 @@ class PlaceOrder
 
             $entry = $this->ledger->post(new EntryData(
                 type: 'shop.purchase',
-                idempotencyKey: 'sell:order:'.$order->getKey(),
+                idempotencyKey: 'shop:order:'.$order->getKey(),
                 lines: $ledgerLines,
                 memo: "Order {$order->number}: {$product->name}",
                 metadata: ['order_id' => $order->getKey(), 'seller_id' => $seller->getKey()],
@@ -216,7 +216,7 @@ class PlaceOrder
                 'status' => OrderStatus::Paid,
                 'ledger_entry_id' => $entry->id,
                 'paid_at' => now(),
-                'refund_window_ends_at' => now()->addDays((int) getSetting('sell_refund_window_days', 14)),
+                'refund_window_ends_at' => now()->addDays((int) getSetting('shop_refund_window_days', 14)),
                 'earnings_held' => $holdEarnings,
             ]);
 
@@ -280,8 +280,8 @@ class PlaceOrder
                 'product_file_id' => $file->getKey(),
                 'buyer_user_id' => $buyer->getKey(),
                 'token' => Str::random(48),
-                'max_downloads' => (int) getSetting('sell_download_limit', 5),
-                'expires_at' => now()->addDays((int) getSetting('sell_download_ttl_days', 30)),
+                'max_downloads' => (int) getSetting('shop_download_limit', 5),
+                'expires_at' => now()->addDays((int) getSetting('shop_download_ttl_days', 30)),
             ]);
         }
     }

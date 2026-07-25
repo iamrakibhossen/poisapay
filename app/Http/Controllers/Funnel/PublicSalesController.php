@@ -222,7 +222,7 @@ class PublicSalesController extends Controller
         }
 
         // One idempotency key per buyer+page so a refresh/double-submit never double-charges.
-        $sessionKey = "sell:idem:{$page->getKey()}";
+        $sessionKey = "shop:idem:{$page->getKey()}";
         $idempotencyKey = $request->session()->get($sessionKey);
         if (! $idempotencyKey) {
             $idempotencyKey = (string) Str::uuid();
@@ -323,7 +323,7 @@ class PublicSalesController extends Controller
             return back()->withInput()->withErrors(['pay' => $e->getMessage()]);
         }
 
-        $request->session()->forget("sell:idem:{$page->getKey()}");
+        $request->session()->forget("shop:idem:{$page->getKey()}");
         $this->analytics->track($page, AnalyticsService::PURCHASE, $request, orderId: $order->getKey());
 
         return redirect()->route('funnel.thankyou', ['slug' => $slug])->with('order_id', $order->getKey());
@@ -411,7 +411,7 @@ class PublicSalesController extends Controller
                 'parent_order_id' => $order->getKey(),
                 'kind' => \App\Shop\Enums\OrderItemKind::Upsell,
                 'override_amount' => $page->upsellAmount(),
-                'idempotency_key' => 'sell:upsell:'.$order->getKey(), // one upsell per order
+                'idempotency_key' => 'shop:upsell:'.$order->getKey(), // one upsell per order
             ]));
         } catch (ShopException $e) {
             return redirect()->route('funnel.thankyou', ['slug' => $slug])->withErrors(['upsell' => $e->getMessage()]);

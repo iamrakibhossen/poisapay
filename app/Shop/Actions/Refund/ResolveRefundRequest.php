@@ -38,7 +38,7 @@ class ResolveRefundRequest
 
             $order = $fresh->order;
             $applied = min((int) $fresh->amount_requested, RefundRequest::remainingRefundable($order));
-            $idempotencyKey = 'sell:refund:req:'.$fresh->getKey();
+            $idempotencyKey = 'shop:refund:req:'.$fresh->getKey();
 
             $this->refunds->execute($order, $applied, $actor, $note ?? (string) $fresh->reason, $idempotencyKey);
 

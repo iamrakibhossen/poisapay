@@ -14,7 +14,7 @@ use App\Shop\Models\Seller;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
-    updateSetting('sell_enabled', true);
+    updateSetting('shop_enabled', true);
     $this->asset = testAsset('USDT', 6, 'tron');
 
     $this->buyer = User::factory()->create();

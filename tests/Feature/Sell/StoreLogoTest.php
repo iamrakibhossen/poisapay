@@ -14,7 +14,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
-    updateSetting('sell_enabled', true);
+    updateSetting('shop_enabled', true);
     $this->asset = testAsset('USDT', 6, 'tron');
     $this->sellerUser = User::factory()->create();
     $this->seller = Seller::create([

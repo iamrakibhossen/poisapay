@@ -55,7 +55,7 @@ class AdminAttention
         'sweeps_pending' => ['Sweeps pending', 'admin.sweeps', 'arrows-pointing-in', 'warn'],
         'card_disputes_open' => ['Card disputes', 'admin.card-disputes', 'scale', 'warn'],
         'p2p_disputes_open' => ['P2P disputes', 'admin.p2p-disputes', 'user-group', 'warn'],
-        'sell_refunds_escalated' => ['Refunds to review', 'admin.shop-refunds', 'arrow-uturn-left', 'warn'],
+        'shop_refunds_escalated' => ['Refunds to review', 'admin.shop-refunds', 'arrow-uturn-left', 'warn'],
         'settlements_pending' => ['Settlements pending', 'admin.settlements', 'check-badge', 'warn'],
         'support_open' => ['Open support tickets', 'admin.support', 'lifebuoy', 'info'],
     ];
@@ -71,7 +71,7 @@ class AdminAttention
                 + AmlAlert::whereIn('status', [AlertStatus::Open->value, AlertStatus::Escalated->value])->count(),
             'card_disputes_open' => CardDispute::whereIn('status', ['open', 'represented'])->count(),
             'p2p_disputes_open' => P2pDispute::whereIn('status', [P2pDisputeStatus::Open->value, P2pDisputeStatus::UnderReview->value])->count(),
-            'sell_refunds_escalated' => \App\Shop\Models\RefundRequest::where('status', \App\Shop\Enums\RefundRequestStatus::Escalated->value)->count(),
+            'shop_refunds_escalated' => \App\Shop\Models\RefundRequest::where('status', \App\Shop\Enums\RefundRequestStatus::Escalated->value)->count(),
             'sweeps_pending' => Sweep::where('status', SweepStatus::Pending->value)->count(),
             'support_open' => SupportTicket::where('status', SupportTicketStatus::Open->value)->count(),
             'webhooks_failed' => WebhookLog::where('status', '>=', 400)->where('resolved', false)->count(),

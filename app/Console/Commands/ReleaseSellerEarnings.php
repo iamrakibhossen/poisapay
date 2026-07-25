@@ -20,13 +20,13 @@ use Illuminate\Support\Facades\DB;
  */
 class ReleaseSellerEarnings extends Command
 {
-    protected $signature = 'poisapay:sell-release-earnings {--limit=500 : Max orders to process per run}';
+    protected $signature = 'poisapay:shop-release-earnings {--limit=500 : Max orders to process per run}';
 
     protected $description = 'Release held seller earnings to spendable after the refund window.';
 
     public function handle(LedgerService $ledger): int
     {
-        if (! feature('sell_earnings_hold', false)) {
+        if (! feature('shop_earnings_hold', false)) {
             $this->info('Earnings hold is disabled — nothing to release.');
 
             return self::SUCCESS;
@@ -62,7 +62,7 @@ class ReleaseSellerEarnings extends Command
                             $user,
                             (int) $fresh->asset_id,
                             Money::ofBase((string) $net, $order->asset->decimals, $order->asset->symbol),
-                            'sell:release:'.$fresh->getKey(),
+                            'shop:release:'.$fresh->getKey(),
                             'sell.earnings_release',
                             ['order_id' => $fresh->getKey(), 'seller_id' => $fresh->seller_id],
                         );

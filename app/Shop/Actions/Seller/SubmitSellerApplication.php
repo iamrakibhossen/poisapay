@@ -23,7 +23,7 @@ class SubmitSellerApplication
 {
     public function execute(User $user, SellerApplicationData $data): Seller
     {
-        if (! feature('sell_enabled', false)) {
+        if (! feature('shop_enabled', false)) {
             throw ShopException::disabled();
         }
 

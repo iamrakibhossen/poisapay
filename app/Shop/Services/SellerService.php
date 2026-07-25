@@ -21,13 +21,13 @@ class SellerService
 
     public static function approvalCacheKey(string $userId): string
     {
-        return "sell:seller:approved:{$userId}";
+        return "shop:seller:approved:{$userId}";
     }
 
     /** May this user publish/sell? (module enabled + approved). Cache-first. */
     public function isApprovedSeller(User $user): bool
     {
-        if (! feature('sell_enabled', false)) {
+        if (! feature('shop_enabled', false)) {
             return false;
         }
 

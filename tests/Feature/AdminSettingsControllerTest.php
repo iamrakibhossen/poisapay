@@ -20,7 +20,7 @@ it('renders the settings page (controller + blade, not livewire)', function () {
 });
 
 it('renders every settings section', function () {
-    foreach (['general', 'branding', 'auth', 'deposit', 'withdrawal', 'transfer', 'exchange', 'cards', 'merchant', 'sell', 'rewards', 'compliance', 'localization', 'announcement'] as $section) {
+    foreach (['general', 'branding', 'auth', 'deposit', 'withdrawal', 'transfer', 'exchange', 'cards', 'merchant', 'shop', 'rewards', 'compliance', 'localization', 'announcement'] as $section) {
         actingAs($this->admin, 'admin')->get(route('admin.settings', $section))->assertOk();
     }
 });

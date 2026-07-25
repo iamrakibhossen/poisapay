@@ -36,7 +36,7 @@ class EscalateRefundRequest
                 __('Refund escalated'),
                 __('A refund on order :number needs operator review.', ['number' => $fresh->order->number]),
                 '/admin/shop/refunds/'.$fresh->getKey(),
-                'sell',
+                'shop',
             );
 
             return $fresh;

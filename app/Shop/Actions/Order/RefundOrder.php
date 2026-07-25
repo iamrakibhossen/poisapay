@@ -84,7 +84,7 @@ class RefundOrder
                 $stillHeld ? LedgerAccountType::UserLocked : LedgerAccountType::UserAvailable,
                 $assetId,
             );
-            $commissionAccount = $resolver->system(LedgerAccountType::SellCommissionIncome, $assetId);
+            $commissionAccount = $resolver->system(LedgerAccountType::ShopCommissionIncome, $assetId);
 
             $lines = [PostingLine::credit($buyerAccount->id, $assetId, (string) $amount)];
             if ($sellerBack > 0) {
@@ -149,6 +149,6 @@ class RefundOrder
     {
         $remaining = (int) $order->seller_net_amount + (int) $order->commission_amount - (int) ($order->refunded_amount ?? 0);
 
-        return $this->execute($order, $remaining, $actor, $reason, 'sell:refund:order:'.$order->getKey());
+        return $this->execute($order, $remaining, $actor, $reason, 'shop:refund:order:'.$order->getKey());
     }
 }

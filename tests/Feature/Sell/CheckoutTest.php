@@ -19,7 +19,7 @@ use App\Shop\Models\ProductFile;
 use App\Shop\Models\Seller;
 
 beforeEach(function () {
-    updateSetting('sell_enabled', true);
+    updateSetting('shop_enabled', true);
     $this->asset = testAsset('USDT', 6, 'tron');
     $this->ledger = app(LedgerService::class);
 

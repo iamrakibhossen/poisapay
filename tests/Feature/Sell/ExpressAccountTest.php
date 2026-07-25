@@ -13,7 +13,7 @@ use App\Shop\Models\Seller;
 use Illuminate\Support\Facades\Hash;
 
 beforeEach(function () {
-    updateSetting('sell_enabled', true);
+    updateSetting('shop_enabled', true);
     $this->asset = testAsset('USDT', 6, 'tron');
 
     $this->seller = Seller::create([
