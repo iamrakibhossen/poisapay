@@ -105,6 +105,43 @@
                 </div>
             </div>
         @elseif ($isSeller)
+        {{-- Store branding — logo shown in the public storefront header. --}}
+        @if (session('success'))
+            <x-ui.alert type="success">{{ session('success') }}</x-ui.alert>
+        @endif
+        <x-ui.card>
+            <div class="flex flex-wrap items-center gap-4">
+                @if ($seller->logoUrl())
+                    <img src="{{ $seller->logoUrl() }}" alt="{{ $seller->displayName() }}" class="h-14 w-14 rounded-xl object-cover ring-1 ring-neutral-200" />
+                @else
+                    <span class="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-brand-500 text-lg font-bold text-white">{{ \Illuminate\Support\Str::substr($seller->displayName(), 0, 1) }}</span>
+                @endif
+                <div class="min-w-0 flex-1">
+                    <p class="text-sm font-semibold text-neutral-900">{{ $seller->displayName() }}</p>
+                    <p class="text-xs text-neutral-500">{{ __('Your store logo appears in the header of every sales page.') }}</p>
+                    @error('logo')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
+                </div>
+                <div class="flex items-center gap-2">
+                    <form method="POST" action="{{ route('sell.logo') }}" enctype="multipart/form-data" x-data
+                        class="flex items-center gap-2">
+                        @csrf
+                        <input type="file" name="logo" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="hidden"
+                            x-ref="logo" x-on:change="$el.files.length && $el.form.submit()" />
+                        <x-ui.button type="button" variant="secondary" size="sm" icon="arrow-up-tray" x-on:click="$refs.logo.click()">
+                            {{ $seller->logoUrl() ? __('Replace') : __('Upload logo') }}
+                        </x-ui.button>
+                    </form>
+                    @if ($seller->logoUrl())
+                        <form method="POST" action="{{ route('sell.logo.delete') }}" onsubmit="return confirm('{{ __('Remove the store logo?') }}')">
+                            @csrf @method('DELETE')
+                            <x-ui.button type="submit" variant="ghost" size="sm">{{ __('Remove') }}</x-ui.button>
+                        </form>
+                    @endif
+                </div>
+            </div>
+            <p class="mt-3 text-[11px] text-neutral-400">{{ __('PNG, JPG, WebP or SVG · square works best · up to 1 MB.') }}</p>
+        </x-ui.card>
+
         {{-- KPI shell — real figures from paid orders. --}}
         <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             @foreach ([

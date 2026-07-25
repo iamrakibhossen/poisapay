@@ -18,7 +18,11 @@
         <header class="sticky top-0 z-30 border-b border-neutral-100 bg-white/85 backdrop-blur-md">
             <div class="mx-auto flex max-w-4xl items-center justify-between px-5 py-3">
                 <span class="flex items-center gap-2 text-sm font-bold">
-                    <span class="grid h-6 w-6 place-items-center rounded-lg text-[11px] font-bold text-white" style="background: var(--accent)">{{ mb_strtoupper(mb_substr($seller['name'], 0, 1)) }}</span>
+                    @if (! empty($seller['logo']))
+                        <img src="{{ $seller['logo'] }}" alt="{{ $seller['name'] }}" class="h-7 w-7 rounded-lg object-cover" />
+                    @else
+                        <span class="grid h-7 w-7 place-items-center rounded-lg text-[11px] font-bold text-white" style="background: var(--accent)">{{ mb_strtoupper(mb_substr($seller['name'], 0, 1)) }}</span>
+                    @endif
                     {{ $seller['name'] }}
                 </span>
                 <button type="submit" form="buy" class="px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:opacity-90" style="{{ $btnStyle }}">

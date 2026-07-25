@@ -91,6 +91,41 @@ class SellerController extends Controller
         ]);
     }
 
+    /** Upload / replace the store logo (shown in the public storefront header). */
+    public function uploadLogo(Request $request, SellerService $sellers): RedirectResponse
+    {
+        $seller = $sellers->forUser($request->user());
+        if (! $seller) {
+            return redirect()->route('sell');
+        }
+
+        $request->validate([
+            'logo' => ['required', 'image', 'mimes:png,jpg,jpeg,webp,svg', 'max:1024'], // 1 MB
+        ]);
+
+        // Replace any previous file.
+        if ($seller->logo_path) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($seller->logo_path);
+        }
+
+        $path = $request->file('logo')->store('sell/logos', 'public');
+        $seller->update(['logo_path' => $path]);
+
+        return redirect()->route('sell')->with('success', __('Store logo updated.'));
+    }
+
+    /** Remove the store logo (falls back to the monogram). */
+    public function deleteLogo(Request $request, SellerService $sellers): RedirectResponse
+    {
+        $seller = $sellers->forUser($request->user());
+        if ($seller?->logo_path) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($seller->logo_path);
+            $seller->update(['logo_path' => null]);
+        }
+
+        return redirect()->route('sell')->with('success', __('Store logo removed.'));
+    }
+
     /**
      * Real seller money KPIs from paid orders, valued in the seller's settlement
      * asset (fallback: a fiat pricing asset). Revenue = all paid net; available =

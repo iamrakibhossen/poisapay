@@ -444,6 +444,7 @@ class PublicSalesController extends Controller
             'seller' => [
                 'name' => $sellerName,
                 'initials' => Str::of($sellerName)->explode(' ')->take(2)->map(fn ($w) => Str::substr($w, 0, 1))->implode(''),
+                'logo' => $seller->logoUrl(),
             ],
         ];
     }

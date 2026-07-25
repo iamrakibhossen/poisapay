@@ -26,7 +26,7 @@ class Seller extends Model
     protected $table = 'sell_sellers';
 
     protected $fillable = [
-        'user_id', 'brand_name', 'bio', 'website', 'country',
+        'user_id', 'brand_name', 'logo_path', 'bio', 'website', 'country',
         'categories', 'status', 'commission_bps', 'settlement_asset_id',
         'kyc_reference', 'plan', 'reviewed_by', 'reviewed_at', 'approved_at',
     ];
@@ -97,5 +97,13 @@ class Seller extends Model
     public function displayName(): string
     {
         return $this->brand_name ?: (string) $this->user?->name;
+    }
+
+    /** Public URL of the store logo, or null when none is set. */
+    public function logoUrl(): ?string
+    {
+        return $this->logo_path
+            ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->logo_path)
+            : null;
     }
 }

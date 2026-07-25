@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Route;
  */
 Route::controller(SellerController::class)->group(function () {
     Route::get('/sell', 'index')->name('sell');
+    Route::post('/sell/logo', 'uploadLogo')->name('sell.logo');
+    Route::delete('/sell/logo', 'deleteLogo')->name('sell.logo.delete');
     Route::get('/sell/apply', 'apply')->name('sell.apply');
     Route::post('/sell/apply', 'submitApplication')->name('sell.apply.submit');
     Route::get('/sell/sales-pages', 'salesPages')->name('sell.sales-pages');
