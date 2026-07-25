@@ -79,29 +79,6 @@
                 </div>
             </section>
 
-            {{-- Variation picker (variant products) — selects post with the #buy form. --}}
-            @if (! empty($variantOptions))
-                <section class="border-t border-neutral-100 py-6">
-                    <div class="mx-auto max-w-md px-5">
-                        @error('buy')
-                            <p class="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-center text-xs font-medium text-rose-700">{{ $message }}</p>
-                        @enderror
-                        <div class="grid gap-3 sm:grid-cols-2">
-                            @foreach ($variantOptions as $name => $values)
-                                <div>
-                                    <label class="mb-1 block text-xs font-medium text-neutral-500">{{ $name }}</label>
-                                    <select form="buy" name="options[{{ $name }}]" required
-                                        class="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm focus:border-neutral-400 focus:ring-1 focus:ring-neutral-300">
-                                        @foreach ($values as $v)
-                                            <option value="{{ $v }}" @selected(old('options.'.$name) === $v)>{{ $v }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </section>
-            @endif
 
             {{-- ============ Builder sections (in the seller's chosen order) ============ --}}
             @foreach ($sections as $section)
