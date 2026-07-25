@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Asset;
+use App\Sell\Actions\Order\SetOrderStatus;
 use App\Sell\Actions\Product\CreateProduct;
 use App\Sell\Actions\Product\SetProductStatus;
 use App\Sell\Actions\Product\UpdateProduct;
@@ -21,6 +22,7 @@ use App\Sell\Enums\ProductStatus;
 use App\Sell\Enums\SalesPageStatus;
 use App\Sell\Enums\SellerStatus;
 use App\Sell\Exceptions\SellException;
+use App\Sell\Models\Order;
 use App\Sell\Models\SalesPage;
 use App\Sell\Models\Seller;
 use App\Sell\Services\SellerService;
@@ -165,53 +167,133 @@ class SellerController extends Controller
         ]);
     }
 
-    public function orders(Request $request): View
+    /** Seller's real orders (paid+), newest first, with headline stats. */
+    public function orders(Request $request, SellerService $sellers): View
     {
+        $seller = $sellers->forUser($request->user());
+
+        $orders = $seller
+            ? $seller->orders()->with(['items', 'buyer', 'asset'])
+                ->whereNotIn('status', [OrderStatus::Pending->value, OrderStatus::Cancelled->value])
+                ->latest()->limit(100)->get()
+            : collect();
+
+        $paidNet = (int) $orders->sum(fn ($o) => (int) $o->seller_net_amount);
+        $settleAsset = $seller?->settlementAsset ?? $orders->first()?->asset;
+
         return view('frontend.seller.orders', [
-            'stats' => ['total' => 400, 'revenue' => '$18,240', 'pending' => 3, 'refunded' => 2],
-            'orders' => [
-                ['id' => 'PH-10428', 'buyer' => 'aisha@example.com', 'product' => 'LaunchKit', 'amount' => '$68', 'status' => 'Paid', 'color' => 'success', 'date' => 'Jul 24, 2026'],
-                ['id' => 'PH-10427', 'buyer' => 'tanvir@example.com', 'product' => 'PoisaHub Dev Tee', 'amount' => '$30', 'status' => 'Shipped', 'color' => 'info', 'date' => 'Jul 24, 2026'],
-                ['id' => 'PH-10426', 'buyer' => 'maria@example.com', 'product' => 'Premium UI Kit', 'amount' => '$19', 'status' => 'Paid', 'color' => 'success', 'date' => 'Jul 23, 2026'],
-                ['id' => 'PH-10425', 'buyer' => 'karim@example.com', 'product' => 'LaunchKit', 'amount' => '$49', 'status' => 'Refunded', 'color' => 'danger', 'date' => 'Jul 22, 2026'],
-                ['id' => 'PH-10424', 'buyer' => 'sadia@example.com', 'product' => 'PoisaHub Dev Tee', 'amount' => '$25', 'status' => 'Processing', 'color' => 'warning', 'date' => 'Jul 22, 2026'],
+            'stats' => [
+                'total' => $orders->count(),
+                'revenue' => $settleAsset ? $settleAsset->money((string) $paidNet)->format(2) : '—',
+                'pending' => $orders->whereIn('status', [OrderStatus::Paid, OrderStatus::Processing, OrderStatus::Shipped])->count(),
+                'refunded' => $orders->whereIn('status', [OrderStatus::Refunded, OrderStatus::PartiallyRefunded])->count(),
+            ],
+            'orders' => $orders->map(fn ($o) => [
+                'id' => $o->id,
+                'number' => $o->number,
+                'buyer' => $o->buyer?->email ?? '—',
+                'product' => $o->items->first()?->name_snapshot ?? '—',
+                'amount' => $o->asset ? $o->asset->money((string) $o->total_amount)->format(2) : '—',
+                'status' => $o->status->label(),
+                'color' => $o->status->color(),
+                'date' => $o->created_at->format('M j, Y'),
+            ])->all(),
+        ]);
+    }
+
+    /** Order detail + fulfilment for the owning seller. */
+    public function order(Request $request, SellerService $sellers, string $id): View|RedirectResponse
+    {
+        $order = $this->ownedOrder($sellers, $request, $id);
+        if (! $order instanceof Order) {
+            return $order;
+        }
+
+        $asset = $order->asset;
+        $fmt = fn ($base) => $asset ? $asset->money((string) (int) $base)->format(2) : '—';
+        $addr = $order->shipping_address ?? [];
+        $type = $order->items->first()?->product?->type;
+
+        return view('frontend.seller.order', [
+            'order' => [
+                'id' => $order->id,
+                'number' => $order->number,
+                'status' => $order->status->label(),
+                'statusColor' => $order->status->color(),
+                'placedAt' => ($order->paid_at ?? $order->created_at)->format('M j, Y · g:i A'),
+                'buyer' => ['name' => $order->buyer?->name ?? '—', 'email' => $order->buyer?->email ?? '—'],
+                'type' => $type?->value ?? 'digital',
+                'physical' => $type?->requiresShipping() ?? false,
+                'items' => $order->items->map(fn ($i) => [
+                    'name' => $i->name_snapshot,
+                    'variant' => $i->variant?->name,
+                    'qty' => (int) $i->quantity,
+                    'price' => $fmt($i->line_total_amount),
+                ])->all(),
+                'shipping' => [
+                    'name' => $addr['name'] ?? $order->buyer?->name,
+                    'phone' => $addr['phone'] ?? null,
+                    'line1' => $addr['line1'] ?? null, 'city' => $addr['city'] ?? null,
+                    'postcode' => $addr['postcode'] ?? null, 'country' => $addr['country'] ?? null,
+                    'carrier' => $addr['carrier'] ?? null, 'tracking' => $addr['tracking'] ?? null,
+                ],
+                'totals' => [
+                    'subtotal' => $fmt($order->subtotal_amount),
+                    'shipping' => $fmt($order->shipping_amount),
+                    'total' => $fmt($order->total_amount),
+                    'fee' => '−'.$fmt($order->commission_amount),
+                    'net' => $fmt($order->seller_net_amount),
+                ],
+                // Valid next fulfilment steps for the status-advance control.
+                'nextSteps' => array_values(array_map(
+                    fn (OrderStatus $s) => ['value' => $s->value, 'label' => $s->label()],
+                    array_filter($order->status->allowedNext(), fn (OrderStatus $s) => in_array($s->value, ['processing', 'shipped', 'delivered', 'completed'], true)),
+                )),
+                'carriers' => ['Sundarban', 'Pathao', 'RedX', 'Steadfast', 'DHL', 'Other'],
+                'events' => $order->events->sortBy('created_at')->map(fn ($e) => [
+                    'label' => ucwords(str_replace('_', ' ', $e->type)),
+                    'at' => $e->created_at->format('M j · g:i A'),
+                ])->values()->all(),
             ],
         ]);
     }
 
-    /** Order detail + fulfillment. FRONTEND-FIRST: sample order (physical → shippable). */
-    public function order(Request $request, string $id): View
+    /** Advance an order along fulfilment (processing → shipped → delivered → completed). */
+    public function fulfilOrder(Request $request, SellerService $sellers, SetOrderStatus $action, string $id): RedirectResponse
     {
-        return view('frontend.seller.order', [
-            'order' => [
-                'id' => $id,
-                'status' => 'Processing', 'statusColor' => 'warning',
-                'placedAt' => 'Jul 24, 2026 · 3:14 PM',
-                'buyer' => ['name' => 'Aisha Karim', 'email' => 'aisha@example.com'],
-                'type' => 'physical',
-                'items' => [
-                    ['name' => 'PoisaHub Dev Tee', 'variant' => 'Black · M', 'qty' => 1, 'price' => '$25.00'],
-                ],
-                'shipping' => [
-                    'name' => 'Aisha Karim', 'phone' => '+8801712345678',
-                    'line1' => 'House 14, Road 7, Dhanmondi', 'city' => 'Dhaka', 'postcode' => '1209', 'country' => 'Bangladesh',
-                ],
-                'totals' => ['subtotal' => '$25.00', 'shipping' => '$5.00', 'total' => '$30.00', 'fee' => '−$3.00', 'net' => '$27.00'],
-                'timeline' => [
-                    ['Paid', 'Jul 24 · 3:14 PM', true],
-                    ['Processing', 'Jul 24 · 3:15 PM', true],
-                    ['Shipped', 'Pending', false],
-                    ['Delivered', 'Pending', false],
-                ],
-                'carriers' => ['Sundarban', 'Pathao', 'RedX', 'Steadfast', 'DHL', 'Other'],
-                // Order-scoped conversation, shared by buyer, seller (and admin on dispute).
-                'messages' => [
-                    ['from' => 'buyer', 'author' => 'Aisha Karim', 'body' => 'Hi! When will my Dev Tee ship?', 'at' => 'Jul 24 · 3:20 PM'],
-                    ['from' => 'seller', 'author' => 'You', 'body' => 'Preparing it now — it ships today via Pathao.', 'at' => 'Jul 24 · 3:35 PM'],
-                    ['from' => 'buyer', 'author' => 'Aisha Karim', 'body' => 'Great, thank you!', 'at' => 'Jul 24 · 3:36 PM'],
-                ],
-            ],
+        $order = $this->ownedOrder($sellers, $request, $id);
+        if (! $order instanceof Order) {
+            return $order;
+        }
+
+        $validated = $request->validate([
+            'status' => ['required', 'string', 'in:processing,shipped,delivered,completed'],
+            'carrier' => ['nullable', 'string', 'max:60'],
+            'tracking' => ['nullable', 'string', 'max:120'],
         ]);
+
+        try {
+            $action->execute($order, OrderStatus::from($validated['status']), array_filter([
+                'carrier' => $validated['carrier'] ?? null,
+                'tracking' => $validated['tracking'] ?? null,
+            ]));
+        } catch (SellException $e) {
+            return back()->withErrors(['status' => $e->getMessage()]);
+        }
+
+        return redirect()->route('sell.order', ['id' => $order->id])
+            ->with('success', __('Order updated.'));
+    }
+
+    /** Resolve an order the current seller owns, or a redirect away. */
+    private function ownedOrder(SellerService $sellers, Request $request, string $id): Order|RedirectResponse
+    {
+        $seller = $sellers->forUser($request->user());
+        $order = $seller
+            ? $seller->orders()->with(['items.product', 'items.variant', 'buyer', 'asset', 'events'])->find($id)
+            : null;
+
+        return $order ?? redirect()->route('sell.orders');
     }
 
     /** Seller inbox — buyer message threads. FRONTEND-FIRST: sample conversations. */

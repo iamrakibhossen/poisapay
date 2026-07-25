@@ -12,6 +12,7 @@
             ['label' => __('Refunded'), 'value' => number_format($stats['refunded']), 'icon' => 'arrow-uturn-left'],
         ]" />
 
+        @if (count($orders))
         <x-ui.history-table :columns="[
             ['label' => __('Order')],
             ['label' => __('Customer')],
@@ -22,7 +23,7 @@
         ]">
             @foreach ($orders as $o)
                 <tr class="cursor-pointer transition hover:bg-neutral-50/70" onclick="window.location='{{ route('sell.order', ['id' => $o['id']]) }}'">
-                    <td class="px-5 py-4 align-middle font-mono text-xs font-medium text-brand-600">{{ $o['id'] }}</td>
+                    <td class="px-5 py-4 align-middle font-mono text-xs font-medium text-brand-600">{{ $o['number'] }}</td>
                     <td class="px-5 py-4 align-middle text-sm text-neutral-700">{{ $o['buyer'] }}</td>
                     <td class="px-5 py-4 align-middle text-sm font-medium text-neutral-900">{{ $o['product'] }}</td>
                     <td class="px-5 py-4 align-middle"><x-ui.badge :color="$o['color']" dot>{{ $o['status'] }}</x-ui.badge></td>
@@ -31,5 +32,10 @@
                 </tr>
             @endforeach
         </x-ui.history-table>
+        @else
+            <div class="pp-card">
+                <x-ui.empty-state icon="inbox-stack" :title="__('No orders yet')" :description="__('When a buyer purchases one of your products, it shows up here.')" />
+            </div>
+        @endif
     </div>
 </x-layouts.app>

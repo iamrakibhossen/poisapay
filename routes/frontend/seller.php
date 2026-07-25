@@ -28,6 +28,7 @@ Route::controller(SellerController::class)->group(function () {
     Route::get('/sell/inbox', 'inbox')->name('sell.inbox');
     Route::get('/sell/orders', 'orders')->name('sell.orders');
     Route::get('/sell/orders/{id}', 'order')->name('sell.order');
+    Route::post('/sell/orders/{id}/status', 'fulfilOrder')->name('sell.order.status');
     Route::get('/sell/reviews', 'reviews')->name('sell.reviews');
     Route::get('/sell/customers', 'customers')->name('sell.customers');
     Route::get('/sell/coupons', 'coupons')->name('sell.coupons');

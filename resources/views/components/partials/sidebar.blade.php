@@ -1,13 +1,20 @@
 @php
+    // Show "My Purchases" only once the user has actually bought something —
+    // an indexed exists() on their orders (nothing to show → no menu item).
+    $hasPurchases = auth()->check() && rescue(fn () => \App\Sell\Models\Order::query()
+        ->where('buyer_user_id', auth()->id())
+        ->whereNotIn('status', ['pending', 'cancelled'])
+        ->exists(), false, false);
+
     // Grouped user navigation — clean sections like the DollarHub admin shell.
     $groups = [
         [
             'heading' => __('Overview'),
-            'items' => [
+            'items' => array_values(array_filter([
                 ['route' => 'dashboard', 'label' => __('Dashboard'), 'icon' => 'home'],
                 ['route' => 'wallet', 'label' => __('Wallet'), 'icon' => 'wallet'],
-                ['route' => 'purchases', 'label' => __('My Purchases'), 'icon' => 'shopping-bag'],
-            ],
+                $hasPurchases ? ['route' => 'purchases', 'label' => __('My Purchases'), 'icon' => 'shopping-bag'] : null,
+            ])),
         ],
         [
             'heading' => __('Money'),
