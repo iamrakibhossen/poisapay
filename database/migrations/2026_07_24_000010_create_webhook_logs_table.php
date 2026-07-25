@@ -21,8 +21,8 @@ return new class extends Migration
             $table->string('method', 8)->default('POST');
             $table->string('url', 512);
             $table->string('route', 100)->nullable();         // matched route name
-            $table->json('payload')->nullable();
-            $table->json('headers')->nullable();              // sensitive values redacted
+            $table->jsonb('payload')->nullable();
+            $table->jsonb('headers')->nullable();              // sensitive values redacted
             $table->string('ip', 45)->nullable();
             $table->string('hash', 32)->index();              // md5(payload) for dedup
             $table->unsignedSmallInteger('status')->default(0);

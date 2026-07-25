@@ -23,7 +23,7 @@ return new class extends Migration
             $table->foreignId('asset_id')->constrained('assets')->cascadeOnDelete();
             $table->string('name', 80);                    // "bKash", "City Bank", "USDT — Tron"
             $table->string('type', 16);                    // bank | mobile | crypto | manual
-            $table->json('details')->nullable();           // type-specific fields (account no, address, …)
+            $table->jsonb('details')->nullable();           // type-specific fields (account no, address, …)
             $table->text('instructions')->nullable();
             $table->decimal('min_amount', 78, 0)->default(0);
             $table->decimal('max_amount', 78, 0)->nullable();

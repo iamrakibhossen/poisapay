@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignId('asset_id')->constrained('assets')->cascadeOnDelete();
             $table->string('name', 80);                    // "bKash", "Nagad", "Bank transfer"
             $table->string('type', 16);                    // bank | mobile
-            $table->json('details')->nullable();           // rail config (e.g. account-number label/hint)
+            $table->jsonb('details')->nullable();           // rail config (e.g. account-number label/hint)
             $table->text('instructions')->nullable();
             $table->decimal('min_amount', 78, 0)->default(0);
             $table->decimal('max_amount', 78, 0)->nullable();

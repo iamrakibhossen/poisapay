@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('subject_type', 48)->nullable(); // model class of the triggering entity
             $table->uuid('subject_id')->nullable();
             $table->unsignedTinyInteger('score')->default(0);
-            $table->json('reasons')->nullable();
+            $table->jsonb('reasons')->nullable();
             $table->string('status', 16)->default('open'); // open|cleared|escalated
             $table->foreignUuid('case_id')->nullable();
             $table->foreignUuid('resolved_by')->nullable()->constrained('admins');

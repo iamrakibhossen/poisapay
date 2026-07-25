@@ -21,7 +21,7 @@ return new class extends Migration
             $table->date('date_of_birth')->nullable();
             $table->string('country', 2)->default('BD');
             $table->text('address')->nullable();
-            $table->json('document_paths')->nullable();    // S3 keys (front/back/selfie)
+            $table->jsonb('document_paths')->nullable();    // S3 keys (front/back/selfie)
             $table->boolean('liveness_passed')->default(false);
             $table->foreignUuid('reviewed_by')->nullable()->constrained('admins');
             $table->timestamp('reviewed_at')->nullable();
@@ -39,7 +39,7 @@ return new class extends Migration
             $table->string('provider', 32)->default('internal');
             $table->string('result', 12)->default('clear'); // clear | review | hit
             $table->unsignedTinyInteger('score')->default(0);
-            $table->json('matches')->nullable();
+            $table->jsonb('matches')->nullable();
             $table->timestamps();
 
             $table->index(['user_id', 'context']);

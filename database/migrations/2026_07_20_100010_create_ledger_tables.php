@@ -45,7 +45,7 @@ return new class extends Migration
             $table->string('idempotency_key', 160)->unique();
             $table->uuid('reverses_entry_id')->nullable();  // correction linkage (§5.3)
             $table->string('memo', 255)->nullable();
-            $table->json('metadata')->nullable();
+            $table->jsonb('metadata')->nullable();
             $table->timestamp('posted_at')->nullable();
             $table->timestamps();
 

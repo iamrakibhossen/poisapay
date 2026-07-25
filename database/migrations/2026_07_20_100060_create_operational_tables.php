@@ -55,7 +55,7 @@ return new class extends Migration
             $table->string('description')->nullable();
             $table->string('subject_type', 64)->nullable();
             $table->string('subject_id', 64)->nullable();
-            $table->json('changes')->nullable();
+            $table->jsonb('changes')->nullable();
             $table->string('ip_address', 45)->nullable();
             $table->string('user_agent', 255)->nullable();
             $table->timestamp('created_at')->nullable();
@@ -71,7 +71,7 @@ return new class extends Migration
             $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete(); // merchant owner
             $table->string('url', 255);
             $table->string('secret');                     // HMAC signing secret
-            $table->json('events');                       // subscribed event names
+            $table->jsonb('events');                       // subscribed event names
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
@@ -80,7 +80,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('endpoint_id')->constrained('webhook_endpoints')->cascadeOnDelete();
             $table->string('event', 48);
-            $table->json('payload');
+            $table->jsonb('payload');
             $table->unsignedTinyInteger('attempt')->default(1);
             $table->unsignedSmallInteger('response_status')->nullable();
             $table->string('status', 16)->default('pending'); // pending | delivered | failed
@@ -129,7 +129,7 @@ return new class extends Migration
 
         Schema::create('system_settings', function (Blueprint $table) {
             $table->string('key', 64)->primary();
-            $table->json('value')->nullable();
+            $table->jsonb('value')->nullable();
             $table->string('group', 32)->default('general');
             $table->timestamps();
         });

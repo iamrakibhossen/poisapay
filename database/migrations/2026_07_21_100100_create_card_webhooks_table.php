@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('event_type', 40);
             $table->string('provider_card_ref', 128)->nullable();
             $table->string('provider_tx_ref', 128)->nullable();
-            $table->json('payload')->nullable();
+            $table->jsonb('payload')->nullable();
             $table->boolean('signature_valid')->default(false);
             $table->string('status', 16)->default('pending'); // pending|processed|ignored|failed
             $table->unsignedSmallInteger('attempts')->default(0);

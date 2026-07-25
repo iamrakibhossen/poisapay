@@ -26,7 +26,7 @@ return new class extends Migration
             $table->boolean('is_demo')->default(true);
             $table->boolean('is_active')->default(true);
             $table->unsignedSmallInteger('sort')->default(0);
-            $table->json('config')->nullable();
+            $table->jsonb('config')->nullable();
             $table->timestamps();
         });
 

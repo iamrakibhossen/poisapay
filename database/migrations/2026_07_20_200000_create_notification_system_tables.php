@@ -30,7 +30,7 @@ return new class extends Migration
             $table->string('locale', 8)->default('en');
             $table->string('name', 120);
             $table->string('category', 32)->default('product');
-            $table->json('channels');                      // ['in_app','email',...] channels this template targets
+            $table->jsonb('channels');                      // ['in_app','email',...] channels this template targets
             $table->string('subject', 160)->nullable();
             $table->text('body');                          // supports {{placeholder}} tokens
             $table->boolean('is_active')->default(true);
@@ -46,7 +46,7 @@ return new class extends Migration
             $table->text('body');
             $table->string('segment', 24)->default('all'); // all | kyc_full | merchants
             $table->string('category', 32)->default('product');
-            $table->json('channels')->nullable();
+            $table->jsonb('channels')->nullable();
             $table->unsignedInteger('recipients')->default(0);
             $table->foreignUuid('sent_by')->nullable()->constrained('admins');
             $table->timestamp('sent_at')->nullable();

@@ -29,7 +29,7 @@ return new class extends Migration
             $table->string('driver', 24);
             $table->string('provider_ref', 128);          // cardholder token
             $table->string('status', 24)->nullable();
-            $table->json('metadata')->nullable();
+            $table->jsonb('metadata')->nullable();
             $table->timestamps();
 
             $table->unique(['user_id', 'card_provider_id'], 'uq_provider_account_user_program');
@@ -46,8 +46,8 @@ return new class extends Migration
             $table->string('operation', 64);               // createVirtualCard, webhook, jit, …
             $table->string('method', 8)->nullable();
             $table->string('endpoint', 200)->nullable();
-            $table->json('request')->nullable();
-            $table->json('response')->nullable();
+            $table->jsonb('request')->nullable();
+            $table->jsonb('response')->nullable();
             $table->unsignedSmallInteger('status_code')->nullable();
             $table->unsignedInteger('latency_ms')->nullable();
             $table->boolean('success')->default(true);

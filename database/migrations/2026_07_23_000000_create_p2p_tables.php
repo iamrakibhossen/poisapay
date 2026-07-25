@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('type', 16);                 // mobile | bank | wallet
             $table->char('country', 2)->nullable();
             $table->string('icon', 64)->nullable();
-            $table->json('fields')->nullable();         // account-field schema
+            $table->jsonb('fields')->nullable();         // account-field schema
             $table->boolean('is_active')->default(true);
             $table->unsignedInteger('sort')->default(0);
             $table->timestamps();
@@ -51,7 +51,7 @@ return new class extends Migration
             $table->boolean('is_online')->default(false);
             $table->boolean('vacation_mode')->default(false);
             $table->unsignedTinyInteger('level')->default(0);
-            $table->json('badges')->nullable();
+            $table->jsonb('badges')->nullable();
             $table->unsignedInteger('trade_count')->default(0);
             $table->unsignedInteger('completed_count')->default(0);
             $table->unsignedInteger('completion_rate_bps')->default(0);
@@ -83,8 +83,8 @@ return new class extends Migration
             $table->unsignedInteger('min_completion_bps')->nullable(); // taker gating
             $table->text('auto_reply')->nullable();
             $table->text('terms')->nullable();
-            $table->json('countries')->nullable();
-            $table->json('trade_hours')->nullable();
+            $table->jsonb('countries')->nullable();
+            $table->jsonb('trade_hours')->nullable();
             $table->string('status', 12)->default('active');
             $table->integer('priority')->default(0);
             $table->timestamps();
@@ -122,7 +122,7 @@ return new class extends Migration
             $table->timestamp('released_at')->nullable();
             $table->timestamp('cancelled_at')->nullable();
             $table->string('cancel_reason', 64)->nullable();
-            $table->json('meta')->nullable();
+            $table->jsonb('meta')->nullable();
             $table->timestamps();
 
             $table->unique('ref', 'uq_p2p_order_ref');

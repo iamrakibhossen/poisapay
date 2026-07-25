@@ -21,7 +21,7 @@ return new class extends Migration
             $table->date('day');
             $table->string('metric', 48);
             $table->decimal('value', 38, 2)->default(0);
-            $table->json('meta')->nullable();   // optional dimensional breakdown
+            $table->jsonb('meta')->nullable();   // optional dimensional breakdown
             $table->timestamps();
 
             $table->unique(['day', 'metric']);

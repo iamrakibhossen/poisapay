@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('user_agent', 255)->nullable();
             $table->string('fingerprint', 64)->nullable();
             $table->unsignedTinyInteger('risk_score')->default(0);
-            $table->json('metadata')->nullable();
+            $table->jsonb('metadata')->nullable();
             $table->timestamp('acknowledged_at')->nullable();
             $table->timestamps();
 

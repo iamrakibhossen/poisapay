@@ -73,7 +73,7 @@ return new class extends Migration
             $table->foreignId('asset_id')->constrained('assets');
             $table->string('to_address', 64);
             $table->string('payout_method', 16)->nullable();    // bank | mobile (fiat rails)
-            $table->json('payout_details')->nullable();
+            $table->jsonb('payout_details')->nullable();
             $table->decimal('amount', 78, 0);
             $table->decimal('fee', 78, 0)->default(0);
             $table->string('status', 16)->default('pending');
@@ -126,7 +126,7 @@ return new class extends Migration
             $table->string('tx_hash', 80)->nullable();
             $table->unsignedInteger('attempt')->default(1);
             $table->string('outcome', 16)->default('submitted'); // submitted | confirmed | failed
-            $table->json('provider_response')->nullable();
+            $table->jsonb('provider_response')->nullable();
             $table->timestamps();
 
             $table->index(['subject_type', 'subject_id']);

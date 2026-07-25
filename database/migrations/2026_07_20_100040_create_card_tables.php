@@ -22,8 +22,8 @@ return new class extends Migration
             $table->boolean('online_enabled')->default(true);
             $table->boolean('atm_enabled')->default(true);
             $table->boolean('contactless_enabled')->default(true);
-            $table->json('allowed_countries')->nullable();
-            $table->json('blocked_mccs')->nullable();
+            $table->jsonb('allowed_countries')->nullable();
+            $table->jsonb('blocked_mccs')->nullable();
             $table->text('pin_hash')->nullable();
             $table->uuid('replaced_by')->nullable();
             $table->timestamp('closed_at')->nullable();
