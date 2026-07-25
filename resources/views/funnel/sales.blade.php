@@ -135,6 +135,79 @@
                         @endif
                         @break
 
+                    @case('stats')
+                        @if (! empty($c))
+                            <section class="border-t border-neutral-100 py-10">
+                                <div class="grid grid-cols-2 gap-6 sm:grid-cols-4">
+                                    @foreach ($c as $s)
+                                        <div class="text-center">
+                                            <p class="text-2xl font-extrabold sm:text-3xl" style="color: var(--accent)">{{ is_array($s) ? ($s['value'] ?? '') : $s }}</p>
+                                            <p class="mt-0.5 text-[11px] uppercase tracking-wide text-neutral-400">{{ is_array($s) ? ($s['label'] ?? '') : '' }}</p>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </section>
+                        @endif
+                        @break
+
+                    @case('logos')
+                        @if (! empty($c))
+                            <section class="border-t border-neutral-100 bg-neutral-50/60 py-8">
+                                <p class="text-center text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{{ __('Trusted by teams at') }}</p>
+                                <div class="mt-4 flex flex-wrap items-center justify-center gap-x-10 gap-y-3">
+                                    @foreach ($c as $l)
+                                        <span class="text-base font-bold text-neutral-400">{{ is_array($l) ? implode(' ', $l) : $l }}</span>
+                                    @endforeach
+                                </div>
+                            </section>
+                        @endif
+                        @break
+
+                    @case('steps')
+                        @if (! empty($c))
+                            <section class="border-t border-neutral-100 py-12">
+                                <h2 class="text-center text-xl font-bold">{{ __('How it works') }}</h2>
+                                <div class="mt-8 grid gap-8 sm:grid-cols-3">
+                                    @foreach ($c as $i => $s)
+                                        <div class="text-center">
+                                            <span class="mx-auto grid h-10 w-10 place-items-center rounded-full text-sm font-bold text-white" style="background: var(--accent)">{{ $i + 1 }}</span>
+                                            <p class="mt-3 text-sm font-semibold text-neutral-900">{{ is_array($s) ? ($s['title'] ?? '') : $s }}</p>
+                                            <p class="mt-1 text-xs text-neutral-500">{{ is_array($s) ? ($s['desc'] ?? '') : '' }}</p>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </section>
+                        @endif
+                        @break
+
+                    @case('bonuses')
+                        @if (! empty($c))
+                            <section class="border-t border-neutral-100 bg-neutral-50/60 py-12">
+                                <h2 class="text-center text-xl font-bold">{{ __('Everything included today') }}</h2>
+                                <div class="mx-auto mt-6 max-w-md divide-y divide-neutral-100 rounded-2xl border border-neutral-200 bg-white">
+                                    @foreach ($c as $b)
+                                        <div class="flex items-center justify-between px-5 py-3.5 text-sm">
+                                            <span class="flex items-center gap-2 text-neutral-800"><span style="color: var(--accent)">✓</span>{{ is_array($b) ? ($b['title'] ?? '') : $b }}</span>
+                                            @if (is_array($b) && ! empty($b['value']))<span class="font-semibold text-neutral-400 line-through">{{ $b['value'] }}</span>@endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </section>
+                        @endif
+                        @break
+
+                    @case('video')
+                        @if (! empty($c))
+                            <section class="border-t border-neutral-100 py-12 text-center">
+                                <h2 class="text-xl font-bold">{{ $c['title'] ?? __('Watch the demo') }}</h2>
+                                @if (! empty($c['subtitle']))<p class="mt-1 text-sm text-neutral-500">{{ $c['subtitle'] }}</p>@endif
+                                <div class="mx-auto mt-6 grid aspect-video max-w-2xl place-items-center rounded-2xl bg-neutral-900/90">
+                                    <span class="grid h-16 w-16 place-items-center rounded-full bg-white/90 text-neutral-900 shadow-lg"><x-heroicon-s-play class="h-7 w-7" /></span>
+                                </div>
+                            </section>
+                        @endif
+                        @break
+
                     @case('testimonials')
                         @if (! empty($c))
                             <section class="border-t border-neutral-100 py-10">
@@ -145,7 +218,7 @@
                                             <div class="text-xs text-amber-500">★★★★★</div>
                                             <blockquote class="mt-2 text-sm text-neutral-700">“{{ is_array($t) ? ($t['quote'] ?? '') : $t }}”</blockquote>
                                             @if (is_array($t) && ! empty($t['name']))
-                                                <figcaption class="mt-2 text-xs text-neutral-400">{{ $t['name'] }}</figcaption>
+                                                <figcaption class="mt-2 text-xs text-neutral-400">{{ $t['name'] }}@if (! empty($t['role'])) · {{ $t['role'] }}@endif</figcaption>
                                             @endif
                                         </figure>
                                     @endforeach
@@ -158,9 +231,12 @@
                         @if (! empty($c))
                             <section class="border-t border-neutral-100 py-10">
                                 <h2 class="text-xl font-bold">{{ __('Questions & answers') }}</h2>
-                                <div class="mt-4 divide-y divide-neutral-100 rounded-xl border border-neutral-200">
+                                <div class="mt-4 space-y-2">
                                     @foreach ($c as $q)
-                                        <div class="px-4 py-3 text-sm font-medium text-neutral-800">{{ is_array($q) ? ($q['q'] ?? '') : $q }}</div>
+                                        <div class="rounded-xl border border-neutral-200 px-4 py-3">
+                                            <p class="text-sm font-medium text-neutral-800">{{ is_array($q) ? ($q['q'] ?? '') : $q }}</p>
+                                            @if (is_array($q) && ! empty($q['a']))<p class="mt-1 text-sm text-neutral-500">{{ $q['a'] }}</p>@endif
+                                        </div>
                                     @endforeach
                                 </div>
                             </section>

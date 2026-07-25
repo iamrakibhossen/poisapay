@@ -423,7 +423,9 @@ class PublicSalesController extends Controller
         return [
             'slug' => $page->slug,
             'name' => $page->name,
-            'variantOptions' => $this->variantOptionCatalog($product),
+            // Physical variant products pick the variation on the shipping step, so
+            // only surface the picker on the sales page for digital variant goods.
+            'variantOptions' => $product->requires_shipping ? [] : $this->variantOptionCatalog($product),
             'theme' => [
                 'accent' => $theme['accent'] ?? '#2563eb',
                 'btn' => $theme['btn'] ?? 'rounded',

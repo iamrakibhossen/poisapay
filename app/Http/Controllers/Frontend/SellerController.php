@@ -894,7 +894,7 @@ class SellerController extends Controller
             foreach ($sections as $s) {
                 $seed['sections'][$s['type']] = (bool) ($s['enabled'] ?? true);
                 if (array_key_exists('content', $s) && $s['content'] !== null) {
-                    $seed['content'][$s['type']] = $s['content'];
+                    $seed['content'][$s['type']] = $this->normalizeSectionContent($s['type'], $s['content']);
                 }
             }
 
@@ -914,6 +914,33 @@ class SellerController extends Controller
         }
 
         return $seed;
+    }
+
+    /**
+     * Upgrade older persisted section content to the current editor shape so the
+     * builder never binds to a missing key: FAQ strings → {q, a}, testimonials
+     * gain a `role`. Anything already in the new shape passes through untouched.
+     *
+     * @param  mixed  $content
+     * @return mixed
+     */
+    private function normalizeSectionContent(string $type, $content)
+    {
+        if ($type === 'faq' && is_array($content)) {
+            return array_map(
+                fn ($item) => is_array($item) ? $item : ['q' => (string) $item, 'a' => ''],
+                $content,
+            );
+        }
+
+        if ($type === 'testimonials' && is_array($content)) {
+            return array_map(
+                fn ($t) => is_array($t) ? array_merge(['name' => '', 'role' => '', 'quote' => ''], $t) : ['name' => '', 'role' => '', 'quote' => (string) $t],
+                $content,
+            );
+        }
+
+        return $content;
     }
 
     /**
