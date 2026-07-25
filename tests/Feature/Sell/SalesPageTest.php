@@ -56,7 +56,7 @@ it('publishes a page and audits it', function () use ($page) {
 
     expect($p->fresh()->status)->toBe(SalesPageStatus::Published)
         ->and($p->fresh()->published_at)->not->toBeNull()
-        ->and(AuditLog::where('action', 'sell.sales_page.published')->exists())->toBeTrue();
+        ->and(AuditLog::where('action', 'shop.sales_page.published')->exists())->toBeTrue();
 });
 
 it('serves a cached public view for published pages, null otherwise', function () use ($page) {
@@ -96,7 +96,7 @@ it('invalidates the page cache when its product changes', function () use ($page
 
 it('creates a page over the REST API', function () use ($page) {
     $this->actingAs($this->sellerUser)
-        ->postJson('/api/sell/sales-pages', [
+        ->postJson('/api/shop/sales-pages', [
             'product_id' => $this->product->id, 'name' => 'Campaign Page',
             'sections' => [['type' => 'hero']],
         ])
@@ -108,11 +108,11 @@ it('creates a page over the REST API', function () use ($page) {
 it('serves the public page over HTTP only when published', function () use ($page) {
     $p = app(CreateSalesPage::class)->execute($this->seller, $page());
 
-    $this->getJson("/api/sell/public/pages/{$p->slug}")->assertNotFound(); // draft
+    $this->getJson("/api/shop/public/pages/{$p->slug}")->assertNotFound(); // draft
 
     app(SetSalesPageStatus::class)->execute($p, SalesPageStatus::Published);
 
-    $this->getJson("/api/sell/public/pages/{$p->slug}")
+    $this->getJson("/api/shop/public/pages/{$p->slug}")
         ->assertOk()
         ->assertJsonPath('data.product.name', 'LaunchKit');
 });
@@ -121,6 +121,6 @@ it('forbids editing another seller\'s page', function () use ($page) {
     $p = app(CreateSalesPage::class)->execute($this->seller, $page());
 
     $this->actingAs(User::factory()->create())
-        ->getJson("/api/sell/sales-pages/{$p->id}")
+        ->getJson("/api/shop/sales-pages/{$p->id}")
         ->assertForbidden();
 });

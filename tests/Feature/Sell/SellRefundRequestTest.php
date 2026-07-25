@@ -185,17 +185,17 @@ it('exposes the buyer + seller refund API with correct authorization', function 
 
     // Buyer opens a request via the API.
     $res = $this->actingAs($this->buyer)
-        ->postJson(route('sell.api.refund-requests.store'), ['order_id' => $order->id, 'type' => 'full'])
+        ->postJson(route('shop.api.refund-requests.store'), ['order_id' => $order->id, 'type' => 'full'])
         ->assertCreated()->json('data');
     $reqId = $res['id'];
 
     // A stranger may not view it.
     $stranger = User::factory()->create();
-    $this->actingAs($stranger)->getJson(route('sell.api.refund-requests.show', $reqId))->assertForbidden();
+    $this->actingAs($stranger)->getJson(route('shop.api.refund-requests.show', $reqId))->assertForbidden();
 
     // A stranger may not approve it; the seller can.
-    $this->actingAs($stranger)->postJson(route('sell.api.refund-requests.approve', $reqId))->assertForbidden();
-    $this->actingAs($this->sellerUser)->postJson(route('sell.api.refund-requests.approve', $reqId))->assertOk();
+    $this->actingAs($stranger)->postJson(route('shop.api.refund-requests.approve', $reqId))->assertForbidden();
+    $this->actingAs($this->sellerUser)->postJson(route('shop.api.refund-requests.approve', $reqId))->assertOk();
 
     expect($order->fresh()->status)->toBe(OrderStatus::Refunded);
 });
@@ -216,8 +216,8 @@ it('drives the buyer → seller refund flow over the Blade routes', function () 
 
     // Seller approves from the order page.
     $this->actingAs($this->sellerUser)
-        ->post(route('sell.order.refund-request.approve', ['id' => $order->id, 'refundRequest' => $req->id]), ['note' => 'ok'])
-        ->assertRedirect(route('sell.order', ['id' => $order->id]));
+        ->post(route('shop.order.refund-request.approve', ['id' => $order->id, 'refundRequest' => $req->id]), ['note' => 'ok'])
+        ->assertRedirect(route('shop.order', ['id' => $order->id]));
 
     expect($order->fresh()->status)->toBe(OrderStatus::PartiallyRefunded)
         ->and(($this->avail)($this->buyer))->toBe('70000000');
@@ -230,8 +230,8 @@ it('lets an operator resolve an escalated request over the admin routes', functi
     $admin = ($this->makeAdmin)();
 
     $this->actingAs($admin, 'admin')
-        ->post(route('admin.sell-refunds.approve', $req->id), ['note' => 'valid claim'])
-        ->assertRedirect(route('admin.sell-refunds.show', $req->id));
+        ->post(route('admin.shop-refunds.approve', $req->id), ['note' => 'valid claim'])
+        ->assertRedirect(route('admin.shop-refunds.show', $req->id));
 
     expect($order->fresh()->status)->toBe(OrderStatus::Refunded)
         ->and($req->fresh()->resolver_type)->toBe('admin');

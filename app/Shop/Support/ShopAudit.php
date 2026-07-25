@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * Sell-scoped audit seam. Delegates to the core Audit module ({@see ActivityLogger})
  * — Sell never owns its own audit storage — and namespaces every action under
- * `sell.` so the whole module's trail is filterable with `action LIKE 'sell.%'`.
+ * `sell.` so the whole module's trail is filterable with `action LIKE 'shop.%'`.
  *
  * Prefer firing a {@see \App\Shop\Events\ShopDomainEvent}; call this directly only
  * for non-event side-audits (e.g. a read of sensitive data).
@@ -27,6 +27,6 @@ final class ShopAudit
         ?string $description = null,
         ?Model $actor = null,
     ): void {
-        ActivityLogger::log('sell.'.$action, $subject, $data, $description, $actor);
+        ActivityLogger::log('shop.'.$action, $subject, $data, $description, $actor);
     }
 }

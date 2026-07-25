@@ -33,7 +33,7 @@ class RefundAdminController extends Controller
             ->paginate(25)
             ->withQueryString();
 
-        return view('admin.sell.refunds.index', [
+        return view('admin.shop.refunds.index', [
             'requests' => $requests,
             'status' => $status,
             'escalatedCount' => RefundRequest::where('status', RefundRequestStatus::Escalated->value)->count(),
@@ -44,7 +44,7 @@ class RefundAdminController extends Controller
     {
         $this->authorizeView();
 
-        return view('admin.sell.refunds.show', [
+        return view('admin.shop.refunds.show', [
             'request' => $refundRequest->load(['order.asset', 'buyer', 'seller.user']),
         ]);
     }
@@ -73,7 +73,7 @@ class RefundAdminController extends Controller
             return back()->withErrors(['refund' => $e->getMessage()]);
         }
 
-        return redirect()->route('admin.sell-refunds.show', $refundRequest->id)
+        return redirect()->route('admin.shop-refunds.show', $refundRequest->id)
             ->with('success', $approve ? __('Refund approved — the buyer has been repaid.') : __('Refund request declined.'));
     }
 

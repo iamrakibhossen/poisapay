@@ -35,7 +35,7 @@ class EscalateRefundRequest
             $this->admins->notify(
                 __('Refund escalated'),
                 __('A refund on order :number needs operator review.', ['number' => $fresh->order->number]),
-                '/admin/sell/refunds/'.$fresh->getKey(),
+                '/admin/shop/refunds/'.$fresh->getKey(),
                 'sell',
             );
 

@@ -5,7 +5,7 @@
                 <h1 class="text-2xl font-semibold tracking-tight text-neutral-900">{{ __('Products') }}</h1>
                 <p class="mt-1 text-sm text-neutral-500">{{ __('Each product gets its own sales page you can share in ads.') }}</p>
             </div>
-            <x-ui.button href="{{ route('sell.products.create') }}" icon="plus">{{ __('Create product') }}</x-ui.button>
+            <x-ui.button href="{{ route('shop.products.create') }}" icon="plus">{{ __('Create product') }}</x-ui.button>
         </div>
 
         @if (session('success'))
@@ -44,7 +44,7 @@
                             @endif
                         </td>
                         <td class="whitespace-nowrap px-5 py-4 text-right align-middle">
-                            <a href="{{ route('sell.products.edit', $p['id']) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-neutral-500 hover:text-brand-600">
+                            <a href="{{ route('shop.products.edit', $p['id']) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-neutral-500 hover:text-brand-600">
                                 <x-heroicon-o-pencil-square class="h-3.5 w-3.5" /> {{ __('Edit') }}
                             </a>
                         </td>
@@ -55,7 +55,7 @@
             <div class="pp-card">
                 <x-ui.empty-state icon="cube" :title="__('No products yet')" :description="__('Create your first product to get a shareable sales page.')">
                     <x-slot:action>
-                        <x-ui.button href="{{ route('sell.products.create') }}" icon="plus" size="sm">{{ __('Create product') }}</x-ui.button>
+                        <x-ui.button href="{{ route('shop.products.create') }}" icon="plus" size="sm">{{ __('Create product') }}</x-ui.button>
                     </x-slot:action>
                 </x-ui.empty-state>
             </div>

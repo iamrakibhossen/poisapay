@@ -62,7 +62,7 @@ it('shows real KPIs on the seller analytics page', function () {
     AnalyticsEvent::create(['seller_id' => $this->seller->id, 'sales_page_id' => $this->page->id, 'type' => 'checkout_start', 'session_id' => 'a', 'occurred_at' => now()]);
     AnalyticsEvent::create(['seller_id' => $this->seller->id, 'sales_page_id' => $this->page->id, 'type' => 'purchase', 'session_id' => 'a', 'occurred_at' => now()]);
 
-    $this->actingAs($this->sellerUser)->get(route('sell.analytics'))
+    $this->actingAs($this->sellerUser)->get(route('shop.analytics'))
         ->assertOk()
         ->assertSee('50%')   // 1 purchase / 2 visitors conversion
         ->assertSee('Page views');
@@ -72,6 +72,6 @@ it('buckets traffic sources from referrer and utm', function () {
     AnalyticsEvent::create(['seller_id' => $this->seller->id, 'sales_page_id' => $this->page->id, 'type' => 'page_view', 'session_id' => 'a', 'referrer' => 'https://www.facebook.com/', 'occurred_at' => now()]);
     AnalyticsEvent::create(['seller_id' => $this->seller->id, 'sales_page_id' => $this->page->id, 'type' => 'page_view', 'session_id' => 'b', 'utm' => ['source' => 'newsletter'], 'occurred_at' => now()]);
 
-    $this->actingAs($this->sellerUser)->get(route('sell.analytics'))
+    $this->actingAs($this->sellerUser)->get(route('shop.analytics'))
         ->assertOk()->assertSee('Facebook')->assertSee('Newsletter');
 });

@@ -39,7 +39,7 @@ it('creates a draft product with a generated slug and audits it', function () us
     expect($p->status)->toBe(ProductStatus::Draft)
         ->and($p->slug)->toBe('launchkit-laravel-saas-boilerplate')
         ->and($p->type)->toBe(ProductType::Digital)
-        ->and(AuditLog::where('action', 'sell.product.created')->exists())->toBeTrue();
+        ->and(AuditLog::where('action', 'shop.product.created')->exists())->toBeTrue();
 });
 
 it('generates unique slugs per seller', function () use ($product) {
@@ -71,7 +71,7 @@ it('publishes a product and stamps published_at', function () use ($product) {
 
     expect($p->fresh()->status)->toBe(ProductStatus::Published)
         ->and($p->fresh()->published_at)->not->toBeNull()
-        ->and(AuditLog::where('action', 'sell.product.published')->exists())->toBeTrue();
+        ->and(AuditLog::where('action', 'shop.product.published')->exists())->toBeTrue();
 });
 
 it('refuses to publish a variant product with no active variants', function () use ($product) {
@@ -112,7 +112,7 @@ it('blocks a non-approved seller from creating products', function () use ($prod
 
 it('creates a product over the REST API and returns a resource', function () {
     $this->actingAs($this->user)
-        ->postJson('/api/sell/products', [
+        ->postJson('/api/shop/products', [
             'type' => 'digital', 'name' => 'API Product',
             'price_amount' => 1000, 'price_asset_id' => $this->asset->id,
         ])
@@ -125,6 +125,6 @@ it('forbids viewing another seller\'s product (no ID enumeration)', function () 
     $p = app(CreateProduct::class)->execute($this->seller, $product());
 
     $this->actingAs(User::factory()->create())
-        ->getJson("/api/sell/products/{$p->id}")
+        ->getJson("/api/shop/products/{$p->id}")
         ->assertForbidden();
 });

@@ -80,11 +80,11 @@ it('includes AggregateRating once the product has reviews', function () {
 
 it('persists SEO settings from the builder', function () {
     $this->actingAs($this->sellerUser)
-        ->post(route('sell.sales-page.update', ['slug' => 'launchkit-main']), [
+        ->post(route('shop.sales-page.update', ['slug' => 'launchkit-main']), [
             'name' => 'Main', 'builder' => json_encode(['theme' => [], 'sections' => []]),
             'seo_title' => 'My SEO Title', 'seo_description' => 'My description', 'seo_noindex' => '1',
         ])
-        ->assertRedirect(route('sell.sales-page.edit', ['slug' => 'launchkit-main']));
+        ->assertRedirect(route('shop.sales-page.edit', ['slug' => 'launchkit-main']));
 
     $seo = $this->page->fresh()->seo;
     expect($seo['title'])->toBe('My SEO Title')

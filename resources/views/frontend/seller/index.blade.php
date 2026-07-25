@@ -43,8 +43,8 @@
                 </span>
             @elseif ($isSeller && $hasProducts)
                 <div class="flex items-center gap-2">
-                    <x-ui.button href="{{ route('sell.products') }}" variant="secondary" icon="cube">{{ __('Products') }}</x-ui.button>
-                    <x-ui.button href="{{ route('sell.products.create') }}" icon="plus">{{ __('New product') }}</x-ui.button>
+                    <x-ui.button href="{{ route('shop.products') }}" variant="secondary" icon="cube">{{ __('Products') }}</x-ui.button>
+                    <x-ui.button href="{{ route('shop.products.create') }}" icon="plus">{{ __('New product') }}</x-ui.button>
                 </div>
             @endif
         </div>
@@ -73,7 +73,7 @@
                     <h2 class="mt-1 text-2xl font-semibold tracking-tight text-neutral-900">{{ __('Sell your first product in minutes') }}</h2>
                     <p class="mt-2 text-sm text-neutral-600">{{ __('Turn a digital download, license, membership or service into a hosted sales page with built-in checkout — no website required.') }}</p>
                     <div class="mt-5 flex flex-wrap items-center gap-3">
-                        <x-ui.button href="{{ route('sell.apply') }}" size="lg" icon="paper-airplane">{{ $rejected ? __('Re-apply to sell') : __('Become a seller') }}</x-ui.button>
+                        <x-ui.button href="{{ route('shop.apply') }}" size="lg" icon="paper-airplane">{{ $rejected ? __('Re-apply to sell') : __('Become a seller') }}</x-ui.button>
                         <span class="inline-flex items-center gap-1.5 text-xs text-neutral-500">
                             <x-heroicon-o-clock class="h-4 w-4" /> {{ __('Reviewed within 1–2 business days') }}
                         </span>
@@ -152,7 +152,7 @@
                     </ol>
 
                     <div class="mt-6">
-                        <x-ui.button href="{{ route('sell.products.create') }}" size="lg" icon="plus">{{ __('Create your first product') }}</x-ui.button>
+                        <x-ui.button href="{{ route('shop.products.create') }}" size="lg" icon="plus">{{ __('Create your first product') }}</x-ui.button>
                     </div>
                 </div>
             </div>
@@ -167,17 +167,17 @@
                         <x-heroicon-s-bell-alert class="h-4 w-4" /> {{ __('Needs attention') }}
                     </span>
                     @if ($attention['fulfil'] > 0)
-                        <a href="{{ route('sell.orders') }}" class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 shadow-sm ring-1 ring-neutral-200 hover:ring-brand-300">
+                        <a href="{{ route('shop.orders') }}" class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 shadow-sm ring-1 ring-neutral-200 hover:ring-brand-300">
                             <x-heroicon-o-inbox-stack class="h-4 w-4 text-brand-600" /> {{ trans_choice(':count order to fulfil|:count orders to fulfil', $attention['fulfil'], ['count' => $attention['fulfil']]) }}
                         </a>
                     @endif
                     @if ($attention['unread'] > 0)
-                        <a href="{{ route('sell.inbox') }}" class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 shadow-sm ring-1 ring-neutral-200 hover:ring-brand-300">
+                        <a href="{{ route('shop.inbox') }}" class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 shadow-sm ring-1 ring-neutral-200 hover:ring-brand-300">
                             <x-heroicon-o-chat-bubble-left-right class="h-4 w-4 text-brand-600" /> {{ trans_choice(':count unread message|:count unread messages', $attention['unread'], ['count' => $attention['unread']]) }}
                         </a>
                     @endif
                     @if ($attention['refunds'] > 0)
-                        <a href="{{ route('sell.orders') }}" class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 shadow-sm ring-1 ring-neutral-200 hover:ring-brand-300">
+                        <a href="{{ route('shop.orders') }}" class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 shadow-sm ring-1 ring-neutral-200 hover:ring-brand-300">
                             <x-heroicon-o-arrow-uturn-left class="h-4 w-4 text-rose-500" /> {{ trans_choice(':count refund request|:count refund requests', $attention['refunds'], ['count' => $attention['refunds']]) }}
                         </a>
                     @endif
@@ -196,7 +196,7 @@
             @if ($counts['published'] === 0)
                 <x-ui.alert type="info" :title="__('Publish a product to start selling')">
                     {{ __('You have :n draft product(s). Publish one to generate its sales page and share the link.', ['n' => $counts['products']]) }}
-                    <a href="{{ route('sell.products') }}" class="font-semibold text-brand-600 hover:underline">{{ __('Go to products →') }}</a>
+                    <a href="{{ route('shop.products') }}" class="font-semibold text-brand-600 hover:underline">{{ __('Go to products →') }}</a>
                 </x-ui.alert>
             @endif
 
@@ -207,13 +207,13 @@
                     <x-ui.card class="!p-0">
                         <div class="flex items-center justify-between border-b border-neutral-100 px-5 py-4">
                             <h2 class="text-sm font-semibold text-neutral-900">{{ __('Recent orders') }}</h2>
-                            <a href="{{ route('sell.orders') }}" class="text-xs font-semibold text-brand-600 hover:underline">{{ __('View all') }}</a>
+                            <a href="{{ route('shop.orders') }}" class="text-xs font-semibold text-brand-600 hover:underline">{{ __('View all') }}</a>
                         </div>
                         @if (count($recentOrders))
                             <ul class="divide-y divide-neutral-100">
                                 @foreach ($recentOrders as $o)
                                     <li>
-                                        <a href="{{ route('sell.order', $o['id']) }}" class="flex items-center gap-3 px-5 py-3 transition hover:bg-neutral-50">
+                                        <a href="{{ route('shop.order', $o['id']) }}" class="flex items-center gap-3 px-5 py-3 transition hover:bg-neutral-50">
                                             <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-neutral-100 text-neutral-500">
                                                 <x-heroicon-o-shopping-bag class="h-4 w-4" />
                                             </span>
@@ -259,7 +259,7 @@
                         </div>
 
                         <div class="flex items-center gap-2">
-                            <form method="POST" action="{{ route('sell.logo') }}" enctype="multipart/form-data" x-data class="flex-1">
+                            <form method="POST" action="{{ route('shop.logo') }}" enctype="multipart/form-data" x-data class="flex-1">
                                 @csrf
                                 <input type="file" name="logo" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="hidden"
                                     x-ref="logo" x-on:change="$el.files.length && $el.form.submit()" />
@@ -268,7 +268,7 @@
                                 </x-ui.button>
                             </form>
                             @if ($seller->logoUrl())
-                                <form method="POST" action="{{ route('sell.logo.delete') }}" onsubmit="return confirm('{{ __('Remove the store logo?') }}')">
+                                <form method="POST" action="{{ route('shop.logo.delete') }}" onsubmit="return confirm('{{ __('Remove the store logo?') }}')">
                                     @csrf @method('DELETE')
                                     <x-ui.button type="submit" variant="ghost" size="sm">{{ __('Remove') }}</x-ui.button>
                                 </form>
@@ -277,16 +277,16 @@
                         @error('logo')<p class="text-xs text-rose-600">{{ $message }}</p>@enderror
 
                         <div class="grid grid-cols-2 gap-2 border-t border-neutral-100 pt-4">
-                            <a href="{{ route('sell.products.create') }}" class="flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50">
+                            <a href="{{ route('shop.products.create') }}" class="flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50">
                                 <x-heroicon-o-plus class="h-4 w-4 text-brand-600" /> {{ __('New product') }}
                             </a>
-                            <a href="{{ route('sell.sales-pages') }}" class="flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50">
+                            <a href="{{ route('shop.sales-pages') }}" class="flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50">
                                 <x-heroicon-o-document-text class="h-4 w-4 text-brand-600" /> {{ __('Sales pages') }}
                             </a>
-                            <a href="{{ route('sell.earnings') }}" class="flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50">
+                            <a href="{{ route('shop.earnings') }}" class="flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50">
                                 <x-heroicon-o-banknotes class="h-4 w-4 text-brand-600" /> {{ __('Earnings') }}
                             </a>
-                            <a href="{{ route('sell.coupons') }}" class="flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50">
+                            <a href="{{ route('shop.coupons') }}" class="flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50">
                                 <x-heroicon-o-ticket class="h-4 w-4 text-brand-600" /> {{ __('Coupons') }}
                             </a>
                         </div>
@@ -299,7 +299,7 @@
             @if ($insights)
                 <div class="flex items-center justify-between px-1">
                     <h2 class="text-xs font-semibold uppercase tracking-wide text-neutral-400">{{ __('Last 30 days') }}</h2>
-                    <a href="{{ route('sell.analytics') }}" class="text-xs font-semibold text-brand-600 hover:underline">{{ __('Full analytics →') }}</a>
+                    <a href="{{ route('shop.analytics') }}" class="text-xs font-semibold text-brand-600 hover:underline">{{ __('Full analytics →') }}</a>
                 </div>
 
                 <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -346,7 +346,7 @@
                     <x-ui.card class="!p-0">
                         <div class="flex items-center justify-between border-b border-neutral-100 px-5 py-4">
                             <h3 class="text-sm font-semibold text-neutral-900">{{ __('Top products') }}</h3>
-                            <a href="{{ route('sell.products') }}" class="text-xs font-semibold text-brand-600 hover:underline">{{ __('All products') }}</a>
+                            <a href="{{ route('shop.products') }}" class="text-xs font-semibold text-brand-600 hover:underline">{{ __('All products') }}</a>
                         </div>
                         @if (count($insights['topProducts']))
                             <ul class="divide-y divide-neutral-100">
@@ -372,21 +372,21 @@
             @php
                 $workspace = [
                     __('Catalog') => [
-                        ['cube', __('Products'), __('Create and manage your products.'), route('sell.products'), $counts['products']],
-                        ['document-text', __('Sales pages'), __('Customize each product landing page.'), route('sell.sales-pages'), $counts['pages'] ?: null],
-                        ['squares-2x2', __('Funnels'), __('Order bumps, upsells and downsells.'), route('sell.funnels'), null],
+                        ['cube', __('Products'), __('Create and manage your products.'), route('shop.products'), $counts['products']],
+                        ['document-text', __('Sales pages'), __('Customize each product landing page.'), route('shop.sales-pages'), $counts['pages'] ?: null],
+                        ['squares-2x2', __('Funnels'), __('Order bumps, upsells and downsells.'), route('shop.funnels'), null],
                     ],
                     __('Customers') => [
-                        ['inbox-stack', __('Orders'), __('Track sales and fulfilment.'), route('sell.orders'), $counts['sales'] ?: null],
-                        ['chat-bubble-left-right', __('Inbox'), __('Reply to buyer messages.'), route('sell.inbox'), ($attention['unread'] ?? 0) ?: null],
-                        ['star', __('Reviews'), __('Ratings and buyer feedback.'), route('sell.reviews'), null],
-                        ['users', __('Customers'), __('Buyers and their purchases.'), route('sell.customers'), null],
+                        ['inbox-stack', __('Orders'), __('Track sales and fulfilment.'), route('shop.orders'), $counts['sales'] ?: null],
+                        ['chat-bubble-left-right', __('Inbox'), __('Reply to buyer messages.'), route('shop.inbox'), ($attention['unread'] ?? 0) ?: null],
+                        ['star', __('Reviews'), __('Ratings and buyer feedback.'), route('shop.reviews'), null],
+                        ['users', __('Customers'), __('Buyers and their purchases.'), route('shop.customers'), null],
                     ],
                     __('Grow') => [
-                        ['ticket', __('Coupons'), __('Discounts and campaigns.'), route('sell.coupons'), null],
-                        ['chart-bar', __('Analytics'), __('Traffic, conversion and upsell rates.'), route('sell.analytics'), null],
-                        ['globe-alt', __('Custom domain'), __('Serve pages from your own domain.'), route('sell.domains'), null],
-                        ['banknotes', __('Earnings & payouts'), __('Balance, vesting and withdrawals.'), route('sell.earnings'), null],
+                        ['ticket', __('Coupons'), __('Discounts and campaigns.'), route('shop.coupons'), null],
+                        ['chart-bar', __('Analytics'), __('Traffic, conversion and upsell rates.'), route('shop.analytics'), null],
+                        ['globe-alt', __('Custom domain'), __('Serve pages from your own domain.'), route('shop.domains'), null],
+                        ['banknotes', __('Earnings & payouts'), __('Balance, vesting and withdrawals.'), route('shop.earnings'), null],
                     ],
                 ];
             @endphp

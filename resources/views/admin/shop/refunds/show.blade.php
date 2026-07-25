@@ -6,7 +6,7 @@
     @endphp
 
     <div class="mx-auto max-w-3xl space-y-6">
-        <a href="{{ route('admin.sell-refunds') }}" class="inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900">
+        <a href="{{ route('admin.shop-refunds') }}" class="inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900">
             <x-heroicon-o-chevron-left class="h-4 w-4" /> {{ __('Refund review') }}
         </a>
 
@@ -44,12 +44,12 @@
             <x-ui.card>
                 <p class="mb-3 text-sm font-semibold text-gray-900">{{ __('Resolve') }}</p>
                 @error('refund')<p class="mb-2 text-xs text-rose-600">{{ $message }}</p>@enderror
-                <form method="POST" action="{{ route('admin.sell-refunds.approve', $request->id) }}" class="space-y-3">
+                <form method="POST" action="{{ route('admin.shop-refunds.approve', $request->id) }}" class="space-y-3">
                     @csrf
                     <textarea name="note" rows="2" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" placeholder="{{ __('Optional note') }}"></textarea>
                     <div class="flex gap-2">
                         <button type="submit" class="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-600"><x-heroicon-o-check class="h-4 w-4" /> {{ __('Approve & refund') }} {{ $money($request->amount_requested) }}</button>
-                        <button type="submit" formaction="{{ route('admin.sell-refunds.reject', $request->id) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"><x-heroicon-o-x-mark class="h-4 w-4" /> {{ __('Decline') }}</button>
+                        <button type="submit" formaction="{{ route('admin.shop-refunds.reject', $request->id) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"><x-heroicon-o-x-mark class="h-4 w-4" /> {{ __('Decline') }}</button>
                     </div>
                 </form>
             </x-ui.card>

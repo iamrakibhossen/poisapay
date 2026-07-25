@@ -48,7 +48,7 @@ it('advances paid → processing → shipped and records events + audit', functi
         ->and($order->shipping_address['carrier'])->toBe('Pathao')
         ->and($order->shipping_address['tracking'])->toBe('BD-99')
         ->and($order->events()->where('type', 'shipped')->exists())->toBeTrue()
-        ->and(AuditLog::where('action', 'sell.order.shipped')->exists())->toBeTrue();
+        ->and(AuditLog::where('action', 'shop.order.shipped')->exists())->toBeTrue();
 });
 
 it('rejects an illegal transition (paid → delivered)', function () {
@@ -63,8 +63,8 @@ it('refuses money-reversal states through fulfilment', function () {
 
 it('lets the owning seller advance the order over HTTP', function () {
     $this->actingAs($this->sellerUser)
-        ->post(route('sell.order.status', ['id' => $this->order->id]), ['status' => 'processing'])
-        ->assertRedirect(route('sell.order', ['id' => $this->order->id]));
+        ->post(route('shop.order.status', ['id' => $this->order->id]), ['status' => 'processing'])
+        ->assertRedirect(route('shop.order', ['id' => $this->order->id]));
 
     expect($this->order->fresh()->status)->toBe(OrderStatus::Processing);
 });
@@ -74,16 +74,16 @@ it('forbids a different seller from touching the order', function () {
     Seller::create(['user_id' => $other->id, 'status' => SellerStatus::Approved, 'categories' => []]);
 
     $this->actingAs($other)
-        ->post(route('sell.order.status', ['id' => $this->order->id]), ['status' => 'processing'])
-        ->assertRedirect(route('sell.orders')); // resolved away — not their order
+        ->post(route('shop.order.status', ['id' => $this->order->id]), ['status' => 'processing'])
+        ->assertRedirect(route('shop.orders')); // resolved away — not their order
 
     expect($this->order->fresh()->status)->toBe(OrderStatus::Paid);
 });
 
 it('shows the order list and detail to the seller', function () {
-    $this->actingAs($this->sellerUser)->get(route('sell.orders'))
+    $this->actingAs($this->sellerUser)->get(route('shop.orders'))
         ->assertOk()->assertSee($this->order->number)->assertSee('Dev Tee');
 
-    $this->actingAs($this->sellerUser)->get(route('sell.order', ['id' => $this->order->id]))
+    $this->actingAs($this->sellerUser)->get(route('shop.order', ['id' => $this->order->id]))
         ->assertOk()->assertSee('Dev Tee')->assertSee('Fulfilment');
 });

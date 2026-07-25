@@ -7,7 +7,7 @@
 <x-layouts.app :title="$editing ? __('Edit product') : __('Create product')">
     <div class="mx-auto mt-6 max-w-3xl space-y-6">
         <div>
-            <a href="{{ route('sell.products') }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-neutral-500 transition hover:text-neutral-900">
+            <a href="{{ route('shop.products') }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-neutral-500 transition hover:text-neutral-900">
                 <x-heroicon-o-chevron-left class="h-4 w-4" /> {{ __('Products') }}
             </a>
             <h1 class="mt-2 text-2xl font-semibold tracking-tight text-neutral-900">{{ $editing ? __('Edit product') : __('Create product') }}</h1>
@@ -20,7 +20,7 @@
             <x-ui.alert type="danger">{{ $errors->first('product') }}</x-ui.alert>
         @endif
 
-        <form method="POST" action="{{ $editing ? route('sell.products.update', $product->id) : route('sell.products.store') }}" class="space-y-6"
+        <form method="POST" action="{{ $editing ? route('shop.products.update', $product->id) : route('shop.products.store') }}" class="space-y-6"
             x-data="{ type: @js(old('type', $typeValue)), price: @js(old('price', $priceValue)) }">
             @csrf
             @if ($editing) @method('PUT') @endif
@@ -224,7 +224,7 @@
             </x-ui.card>
 
             <div class="flex items-center justify-end gap-3">
-                <x-ui.button href="{{ route('sell.products') }}" variant="secondary">{{ __('Cancel') }}</x-ui.button>
+                <x-ui.button href="{{ route('shop.products') }}" variant="secondary">{{ __('Cancel') }}</x-ui.button>
                 <x-ui.button type="submit" icon="check">{{ $editing ? __('Save changes') : __('Create product') }}</x-ui.button>
             </div>
         </form>

@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Route;
  * separate `admin` guard — mirroring the platform's guard split.
  */
 
-Route::middleware(['web', 'auth'])->prefix('api/sell')->name('sell.api.')->group(function () {
+Route::middleware(['web', 'auth'])->prefix('api/shop')->name('shop.api.')->group(function () {
     Route::post('/apply', [SellerApplicationController::class, 'store'])->name('apply');
 
     // Checkout (buyer-facing — any authenticated user)
@@ -44,16 +44,16 @@ Route::middleware(['web', 'auth'])->prefix('api/sell')->name('sell.api.')->group
 });
 
 // Public sales page — cache-first, no auth.
-Route::middleware('web')->get('/api/sell/public/pages/{slug}', [PublicPageController::class, 'show'])->name('sell.api.public.page');
+Route::middleware('web')->get('/api/shop/public/pages/{slug}', [PublicPageController::class, 'show'])->name('shop.api.public.page');
 
-Route::middleware(['web', 'auth:admin'])->prefix('api/admin/sell/sellers')->name('sell.api.admin.sellers.')->group(function () {
+Route::middleware(['web', 'auth:admin'])->prefix('api/admin/shop/sellers')->name('shop.api.admin.sellers.')->group(function () {
     Route::post('/{seller}/approve', [SellerReviewController::class, 'approve'])->name('approve');
     Route::post('/{seller}/reject', [SellerReviewController::class, 'reject'])->name('reject');
     Route::post('/{seller}/suspend', [SellerReviewController::class, 'suspend'])->name('suspend');
 });
 
 // Operator refund review (escalated requests).
-Route::middleware(['web', 'auth:admin'])->prefix('api/admin/sell/refunds')->name('sell.api.admin.refunds.')->group(function () {
+Route::middleware(['web', 'auth:admin'])->prefix('api/admin/shop/refunds')->name('shop.api.admin.refunds.')->group(function () {
     Route::get('/', [RefundReviewController::class, 'index'])->name('index');
     Route::post('/{refundRequest}/approve', [RefundReviewController::class, 'approve'])->name('approve');
     Route::post('/{refundRequest}/reject', [RefundReviewController::class, 'reject'])->name('reject');

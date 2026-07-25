@@ -43,7 +43,7 @@ it('aggregates real customers ranked by spend', function () use ($buy) {
     creditUser($small, $this->asset, '100000000');
     $buy($small, 's1'); // 1 order = 10 USDT
 
-    $res = $this->actingAs($this->sellerUser)->get(route('sell.customers'))->assertOk();
+    $res = $this->actingAs($this->sellerUser)->get(route('shop.customers'))->assertOk();
     $customers = $res->viewData('customers');
 
     expect($customers)->toHaveCount(2)
@@ -56,7 +56,7 @@ it('aggregates real customers ranked by spend', function () use ($buy) {
 });
 
 it('shows an empty state with no customers', function () {
-    $this->actingAs($this->sellerUser)->get(route('sell.customers'))
+    $this->actingAs($this->sellerUser)->get(route('shop.customers'))
         ->assertOk()->assertSee('No customers yet');
 });
 
@@ -68,6 +68,6 @@ it('excludes another seller\'s customers', function () use ($buy) {
     $otherUser = User::factory()->create();
     $otherSeller = Seller::create(['user_id' => $otherUser->id, 'status' => SellerStatus::Approved, 'categories' => []]);
 
-    $this->actingAs($otherUser)->get(route('sell.customers'))
+    $this->actingAs($otherUser)->get(route('shop.customers'))
         ->assertOk()->assertDontSee('Mine');
 });

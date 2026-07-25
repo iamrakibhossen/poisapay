@@ -116,8 +116,8 @@ it('lets the seller refund from the order page', function () {
     $order = ($this->buy)();
 
     $this->actingAs($this->sellerUser)
-        ->post(route('sell.order.refund', ['id' => $order->id]), ['reason' => 'changed mind'])
-        ->assertRedirect(route('sell.order', ['id' => $order->id]));
+        ->post(route('shop.order.refund', ['id' => $order->id]), ['reason' => 'changed mind'])
+        ->assertRedirect(route('shop.order', ['id' => $order->id]));
 
     expect($order->fresh()->status)->toBe(OrderStatus::Refunded);
 });

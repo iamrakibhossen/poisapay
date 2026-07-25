@@ -201,7 +201,7 @@ class SellerController extends Controller
     {
         $seller = $sellers->forUser($request->user());
         if (! $seller) {
-            return redirect()->route('sell');
+            return redirect()->route('shop');
         }
 
         $request->validate([
@@ -216,7 +216,7 @@ class SellerController extends Controller
         $path = $request->file('logo')->store('sell/logos', 'public');
         $seller->update(['logo_path' => $path]);
 
-        return redirect()->route('sell')->with('success', __('Store logo updated.'));
+        return redirect()->route('shop')->with('success', __('Store logo updated.'));
     }
 
     /** Remove the store logo (falls back to the monogram). */
@@ -228,7 +228,7 @@ class SellerController extends Controller
             $seller->update(['logo_path' => null]);
         }
 
-        return redirect()->route('sell')->with('success', __('Store logo removed.'));
+        return redirect()->route('shop')->with('success', __('Store logo removed.'));
     }
 
     /**
@@ -449,7 +449,7 @@ class SellerController extends Controller
         $validated = $request->validate(['body' => ['required', 'string', 'max:4000']]);
         $action->execute($order, 'seller', $sellers->forUser($request->user())?->getKey(), $validated['body']);
 
-        return redirect()->route('sell.order', ['id' => $order->id]);
+        return redirect()->route('shop.order', ['id' => $order->id]);
     }
 
     /** Advance an order along fulfilment (processing → shipped → delivered → completed). */
@@ -475,7 +475,7 @@ class SellerController extends Controller
             return back()->withErrors(['status' => $e->getMessage()]);
         }
 
-        return redirect()->route('sell.order', ['id' => $order->id])
+        return redirect()->route('shop.order', ['id' => $order->id])
             ->with('success', __('Order updated.'));
     }
 
@@ -495,7 +495,7 @@ class SellerController extends Controller
             return back()->withErrors(['refund' => $e->getMessage()]);
         }
 
-        return redirect()->route('sell.order', ['id' => $order->id])
+        return redirect()->route('shop.order', ['id' => $order->id])
             ->with('success', __('Order refunded — the buyer has been repaid.'));
     }
 
@@ -549,7 +549,7 @@ class SellerController extends Controller
             return back()->withErrors(['refund' => $e->getMessage()]);
         }
 
-        return redirect()->route('sell.order', ['id' => $order->id])
+        return redirect()->route('shop.order', ['id' => $order->id])
             ->with('success', $approve ? __('Refund approved — the buyer has been repaid.') : __('Refund request declined.'));
     }
 
@@ -561,7 +561,7 @@ class SellerController extends Controller
             ? $seller->orders()->with(['items.product', 'items.variant', 'buyer', 'asset', 'events'])->find($id)
             : null;
 
-        return $order ?? redirect()->route('sell.orders');
+        return $order ?? redirect()->route('shop.orders');
     }
 
     /** Seller inbox — buyer message threads. FRONTEND-FIRST: sample conversations. */
@@ -626,13 +626,13 @@ class SellerController extends Controller
         $seller = $sellers->forUser($request->user());
         $review = $seller ? $seller->reviews()->find($id) : null;
         if (! $review) {
-            return redirect()->route('sell.reviews');
+            return redirect()->route('shop.reviews');
         }
 
         $validated = $request->validate(['reply' => ['required', 'string', 'max:2000']]);
         $action->execute($review, $validated['reply']);
 
-        return redirect()->route('sell.reviews')->with('success', __('Reply posted.'));
+        return redirect()->route('shop.reviews')->with('success', __('Reply posted.'));
     }
 
     /** Real customers: everyone who has placed a paid order, ranked by spend. */
@@ -706,7 +706,7 @@ class SellerController extends Controller
     {
         $seller = $sellers->forUser($request->user());
         if (! ($seller?->canSell() ?? false)) {
-            return redirect()->route('sell');
+            return redirect()->route('shop');
         }
 
         $validated = $request->validate([
@@ -749,7 +749,7 @@ class SellerController extends Controller
             return back()->withInput()->withErrors(['coupon' => $e->getMessage()]);
         }
 
-        return redirect()->route('sell.coupons')->with('success', __('Coupon created.'));
+        return redirect()->route('shop.coupons')->with('success', __('Coupon created.'));
     }
 
     /** Enable/disable a coupon. */
@@ -761,7 +761,7 @@ class SellerController extends Controller
             $coupon->update(['is_active' => ! $coupon->is_active]);
         }
 
-        return redirect()->route('sell.coupons');
+        return redirect()->route('shop.coupons');
     }
 
     /** Soft-delete a coupon. */
@@ -771,7 +771,7 @@ class SellerController extends Controller
         $coupon = $seller ? $seller->coupons()->find($id) : null;
         $coupon?->delete();
 
-        return redirect()->route('sell.coupons')->with('success', __('Coupon deleted.'));
+        return redirect()->route('shop.coupons')->with('success', __('Coupon deleted.'));
     }
 
     /** Real 30-day funnel analytics from recorded events + paid orders. */
@@ -867,7 +867,7 @@ class SellerController extends Controller
     {
         $seller = $sellers->forUser($request->user());
         if (! $seller || ! $seller->canSell()) {
-            return redirect()->route('sell');
+            return redirect()->route('shop');
         }
 
         [$balances, $recent] = $this->sellerEarnings($seller);
@@ -978,7 +978,7 @@ class SellerController extends Controller
 
         $seller = $sellers->forUser($request->user());
         if (! ($seller?->canSell() ?? false)) {
-            return redirect()->route('sell');
+            return redirect()->route('shop');
         }
 
         try {
@@ -990,7 +990,7 @@ class SellerController extends Controller
             return back()->withInput()->withErrors(['sales_page' => $e->getMessage()]);
         }
 
-        return redirect()->route('sell.sales-page.edit', ['slug' => $page->slug])
+        return redirect()->route('shop.sales-page.edit', ['slug' => $page->slug])
             ->with('success', __('Page created — customize and publish it.'));
     }
 
@@ -1090,7 +1090,7 @@ class SellerController extends Controller
         $this->applyOffers($page->fresh(), $request);
         $this->applySeo($page->fresh(), $request);
 
-        return redirect()->route('sell.sales-page.edit', ['slug' => $page->slug])
+        return redirect()->route('shop.sales-page.edit', ['slug' => $page->slug])
             ->with('success', __('Changes saved.'));
     }
 
@@ -1194,7 +1194,7 @@ class SellerController extends Controller
             return back()->withErrors(['publish' => $e->getMessage()]);
         }
 
-        return redirect()->route('sell.sales-page.edit', ['slug' => $page->slug])
+        return redirect()->route('shop.sales-page.edit', ['slug' => $page->slug])
             ->with('success', $goLive ? __('Your page is live.') : __('Page unpublished.'));
     }
 
@@ -1206,7 +1206,7 @@ class SellerController extends Controller
             ? $seller->salesPages()->with('product')->where('slug', $slug)->first()
             : null;
 
-        return $page ?? redirect()->route('sell.sales-pages');
+        return $page ?? redirect()->route('shop.sales-pages');
     }
 
     /** Decode the builder payload from the editor into a SalesPageData DTO. */
@@ -1354,7 +1354,7 @@ class SellerController extends Controller
     public function createProduct(Request $request, SellerService $sellers): View|RedirectResponse
     {
         if (! ($sellers->forUser($request->user())?->canSell() ?? false)) {
-            return redirect()->route('sell'); // only approved sellers can create
+            return redirect()->route('shop'); // only approved sellers can create
         }
 
         return view('frontend.seller.product-create', [
@@ -1372,7 +1372,7 @@ class SellerController extends Controller
 
         $seller = $sellers->forUser($request->user());
         if (! ($seller?->canSell() ?? false)) {
-            return redirect()->route('sell');
+            return redirect()->route('shop');
         }
 
         try {
@@ -1381,7 +1381,7 @@ class SellerController extends Controller
             return back()->withInput()->withErrors(['product' => $e->getMessage()]);
         }
 
-        return redirect()->route('sell.products')
+        return redirect()->route('shop.products')
             ->with('success', __('“:name” created as a draft — publish it to generate its sales page.', ['name' => $product->name]));
     }
 
@@ -1390,7 +1390,7 @@ class SellerController extends Controller
     {
         $seller = $sellers->forUser($request->user());
         if (! ($seller?->canSell() ?? false)) {
-            return redirect()->route('sell');
+            return redirect()->route('shop');
         }
 
         $product = $seller->products()->with(['priceAsset', 'variants'])->findOrFail($id);
@@ -1410,7 +1410,7 @@ class SellerController extends Controller
 
         $seller = $sellers->forUser($request->user());
         if (! ($seller?->canSell() ?? false)) {
-            return redirect()->route('sell');
+            return redirect()->route('shop');
         }
         $product = $seller->products()->findOrFail($id);
 
@@ -1420,7 +1420,7 @@ class SellerController extends Controller
             return back()->withInput()->withErrors(['product' => $e->getMessage()]);
         }
 
-        return redirect()->route('sell.products')
+        return redirect()->route('shop.products')
             ->with('success', __('“:name” updated.', ['name' => $product->name]));
     }
 
@@ -1563,7 +1563,7 @@ class SellerController extends Controller
         // Already applied/approved/suspended → send them to the seller home (status shown there).
         $seller = $sellers->forUser($request->user());
         if ($seller && $seller->status->canApply() === false) {
-            return redirect()->route('sell');
+            return redirect()->route('shop');
         }
 
         return view('frontend.seller.apply', [
@@ -1594,7 +1594,7 @@ class SellerController extends Controller
             return back()->withInput()->withErrors(['apply' => $e->getMessage()]);
         }
 
-        return redirect()->route('sell')
+        return redirect()->route('shop')
             ->with('success', 'Application submitted — we usually review within 1–2 business days.');
     }
 

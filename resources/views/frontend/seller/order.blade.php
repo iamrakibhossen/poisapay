@@ -2,7 +2,7 @@
     <div class="mx-auto mt-6 max-w-4xl space-y-5">
         {{-- Header --}}
         <div>
-            <a href="{{ route('sell.orders') }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-neutral-500 transition hover:text-neutral-900">
+            <a href="{{ route('shop.orders') }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-neutral-500 transition hover:text-neutral-900">
                 <x-heroicon-o-chevron-left class="h-4 w-4" /> {{ __('Orders') }}
             </a>
             <div class="mt-2 flex flex-wrap items-center justify-between gap-3">
@@ -40,7 +40,7 @@
                 @if (count($order['nextSteps']))
                     <x-ui.card>
                         <p class="mb-3 text-sm font-semibold text-neutral-900">{{ __('Fulfilment') }}</p>
-                        <form method="POST" action="{{ route('sell.order.status', ['id' => $order['id']]) }}"
+                        <form method="POST" action="{{ route('shop.order.status', ['id' => $order['id']]) }}"
                             x-data="{ status: @js($order['nextSteps'][0]['value']) }" class="space-y-3">
                             @csrf
                             <div class="grid gap-3 sm:grid-cols-2">
@@ -82,12 +82,12 @@
                         @if ($rr['escalated'])<p class="mt-2 text-xs font-medium text-blue-600">{{ __('Escalated to support — an operator may also resolve this.') }}</p>@endif
                         @error('refund')<p class="mt-2 text-xs text-rose-600">{{ $message }}</p>@enderror
 
-                        <form method="POST" action="{{ route('sell.order.refund-request.approve', ['id' => $order['id'], 'refundRequest' => $rr['id']]) }}" class="mt-3 space-y-2">
+                        <form method="POST" action="{{ route('shop.order.refund-request.approve', ['id' => $order['id'], 'refundRequest' => $rr['id']]) }}" class="mt-3 space-y-2">
                             @csrf
                             <textarea name="note" rows="2" class="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" placeholder="{{ __('Optional note to the buyer') }}"></textarea>
                             <div class="flex gap-2">
                                 <button type="submit" class="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-brand-600"><x-heroicon-o-check class="h-4 w-4" /> {{ __('Approve & refund') }}</button>
-                                <button type="submit" formaction="{{ route('sell.order.refund-request.reject', ['id' => $order['id'], 'refundRequest' => $rr['id']]) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 px-3.5 py-2 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-50"><x-heroicon-o-x-mark class="h-4 w-4" /> {{ __('Decline') }}</button>
+                                <button type="submit" formaction="{{ route('shop.order.refund-request.reject', ['id' => $order['id'], 'refundRequest' => $rr['id']]) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 px-3.5 py-2 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-50"><x-heroicon-o-x-mark class="h-4 w-4" /> {{ __('Decline') }}</button>
                             </div>
                         </form>
                     </x-ui.card>
@@ -117,7 +117,7 @@
 
                     <x-ui.modal name="refund-order" :title="__('Refund this order?')"
                         :subtitle="__('The buyer will be repaid :amount to their PoisaPay wallet.', ['amount' => $order['refundTotal']])">
-                        <form method="POST" action="{{ route('sell.order.refund', ['id' => $order['id']]) }}" class="space-y-4">
+                        <form method="POST" action="{{ route('shop.order.refund', ['id' => $order['id']]) }}" class="space-y-4">
                             @csrf
                             <x-ui.textarea name="reason" :label="__('Reason (optional)')" rows="3"
                                 :placeholder="__('Shared on the order timeline — e.g. buyer request, item unavailable.')" />
@@ -154,7 +154,7 @@
                         @endforelse
                     </div>
 
-                    <form method="POST" action="{{ route('sell.order.message', ['id' => $order['id']]) }}" class="mt-3 flex items-end gap-2">
+                    <form method="POST" action="{{ route('shop.order.message', ['id' => $order['id']]) }}" class="mt-3 flex items-end gap-2">
                         @csrf
                         <textarea name="body" rows="1" required placeholder="{{ __('Reply to the buyer…') }}"
                             class="max-h-28 min-h-[42px] flex-1 resize-none rounded-xl border border-neutral-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">{{ old('body') }}</textarea>

@@ -109,13 +109,13 @@ it('scopes a product-specific coupon to that product', function () use ($order) 
 
 it('lets a seller create and list coupons over HTTP', function () {
     $this->actingAs($this->sellerUser)
-        ->post(route('sell.coupons.store'), ['code' => 'WELCOME', 'type' => 'percent', 'value' => 15])
-        ->assertRedirect(route('sell.coupons'));
+        ->post(route('shop.coupons.store'), ['code' => 'WELCOME', 'type' => 'percent', 'value' => 15])
+        ->assertRedirect(route('shop.coupons'));
 
     $c = Coupon::where('code', 'WELCOME')->first();
     expect($c)->not->toBeNull()->and((int) $c->value)->toBe(1500); // 15% → 1500 bps
 
-    $this->actingAs($this->sellerUser)->get(route('sell.coupons'))->assertOk()->assertSee('WELCOME');
+    $this->actingAs($this->sellerUser)->get(route('shop.coupons'))->assertOk()->assertSee('WELCOME');
 });
 
 it('shows the discount on the public pay page via ?coupon', function () {

@@ -57,7 +57,7 @@ it('moves money through the ledger and marks the order paid', function () use ($
         // A balanced entry is enforced by the Ledger; verify both sides moved.
         ->and($this->ledger->availableBalance($this->buyer, $this->asset->id)->baseString())->toBe('90000000')
         ->and($this->ledger->availableBalance($this->sellerUser, $this->asset->id)->baseString())->toBe('9000000')
-        ->and(AuditLog::where('action', 'sell.order.placed')->exists())->toBeTrue();
+        ->and(AuditLog::where('action', 'shop.order.placed')->exists())->toBeTrue();
 });
 
 it('is idempotent — a replay returns the same order with no second charge', function () use ($checkout) {
@@ -105,7 +105,7 @@ it('refuses an unpublished product', function () {
 
 it('checks out over the REST endpoint and returns a paid order', function () {
     $this->actingAs($this->buyer)
-        ->postJson('/api/sell/checkout', [
+        ->postJson('/api/shop/checkout', [
             'product_id' => $this->product->id, 'quantity' => 1, 'idempotency_key' => 'http-1',
         ])
         ->assertCreated()
@@ -115,7 +115,7 @@ it('checks out over the REST endpoint and returns a paid order', function () {
 
 it('renders a domain guard as 422 (buying your own product)', function () {
     $this->actingAs($this->sellerUser)
-        ->postJson('/api/sell/checkout', [
+        ->postJson('/api/shop/checkout', [
             'product_id' => $this->product->id, 'idempotency_key' => 'http-own',
         ])
         ->assertStatus(422);

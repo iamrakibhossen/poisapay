@@ -95,7 +95,7 @@ class RefundOrder
             }
 
             $entry = $this->ledger->post(new EntryData(
-                type: 'sell.refund',
+                type: 'shop.refund',
                 idempotencyKey: $idempotencyKey,
                 lines: $lines,
                 memo: "Refund order {$fresh->number}",

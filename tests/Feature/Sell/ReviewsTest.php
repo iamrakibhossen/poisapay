@@ -42,7 +42,7 @@ it('lets a verified buyer review, one per purchase, and audits it', function () 
     $review = Review::where('order_id', $this->order->id)->first();
     expect($review->rating)->toBe(5)
         ->and($review->buyer_user_id)->toBe($this->buyer->id)
-        ->and(AuditLog::where('action', 'sell.review.submitted')->exists())->toBeTrue();
+        ->and(AuditLog::where('action', 'shop.review.submitted')->exists())->toBeTrue();
 
     // Re-submit updates the same review (unique order+product).
     app(SubmitReview::class)->execute($this->buyer, $this->order, $this->product->id, 4, 'Good', 'Still good');
@@ -64,7 +64,7 @@ it('submits a review over HTTP and shows it in the seller reviews page', functio
         ])
         ->assertRedirect(route('purchases'));
 
-    $this->actingAs($this->sellerUser)->get(route('sell.reviews'))
+    $this->actingAs($this->sellerUser)->get(route('shop.reviews'))
         ->assertOk()->assertSee('Aisha Karim')->assertSee('Worth it')->assertSee('5.0');
 });
 
@@ -73,11 +73,11 @@ it('lets the seller reply to a review', function () {
     $review = Review::where('order_id', $this->order->id)->first();
 
     $this->actingAs($this->sellerUser)
-        ->post(route('sell.reviews.reply', ['id' => $review->id]), ['reply' => 'Thank you!'])
-        ->assertRedirect(route('sell.reviews'));
+        ->post(route('shop.reviews.reply', ['id' => $review->id]), ['reply' => 'Thank you!'])
+        ->assertRedirect(route('shop.reviews'));
 
     expect($review->fresh()->seller_reply)->toBe('Thank you!')
-        ->and(AuditLog::where('action', 'sell.review.replied')->exists())->toBeTrue();
+        ->and(AuditLog::where('action', 'shop.review.replied')->exists())->toBeTrue();
 });
 
 it('forbids a foreign seller from replying', function () {
@@ -88,8 +88,8 @@ it('forbids a foreign seller from replying', function () {
     Seller::create(['user_id' => $other->id, 'status' => SellerStatus::Approved, 'categories' => []]);
 
     $this->actingAs($other)
-        ->post(route('sell.reviews.reply', ['id' => $review->id]), ['reply' => 'hijack'])
-        ->assertRedirect(route('sell.reviews'));
+        ->post(route('shop.reviews.reply', ['id' => $review->id]), ['reply' => 'hijack'])
+        ->assertRedirect(route('shop.reviews'));
 
     expect($review->fresh()->seller_reply)->toBeNull();
 });

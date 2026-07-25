@@ -103,7 +103,7 @@ it('autosaves the working draft without touching the live document', function ()
     $doc['root']['children'][] = ['id' => 'b_draftnode', 'type' => 'heading', 'props' => ['text' => 'Draft only']];
 
     $this->actingAs($user)
-        ->patchJson(route('sell.sales-page.document', ['slug' => 'main-page']), ['document' => $doc, 'name' => 'Renamed'])
+        ->patchJson(route('shop.sales-page.document', ['slug' => 'main-page']), ['document' => $doc, 'name' => 'Renamed'])
         ->assertOk()->assertJson(['ok' => true]);
 
     $page->refresh();
@@ -119,8 +119,8 @@ it('publishes by copying the draft into the live document + snapshots a revision
     $page->update(['draft' => $doc]);
 
     $this->actingAs($user)
-        ->post(route('sell.sales-page.publish', ['slug' => 'main-page']))
-        ->assertRedirect(route('sell.sales-page.edit', ['slug' => 'main-page']));
+        ->post(route('shop.sales-page.publish', ['slug' => 'main-page']))
+        ->assertRedirect(route('shop.sales-page.edit', ['slug' => 'main-page']));
 
     $page->refresh();
     expect($page->status)->toBe(SalesPageStatus::Published)
@@ -136,7 +136,7 @@ it('renders the preview through the same renderer for the owner only', function 
     $doc['root']['children'][] = ['id' => 'b_preview01', 'type' => 'heading', 'props' => ['text' => 'Preview me']];
 
     $this->actingAs($user)
-        ->post(route('sell.sales-page.preview', ['slug' => 'main-page']), ['document' => $doc])
+        ->post(route('shop.sales-page.preview', ['slug' => 'main-page']), ['document' => $doc])
         ->assertOk()
         ->assertJsonStructure(['html', 'css'])
         ->assertSee('Preview me'); // the rendered fragment travels inside the JSON payload
@@ -145,7 +145,7 @@ it('renders the preview through the same renderer for the owner only', function 
     $other = User::factory()->create();
     Seller::create(['user_id' => $other->id, 'status' => SellerStatus::Approved, 'brand_name' => 'Other', 'categories' => []]);
     $this->actingAs($other)
-        ->post(route('sell.sales-page.preview', ['slug' => 'main-page']), ['document' => $doc])
+        ->post(route('shop.sales-page.preview', ['slug' => 'main-page']), ['document' => $doc])
         ->assertNotFound();
 });
 
@@ -154,15 +154,15 @@ it('restores a revision back into the draft', function () {
     $doc = BuilderDocument::blank()->toArray();
     $doc['root']['children'][] = ['id' => 'b_snapnode1', 'type' => 'heading', 'props' => ['text' => 'Snapshot']];
     $page->update(['draft' => $doc]);
-    $this->actingAs($user)->post(route('sell.sales-page.publish', ['slug' => 'main-page']));
+    $this->actingAs($user)->post(route('shop.sales-page.publish', ['slug' => 'main-page']));
 
     // Mutate the draft, then restore the published revision.
     $page->refresh()->update(['draft' => BuilderDocument::blank()->toArray()]);
     $rev = $page->revisions()->first();
 
     $this->actingAs($user)
-        ->post(route('sell.sales-page.restore', ['slug' => 'main-page', 'revision' => $rev->id]))
-        ->assertRedirect(route('sell.sales-page.edit', ['slug' => 'main-page']));
+        ->post(route('shop.sales-page.restore', ['slug' => 'main-page', 'revision' => $rev->id]))
+        ->assertRedirect(route('shop.sales-page.edit', ['slug' => 'main-page']));
 
     expect($page->fresh()->draft['root']['children'][0]['id'])->toBe('b_snapnode1');
 });
@@ -180,7 +180,7 @@ it('caps document depth + node count when sanitising', function () {
     $doc = ['schema' => 2, 'root' => ['id' => 'root', 'type' => 'page', 'children' => [$node]], 'globals' => []];
 
     $this->actingAs($user)
-        ->patchJson(route('sell.sales-page.document', ['slug' => 'main-page']), ['document' => $doc])
+        ->patchJson(route('shop.sales-page.document', ['slug' => 'main-page']), ['document' => $doc])
         ->assertOk();
 
     // Depth-capped: nesting stops well short of 20 levels.

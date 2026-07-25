@@ -17,7 +17,7 @@
         {{-- Create: pick a product first, then go customize --}}
         @if (count($products))
             <div x-show="creating" x-cloak>
-                <form method="POST" action="{{ route('sell.sales-pages.store') }}">
+                <form method="POST" action="{{ route('shop.sales-pages.store') }}">
                     @csrf
                     <x-ui.card>
                         <p class="mb-1 text-sm font-semibold text-neutral-900">{{ __('New sales page') }}</p>
@@ -32,7 +32,7 @@
                                     @endforeach
                                 </select>
                                 @error('product_id')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
-                                <a href="{{ route('sell.products.create') }}" class="mt-1.5 inline-block text-[11px] font-medium text-brand-600 hover:text-brand-700">{{ __('+ Create a new product') }}</a>
+                                <a href="{{ route('shop.products.create') }}" class="mt-1.5 inline-block text-[11px] font-medium text-brand-600 hover:text-brand-700">{{ __('+ Create a new product') }}</a>
                             </div>
                             <x-ui.input :label="__('Page name')" name="name" :value="old('name')" :error="$errors->first('name')" placeholder="e.g. Black Friday campaign" required />
                         </div>
@@ -69,7 +69,7 @@
                         </div>
 
                         <div class="mt-3 flex items-center gap-2">
-                            <x-ui.button href="{{ route('sell.sales-page.edit', ['slug' => $pg['slug']]) }}" size="sm" icon="paint-brush">{{ __('Customize') }}</x-ui.button>
+                            <x-ui.button href="{{ route('shop.sales-page.edit', ['slug' => $pg['slug']]) }}" size="sm" icon="paint-brush">{{ __('Customize') }}</x-ui.button>
                             <a href="{{ route('funnel.sales', ['slug' => $pg['slug']]) }}" target="_blank" class="rounded-lg border border-neutral-200 p-2 text-neutral-400 transition hover:bg-neutral-50 hover:text-neutral-600" title="{{ __('View') }}"><x-heroicon-o-arrow-top-right-on-square class="h-4 w-4" /></a>
                             <button type="button" class="rounded-lg border border-neutral-200 p-2 text-neutral-400 transition hover:bg-neutral-50 hover:text-neutral-600" title="{{ __('Duplicate') }}"><x-heroicon-o-document-duplicate class="h-4 w-4" /></button>
                         </div>
@@ -87,7 +87,7 @@
                 @else
                     <x-ui.empty-state icon="document-text" :title="__('Create a product first')" :description="__('A sales page always sells one product. Create a product, then build its page.')">
                         <x-slot:action>
-                            <x-ui.button href="{{ route('sell.products.create') }}" icon="plus" size="sm">{{ __('Create product') }}</x-ui.button>
+                            <x-ui.button href="{{ route('shop.products.create') }}" icon="plus" size="sm">{{ __('Create product') }}</x-ui.button>
                         </x-slot:action>
                     </x-ui.empty-state>
                 @endif

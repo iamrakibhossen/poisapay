@@ -26,7 +26,7 @@
         {{-- ============ Top toolbar ============ --}}
         <header class="flex items-center justify-between gap-3 border-b border-neutral-200 bg-white px-4 py-2.5">
             <div class="flex min-w-0 items-center gap-3">
-                <a href="{{ route('sell.sales-pages') }}" class="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 transition hover:bg-neutral-100" title="{{ __('Back') }}">
+                <a href="{{ route('shop.sales-pages') }}" class="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 transition hover:bg-neutral-100" title="{{ __('Back') }}">
                     <x-heroicon-o-chevron-left class="h-4 w-4" />
                 </a>
                 <input x-model="name" @input="dirty = true; scheduleSave()" maxlength="120"

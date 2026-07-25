@@ -27,8 +27,8 @@ it('uploads a store logo and stores it on the public disk', function () {
     Storage::fake('public');
 
     $this->actingAs($this->sellerUser)
-        ->post(route('sell.logo'), ['logo' => UploadedFile::fake()->image('logo.png', 200, 200)])
-        ->assertRedirect(route('sell'));
+        ->post(route('shop.logo'), ['logo' => UploadedFile::fake()->image('logo.png', 200, 200)])
+        ->assertRedirect(route('shop'));
 
     $seller = $this->seller->fresh();
     expect($seller->logo_path)->not->toBeNull();
@@ -40,7 +40,7 @@ it('rejects a non-image and oversized upload', function () {
     Storage::fake('public');
 
     $this->actingAs($this->sellerUser)
-        ->post(route('sell.logo'), ['logo' => UploadedFile::fake()->create('doc.pdf', 10, 'application/pdf')])
+        ->post(route('shop.logo'), ['logo' => UploadedFile::fake()->create('doc.pdf', 10, 'application/pdf')])
         ->assertSessionHasErrors('logo');
 
     expect($this->seller->fresh()->logo_path)->toBeNull();
@@ -48,10 +48,10 @@ it('rejects a non-image and oversized upload', function () {
 
 it('removes the logo and deletes the file', function () {
     Storage::fake('public');
-    $this->actingAs($this->sellerUser)->post(route('sell.logo'), ['logo' => UploadedFile::fake()->image('l.png')]);
+    $this->actingAs($this->sellerUser)->post(route('shop.logo'), ['logo' => UploadedFile::fake()->image('l.png')]);
     $path = $this->seller->fresh()->logo_path;
 
-    $this->actingAs($this->sellerUser)->delete(route('sell.logo.delete'))->assertRedirect(route('sell'));
+    $this->actingAs($this->sellerUser)->delete(route('shop.logo.delete'))->assertRedirect(route('shop'));
 
     expect($this->seller->fresh()->logo_path)->toBeNull();
     Storage::disk('public')->assertMissing($path);

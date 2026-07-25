@@ -205,7 +205,7 @@ class PlaceOrder
             }
 
             $entry = $this->ledger->post(new EntryData(
-                type: 'sell.purchase',
+                type: 'shop.purchase',
                 idempotencyKey: 'sell:order:'.$order->getKey(),
                 lines: $ledgerLines,
                 memo: "Order {$order->number}: {$product->name}",

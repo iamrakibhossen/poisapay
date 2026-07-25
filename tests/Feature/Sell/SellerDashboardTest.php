@@ -21,20 +21,20 @@ beforeEach(function () {
 
 it('shows the become-a-seller onboarding to a non-seller', function () {
     $this->actingAs(User::factory()->create())
-        ->get(route('sell'))
+        ->get(route('shop'))
         ->assertOk()
         ->assertSee('Start selling in 3 steps')
-        ->assertSee(route('sell.apply'), false);
+        ->assertSee(route('shop.apply'), false);
 });
 
 it('renders the seller application form', function () {
     $this->actingAs(User::factory()->create())
-        ->get(route('sell.apply'))
+        ->get(route('shop.apply'))
         ->assertOk()
         ->assertSee('Become a Seller')
         ->assertSee('How it works')
         ->assertSee('What will you sell?')
-        ->assertSee(route('sell.apply.submit'), false);
+        ->assertSee(route('shop.apply.submit'), false);
 });
 
 it('renders the active dashboard with store name, workspace and recent orders', function () {
@@ -68,7 +68,7 @@ it('renders the active dashboard with store name, workspace and recent orders', 
     ]);
 
     $this->actingAs($user)
-        ->get(route('sell'))
+        ->get(route('shop'))
         ->assertOk()
         ->assertSee('Rahim Studios')
         ->assertSee('Recent orders')
@@ -77,5 +77,5 @@ it('renders the active dashboard with store name, workspace and recent orders', 
         ->assertSee('Last 30 days')         // performance section
         ->assertSee('Conversion funnel')
         ->assertSee('Top products')
-        ->assertSee(route('sell.order', $order->id), false);
+        ->assertSee(route('shop.order', $order->id), false);
 });

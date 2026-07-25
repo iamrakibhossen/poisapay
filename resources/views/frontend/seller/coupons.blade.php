@@ -14,7 +14,7 @@
 
         {{-- Create form (inline) --}}
         <div x-show="create" x-cloak>
-            <form method="POST" action="{{ route('sell.coupons.store') }}">
+            <form method="POST" action="{{ route('shop.coupons.store') }}">
                 @csrf
                 <x-ui.card>
                     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -63,11 +63,11 @@
                         <td class="whitespace-nowrap px-5 py-4 text-right align-middle text-xs text-neutral-400">{{ $c['expires'] }}</td>
                         <td class="whitespace-nowrap px-5 py-4 text-right align-middle">
                             <div class="flex items-center justify-end gap-2">
-                                <form method="POST" action="{{ route('sell.coupons.toggle', ['id' => $c['id']]) }}">
+                                <form method="POST" action="{{ route('shop.coupons.toggle', ['id' => $c['id']]) }}">
                                     @csrf
                                     <button type="submit" class="text-xs font-medium text-neutral-500 hover:text-brand-600">{{ $c['active'] ? __('Disable') : __('Enable') }}</button>
                                 </form>
-                                <form method="POST" action="{{ route('sell.coupons.destroy', ['id' => $c['id']]) }}" onsubmit="return confirm('{{ __('Delete this coupon?') }}')">
+                                <form method="POST" action="{{ route('shop.coupons.destroy', ['id' => $c['id']]) }}" onsubmit="return confirm('{{ __('Delete this coupon?') }}')">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="text-xs font-medium text-neutral-400 hover:text-rose-600">{{ __('Delete') }}</button>
                                 </form>

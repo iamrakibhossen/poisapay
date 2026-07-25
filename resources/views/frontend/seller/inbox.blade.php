@@ -8,7 +8,7 @@
         @if (count($threads))
             <div class="divide-y divide-neutral-100 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[var(--shadow-card)]">
                 @foreach ($threads as $t)
-                    <a href="{{ route('sell.order', ['id' => $t['id']]) }}" class="flex items-start gap-3 px-4 py-3.5 transition hover:bg-neutral-50">
+                    <a href="{{ route('shop.order', ['id' => $t['id']]) }}" class="flex items-start gap-3 px-4 py-3.5 transition hover:bg-neutral-50">
                         <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700">{{ $t['initials'] }}</span>
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center justify-between gap-2">

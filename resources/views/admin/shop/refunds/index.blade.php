@@ -6,7 +6,7 @@
         {{-- Status filter --}}
         <div class="flex flex-wrap gap-2">
             @foreach (['escalated' => __('Escalated'), 'requested' => __('Open'), 'refunded' => __('Refunded'), 'rejected' => __('Rejected'), 'all' => __('All')] as $val => $lbl)
-                <a href="{{ route('admin.sell-refunds', ['status' => $val]) }}"
+                <a href="{{ route('admin.shop-refunds', ['status' => $val]) }}"
                     @class([
                         'rounded-lg px-3 py-1.5 text-sm font-semibold transition',
                         'bg-ink-900 text-white' => $status === $val,
@@ -42,7 +42,7 @@
                                 <td class="px-4 py-3"><span class="font-semibold text-gray-900">{{ $amt }}</span> <span class="text-xs text-gray-400">· {{ $req->type }}</span></td>
                                 <td class="px-4 py-3"><x-ui.badge :color="$req->status->color()" dot>{{ $req->status->label() }}</x-ui.badge></td>
                                 <td class="px-4 py-3 text-xs text-gray-400">{{ $req->created_at?->diffForHumans() }}</td>
-                                <td class="px-4 py-3 text-right"><a href="{{ route('admin.sell-refunds.show', $req->id) }}" class="text-sm font-semibold text-brand-600 hover:text-brand-700">{{ __('Review') }}</a></td>
+                                <td class="px-4 py-3 text-right"><a href="{{ route('admin.shop-refunds.show', $req->id) }}" class="text-sm font-semibold text-brand-600 hover:text-brand-700">{{ __('Review') }}</a></td>
                             </tr>
                         @empty
                             <tr><td colspan="7" class="px-4 py-10 text-center text-sm text-gray-400">{{ __('No refund requests here.') }}</td></tr>

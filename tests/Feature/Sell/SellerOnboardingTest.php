@@ -37,7 +37,7 @@ it('creates a pending seller + application and audits the event', function () us
         ->and($seller->brand_name)->toBe('Rahim Studios')
         ->and($seller->applications()->where('status', 'pending')->count())->toBe(1)
         ->and($this->sellers->isApprovedSeller($this->user->fresh()))->toBeFalse()
-        ->and(AuditLog::where('action', 'sell.seller.applied')->exists())->toBeTrue();
+        ->and(AuditLog::where('action', 'shop.seller.applied')->exists())->toBeTrue();
 });
 
 it('approves: seller can sell, application marked approved, audited', function () use ($apply, $data) {
@@ -51,7 +51,7 @@ it('approves: seller can sell, application marked approved, audited', function (
         ->and($seller->applications()->first()->status)->toBe('approved')
         // Cache was invalidated automatically by the Seller saved observer.
         ->and($this->sellers->isApprovedSeller($this->user->fresh()))->toBeTrue()
-        ->and(AuditLog::where('action', 'sell.seller.approved')->exists())->toBeTrue();
+        ->and(AuditLog::where('action', 'shop.seller.approved')->exists())->toBeTrue();
 });
 
 it('rejects with a reason and blocks selling', function () use ($apply, $data) {

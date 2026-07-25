@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 interface AuditableEvent
 {
-    /** Dot-cased action, e.g. "product.created" (recorded as "sell.product.created"). */
+    /** Dot-cased action, e.g. "product.created" (recorded as "shop.product.created"). */
     public function auditAction(): string;
 
     /** The model this event concerns (audit subject), if any. */

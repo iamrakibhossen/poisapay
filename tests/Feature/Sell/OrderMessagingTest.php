@@ -43,7 +43,7 @@ it('flags the counterparty unread and audits each message', function () {
         ->and($order->buyer_unread)->toBeFalse()
         ->and($order->last_message_at)->not->toBeNull()
         ->and($order->messages()->count())->toBe(1)
-        ->and(AuditLog::where('action', 'sell.message.sent')->exists())->toBeTrue();
+        ->and(AuditLog::where('action', 'shop.message.sent')->exists())->toBeTrue();
 
     app(SendMessage::class)->execute($order, 'seller', $this->sellerUser->id, 'Right away!');
     $order = $order->fresh();
@@ -68,17 +68,17 @@ it('lets the seller reply from the order page and shows the thread', function ()
     app(SendMessage::class)->execute($this->order, 'buyer', $this->buyer->id, 'Any docs?');
 
     $this->actingAs($this->sellerUser)
-        ->post(route('sell.order.message', ['id' => $this->order->id]), ['body' => 'Yes, in the zip.'])
-        ->assertRedirect(route('sell.order', ['id' => $this->order->id]));
+        ->post(route('shop.order.message', ['id' => $this->order->id]), ['body' => 'Yes, in the zip.'])
+        ->assertRedirect(route('shop.order', ['id' => $this->order->id]));
 
-    $this->actingAs($this->sellerUser)->get(route('sell.order', ['id' => $this->order->id]))
+    $this->actingAs($this->sellerUser)->get(route('shop.order', ['id' => $this->order->id]))
         ->assertOk()->assertSee('Any docs?')->assertSee('Yes, in the zip.');
 });
 
 it('shows the order in the seller inbox once it has messages', function () {
     app(SendMessage::class)->execute($this->order, 'buyer', $this->buyer->id, 'Hello there');
 
-    $this->actingAs($this->sellerUser)->get(route('sell.inbox'))
+    $this->actingAs($this->sellerUser)->get(route('shop.inbox'))
         ->assertOk()->assertSee('Aisha Karim')->assertSee('Hello there');
 });
 

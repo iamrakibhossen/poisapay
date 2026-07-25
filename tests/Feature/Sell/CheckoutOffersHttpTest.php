@@ -90,12 +90,12 @@ it('does not offer the upsell twice (idempotent)', function () {
 
 it('lets the seller configure offers from the builder', function () {
     $this->actingAs($this->sellerUser)
-        ->post(route('sell.sales-page.update', ['slug' => 'main']), [
+        ->post(route('shop.sales-page.update', ['slug' => 'main']), [
             'name' => 'Main', 'builder' => json_encode(['theme' => [], 'sections' => []]),
             'bump_product_id' => $this->bumpP->id, 'bump_price' => '4', 'bump_headline' => 'Grab this',
             'upsell_product_id' => $this->upsellP->id, 'upsell_price' => '15',
         ])
-        ->assertRedirect(route('sell.sales-page.edit', ['slug' => 'main']));
+        ->assertRedirect(route('shop.sales-page.edit', ['slug' => 'main']));
 
     $page = $this->page->fresh();
     expect($page->bump_product_id)->toBe($this->bumpP->id)

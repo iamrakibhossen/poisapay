@@ -35,7 +35,7 @@
                             <p class="mt-1 text-sm text-neutral-600">{{ $r['reply'] }}</p>
                         </div>
                     @else
-                        <form method="POST" action="{{ route('sell.reviews.reply', ['id' => $r['id']]) }}" class="mt-3" x-data="{ open: false }">
+                        <form method="POST" action="{{ route('shop.reviews.reply', ['id' => $r['id']]) }}" class="mt-3" x-data="{ open: false }">
                             @csrf
                             <button type="button" x-show="! open" x-on:click="open = true" class="text-xs font-medium text-brand-600 hover:text-brand-700">{{ __('Reply') }}</button>
                             <div x-show="open" x-cloak class="flex gap-2">

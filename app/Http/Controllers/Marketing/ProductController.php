@@ -111,7 +111,7 @@ class ProductController extends Controller
             'icon' => 'building-storefront',
             'title' => 'Sell anything, get paid in crypto',
             'lead' => 'Launch a high-converting sales page in minutes with a drag-and-drop builder, then sell digital or physical products with instant wallet, card and crypto checkout — order bumps and 1-click upsells built in.',
-            'cta' => ['label' => 'Start selling', 'route' => 'sell'],
+            'cta' => ['label' => 'Start selling', 'route' => 'shop'],
             'stats' => [
                 ['value' => 'Drag & drop', 'label' => 'Page builder'],
                 ['value' => 'Instant', 'label' => 'Checkout'],

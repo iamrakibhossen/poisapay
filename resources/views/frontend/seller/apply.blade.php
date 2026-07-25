@@ -2,7 +2,7 @@
     <div class="mx-auto mt-6 max-w-5xl space-y-6">
         {{-- Header --}}
         <div>
-            <a href="{{ route('sell') }}" class="mb-3 inline-flex items-center gap-1 text-xs font-semibold text-neutral-400 hover:text-neutral-600">
+            <a href="{{ route('shop') }}" class="mb-3 inline-flex items-center gap-1 text-xs font-semibold text-neutral-400 hover:text-neutral-600">
                 <x-heroicon-o-arrow-left class="h-3.5 w-3.5" /> {{ __('Back to Sell') }}
             </a>
             <div class="flex items-center gap-3">
@@ -25,7 +25,7 @@
 
         <div class="grid gap-6 lg:grid-cols-3">
             {{-- ─────────────────────────  FORM  ───────────────────────── --}}
-            <form method="POST" action="{{ route('sell.apply.submit') }}"
+            <form method="POST" action="{{ route('shop.apply.submit') }}"
                 x-data="{ selected: {{ Illuminate\Support\Js::from(old('categories', [])) }} }" class="space-y-6 lg:col-span-2">
                 @csrf
 

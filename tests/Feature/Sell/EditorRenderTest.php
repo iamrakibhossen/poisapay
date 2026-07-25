@@ -26,7 +26,7 @@ it('renders the block-tree builder and migrates a legacy page', function () {
         ],
     ]);
 
-    $this->actingAs($u)->get(route('sell.sales-page.edit', ['slug' => 'rakib-hossen-2']))
+    $this->actingAs($u)->get(route('shop.sales-page.edit', ['slug' => 'rakib-hossen-2']))
         ->assertOk()
         ->assertSee('Layers')            // new 3-pane builder chrome
         ->assertSee('How it works')      // a block label in the palette (steps block)

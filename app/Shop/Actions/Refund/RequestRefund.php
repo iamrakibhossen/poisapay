@@ -60,7 +60,7 @@ class RequestRefund
             $order->seller?->user?->notify(new UserNotification(
                 __('New refund request'),
                 __('A buyer requested a refund on order :number.', ['number' => $order->number]),
-                route('sell.order', ['id' => $order->getKey()]),
+                route('shop.order', ['id' => $order->getKey()]),
                 'product',
             ));
 

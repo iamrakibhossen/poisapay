@@ -55,7 +55,7 @@ class AdminAttention
         'sweeps_pending' => ['Sweeps pending', 'admin.sweeps', 'arrows-pointing-in', 'warn'],
         'card_disputes_open' => ['Card disputes', 'admin.card-disputes', 'scale', 'warn'],
         'p2p_disputes_open' => ['P2P disputes', 'admin.p2p-disputes', 'user-group', 'warn'],
-        'sell_refunds_escalated' => ['Refunds to review', 'admin.sell-refunds', 'arrow-uturn-left', 'warn'],
+        'sell_refunds_escalated' => ['Refunds to review', 'admin.shop-refunds', 'arrow-uturn-left', 'warn'],
         'settlements_pending' => ['Settlements pending', 'admin.settlements', 'check-badge', 'warn'],
         'support_open' => ['Open support tickets', 'admin.support', 'lifebuoy', 'info'],
     ];

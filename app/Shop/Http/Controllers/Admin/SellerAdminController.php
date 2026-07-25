@@ -40,7 +40,7 @@ class SellerAdminController extends Controller
             ->paginate(25)
             ->withQueryString();
 
-        return view('admin.sell.sellers.index', [
+        return view('admin.shop.sellers.index', [
             'sellers' => $sellers,
             'search' => $search,
             'status' => $status,
@@ -72,7 +72,7 @@ class SellerAdminController extends Controller
             'commission_bps' => ($override === null || $override === '') ? null : (int) $override,
         ]);
 
-        ActivityLogger::log('sell.seller.plan_updated', $seller, [
+        ActivityLogger::log('shop.seller.plan_updated', $seller, [
             'plan' => $seller->plan,
             'commission_bps' => $seller->commission_bps,
             'effective_bps' => $seller->commissionBps(),

@@ -73,11 +73,11 @@ class PageBuilderController extends Controller
             ],
             'offers' => $this->offerFields($page),
             'endpoints' => [
-                'save' => route('sell.sales-page.document', ['slug' => $page->slug]),
-                'preview' => route('sell.sales-page.preview', ['slug' => $page->slug]),
-                'publish' => route('sell.sales-page.publish', ['slug' => $page->slug]),
-                'duplicate' => route('sell.sales-page.duplicate', ['slug' => $page->slug]),
-                'settings' => route('sell.sales-page.update', ['slug' => $page->slug]),
+                'save' => route('shop.sales-page.document', ['slug' => $page->slug]),
+                'preview' => route('shop.sales-page.preview', ['slug' => $page->slug]),
+                'publish' => route('shop.sales-page.publish', ['slug' => $page->slug]),
+                'duplicate' => route('shop.sales-page.duplicate', ['slug' => $page->slug]),
+                'settings' => route('shop.sales-page.update', ['slug' => $page->slug]),
             ],
         ]);
     }
@@ -195,7 +195,7 @@ class PageBuilderController extends Controller
             ]);
         });
 
-        return redirect()->route('sell.sales-page.edit', ['slug' => $page->slug])
+        return redirect()->route('shop.sales-page.edit', ['slug' => $page->slug])
             ->with('success', $goLive ? __('Your page is live.') : __('Page unpublished.'));
     }
 
@@ -241,7 +241,7 @@ class PageBuilderController extends Controller
         $this->applySeo($page->fresh(), $request);
         $this->applyOffers($page->fresh(), $request);
 
-        return redirect()->route('sell.sales-page.edit', ['slug' => $page->slug])
+        return redirect()->route('shop.sales-page.edit', ['slug' => $page->slug])
             ->with('success', __('Settings saved.'));
     }
 
@@ -308,7 +308,7 @@ class PageBuilderController extends Controller
         $copy->draft = $page->draftDocument()->toArray();
         $copy->save();
 
-        return redirect()->route('sell.sales-page.edit', ['slug' => $copy->slug])
+        return redirect()->route('shop.sales-page.edit', ['slug' => $copy->slug])
             ->with('success', __('Page duplicated.'));
     }
 
@@ -323,7 +323,7 @@ class PageBuilderController extends Controller
         $rev = $page->revisions()->whereKey($revision)->firstOrFail();
         $page->update(['draft' => $this->sanitizer->clean((array) $rev->document), 'version' => $page->version + 1]);
 
-        return redirect()->route('sell.sales-page.edit', ['slug' => $page->slug])
+        return redirect()->route('shop.sales-page.edit', ['slug' => $page->slug])
             ->with('success', __('Version restored to your draft.'));
     }
 
@@ -336,6 +336,6 @@ class PageBuilderController extends Controller
         $page = $seller->salesPages()->with(['product.priceAsset', 'seller', 'bumpProduct', 'upsellProduct'])
             ->where('slug', $slug)->first();
 
-        return $page ?? redirect()->route('sell.sales-pages');
+        return $page ?? redirect()->route('shop.sales-pages');
     }
 }

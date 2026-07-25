@@ -349,10 +349,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
         // ── Refund review (escalated buyer refund requests) ──
         Route::controller(RefundAdminController::class)->group(function () {
-            Route::get('/sell-refunds', 'index')->name('sell-refunds');
-            Route::get('/sell-refunds/{refundRequest}', 'show')->name('sell-refunds.show');
-            Route::post('/sell-refunds/{refundRequest}/approve', 'approve')->name('sell-refunds.approve');
-            Route::post('/sell-refunds/{refundRequest}/reject', 'reject')->name('sell-refunds.reject');
+            Route::get('/shop-refunds', 'index')->name('shop-refunds');
+            Route::get('/shop-refunds/{refundRequest}', 'show')->name('shop-refunds.show');
+            Route::post('/shop-refunds/{refundRequest}/approve', 'approve')->name('shop-refunds.approve');
+            Route::post('/shop-refunds/{refundRequest}/reject', 'reject')->name('shop-refunds.reject');
         });
 
         // ── Compliance cases + alerts (Wave 5, RBAC) ──
