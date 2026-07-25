@@ -1,4 +1,4 @@
-<x-layouts.app :title="__('Sell')">
+<x-layouts.app :title="__('Shop')">
     @php
         $pending = $status === \App\Shop\Enums\SellerStatus::PendingReview;
         $rejected = $status === \App\Shop\Enums\SellerStatus::Rejected;

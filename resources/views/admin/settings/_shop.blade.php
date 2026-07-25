@@ -1,4 +1,4 @@
-<x-admin.form-layout :title="__('Sell')" :description="__('Marketplace commission tiers, refunds, payouts and digital delivery.')" class="!my-0">
+<x-admin.form-layout :title="__('Shop')" :description="__('Marketplace commission tiers, refunds, payouts and digital delivery.')" class="!my-0">
     <form class="space-y-5" method="POST" action="{{ route('admin.settings.update', 'shop') }}">
         @csrf
         @method('PUT')
