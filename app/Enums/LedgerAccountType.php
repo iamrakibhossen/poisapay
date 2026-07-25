@@ -40,6 +40,7 @@ enum LedgerAccountType: string
     case GasExpense = 'gas:expense';
     case FxSpreadIncome = 'fx:spread_income';
     case P2pFeeIncome = 'p2p:fee_income';   // platform taker fee on P2P trades
+    case SellCommissionIncome = 'sell:commission_income';   // marketplace commission on Sell orders
     case RampClearing = 'ramp:clearing';
     case CardProgramSettlement = 'card_program:settlement';
     case CardProgramLoss = 'card_program:loss';
@@ -64,6 +65,7 @@ enum LedgerAccountType: string
             self::UserCollateralLocked, self::UserP2pEscrow, self::LiabilityUserFunds,
             self::TradingInventory,
             self::FeeIncome, self::FeeCard, self::FxSpreadIncome, self::P2pFeeIncome,
+            self::SellCommissionIncome,
             self::CardProgramSettlement, self::Rewards, self::OwnerPayout => LedgerSide::Credit,
             default => LedgerSide::Debit,
         };

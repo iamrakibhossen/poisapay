@@ -26,6 +26,7 @@ class FeatureFlagController extends Controller
             'deposit_enabled' => true, 'withdrawal_enabled' => true, 'transfer_enabled' => true,
             'exchange_enabled' => true, 'cards_enabled' => true,
             'merchant_enabled' => true, 'rewards_enabled' => true, 'referral_enabled' => true,
+            'sell_enabled' => false,
         ],
         'Security' => [
             'security_withdrawal_whitelist' => false, 'security_address_cooldown' => true,
