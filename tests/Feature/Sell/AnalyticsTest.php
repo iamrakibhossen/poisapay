@@ -46,8 +46,8 @@ it('records checkout_start and purchase across the funnel', function () {
     $buyer = User::factory()->create();
     creditUser($buyer, $this->asset, '100000000');
 
-    $this->actingAs($buyer)->get('/p/launchkit-main/pay')->assertOk();
-    $this->actingAs($buyer)->post('/p/launchkit-main/pay', ['idempotency_key' => 'an-1'])
+    $this->actingAs($buyer)->get('/p/launchkit-main/checkout')->assertOk();
+    $this->actingAs($buyer)->post('/p/launchkit-main/checkout', ['idempotency_key' => 'an-1'])
         ->assertRedirect(route('funnel.thankyou', ['slug' => 'launchkit-main']));
 
     expect(AnalyticsEvent::where('type', 'checkout_start')->count())->toBe(1)

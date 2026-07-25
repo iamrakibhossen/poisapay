@@ -57,14 +57,14 @@ it('404s for an unpublished or unknown page', function () {
 });
 
 it('sends a guest to the express-account step before paying', function () {
-    $this->post('/p/launchkit-main/checkout')->assertRedirect(route('funnel.account', ['slug' => 'launchkit-main']));
+    $this->post('/p/launchkit-main/buy')->assertRedirect(route('funnel.account', ['slug' => 'launchkit-main']));
 });
 
 it('shows the pay page with the buyer wallet balance', function () {
     $buyer = User::factory()->create();
     creditUser($buyer, $this->asset, '25000000'); // 25 USDT
 
-    $this->actingAs($buyer)->get('/p/launchkit-main/pay')
+    $this->actingAs($buyer)->get('/p/launchkit-main/checkout')
         ->assertOk()
         ->assertSee('10.00 USDT')       // total
         ->assertSee('25.00 USDT');      // balance
@@ -75,7 +75,7 @@ it('places a real order and moves money through the ledger', function () {
     creditUser($buyer, $this->asset, '100000000'); // 100 USDT
 
     $this->actingAs($buyer)
-        ->post('/p/launchkit-main/pay', ['idempotency_key' => 'store-key-1'])
+        ->post('/p/launchkit-main/checkout', ['idempotency_key' => 'store-key-1'])
         ->assertRedirect(route('funnel.thankyou', ['slug' => 'launchkit-main']));
 
     $order = Order::where('buyer_user_id', $buyer->id)->first();
@@ -89,20 +89,20 @@ it('is idempotent — a re-submit never double-charges', function () {
     $buyer = User::factory()->create();
     creditUser($buyer, $this->asset, '100000000');
 
-    $this->actingAs($buyer)->post('/p/launchkit-main/pay', ['idempotency_key' => 'store-key-2']);
-    $this->actingAs($buyer)->post('/p/launchkit-main/pay', ['idempotency_key' => 'store-key-2']);
+    $this->actingAs($buyer)->post('/p/launchkit-main/checkout', ['idempotency_key' => 'store-key-2']);
+    $this->actingAs($buyer)->post('/p/launchkit-main/checkout', ['idempotency_key' => 'store-key-2']);
 
     expect(Order::where('buyer_user_id', $buyer->id)->count())->toBe(1)
         ->and($this->ledger->availableBalance($buyer, $this->asset->id)->baseString())->toBe('90000000');
 });
 
 it('blocks a seller from buying their own product', function () {
-    $this->actingAs($this->sellerUser)->get('/p/launchkit-main/pay')
+    $this->actingAs($this->sellerUser)->get('/p/launchkit-main/checkout')
         ->assertOk()
         ->assertSee('your own product', false);
 
     $this->actingAs($this->sellerUser)
-        ->post('/p/launchkit-main/pay', ['idempotency_key' => 'own-key'])
+        ->post('/p/launchkit-main/checkout', ['idempotency_key' => 'own-key'])
         ->assertSessionHasErrors('pay');
 });
 
@@ -111,7 +111,7 @@ it('declines when the buyer has insufficient balance', function () {
     creditUser($buyer, $this->asset, '5000000'); // 5 USDT < 10
 
     $this->actingAs($buyer)
-        ->post('/p/launchkit-main/pay', ['idempotency_key' => 'poor-key'])
+        ->post('/p/launchkit-main/checkout', ['idempotency_key' => 'poor-key'])
         ->assertSessionHasErrors('pay');
 
     expect(Order::where('buyer_user_id', $buyer->id)->count())->toBe(0);

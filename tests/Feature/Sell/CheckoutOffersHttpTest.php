@@ -44,13 +44,13 @@ beforeEach(function () {
 });
 
 it('shows the order bump on the pay page', function () {
-    $this->actingAs($this->buyer)->get('/p/main/pay')
+    $this->actingAs($this->buyer)->get('/p/main/checkout')
         ->assertOk()->assertSee('Add the toolkit')->assertSee('3.00 USDT');
 });
 
 it('charges the combined total when the bump is accepted at checkout', function () {
     $this->actingAs($this->buyer)
-        ->post('/p/main/pay', ['idempotency_key' => 'k1', 'bump' => '1'])
+        ->post('/p/main/checkout', ['idempotency_key' => 'k1', 'bump' => '1'])
         ->assertRedirect(route('funnel.thankyou', ['slug' => 'main']));
 
     $order = Order::where('buyer_user_id', $this->buyer->id)->first();
@@ -61,7 +61,7 @@ it('charges the combined total when the bump is accepted at checkout', function 
 
 it('offers the 1-click upsell on the thank-you page and accepts it', function () {
     // Buy the main product first.
-    $this->actingAs($this->buyer)->post('/p/main/pay', ['idempotency_key' => 'k2']);
+    $this->actingAs($this->buyer)->post('/p/main/checkout', ['idempotency_key' => 'k2']);
     $parent = Order::where('buyer_user_id', $this->buyer->id)->latest()->first();
 
     // Thank-you shows the upsell.
@@ -81,7 +81,7 @@ it('offers the 1-click upsell on the thank-you page and accepts it', function ()
 });
 
 it('does not offer the upsell twice (idempotent)', function () {
-    $this->actingAs($this->buyer)->post('/p/main/pay', ['idempotency_key' => 'k3']);
+    $this->actingAs($this->buyer)->post('/p/main/checkout', ['idempotency_key' => 'k3']);
     $this->actingAs($this->buyer)->post('/p/main/upsell');
     $this->actingAs($this->buyer)->post('/p/main/upsell'); // second attempt = no-op
 

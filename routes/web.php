@@ -46,9 +46,11 @@ Route::get('/pages/{slug}', [PageController::class, 'show'])->name('page.show');
 // Funnel platform — public product sales pages (standalone, conversion-first).
 Route::controller(\App\Http\Controllers\Funnel\PublicSalesController::class)->group(function () {
     Route::get('/p/{slug}', 'show')->name('funnel.sales');
-    Route::post('/p/{slug}/checkout', 'checkout')->name('funnel.checkout');
-    Route::get('/p/{slug}/pay', 'pay')->name('funnel.pay');
-    Route::post('/p/{slug}/pay', 'payConfirm')->name('funnel.pay.confirm');
+    // "Buy" hands off to /buy (account gate → checkout). The checkout page itself
+    // lives at /checkout. Route names are kept stable so every route() resolves.
+    Route::post('/p/{slug}/buy', 'checkout')->name('funnel.checkout');
+    Route::get('/p/{slug}/checkout', 'pay')->name('funnel.pay');
+    Route::post('/p/{slug}/checkout', 'payConfirm')->name('funnel.pay.confirm');
     Route::get('/p/{slug}/account', 'account')->name('funnel.account');
     Route::post('/p/{slug}/account', 'accountSubmit')->middleware('throttle:10,1')->name('funnel.account.submit');
     Route::get('/p/{slug}/thank-you', 'thankYou')->name('funnel.thankyou');

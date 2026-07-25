@@ -31,7 +31,7 @@ beforeEach(function () {
 });
 
 it('sends a guest who clicks Buy to the on-funnel account step, not the app login', function () {
-    $this->post('/p/kit-main/checkout')
+    $this->post('/p/kit-main/buy')
         ->assertRedirect(route('funnel.account', ['slug' => 'kit-main']));
 });
 
@@ -42,7 +42,7 @@ it('shows the account step and gates it behind a published page', function () {
 
 it('creates an account inline and resumes at the pay page', function () {
     // Simulate arriving from Buy (sets the intended step).
-    $this->post('/p/kit-main/checkout');
+    $this->post('/p/kit-main/buy');
 
     $this->post('/p/kit-main/account', [
         'mode' => 'new', 'name' => 'New Buyer', 'email' => 'buyer@example.com', 'password' => 'supersecret',

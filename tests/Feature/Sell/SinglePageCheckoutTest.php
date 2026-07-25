@@ -44,12 +44,12 @@ beforeEach(function () {
 });
 
 it('Buy goes straight to the single-page checkout (no shipping step)', function () {
-    $this->actingAs($this->buyer)->post('/p/tee-main/checkout')
+    $this->actingAs($this->buyer)->post('/p/tee-main/buy')
         ->assertRedirect(route('funnel.pay', ['slug' => 'tee-main']));
 });
 
 it('the pay page carries the variation + shipping fields inline', function () {
-    $this->actingAs($this->buyer)->get('/p/tee-main/pay')
+    $this->actingAs($this->buyer)->get('/p/tee-main/checkout')
         ->assertOk()
         ->assertSee('Delivery address')
         ->assertSee('name="options[Size]"', false)
@@ -57,7 +57,7 @@ it('the pay page carries the variation + shipping fields inline', function () {
 });
 
 it('places a physical variant order with shipping captured at pay', function () {
-    $this->actingAs($this->buyer)->post('/p/tee-main/pay', [
+    $this->actingAs($this->buyer)->post('/p/tee-main/checkout', [
         'idempotency_key' => 'sp-1',
         'options' => ['Size' => 'L'],
         'name' => 'Aisha', 'phone' => '017', 'line1' => 'House 1', 'city' => 'Dhaka', 'country' => 'BD',
@@ -73,7 +73,7 @@ it('places a physical variant order with shipping captured at pay', function () 
 });
 
 it('rejects an invalid variation combo', function () {
-    $this->actingAs($this->buyer)->post('/p/tee-main/pay', [
+    $this->actingAs($this->buyer)->post('/p/tee-main/checkout', [
         'idempotency_key' => 'sp-2',
         'options' => ['Size' => 'XXL'], // not a real variant
         'name' => 'A', 'phone' => '1', 'line1' => 'x', 'city' => 'D', 'country' => 'BD',
@@ -83,7 +83,7 @@ it('rejects an invalid variation combo', function () {
 });
 
 it('requires the shipping fields for physical goods', function () {
-    $this->actingAs($this->buyer)->post('/p/tee-main/pay', [
+    $this->actingAs($this->buyer)->post('/p/tee-main/checkout', [
         'idempotency_key' => 'sp-3', 'options' => ['Size' => 'M'],
     ])->assertSessionHasErrors(['line1', 'city', 'country']);
 });
