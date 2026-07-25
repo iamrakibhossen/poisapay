@@ -128,6 +128,17 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(KycProfile::class)->latestOfMany();
     }
 
+    /** ISO-2 residence country from the most recent KYC profile that has one. */
+    public function residenceCountry(): ?string
+    {
+        $country = $this->kycProfiles()
+            ->whereNotNull('country')
+            ->orderByDesc('created_at')
+            ->value('country');
+
+        return $country !== null && $country !== '' ? strtoupper((string) $country) : null;
+    }
+
     public function devices(): HasMany
     {
         return $this->hasMany(UserDevice::class);

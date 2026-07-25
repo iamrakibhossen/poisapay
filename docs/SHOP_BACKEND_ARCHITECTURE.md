@@ -2,7 +2,7 @@
 
 > Production-grade, isolated commerce module inside PoisaHub. Designed for
 > 10M products · 200M orders · 500M order items · 100M customers. Postgres 16.
-> All tables prefixed `sell_`. All code under `app/Sell/`. Money stays in the Ledger.
+> All tables prefixed `sell_`. All code under `app/Shop/`. Money stays in the Ledger.
 
 ## 1. Five-year analysis (why this schema survives)
 - **UUID v7-style ids everywhere** (time-ordered) → index locality on inserts, no
@@ -14,7 +14,7 @@
   duplication, zero re-accounting.
 - **Append-only hot paths.** Orders, order_items, order_events, analytics_events are
   insert-heavy and never updated in bulk → low lock contention. Status changes are
-  small single-row updates; history is an append to `sell_order_events`.
+  small single-row updates; history is an append to `shop_order_events`.
 - **Read/write split by table shape.** Transactional tables stay narrow; heavy
   flexible config (page sections, theme, funnel graph, product attributes) lives in
   `jsonb` so the hot row stays small and cacheable. Dashboards read **aggregate
@@ -25,7 +25,7 @@
 
 ## 2. Module layout (isolated)
 ```
-app/Sell/
+app/Shop/
   Enums/            ProductType, ProductStatus, OrderStatus (state machine), FunnelStepType, …
   Models/           Seller, Product, ProductVariant, SalesPage, Order, OrderItem, Customer, …
   Actions/          single-purpose write use-cases (CreateProduct, PlaceOrder, MarkShipped…)
@@ -36,7 +36,7 @@ app/Sell/
   Events/  Listeners/  Jobs/
   Repositories/     only where a query is complex/reused (SalesPageReadRepository, cache-first)
   Support/Cache/    tagged, versioned Redis cache-first layer + auto-invalidation
-  SellServiceProvider.php   (binds, registers events, morph map, policies)
+  ShopServiceProvider.php   (binds, registers events, morph map, policies)
 ```
 Sell **consumes** core services via their public contracts (Ledger, Wallet, Kyc,
 Withdrawal, Notification, Risk) — never their tables. Coupling is via **domain

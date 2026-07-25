@@ -35,6 +35,7 @@ class CreateOrderAction
         private readonly P2pPricingService $pricing,
         private readonly P2pOrderService $orders,
         private readonly P2pRiskEngine $risk,
+        private readonly AdOrderGuard $guard,
         private readonly RaiseAlertAction $alerts,
     ) {}
 
@@ -68,6 +69,9 @@ class CreateOrderAction
         // Risk & compliance (hard checks throw before any escrow is locked).
         $assessment = $this->risk->assess($taker, $advertiser, $ad, $cryptoAmount);
 
+        // Advertiser-configured trading constraints (hours, requirement, country).
+        $this->guard->assertOrderable($ad, $taker);
+
         // The seller's crypto is escrowed. A sell ad's advertiser is the seller;
         // a buy ad's advertiser is the buyer (so the taker sells).
         [$sellerId, $buyerId] = $ad->side === P2pAdType::Sell
@@ -94,6 +98,10 @@ class CreateOrderAction
             if ($available->isLessThan($cryptoAmount)) {
                 throw new RuntimeException('Not enough remaining on this ad.');
             }
+
+            // Per-ad daily cap — serialised with the ad lock above.
+            $this->guard->assertWithinAdDailyLimit($lockedAd, $cryptoAmount);
+
             $lockedAd->update(['available_amount' => $available->minus($cryptoAmount)->baseString()]);
 
             $order = P2pOrder::create([

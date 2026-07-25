@@ -173,3 +173,36 @@ Expand→contract: (1) deploy code that reads both names via compatibility VIEWs
 
 ---
 **Approval requested to begin Phase 1.** The Seller→Merchant full rename (§5) and the "don't introduce Repository pattern / CQRS bus" architecture stance (§7) are the two judgment calls I most want you to confirm or veto before I start.
+
+---
+
+## 14. Outcome — what actually shipped
+
+The migration ran on `feature/shop-migration`. **Key deviation from the plan:**
+after the Seller→Merchant rename was attempted, a hard collision surfaced —
+**"Merchant" is already an unrelated first-class domain** (`app/Domain/Merchant`,
+payments/invoicing; `/merchant` URLs; `merchants` table). A newly-added
+`CLAUDE.md` codified this by reserving *Merchant* for the financial core. So
+**Phase 2 (Seller→Merchant) was dropped**; the Shop module **keeps "Seller"** as
+its role term. Everything else proceeded as a clean `sell → shop` rename (no live
+data → migrations rewritten in place, no zero-downtime dance needed).
+
+Phases and commits (each gated by the test suite):
+- **P1** `c883532` — namespace `App\Sell → App\Shop`, `app/Sell → app/Shop` (122 files), 5 `Sell*` classes, provider. *143 green.*
+- **P2** — *dropped* (Seller retained; see above).
+- **P3** `ce739ef` — 26 tables `sell_* → shop_*`, FKs, index names, model `$table`, 11 migration files renamed. *143 green.*
+- **P4** `6197dfd` — routes `sell.* → shop.*`, URLs `/sell → /shop`, `api/sell → api/shop`, admin `sell-refunds → shop-refunds`, view dir `admin/sell → admin/shop`. *143 + smoke green.*
+- **P6** `81f0e13` — cache `sell:* → shop:*`, flags/settings `sell_* → shop_*`, commands `poisapay:sell-* → poisapay:shop-*`, `LedgerAccountType::ShopCommissionIncome`, settings section `sell → shop`. *151 green.*
+- **P5** `ba69efe` — UI rebrand title `Sell → Shop` (dashboard/sidebar/settings); seller dashboard already carried the full IA. *151 green.*
+- **P7** — tests moved `tests/Feature/Sell → tests/Feature/Shop` (+ `Sell*Test → Shop*Test`); docs renamed/updated; this ERD + outcome.
+
+**Deliberately left as `sell`/`seller` (correct, not misses):** the role term
+`seller` (`shop_sellers`, `seller_id`, `SellerController`, `SellerService`,
+`SellerStatus`); P2P buy/**sell** side; `upsell_*` offer columns; the marketing
+product slug `'sell'` (CMS content). The feature flag default lives in code, so
+no settings backfill was required.
+
+### Deferred (optional, not run)
+The §6.1 schema **audit improvements** (soft-deletes, JSONB, extra composite
+indexes, UUIDv7 defaults) were intentionally deferred to keep the rename a
+low-risk, reviewable diff. They can ship as a separate follow-up migration.
