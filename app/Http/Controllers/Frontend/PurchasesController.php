@@ -52,6 +52,54 @@ class PurchasesController extends Controller
         return view('frontend.purchases', ['purchases' => $purchases]);
     }
 
+    /** A single purchase (order) in full: items, delivery, totals, tracking. */
+    public function show(Request $request, string $order): View|RedirectResponse
+    {
+        $model = Order::query()
+            ->where('buyer_user_id', $request->user()->getKey())
+            ->whereNotIn('status', [OrderStatus::Pending->value, OrderStatus::Cancelled->value])
+            ->with([
+                'asset', 'seller.user',
+                'items.product.files', 'items.product.reviews', 'items.variant', 'items.licenses',
+            ])
+            ->find($order);
+
+        if (! $model) {
+            return redirect()->route('purchases');
+        }
+
+        $money = fn ($base) => $model->asset?->money((string) (int) $base)->format(2) ?? '—';
+        $physical = $model->items->first()?->product?->type?->requiresShipping() ?? false;
+        $addr = $model->shipping_address ?? [];
+        $placed = $model->paid_at ?? $model->created_at;
+
+        return view('frontend.purchase-show', [
+            'order' => [
+                'id' => $model->id,
+                'number' => $model->number,
+                'status' => $model->status->label(),
+                'statusColor' => $model->status->color(),
+                'placedAt' => $placed?->format('M j, Y · g:i A') ?? '—',
+                'seller' => $model->seller?->displayName() ?? __('Seller'),
+                'physical' => $physical,
+                'messagesUrl' => route('purchases.messages', $model->id),
+                'unread' => (bool) $model->buyer_unread,
+                'totals' => [
+                    'subtotal' => $money($model->subtotal_amount),
+                    'shipping' => $money($model->shipping_amount),
+                    'total' => $money($model->total_amount),
+                ],
+                'shipping' => $physical ? [
+                    'address' => $this->formatAddress($addr),
+                    'carrier' => $addr['carrier'] ?? '—',
+                    'tracking' => $addr['tracking'] ?? '—',
+                    'timeline' => $this->shipmentTimeline($model->status, $placed),
+                ] : null,
+            ],
+            'items' => $model->items->map(fn (OrderItem $i) => $this->present($i->setRelation('order', $model)))->all(),
+        ]);
+    }
+
     /** Re-download a purchased digital file. Ownership is re-verified here. */
     public function download(\Illuminate\Http\Request $request, string $item): StreamedResponse|RedirectResponse
     {

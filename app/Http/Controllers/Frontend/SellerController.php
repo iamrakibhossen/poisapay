@@ -545,6 +545,8 @@ class SellerController extends Controller
             'slug' => $page->slug,
             'product' => $page->product?->name ?? __('Product'),
             'productInfo' => $info,
+            // Products the seller can point this page at (switchable in the builder).
+            'products' => Product::where('seller_id', $page->seller_id)->orderBy('name')->pluck('name', 'id')->all(),
             'published' => $page->status === SalesPageStatus::Published,
             'seed' => $this->builderSeed($page, $info),
             'themes' => ['#2563eb' => 'Blue', '#7c3aed' => 'Violet', '#059669' => 'Emerald', '#e11d48' => 'Rose', '#ea580c' => 'Orange', '#0f172a' => 'Slate'],
@@ -640,13 +642,22 @@ class SellerController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:120'],
+            'product_id' => ['nullable', 'string'],
             'builder' => ['nullable', 'json'],
         ]);
 
         $doc = json_decode($validated['builder'] ?? '{}', true) ?: [];
 
+        // The page can be re-pointed at another of the seller's products — but only
+        // ever one they own (a foreign product id falls back to the current one).
+        $productId = $page->product_id;
+        if (! empty($validated['product_id']) && $validated['product_id'] !== $page->product_id
+            && Product::where('seller_id', $page->seller_id)->whereKey($validated['product_id'])->exists()) {
+            $productId = $validated['product_id'];
+        }
+
         return SalesPageData::fromArray([
-            'product_id' => $page->product_id,
+            'product_id' => $productId,
             'name' => $validated['name'],
             'sections' => $doc['sections'] ?? $page->sections ?? [],
             'theme' => $doc['theme'] ?? $page->theme ?? [],

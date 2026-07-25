@@ -191,6 +191,7 @@ Route::middleware('auth')->group(function () {
 
     // Customer portal — purchases, downloads, courses, license keys.
     Route::get('/purchases', [\App\Http\Controllers\Frontend\PurchasesController::class, 'index'])->name('purchases');
+    Route::get('/purchases/order/{order}', [\App\Http\Controllers\Frontend\PurchasesController::class, 'show'])->name('purchases.show');
     Route::get('/purchases/{item}/download', [\App\Http\Controllers\Frontend\PurchasesController::class, 'download'])->name('purchases.download');
     Route::get('/purchases/{order}/messages', [\App\Http\Controllers\Frontend\PurchasesController::class, 'messages'])->name('purchases.messages');
     Route::post('/purchases/{order}/messages', [\App\Http\Controllers\Frontend\PurchasesController::class, 'sendMessage'])->name('purchases.messages.send');

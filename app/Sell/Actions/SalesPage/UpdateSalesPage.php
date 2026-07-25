@@ -16,6 +16,7 @@ class UpdateSalesPage
     public function execute(SalesPage $page, SalesPageData $data): SalesPage
     {
         $page->update([
+            'product_id' => $data->productId,
             'name' => $data->name,
             'sections' => $data->sections,
             'theme' => $data->theme,

@@ -23,7 +23,7 @@
                                 <x-dynamic-component :component="'heroicon-o-'.$p['icon']" class="h-6 w-6" />
                             </span>
                             <div class="min-w-0 flex-1">
-                                <p class="truncate text-sm font-semibold text-neutral-900">{{ $p['name'] }}</p>
+                                <a href="{{ route('purchases.show', ['order' => $p['orderId']]) }}" class="truncate text-sm font-semibold text-neutral-900 hover:text-brand-600">{{ $p['name'] }}</a>
                                 <p class="text-xs text-neutral-500">{{ __('by') }} {{ $p['seller'] }} · {{ $p['date'] }} · {{ $p['price'] }}</p>
 
                                 @if (($p['type'] ?? '') === 'digital')
@@ -132,7 +132,7 @@
 
                         {{-- Quick links --}}
                         <div class="mt-3 flex flex-wrap gap-4 border-t border-neutral-100 pt-3 text-xs">
-                            <a href="#" class="inline-flex items-center gap-1 font-medium text-neutral-500 hover:text-brand-600"><x-heroicon-o-document-text class="h-3.5 w-3.5" /> {{ __('Invoice') }}</a>
+                            <a href="{{ route('purchases.show', ['order' => $p['orderId']]) }}" class="inline-flex items-center gap-1 font-medium text-neutral-500 hover:text-brand-600"><x-heroicon-o-document-magnifying-glass class="h-3.5 w-3.5" /> {{ __('View details') }}</a>
                             <a href="{{ $p['messagesUrl'] }}" class="inline-flex items-center gap-1 font-medium text-neutral-500 hover:text-brand-600"><x-heroicon-o-chat-bubble-left-right class="h-3.5 w-3.5" /> {{ __('Message seller') }}@if (! empty($p['unread']))<span class="ml-0.5 inline-block h-1.5 w-1.5 rounded-full bg-brand-500"></span>@endif</a>
                             <a href="#" class="inline-flex items-center gap-1 font-medium text-neutral-500 hover:text-rose-600"><x-heroicon-o-arrow-uturn-left class="h-3.5 w-3.5" /> {{ __('Request refund') }}</a>
                         </div>
