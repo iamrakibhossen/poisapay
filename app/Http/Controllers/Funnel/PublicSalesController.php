@@ -50,10 +50,6 @@ class PublicSalesController extends Controller
     /** Buy → shipping step for physical goods, else straight to the payment page. */
     public function checkout(Request $request, string $slug): RedirectResponse
     {
-        if (! $request->user()) {
-            return redirect()->guest(route('login'));
-        }
-
         $page = $this->publishedPage($slug);
         $product = $page->product;
 
@@ -71,9 +67,84 @@ class PublicSalesController extends Controller
             $request->session()->forget($this->variantKey($page));
         }
 
-        return $product->requires_shipping
-            ? redirect()->route('funnel.shipping', ['slug' => $slug])
-            : redirect()->route('funnel.pay', ['slug' => $slug]);
+        $next = $product->requires_shipping
+            ? route('funnel.shipping', ['slug' => $slug])
+            : route('funnel.pay', ['slug' => $slug]);
+
+        // Cold traffic: don't bounce to the app login — take a quick, on-brand
+        // account step, then resume checkout exactly where they were.
+        if (! $request->user()) {
+            return $this->guestToAccount($request, $slug, $next);
+        }
+
+        return redirect()->to($next);
+    }
+
+    /** Send a signed-out visitor to the on-funnel express-account step (not the app login). */
+    private function guestToAccount(Request $request, string $slug, ?string $intended = null): RedirectResponse
+    {
+        $request->session()->put('url.intended', $intended
+            ?? ($request->isMethod('get') ? url()->current() : route('funnel.pay', ['slug' => $slug])));
+
+        return redirect()->route('funnel.account', ['slug' => $slug]);
+    }
+
+    /** Express account step — create an account or sign in, right inside the funnel. */
+    public function account(Request $request, string $slug): View|RedirectResponse
+    {
+        $page = $this->publishedPage($slug);
+
+        if ($request->user()) {
+            return redirect()->intended(route('funnel.pay', ['slug' => $slug]));
+        }
+
+        return view('funnel.account', [
+            'slug' => $slug,
+            'page' => $page,
+            'seller' => $page->seller,
+            'product' => $page->product,
+        ]);
+    }
+
+    /** Create the account (or sign in) and resume checkout. */
+    public function accountSubmit(Request $request, string $slug, \App\Domain\Auth\RegisterUserAction $register): RedirectResponse
+    {
+        $this->publishedPage($slug); // 404 guard
+
+        $mode = $request->input('mode') === 'existing' ? 'existing' : 'new';
+        $key = 'funnel-account:'.$request->ip();
+
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($key, 5)) {
+            return back()->withErrors(['email' => __('Too many attempts. Please try again shortly.')])->withInput();
+        }
+
+        if ($mode === 'existing') {
+            $validated = $request->validate(['email' => ['required', 'email'], 'password' => ['required', 'string']]);
+            $user = \App\Models\User::where('email', $validated['email'])->first();
+            if (! $user || ! \Illuminate\Support\Facades\Auth::getProvider()->validateCredentials($user, ['password' => $validated['password']])) {
+                \Illuminate\Support\Facades\RateLimiter::hit($key);
+
+                return back()->withErrors(['password' => __('Those credentials don’t match our records.')])->withInput();
+            }
+            \Illuminate\Support\Facades\Auth::login($user, remember: true);
+        } else {
+            $validated = $request->validate([
+                'name' => ['required', 'string', 'max:120'],
+                'email' => ['required', 'email', 'max:180', 'unique:users,email'],
+                'password' => ['required', 'string', 'min:8'],
+            ]);
+            $user = $register->execute([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => $validated['password'],
+            ]);
+            \Illuminate\Support\Facades\Auth::login($user, remember: true);
+        }
+
+        \Illuminate\Support\Facades\RateLimiter::clear($key);
+        $request->session()->regenerate();
+
+        return redirect()->intended(route('funnel.pay', ['slug' => $slug]));
     }
 
     /** Session key holding the chosen variant for a page's in-progress checkout. */
@@ -140,7 +211,7 @@ class PublicSalesController extends Controller
     public function shipping(Request $request, string $slug): View|RedirectResponse
     {
         if (! $request->user()) {
-            return redirect()->guest(route('login'));
+            return $this->guestToAccount($request, $slug);
         }
 
         $page = $this->publishedPage($slug);
@@ -192,7 +263,7 @@ class PublicSalesController extends Controller
     public function shippingSave(Request $request, string $slug): RedirectResponse
     {
         if (! $request->user()) {
-            return redirect()->guest(route('login'));
+            return $this->guestToAccount($request, $slug);
         }
 
         $page = $this->publishedPage($slug);
@@ -230,7 +301,7 @@ class PublicSalesController extends Controller
     public function pay(Request $request, string $slug): View|RedirectResponse
     {
         if (! $request->user()) {
-            return redirect()->guest(route('login'));
+            return $this->guestToAccount($request, $slug);
         }
 
         $page = $this->publishedPage($slug);
@@ -326,7 +397,7 @@ class PublicSalesController extends Controller
     public function payConfirm(Request $request, string $slug, PlaceOrder $placeOrder): RedirectResponse
     {
         if (! $request->user()) {
-            return redirect()->guest(route('login'));
+            return $this->guestToAccount($request, $slug);
         }
 
         $page = $this->publishedPage($slug);
@@ -432,7 +503,7 @@ class PublicSalesController extends Controller
     public function upsellAccept(Request $request, string $slug, PlaceOrder $placeOrder): RedirectResponse
     {
         if (! $request->user()) {
-            return redirect()->guest(route('login'));
+            return $this->guestToAccount($request, $slug);
         }
 
         $page = $this->publishedPage($slug);

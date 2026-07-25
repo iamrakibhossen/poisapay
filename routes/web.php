@@ -51,6 +51,8 @@ Route::controller(\App\Http\Controllers\Funnel\PublicSalesController::class)->gr
     Route::post('/p/{slug}/shipping', 'shippingSave')->name('funnel.shipping.save');
     Route::get('/p/{slug}/pay', 'pay')->name('funnel.pay');
     Route::post('/p/{slug}/pay', 'payConfirm')->name('funnel.pay.confirm');
+    Route::get('/p/{slug}/account', 'account')->name('funnel.account');
+    Route::post('/p/{slug}/account', 'accountSubmit')->middleware('throttle:10,1')->name('funnel.account.submit');
     Route::get('/p/{slug}/thank-you', 'thankYou')->name('funnel.thankyou');
     Route::post('/p/{slug}/upsell', 'upsellAccept')->name('funnel.upsell');
 });

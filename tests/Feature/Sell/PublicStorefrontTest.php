@@ -56,8 +56,8 @@ it('404s for an unpublished or unknown page', function () {
     $this->get('/p/does-not-exist')->assertNotFound();
 });
 
-it('requires sign-in before paying', function () {
-    $this->post('/p/launchkit-main/checkout')->assertRedirect(route('login'));
+it('sends a guest to the express-account step before paying', function () {
+    $this->post('/p/launchkit-main/checkout')->assertRedirect(route('funnel.account', ['slug' => 'launchkit-main']));
 });
 
 it('shows the pay page with the buyer wallet balance', function () {
