@@ -98,7 +98,7 @@
                             @foreach ($methods as $m)
                                 <label class="cursor-pointer">
                                     <input type="radio" name="payment_method_id" value="{{ $m->id }}" class="peer sr-only" required />
-                                    <span class="block truncate rounded-lg border border-neutral-200 border-l-2 border-l-neutral-300 px-2.5 py-2 text-xs font-medium text-neutral-600 transition hover:border-neutral-300 peer-checked:border-brand-500 peer-checked:border-l-brand-500 peer-checked:bg-brand-50 peer-checked:text-brand-700">{{ $m->name }}</span>
+                                    <span class="block truncate rounded-lg border-l-[3px] border-l-neutral-300 bg-neutral-50 px-2.5 py-2 text-xs font-medium text-neutral-600 transition hover:bg-neutral-100 peer-checked:border-l-brand-500 peer-checked:bg-brand-50 peer-checked:text-brand-700">{{ $m->name }}</span>
                                 </label>
                             @endforeach
                         </div>
@@ -301,14 +301,14 @@
                     </p>
                 </div>
 
-                {{-- Payment method (required before placing an order) — pick one --}}
+                {{-- Payment method (required before placing an order) — one row each --}}
                 <div>
                     <label class="pp-label">{{ __('Payment method') }}</label>
-                    <div class="grid grid-cols-2 gap-2">
+                    <div class="space-y-2">
                         <template x-for="m in (ad?.methods || [])" :key="m.id">
-                            <label class="cursor-pointer">
-                                <input type="radio" name="payment_method_id" :value="m.id" class="peer sr-only" required />
-                                <span class="block truncate rounded-lg border border-neutral-200 border-l-2 border-l-neutral-300 px-3 py-2.5 text-sm font-medium text-neutral-600 transition hover:border-neutral-300 peer-checked:border-brand-500 peer-checked:border-l-brand-500 peer-checked:bg-brand-50 peer-checked:text-brand-700" x-text="m.name"></span>
+                            <label class="flex cursor-pointer items-center gap-3 rounded-lg border-l-[3px] border-l-neutral-300 bg-neutral-50 px-3 py-2.5 transition hover:bg-neutral-100 has-[:checked]:border-l-brand-500 has-[:checked]:bg-brand-50">
+                                <input type="radio" name="payment_method_id" :value="m.id" required class="h-4 w-4 shrink-0 border-neutral-300 text-brand-600 focus:ring-brand-500" />
+                                <span class="truncate text-sm font-medium text-neutral-700" x-text="m.name"></span>
                             </label>
                         </template>
                     </div>
