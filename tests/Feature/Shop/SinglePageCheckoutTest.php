@@ -72,6 +72,21 @@ it('places a physical variant order with shipping captured at pay', function () 
         ->and($this->ledger->availableBalance($this->buyer, $this->asset->id)->baseString())->toBe('73000000');
 });
 
+it('honours the quantity chosen at checkout', function () {
+    $this->actingAs($this->buyer)->post('/p/tee-main/checkout', [
+        'idempotency_key' => 'sp-qty',
+        'options' => ['Size' => 'L'],
+        'quantity' => 3,
+        'name' => 'Aisha', 'phone' => '017', 'line1' => 'House 1', 'city' => 'Dhaka', 'country' => 'BD',
+    ])->assertRedirect(route('funnel.thankyou', ['slug' => 'tee-main']));
+
+    $order = Order::where('buyer_user_id', $this->buyer->id)->first();
+    // 25 (L variant) × 3 + 2 shipping (flat) = 77 → balance 100 − 77 = 23
+    expect((int) $order->items()->first()->quantity)->toBe(3)
+        ->and((int) $order->total_amount)->toBe(77_000000)
+        ->and($this->ledger->availableBalance($this->buyer, $this->asset->id)->baseString())->toBe('23000000');
+});
+
 it('rejects an invalid variation combo', function () {
     $this->actingAs($this->buyer)->post('/p/tee-main/checkout', [
         'idempotency_key' => 'sp-2',

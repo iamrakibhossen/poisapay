@@ -17,26 +17,38 @@
             x-data="{
                 loading: false,
                 bump: false,
+                qty: 1,
+                maxQty: {{ $maxQty }},
                 showCoupon: {{ $couponCode || $couponInvalid ? 'true' : 'false' }},
                 bumpRaw: {{ $bump['amountRaw'] ?? 0 }},
-                productBase: {{ $productRaw }},
-                discountRaw: {{ $discountRaw }},
+                unitBase: {{ $unitRaw }},
+                couponType: @js($couponType),
+                couponValue: {{ $couponValue }},
                 shipFeeRaw: {{ $shipFeeRaw }},
                 balanceRaw: {{ $balanceRaw }},
                 variants: @js($variantPrices),
                 options: @js(($variantPrices[0]['options'] ?? null) ?: (object) []),
                 fmt(m) { return (m / Math.pow(10, {{ $assetDecimals }})).toFixed(2) + ' {{ $assetSymbol }}'; },
-                get productRaw() {
-                    if (! this.variants.length) return this.productBase;
+                inc() { if (this.qty < this.maxQty) this.qty++; },
+                dec() { if (this.qty > 1) this.qty--; },
+                get unitRaw() {
+                    if (! this.variants.length) return this.unitBase;
                     const keys = Object.keys(this.options);
                     const m = this.variants.find(v => {
                         const vk = Object.keys(v.options);
                         return vk.length === keys.length && vk.every(k => v.options[k] === this.options[k]);
                     });
-                    return m ? m.price : this.productBase;
+                    return m ? m.price : this.unitBase;
                 },
-                get discountApplied() { return Math.min(this.discountRaw, this.productRaw); },
-                get totalRaw() { return this.productRaw - this.discountApplied + this.shipFeeRaw + (this.bump ? this.bumpRaw : 0); },
+                get lineRaw() { return this.unitRaw * this.qty; },
+                get discountApplied() {
+                    if (! this.couponType) return 0;
+                    const off = this.couponType === 'percent'
+                        ? Math.floor(this.lineRaw * this.couponValue / 10000)
+                        : this.couponValue;
+                    return Math.max(0, Math.min(off, this.lineRaw));
+                },
+                get totalRaw() { return this.lineRaw - this.discountApplied + this.shipFeeRaw + (this.bump ? this.bumpRaw : 0); },
                 get totalStr() { return this.fmt(this.totalRaw); },
                 get sufficient() { return this.balanceRaw >= this.totalRaw; },
             }">
@@ -51,6 +63,18 @@
                     @endif
                     <span class="text-sm font-medium text-neutral-600">{{ $seller->displayName() }}</span>
                 </div>
+                @if ($rating)
+                    <div class="mb-3 flex items-center justify-center gap-1.5 text-xs text-neutral-500">
+                        <span class="flex items-center">
+                            @for ($i = 1; $i <= 5; $i++)
+                                <x-heroicon-s-star class="h-3.5 w-3.5 {{ $i <= round($rating['avg']) ? 'text-amber-400' : 'text-neutral-200' }}" />
+                            @endfor
+                        </span>
+                        <span class="font-semibold text-neutral-700">{{ $rating['avg'] }}</span>
+                        <span>·</span>
+                        <span>{{ __(':count reviews', ['count' => number_format($rating['count'])]) }}</span>
+                    </div>
+                @endif
                 <p class="text-xs uppercase tracking-wider text-neutral-400">{{ __('Total') }}</p>
                 <p class="tabular mt-1 text-4xl font-extrabold tracking-tight text-neutral-900" x-text="totalStr">{{ $total }}</p>
             </div>
@@ -68,14 +92,34 @@
                 {{-- ═══ Order summary ═══ --}}
                 <div class="mt-6 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
                     <div class="flex items-start gap-3">
-                        <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600"><x-heroicon-o-cube class="h-5 w-5" /></span>
+                        @if ($productImage)
+                            <img src="{{ $productImage }}" alt="{{ $product->name }}" class="h-14 w-14 shrink-0 rounded-xl object-cover ring-1 ring-neutral-200" />
+                        @else
+                            <span class="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600"><x-heroicon-o-cube class="h-6 w-6" /></span>
+                        @endif
                         <div class="min-w-0 flex-1">
                             <p class="text-sm font-semibold text-neutral-900">{{ $product->name }}</p>
                             @if (! empty($variantCatalog))
                                 <p class="text-xs text-neutral-400" x-text="Object.values(options).join(' · ')"></p>
                             @endif
+                            <p class="mt-1 inline-flex items-center gap-1 text-xs text-neutral-500">
+                                <x-dynamic-component :component="'heroicon-o-'.$delivery['icon']" class="h-3.5 w-3.5 shrink-0" /> {{ $delivery['text'] }}
+                            </p>
                         </div>
-                        <span class="tabular text-sm font-semibold text-neutral-900" x-text="fmt(productRaw)">{{ $subtotal }}</span>
+                        <div class="text-right">
+                            <span class="tabular text-sm font-semibold text-neutral-900" x-text="fmt(lineRaw)">{{ $subtotal }}</span>
+                            <p x-show="qty > 1" x-cloak class="tabular text-[11px] text-neutral-400"><span x-text="fmt(unitRaw)"></span> × <span x-text="qty"></span></p>
+                        </div>
+                    </div>
+
+                    {{-- Quantity --}}
+                    <div class="mt-4 flex items-center justify-between border-t border-neutral-100 pt-4">
+                        <span class="text-sm font-medium text-neutral-700">{{ __('Quantity') }}</span>
+                        <div class="inline-flex items-center rounded-lg border border-neutral-200">
+                            <button type="button" x-on:click="dec()" :disabled="qty <= 1" aria-label="{{ __('Decrease quantity') }}" class="grid h-9 w-9 place-items-center text-neutral-600 transition hover:bg-neutral-50 disabled:opacity-30"><x-heroicon-o-minus class="h-4 w-4" /></button>
+                            <span class="tabular w-10 text-center text-sm font-semibold text-neutral-900" x-text="qty">1</span>
+                            <button type="button" x-on:click="inc()" :disabled="qty >= maxQty" aria-label="{{ __('Increase quantity') }}" class="grid h-9 w-9 place-items-center text-neutral-600 transition hover:bg-neutral-50 disabled:opacity-30"><x-heroicon-o-plus class="h-4 w-4" /></button>
+                        </div>
                     </div>
 
                     {{-- Variation — chosen right on the product --}}
@@ -98,10 +142,10 @@
                     @endif
 
                     <dl class="mt-4 space-y-1.5 border-t border-neutral-100 pt-3 text-sm">
-                        @if ($discount)
-                            <div class="flex items-center justify-between text-emerald-600">
-                                <dt>{{ __('Discount') }} @if ($couponCode)<span class="font-mono text-[11px] uppercase">({{ $couponCode }})</span>@endif</dt>
-                                <dd class="tabular font-medium">−{{ $discount }}</dd>
+                        @if ($couponCode)
+                            <div class="flex items-center justify-between text-emerald-600" x-show="discountApplied > 0" x-cloak>
+                                <dt>{{ __('Discount') }} <span class="font-mono text-[11px] uppercase">({{ $couponCode }})</span></dt>
+                                <dd class="tabular font-medium">−<span x-text="fmt(discountApplied)">{{ $discount }}</span></dd>
                             </div>
                         @endif
                         @if ($shipFee)
@@ -154,6 +198,7 @@
                 <form id="checkout" method="POST" action="{{ route('funnel.pay.confirm', ['slug' => $slug]) }}" x-on:submit="loading = true" class="mt-4 space-y-4">
                     @csrf
                     <input type="hidden" name="idempotency_key" value="{{ $idempotencyKey }}" />
+                    <input type="hidden" name="quantity" :value="qty" />
                     @if ($couponCode)<input type="hidden" name="coupon_code" value="{{ $couponCode }}" />@endif
                     @if ($bump)<input type="hidden" name="bump" :value="bump ? '1' : '0'" />@endif
 
@@ -216,12 +261,22 @@
                         <span x-show="loading" x-cloak>{{ __('Processing…') }}</span>
                     </button>
 
-                    <div class="flex items-center justify-center gap-3 text-[11px] text-neutral-400">
-                        <span class="inline-flex items-center gap-1"><x-heroicon-o-shield-check class="h-3.5 w-3.5" /> {{ __('Buyer protection') }}</span>
+                    @if ($refundDays > 0)
+                        <div class="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
+                            <div class="flex items-center gap-2">
+                                <x-heroicon-s-shield-check class="h-5 w-5 shrink-0 text-emerald-600" />
+                                <p class="text-sm font-semibold text-emerald-800">{{ __(':days-day money-back guarantee', ['days' => $refundDays]) }}</p>
+                            </div>
+                            <p class="mt-1 text-xs leading-relaxed text-emerald-700/90">{{ __('Covered by PoisaPay buyer protection. Not happy? Request a full refund within :days days.', ['days' => $refundDays]) }}</p>
+                        </div>
+                    @endif
+
+                    <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-neutral-400">
+                        <span class="inline-flex items-center gap-1"><x-heroicon-o-lock-closed class="h-3.5 w-3.5" /> {{ __('Encrypted checkout') }}</span>
                         <span>·</span>
-                        <span class="inline-flex items-center gap-1"><x-heroicon-o-arrow-uturn-left class="h-3.5 w-3.5" /> {{ __('14-day money-back') }}</span>
+                        <span class="inline-flex items-center gap-1"><x-heroicon-o-bolt class="h-3.5 w-3.5" /> {{ __('Instant confirmation') }}</span>
                         <span>·</span>
-                        <span class="inline-flex items-center gap-1"><x-heroicon-o-lock-closed class="h-3.5 w-3.5" /> {{ __('Encrypted') }}</span>
+                        <span class="inline-flex items-center gap-1"><x-heroicon-o-wallet class="h-3.5 w-3.5" /> {{ __('Pay from your wallet') }}</span>
                     </div>
                 </form>
 

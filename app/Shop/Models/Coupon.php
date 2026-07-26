@@ -13,6 +13,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * A seller discount code. Scoped to one product (product_id) or seller-wide
  * (null). `value` is basis points for percent coupons, minor units for fixed.
+ *
+ * @property CouponType $type
+ * @property int $value
  */
 class Coupon extends Model
 {

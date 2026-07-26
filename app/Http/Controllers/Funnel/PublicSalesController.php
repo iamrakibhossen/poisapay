@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Funnel;
 
+use App\Domain\Auth\RegisterUserAction;
 use App\Domain\Ledger\LedgerService;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Shop\Actions\Order\PlaceOrder;
+use App\Shop\Builder\RenderContext;
+use App\Shop\Builder\Renderer;
 use App\Shop\DTOs\CheckoutData;
+use App\Shop\Enums\OrderItemKind;
 use App\Shop\Enums\SalesPageStatus;
 use App\Shop\Exceptions\ShopException;
 use App\Shop\Models\Order;
@@ -17,8 +22,12 @@ use App\Shop\Models\SalesPage;
 use App\Shop\Services\AnalyticsService;
 use App\Shop\Services\CouponService;
 use App\Shop\Services\PricingService;
+use App\Utilities\Asset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -87,26 +96,26 @@ class PublicSalesController extends Controller
     }
 
     /** Create the account (or sign in) and resume checkout. */
-    public function accountSubmit(Request $request, string $slug, \App\Domain\Auth\RegisterUserAction $register): RedirectResponse
+    public function accountSubmit(Request $request, string $slug, RegisterUserAction $register): RedirectResponse
     {
         $this->publishedPage($slug); // 404 guard
 
         $mode = $request->input('mode') === 'existing' ? 'existing' : 'new';
         $key = 'funnel-account:'.$request->ip();
 
-        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($key, 5)) {
+        if (RateLimiter::tooManyAttempts($key, 5)) {
             return back()->withErrors(['email' => __('Too many attempts. Please try again shortly.')])->withInput();
         }
 
         if ($mode === 'existing') {
             $validated = $request->validate(['email' => ['required', 'email'], 'password' => ['required', 'string']]);
-            $user = \App\Models\User::where('email', $validated['email'])->first();
-            if (! $user || ! \Illuminate\Support\Facades\Auth::getProvider()->validateCredentials($user, ['password' => $validated['password']])) {
-                \Illuminate\Support\Facades\RateLimiter::hit($key);
+            $user = User::where('email', $validated['email'])->first();
+            if (! $user || ! Auth::getProvider()->validateCredentials($user, ['password' => $validated['password']])) {
+                RateLimiter::hit($key);
 
                 return back()->withErrors(['password' => __('Those credentials don’t match our records.')])->withInput();
             }
-            \Illuminate\Support\Facades\Auth::login($user, remember: true);
+            Auth::login($user, remember: true);
         } else {
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:120'],
@@ -118,10 +127,10 @@ class PublicSalesController extends Controller
                 'email' => $validated['email'],
                 'password' => $validated['password'],
             ]);
-            \Illuminate\Support\Facades\Auth::login($user, remember: true);
+            Auth::login($user, remember: true);
         }
 
-        \Illuminate\Support\Facades\RateLimiter::clear($key);
+        RateLimiter::clear($key);
         $request->session()->regenerate();
 
         return redirect()->intended(route('funnel.pay', ['slug' => $slug]));
@@ -166,7 +175,6 @@ class PublicSalesController extends Controller
 
         return null;
     }
-
 
     /** PoisaPay-hosted payment page — the buyer confirms with their wallet balance. */
     public function pay(Request $request, string $slug): View|RedirectResponse
@@ -229,12 +237,30 @@ class PublicSalesController extends Controller
             $request->session()->put($sessionKey, $idempotencyKey);
         }
 
+        // Conversion signals: real product image, social proof (published reviews),
+        // delivery reassurance, and the true money-back window.
+        $rev = $product->reviews()->where('status', 'published')
+            ->selectRaw('avg(rating) as avg, count(*) as c')->first();
+        $rating = ($rev && (int) $rev->c > 0)
+            ? ['avg' => round((float) $rev->avg, 1), 'count' => (int) $rev->c]
+            : null;
+
+        $delivery = $product->requires_shipping
+            ? ['icon' => 'truck', 'text' => __('Ships to your address after payment')]
+            : ($product->type->isDigitalDelivery()
+                ? ['icon' => 'bolt', 'text' => __('Instant access — delivered to your account right after payment')]
+                : ['icon' => 'check-badge', 'text' => __('Delivered right after payment')]);
+
         return view('funnel.pay', [
             'slug' => $slug,
             'page' => $page,
             'product' => $product,
             'seller' => $seller,
             'asset' => $asset,
+            'productImage' => Asset::url($product->image),
+            'rating' => $rating,
+            'delivery' => $delivery,
+            'refundDays' => (int) getSetting('shop_refund_window_days', 14),
             'subtotal' => $asset->money((string) $subtotal)->format(2),
             'discount' => $discount > 0 ? $asset->money((string) $discount)->format(2) : null,
             'shipFee' => $shipFee > 0 ? $asset->money((string) $shipFee)->format(2) : null,
@@ -253,9 +279,13 @@ class PublicSalesController extends Controller
                 'options' => $v->options ?? [],
                 'price' => (int) ($v->price_amount ?? $product->price_amount),
             ])->values()->all(),
-            // Raw minor-unit amounts + asset meta for live (variant/bump) total math.
+            // Raw minor-unit amounts + asset meta for live (variant/bump/quantity) total math.
             'bump' => $bump,
             'productRaw' => $subtotal,
+            'unitRaw' => (int) $break['unit'],
+            'maxQty' => 99,
+            'couponType' => $coupon?->type->value,
+            'couponValue' => $coupon ? (int) $coupon->value : 0,
             'discountRaw' => $discount,
             'shipFeeRaw' => $shipFee,
             'totalRaw' => $totalAmount,
@@ -280,6 +310,7 @@ class PublicSalesController extends Controller
             'coupon_code' => ['nullable', 'string', 'max:40'],
             'bump' => ['nullable', 'boolean'],
             'options' => ['nullable', 'array'],
+            'quantity' => ['nullable', 'integer', 'min:1', 'max:99'],
         ];
         // Shipping fields are captured inline here for physical goods.
         if ($product->requires_shipping) {
@@ -304,7 +335,7 @@ class PublicSalesController extends Controller
             return back()->withInput()->withErrors(['options' => __('Please choose a variation.')]);
         }
 
-        $shipping = $product->requires_shipping ? \Illuminate\Support\Arr::only($validated, [
+        $shipping = $product->requires_shipping ? Arr::only($validated, [
             'name', 'phone', 'line1', 'line2', 'city', 'postcode', 'country', 'notes',
         ]) : null;
 
@@ -312,7 +343,7 @@ class PublicSalesController extends Controller
             $order = $placeOrder->execute($request->user(), CheckoutData::fromArray([
                 'product_id' => $page->product_id,
                 'variant_id' => $variant?->getKey(),
-                'quantity' => 1,
+                'quantity' => (int) ($validated['quantity'] ?? 1),
                 'sales_page_id' => $page->getKey(),
                 'idempotency_key' => $validated['idempotency_key'],
                 'coupon_code' => $validated['coupon_code'] ?? null,
@@ -409,7 +440,7 @@ class PublicSalesController extends Controller
                 'quantity' => 1,
                 'sales_page_id' => $page->getKey(),
                 'parent_order_id' => $order->getKey(),
-                'kind' => \App\Shop\Enums\OrderItemKind::Upsell,
+                'kind' => OrderItemKind::Upsell,
                 'override_amount' => $page->upsellAmount(),
                 'idempotency_key' => 'shop:upsell:'.$order->getKey(), // one upsell per order
             ]));
@@ -464,8 +495,12 @@ class PublicSalesController extends Controller
         // Render the published block-tree document with the one shared renderer —
         // byte-identical to the editor's iframe preview.
         $document = $page->publishedDocument();
-        $context = \App\Shop\Builder\RenderContext::fromSalesPage($page, $document->globals());
-        $rendered = app(\App\Shop\Builder\Renderer::class)->render($document, $context);
+        $context = RenderContext::fromSalesPage($page, $document->globals());
+        $rendered = app(Renderer::class)->render($document, $context);
+
+        // When the seller builds their own header/footer block, the default sales
+        // chrome header/footer steps aside so their block is the page's real one.
+        $types = array_map(static fn ($n) => $n->type, $document->root()->flatten());
 
         $sellerName = $seller->displayName();
 
@@ -474,6 +509,8 @@ class PublicSalesController extends Controller
             'name' => $page->name,
             'bodyHtml' => $rendered['html'],
             'headCss' => $rendered['css'],
+            'hasHeader' => in_array('header', $types, true),
+            'hasFooter' => in_array('footer', $types, true),
             'product' => [
                 'name' => $product->name,
                 'summary' => $product->summary,

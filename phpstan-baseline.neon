@@ -2923,12 +2923,6 @@ parameters:
 			path: app/Http/Controllers/Frontend/SellerController.php
 
 		-
-			message: '#^Strict comparison using \=\=\= between string and App\\Shop\\Enums\\CouponType\:\:Percent will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: app/Http/Controllers/Frontend/SellerController.php
-
-		-
 			message: '#^Using nullsafe property access "\?\-\>body" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
@@ -3253,6 +3247,12 @@ parameters:
 			path: app/Http/Controllers/Funnel/PublicSalesController.php
 
 		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$image\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Funnel/PublicSalesController.php
+
+		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
 			identifier: property.notFound
 			count: 8
@@ -3279,7 +3279,7 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$requires_shipping\.$#'
 			identifier: property.notFound
-			count: 3
+			count: 2
 			path: app/Http/Controllers/Funnel/PublicSalesController.php
 
 		-
@@ -3292,6 +3292,12 @@ parameters:
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$summary\.$#'
 			identifier: property.notFound
 			count: 3
+			path: app/Http/Controllers/Funnel/PublicSalesController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$type\.$#'
+			identifier: property.notFound
+			count: 1
 			path: app/Http/Controllers/Funnel/PublicSalesController.php
 
 		-
@@ -3315,7 +3321,7 @@ parameters:
 		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:reviews\(\)\.$#'
 			identifier: method.notFound
-			count: 1
+			count: 2
 			path: app/Http/Controllers/Funnel/PublicSalesController.php
 
 		-
@@ -4549,12 +4555,6 @@ parameters:
 			path: app/Models/User.php
 
 		-
-			message: '#^Method App\\Models\\User\:\:withdrawals\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app/Models/User.php
-
-		-
 			message: '#^Method App\\Models\\UserDevice\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
 			identifier: missingType.generics
 			count: 1
@@ -5079,12 +5079,6 @@ parameters:
 		-
 			message: '#^Method App\\Shop\\Models\\Coupon\:\:seller\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
 			identifier: missingType.generics
-			count: 1
-			path: app/Shop/Models/Coupon.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between string and App\\Shop\\Enums\\CouponType\:\:Percent will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
 			count: 1
 			path: app/Shop/Models/Coupon.php
 
