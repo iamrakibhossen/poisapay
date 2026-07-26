@@ -21,7 +21,9 @@ use App\Shop\Models\ProductVariant;
 use App\Shop\Models\SalesPage;
 use App\Shop\Services\AnalyticsService;
 use App\Shop\Services\CouponService;
+use App\Shop\Services\Domain\DomainResolver;
 use App\Shop\Services\PricingService;
+use App\Shop\Support\PlatformHost;
 use App\Utilities\Asset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -215,8 +217,10 @@ class PublicSalesController extends Controller
         // Order bump — an optional add-on the buyer can accept at checkout.
         $bump = null;
         $bp = $page->bumpProduct;
-        if ($bp && (int) $bp->price_asset_id === (int) $product->price_asset_id
-            && $bp->getKey() !== $product->getKey() && $bp->status->isBuyable()) {
+        if (
+            $bp && (int) $bp->price_asset_id === (int) $product->price_asset_id
+            && $bp->getKey() !== $product->getKey() && $bp->status->isBuyable()
+        ) {
             $bumpAmt = (int) $page->bumpAmount();
             $listAmt = (int) $bp->price_amount;
             $bump = [
@@ -257,6 +261,7 @@ class PublicSalesController extends Controller
             'product' => $product,
             'seller' => $seller,
             'asset' => $asset,
+            'backUrl' => $this->storefrontBackUrl($request, $page),
             'productImage' => Asset::url($product->image),
             'rating' => $rating,
             'delivery' => $delivery,
@@ -336,7 +341,14 @@ class PublicSalesController extends Controller
         }
 
         $shipping = $product->requires_shipping ? Arr::only($validated, [
-            'name', 'phone', 'line1', 'line2', 'city', 'postcode', 'country', 'notes',
+            'name',
+            'phone',
+            'line1',
+            'line2',
+            'city',
+            'postcode',
+            'country',
+            'notes',
         ]) : null;
 
         try {
@@ -378,10 +390,17 @@ class PublicSalesController extends Controller
         $data = $request->validate([
             'slug' => ['required', 'string', 'max:200'],
             'coupon' => ['nullable', 'string', 'max:40'],
+            'return_url' => ['nullable', 'string', 'max:500'],
         ]);
 
         // publishedPage() 404s an unknown/unpublished slug (host-header/takeover safe).
         $page = $this->publishedPage($data['slug']);
+
+        // Remember the originating storefront (custom domain) so the pay page's
+        // "Back to the page" link returns there, not to the platform funnel URL.
+        if (! empty($data['return_url']) && $this->isSafeStorefrontUrl($data['return_url'])) {
+            $request->session()->put('shop:return_url', $data['return_url']);
+        }
 
         return $this->handoffTo($request, $page, empty($data['coupon']) ? null : $data['coupon']);
     }
@@ -419,6 +438,29 @@ class PublicSalesController extends Controller
         return redirect()->route('funnel.account', ['slug' => $page->slug]);
     }
 
+    /** "Back to the page" target — the originating storefront, else the funnel page. */
+    private function storefrontBackUrl(Request $request, SalesPage $page): string
+    {
+        $ret = (string) $request->session()->get('shop:return_url', '');
+
+        return $ret !== '' && $this->isSafeStorefrontUrl($ret)
+            ? $ret
+            : route('funnel.sales', ['slug' => $page->slug]);
+    }
+
+    /** Anti open-redirect: only a platform host or serviceable custom domain is trusted. */
+    private function isSafeStorefrontUrl(string $url): bool
+    {
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+        if ($host === '' || ! in_array($scheme, ['http', 'https'], true)) {
+            return false;
+        }
+
+        return PlatformHost::is($host)
+            || app(DomainResolver::class)->resolve($host) !== null;
+    }
+
     public function thankYou(Request $request, string $slug): View
     {
         $page = $this->publishedPage($slug);
@@ -453,9 +495,11 @@ class PublicSalesController extends Controller
         $up = $page->upsellProduct;
         $asset = $page->product->priceAsset;
 
-        if (! $up || ! $up->status->isBuyable()
+        if (
+            ! $up || ! $up->status->isBuyable()
             || (int) $up->price_asset_id !== (int) $page->product->price_asset_id
-            || $up->getKey() === $page->product_id) {
+            || $up->getKey() === $page->product_id
+        ) {
             return null;
         }
         // Already upsold from this order? Don't offer again.
@@ -518,10 +562,23 @@ class PublicSalesController extends Controller
     private function countries(): array
     {
         return [
-            'BD' => 'Bangladesh', 'IN' => 'India', 'PK' => 'Pakistan', 'US' => 'United States',
-            'GB' => 'United Kingdom', 'CA' => 'Canada', 'AU' => 'Australia', 'AE' => 'United Arab Emirates',
-            'SA' => 'Saudi Arabia', 'MY' => 'Malaysia', 'SG' => 'Singapore', 'ID' => 'Indonesia',
-            'NG' => 'Nigeria', 'DE' => 'Germany', 'FR' => 'France', 'NL' => 'Netherlands', 'OT' => 'Other',
+            'BD' => 'Bangladesh',
+            'IN' => 'India',
+            'PK' => 'Pakistan',
+            'US' => 'United States',
+            'GB' => 'United Kingdom',
+            'CA' => 'Canada',
+            'AU' => 'Australia',
+            'AE' => 'United Arab Emirates',
+            'SA' => 'Saudi Arabia',
+            'MY' => 'Malaysia',
+            'SG' => 'Singapore',
+            'ID' => 'Indonesia',
+            'NG' => 'Nigeria',
+            'DE' => 'Germany',
+            'FR' => 'France',
+            'NL' => 'Netherlands',
+            'OT' => 'Other',
         ];
     }
 

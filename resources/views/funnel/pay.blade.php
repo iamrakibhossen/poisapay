@@ -86,7 +86,7 @@
             @if ($ownProduct)
                 <div class="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-center text-sm text-amber-700">
                     {{ __('This is your own product — you can’t buy it.') }}
-                    <a href="{{ route('funnel.sales', ['slug' => $slug]) }}" class="mt-2 block font-semibold text-neutral-600 hover:text-neutral-900">← {{ __('Back to the page') }}</a>
+                    <a href="{{ $backUrl }}" class="mt-2 block font-semibold text-neutral-600 hover:text-neutral-900">← {{ __('Back to the page') }}</a>
                 </div>
             @else
                 {{-- ═══ Order summary ═══ --}}
@@ -283,7 +283,7 @@
                 <p class="mt-4 text-center text-xs text-neutral-400">{{ __('Signed in as') }} <span class="font-medium text-neutral-500">{{ auth()->user()?->email }}</span></p>
             @endif
 
-            <a href="{{ route('funnel.sales', ['slug' => $slug]) }}" class="mt-6 block text-center text-xs font-medium text-neutral-400 hover:text-neutral-600">← {{ __('Back to the page') }}</a>
+            <a href="{{ $backUrl }}" class="mt-6 block text-center text-xs font-medium text-neutral-400 hover:text-neutral-600">← {{ __('Back to the page') }}</a>
         </main>
 
         {{-- Sticky mobile pay bar --}}

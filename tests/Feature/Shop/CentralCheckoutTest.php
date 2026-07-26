@@ -71,6 +71,27 @@ it('exposes a shareable product-keyed direct checkout link', function () {
         ->assertRedirect(route('funnel.pay', ['slug' => 'launchkit-main']));
 });
 
+it('returns the buyer to the originating storefront via the back link', function () {
+    $buyer = User::factory()->create();
+    $storefront = rtrim((string) config('app.url'), '/').'/p/launchkit-main';
+
+    $this->actingAs($buyer)->post('/checkout', ['slug' => 'launchkit-main', 'return_url' => $storefront]);
+
+    $this->actingAs($buyer)->get(route('funnel.pay', ['slug' => 'launchkit-main']))
+        ->assertOk()
+        ->assertSee($storefront, false);
+});
+
+it('ignores an untrusted return_url (anti open-redirect)', function () {
+    $buyer = User::factory()->create();
+
+    $this->actingAs($buyer)->post('/checkout', ['slug' => 'launchkit-main', 'return_url' => 'https://evil.example/phish']);
+
+    $this->actingAs($buyer)->get(route('funnel.pay', ['slug' => 'launchkit-main']))
+        ->assertOk()
+        ->assertDontSee('evil.example');
+});
+
 it('the storefront Buy form posts to the central platform-host checkout', function () {
     $host = rtrim((string) config('app.url'), '/');
 
