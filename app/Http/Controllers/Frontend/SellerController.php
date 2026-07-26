@@ -40,6 +40,7 @@ use App\Shop\Models\RefundRequest;
 use App\Shop\Models\SalesPage;
 use App\Shop\Models\Seller;
 use App\Shop\Services\AnalyticsService;
+use App\Shop\Services\Files\ProductFileService;
 use App\Shop\Services\SellerService;
 use App\Shop\Services\ShopRevenueService;
 use App\Support\Money;
@@ -1510,7 +1511,7 @@ class SellerController extends Controller
     }
 
     /** Persist a new product (Draft) through the Sell backend action. */
-    public function storeProduct(Request $request, SellerService $sellers, CreateProduct $action): RedirectResponse
+    public function storeProduct(Request $request, SellerService $sellers, CreateProduct $action, ProductFileService $files): RedirectResponse
     {
         $validated = $request->validate($this->productRules());
 
@@ -1527,6 +1528,8 @@ class SellerController extends Controller
             return back()->withInput()->withErrors(['product' => $e->getMessage()]);
         }
 
+        $this->storeProductFile($request, $product, $files);
+
         return redirect()->route('shop.products')
             ->with('success', __('“:name” created as a draft — publish it to generate its sales page.', ['name' => $product->name]));
     }
@@ -1539,7 +1542,7 @@ class SellerController extends Controller
             return redirect()->route('shop');
         }
 
-        $product = $seller->products()->with(['priceAsset', 'variants', 'salesPages'])->findOrFail($id);
+        $product = $seller->products()->with(['priceAsset', 'variants', 'salesPages', 'files'])->findOrFail($id);
 
         return view('frontend.seller.product-create', [
             'types' => self::PRODUCT_TYPES,
@@ -1595,7 +1598,7 @@ class SellerController extends Controller
     }
 
     /** Persist edits to an owned product. Slug + status are untouched here. */
-    public function updateProduct(Request $request, SellerService $sellers, UpdateProduct $action, string $id): RedirectResponse
+    public function updateProduct(Request $request, SellerService $sellers, UpdateProduct $action, ProductFileService $files, string $id): RedirectResponse
     {
         $validated = $request->validate($this->productRules());
 
@@ -1614,8 +1617,21 @@ class SellerController extends Controller
             return back()->withInput()->withErrors(['product' => $e->getMessage()]);
         }
 
+        $this->storeProductFile($request, $product, $files);
+
         return redirect()->route('shop.products')
             ->with('success', __('“:name” updated.', ['name' => $product->name]));
+    }
+
+    /**
+     * Store an uploaded downloadable file as the product's new current version and
+     * queue its scan — only for digital/license products that carry a file.
+     */
+    private function storeProductFile(Request $request, Product $product, ProductFileService $files): void
+    {
+        if ($request->hasFile('file') && $product->type->isDigitalDelivery()) {
+            $files->store($product, $request->file('file'));
+        }
     }
 
     /** Validation rules shared by product create + update. */
@@ -1629,6 +1645,8 @@ class SellerController extends Controller
             'summary' => ['nullable', 'string', 'max:300'],
             'description' => ['nullable', 'string'],
             'image' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'], // 2 MB cover
+            // Downloadable file for digital/license products (stored private, then scanned)
+            'file' => ['nullable', 'file', 'max:'.(int) config('shop.files.max_kb', 524288)],
             // Physical extras (kept in attributes until the variant matrix lands)
             'weight' => ['nullable', 'numeric', 'min:0'],
             'sku' => ['nullable', 'string', 'max:64'],

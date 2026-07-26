@@ -10,10 +10,12 @@ use App\Shop\Actions\Refund\CancelRefundRequest;
 use App\Shop\Actions\Refund\EscalateRefundRequest;
 use App\Shop\Actions\Refund\RequestRefund;
 use App\Shop\Actions\Review\SubmitReview;
+use App\Shop\Enums\FileScanStatus;
 use App\Shop\Enums\OrderStatus;
 use App\Shop\Enums\ProductType;
 use App\Shop\Enums\RefundRequestStatus;
 use App\Shop\Exceptions\ShopException;
+use App\Shop\Models\Download;
 use App\Shop\Models\Order;
 use App\Shop\Models\OrderItem;
 use App\Shop\Models\RefundRequest;
@@ -200,16 +202,30 @@ class PurchasesController extends Controller
     {
         $orderItem = OrderItem::query()
             ->whereHas('order', fn ($q) => $q->where('buyer_user_id', $request->user()->getKey())
-                ->whereNotIn('status', [OrderStatus::Pending->value, OrderStatus::Cancelled->value]))
+                ->whereNotIn('status', [OrderStatus::Pending->value, OrderStatus::Cancelled->value, OrderStatus::Refunded->value]))
             ->with('product.files')
             ->findOrFail($item);
 
-        $file = $orderItem->product?->files->firstWhere('is_current', true)
-            ?? $orderItem->product?->files->first();
+        // Only ever serve the current, malware-cleared version.
+        $file = $orderItem->product?->files
+            ->first(fn ($f) => $f->is_current && $f->scan_status->isDeliverable());
 
         if (! $file || ! Storage::disk($file->disk)->exists($file->path)) {
-            return back()->with('error', __('This file isn’t available for download yet.'));
+            return back()->with('error', __('This file isn’t ready to download yet — it may still be scanning.'));
         }
+
+        // Enforce the count/expiry grant issued at purchase, if one exists.
+        $grant = Download::where('order_item_id', $orderItem->getKey())
+            ->where('product_file_id', $file->getKey())
+            ->where('buyer_user_id', $request->user()->getKey())
+            ->first();
+
+        if ($grant && ! $grant->isUsable()) {
+            return back()->with('error', __('Your download limit for this file has been reached.'));
+        }
+
+        $grant?->increment('download_count');
+        $grant?->update(['last_downloaded_at' => now()]);
 
         return Storage::disk($file->disk)->download($file->path, $file->original_name);
     }
@@ -315,9 +331,14 @@ class PurchasesController extends Controller
         ];
 
         if ($type === ProductType::Digital) {
-            $file = $item->product?->files->firstWhere('is_current', true) ?? $item->product?->files->first();
-            $card['file'] = $file?->original_name;
-            $card['downloadUrl'] = $file ? route('purchases.download', $item->id) : null;
+            $current = $item->product?->files->firstWhere('is_current', true);
+            $deliverable = $current && $current->scan_status->isDeliverable() ? $current : null;
+            $card['file'] = $current?->original_name;
+            $card['downloadUrl'] = $deliverable ? route('purchases.download', $item->id) : null;
+            // Buyer hint when a file exists but isn't yet downloadable (still scanning).
+            $card['fileStatus'] = ($current && ! $deliverable)
+                ? ($current->scan_status === FileScanStatus::Infected ? __('File unavailable') : __('Preparing your download…'))
+                : null;
             $card['action'] = __('Download');
         } elseif ($type === ProductType::License) {
             $card['licenseKey'] = optional($item->licenses->first())->key();

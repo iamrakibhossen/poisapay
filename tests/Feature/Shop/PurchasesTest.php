@@ -32,7 +32,7 @@ beforeEach(function () {
     ]);
     ProductFile::create([
         'product_id' => $this->product->id, 'disk' => 'local', 'path' => 'sell/launchkit.zip',
-        'original_name' => 'launchkit-v1.0.zip', 'is_current' => true,
+        'original_name' => 'launchkit-v1.0.zip', 'is_current' => true, 'scan_status' => 'clean',
     ]);
 
     $this->order = app(PlaceOrder::class)->execute($this->buyer, CheckoutData::fromArray([

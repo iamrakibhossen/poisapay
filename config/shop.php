@@ -61,6 +61,18 @@ return [
         ],
     ],
 
+    // ── Digital product files ───────────────────────────────────────────────
+    // Downloadable files live on a PRIVATE disk (never public) and are held until
+    // a queued malware scan clears them. `simulated` flags the EICAR test signature
+    // only — wire `clamav` (with a running clamd) before trusting uploads in prod.
+    'files' => [
+        'disk' => env('SHOP_FILES_DISK', 'local'),
+        'scanner' => env('SHOP_FILES_SCANNER', 'simulated'), // simulated|clamav
+        'clamav_binary' => env('SHOP_CLAMAV_BINARY', 'clamdscan'),
+        'scan_timeout' => (int) env('SHOP_FILES_SCAN_TIMEOUT', 120),
+        'max_kb' => (int) env('SHOP_FILES_MAX_KB', 524288), // 512 MB
+    ],
+
     // ── Tracking / pixels ───────────────────────────────────────────────────
     // Per-sales-page browser pixels are always on (client-side, no config here).
     // Server-side Meta Conversions API (CAPI) is opt-in per page (the page must

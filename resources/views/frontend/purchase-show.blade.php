@@ -32,6 +32,8 @@
                             </div>
                             @if (! empty($p['downloadUrl']))
                                 <x-ui.button href="{{ $p['downloadUrl'] }}" size="sm" icon="arrow-down-tray">{{ __('Download') }}</x-ui.button>
+                            @elseif (! empty($p['fileStatus']))
+                                <x-ui.button size="sm" icon="clock" variant="secondary" disabled>{{ $p['fileStatus'] }}</x-ui.button>
                             @endif
                         </div>
 

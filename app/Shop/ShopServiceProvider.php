@@ -8,6 +8,7 @@ use App\Shop\Builder\BlockLibrary;
 use App\Shop\Builder\BlockRegistry;
 use App\Shop\Contracts\AuditableEvent;
 use App\Shop\Contracts\DnsResolver;
+use App\Shop\Contracts\FileScanner;
 use App\Shop\Contracts\SslProvisioner;
 use App\Shop\Events\OrderPlaced;
 use App\Shop\Events\SellerApplied;
@@ -29,6 +30,8 @@ use App\Shop\Policies\SalesPagePolicy;
 use App\Shop\Policies\SellerPolicy;
 use App\Shop\Services\Dns\SystemDnsResolver;
 use App\Shop\Services\Domain\DomainResolver;
+use App\Shop\Services\Files\ClamAvFileScanner;
+use App\Shop\Services\Files\SimulatedFileScanner;
 use App\Shop\Services\Media\MediaUrlService;
 use App\Shop\Services\SalesPageService;
 use App\Shop\Services\SellerService;
@@ -84,6 +87,12 @@ class ShopServiceProvider extends ServiceProvider
         $this->app->bind(MetaCapiClient::class, fn () => match (config('shop.tracking.meta_capi.driver')) {
             'http' => new HttpMetaCapiClient,
             default => new SimulatedMetaCapiClient,
+        });
+
+        // Product-file malware scanner: simulated (EICAR only) by default, ClamAV in prod.
+        $this->app->bind(FileScanner::class, fn () => match (config('shop.files.scanner')) {
+            'clamav' => new ClamAvFileScanner,
+            default => new SimulatedFileScanner,
         });
 
         // Custom-domain DNS + SSL sit behind contracts so tests swap in fakes and

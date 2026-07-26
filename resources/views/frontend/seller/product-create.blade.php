@@ -164,10 +164,26 @@
                 <p class="mb-4 text-xs text-neutral-500">{{ __('What the buyer receives after payment.') }}</p>
 
                 <div x-show="['digital','license'].includes(type)">
+                    @php($currentFile = ($product ?? null)?->files?->firstWhere('is_current', true))
+                    @if ($currentFile)
+                        <div class="mb-3 flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+                            <div class="flex min-w-0 items-center gap-2.5">
+                                <x-heroicon-o-document class="h-5 w-5 shrink-0 text-neutral-400" />
+                                <div class="min-w-0">
+                                    <p class="truncate text-sm font-medium text-neutral-800">{{ $currentFile->original_name }}</p>
+                                    <p class="text-xs text-neutral-400">{{ $currentFile->version }} · {{ $currentFile->humanSize() }}</p>
+                                </div>
+                            </div>
+                            <x-ui.badge :color="$currentFile->scan_status->color()" dot>{{ __($currentFile->scan_status->label()) }}</x-ui.badge>
+                        </div>
+                        @if ($currentFile->scan_status === \App\Shop\Enums\FileScanStatus::Infected)
+                            <p class="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">{{ __('This file was blocked by the malware scan and won’t be delivered. Upload a clean version.') }}</p>
+                        @endif
+                    @endif
                     <div class="rounded-xl border border-dashed border-neutral-300 p-6 text-center">
                         <x-heroicon-o-arrow-up-tray class="mx-auto h-6 w-6 text-neutral-400" />
-                        <p class="mt-2 text-sm font-medium text-neutral-700">{{ __('Upload your file') }}</p>
-                        <p class="text-xs text-neutral-400">{{ __('ZIP, PDF, or any digital asset — stored privately, delivered via signed link.') }}</p>
+                        <p class="mt-2 text-sm font-medium text-neutral-700">{{ $currentFile ? __('Replace file') : __('Upload your file') }}</p>
+                        <p class="text-xs text-neutral-400">{{ __('ZIP, PDF, or any digital asset — stored privately, scanned, then delivered via signed link.') }}</p>
                         <input type="file" name="file" class="mt-3 text-xs" />
                     </div>
                 </div>

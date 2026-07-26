@@ -45,7 +45,7 @@
                                     @if (! empty($p['downloadUrl']))
                                         <x-ui.button href="{{ $p['downloadUrl'] }}" size="sm" icon="arrow-down-tray">{{ $p['action'] }}</x-ui.button>
                                     @else
-                                        <x-ui.button size="sm" icon="clock" variant="secondary" disabled>{{ __('File pending') }}</x-ui.button>
+                                        <x-ui.button size="sm" icon="clock" variant="secondary" disabled>{{ $p['fileStatus'] ?? __('File pending') }}</x-ui.button>
                                     @endif
                                 @else
                                     <x-ui.button size="sm" variant="secondary" icon="arrow-top-right-on-square">{{ $p['action'] ?? __('View') }}</x-ui.button>
