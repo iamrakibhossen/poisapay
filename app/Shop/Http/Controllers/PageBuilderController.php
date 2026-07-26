@@ -19,6 +19,9 @@ use App\Shop\Models\SalesPage;
 use App\Shop\Models\Seller;
 use App\Shop\Services\SalesPageService;
 use App\Shop\Services\SellerService;
+use App\Shop\Tracking\TrackingEvent;
+use App\Shop\Tracking\TrackingEventType;
+use App\Shop\Tracking\TrackingManager;
 use App\Support\Money;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -45,6 +48,7 @@ class PageBuilderController extends Controller
         private readonly BlockRegistry $registry,
         private readonly Renderer $renderer,
         private readonly DocumentSanitizer $sanitizer,
+        private readonly TrackingManager $tracking,
     ) {}
 
     public function edit(Request $request, string $slug): View|RedirectResponse
@@ -80,6 +84,8 @@ class PageBuilderController extends Controller
                 'noindex' => (bool) ($page->seo['noindex'] ?? false),
             ],
             'offers' => $this->offerFields($page),
+            'trackingProviders' => $this->trackingProviderMeta(),
+            'tracking' => $this->trackingState($page),
             'endpoints' => [
                 'save' => route('shop.sales-page.document', ['slug' => $page->slug]),
                 'preview' => route('shop.sales-page.preview', ['slug' => $page->slug]),
@@ -87,8 +93,53 @@ class PageBuilderController extends Controller
                 'duplicate' => route('shop.sales-page.duplicate', ['slug' => $page->slug]),
                 'settings' => route('shop.sales-page.update', ['slug' => $page->slug]),
                 'template' => route('shop.sales-page.template', ['slug' => $page->slug]),
+                'trackingTest' => route('shop.sales-page.tracking-test', ['slug' => $page->slug]),
             ],
         ]);
+    }
+
+    /**
+     * Provider descriptors for the "Tracking & Pixels" settings section — label,
+     * docs link, and the field list (key/label/pattern/hint/secret) each provider
+     * declares. The UI is generated from this; a new adapter appears automatically.
+     *
+     * @return list<array{key: string, label: string, docsUrl: string, fields: list<array{key: string, label: string, required: bool, pattern: ?string, hint: ?string, secret: bool}>}>
+     */
+    private function trackingProviderMeta(): array
+    {
+        return array_values(array_map(fn ($p) => [
+            'key' => $p->key(),
+            'label' => $p->label(),
+            'docsUrl' => $p->docsUrl(),
+            'fields' => $p->fields(),
+        ], $this->tracking->providers()));
+    }
+
+    /**
+     * Current tracking config keyed for the Alpine form: every provider bucket
+     * (enabled + its fields) plus the privacy block, defaulted so the form binds
+     * cleanly even on a page that has never been configured.
+     *
+     * @return array<string, mixed>
+     */
+    private function trackingState(SalesPage $page): array
+    {
+        $saved = $page->tracking;
+        $state = ['privacy' => [
+            'cookies' => (bool) ($saved['privacy']['cookies'] ?? true),
+            'consent_required' => (bool) ($saved['privacy']['consent_required'] ?? false),
+            'anonymize_ip' => (bool) ($saved['privacy']['anonymize_ip'] ?? true),
+        ]];
+
+        foreach ($this->tracking->providers() as $key => $provider) {
+            $bucket = is_array($saved[$key] ?? null) ? $saved[$key] : [];
+            $state[$key] = ['enabled' => (bool) ($bucket['enabled'] ?? false)];
+            foreach ($provider->fields() as $field) {
+                $state[$key][$field['key']] = (string) ($bucket[$field['key']] ?? '');
+            }
+        }
+
+        return $state;
     }
 
     /**
@@ -237,7 +288,7 @@ class PageBuilderController extends Controller
             'upsell_price' => ['nullable', 'numeric', 'min:0'],
             'upsell_headline' => ['nullable', 'string', 'max:160'],
             'upsell_description' => ['nullable', 'string', 'max:400'],
-        ]);
+        ] + $this->tracking->validationRules());
 
         if (! empty($validated['name'])) {
             $page->name = $validated['name'];
@@ -249,6 +300,7 @@ class PageBuilderController extends Controller
         $page->save();
 
         $this->applySeo($page->fresh(), $request);
+        $this->applyTracking($page->fresh(), $request);
         $rejected = $this->applyOffers($page->fresh(), $request);
 
         $redirect = redirect()->route('shop.sales-page.edit', ['slug' => $page->slug])
@@ -264,6 +316,42 @@ class PageBuilderController extends Controller
         return $redirect;
     }
 
+    /**
+     * Test Event target — a barebones page that loads ONLY the requested provider
+     * (from the page's *saved* config) and fires a sample page_view + purchase, so
+     * the merchant can confirm events arrive in that network's Events Manager.
+     * Opened in a popup from the builder's Tracking section.
+     */
+    public function trackingTest(Request $request, string $slug): View
+    {
+        $page = $this->ownedPage($request, $slug);
+        if (! $page instanceof SalesPage) {
+            abort(404);
+        }
+
+        $provider = (string) $request->query('provider', '');
+        $config = $page->tracking;
+        // Isolate a single provider so the test only pings the one being verified.
+        $only = isset($config[$provider]) ? [$provider => $config[$provider], 'privacy' => ['consent_required' => false]] : [];
+
+        $events = [
+            TrackingEvent::of(TrackingEventType::PageView),
+            TrackingEvent::of(TrackingEventType::Purchase, [
+                'order_id' => 'TEST-'.strtoupper($provider), 'value' => '9.99',
+                'currency' => 'USD', 'product_id' => 'test', 'product_name' => 'Test event',
+            ]),
+        ];
+
+        $providers = $this->tracking->providers();
+
+        return view('shop.tracking-test', [
+            'label' => isset($providers[$provider]) ? $providers[$provider]->label() : $provider,
+            'active' => $only !== [],
+            'head' => $this->tracking->head($only, $events),
+            'body' => $this->tracking->body($only),
+        ]);
+    }
+
     /** Persist per-page SEO/social overrides into the `seo` jsonb. */
     private function applySeo(SalesPage $page, Request $request): void
     {
@@ -273,6 +361,46 @@ class PageBuilderController extends Controller
             'og_image' => $request->input('seo_og_image'),
             'noindex' => $request->boolean('seo_noindex') ?: null,
         ], fn ($v) => $v !== null && $v !== '')]);
+    }
+
+    /**
+     * Persist the per-page pixel config into the `tracking` jsonb. Each provider's
+     * fields are already format-validated in {@see settings()} via the manager's
+     * rules; here we keep only enabled providers that carry a primary id, plus the
+     * privacy block. An empty result clears tracking entirely (zero page overhead).
+     */
+    private function applyTracking(SalesPage $page, Request $request): void
+    {
+        $in = (array) $request->input('tracking', []);
+        $out = [];
+
+        foreach ($this->tracking->providers() as $key => $provider) {
+            $bucket = is_array($in[$key] ?? null) ? $in[$key] : [];
+            $enabled = (bool) ($bucket['enabled'] ?? false);
+
+            $clean = ['enabled' => $enabled];
+            foreach ($provider->fields() as $field) {
+                $val = trim((string) ($bucket[$field['key']] ?? ''));
+                if ($val !== '') {
+                    $clean[$field['key']] = $val;
+                }
+            }
+
+            // Only persist a provider that is on and actually configured.
+            if ($enabled && $provider->isConfigured($clean)) {
+                $out[$key] = $clean;
+            }
+        }
+
+        if ($out !== []) {
+            $out['privacy'] = [
+                'cookies' => $request->boolean('tracking.privacy.cookies'),
+                'consent_required' => $request->boolean('tracking.privacy.consent_required'),
+                'anonymize_ip' => $request->boolean('tracking.privacy.anonymize_ip'),
+            ];
+        }
+
+        $page->update(['tracking' => $out]);
     }
 
     /**

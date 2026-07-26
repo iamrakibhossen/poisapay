@@ -10,6 +10,17 @@
         'products' => $products,
         'csrf' => csrf_token(),
         'savedAt' => optional($page->updated_at)->toIso8601String(),
+        'seoOgImage' => $seo['og_image'],
+        // Media Library picker config (shared endpoints + upload constraints).
+        'media' => [
+            'endpoints' => [
+                'items' => route('shop.media.items'),
+                'upload' => route('shop.media.store'),
+            ],
+            'accept' => (array) config('media.accept', []),
+            'maxKb' => (int) config('media.max_upload_kb', 12288),
+            'csrf' => csrf_token(),
+        ],
     ];
     $railBtn = 'flex-1 rounded-md px-2 py-1.5 text-xs font-semibold transition';
 @endphp
@@ -54,6 +65,7 @@
                 <button type="button" @click="undo()" :disabled="!past.length" class="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 transition hover:bg-neutral-100 disabled:opacity-30" title="{{ __('Undo') }}"><x-heroicon-o-arrow-uturn-left class="h-4 w-4" /></button>
                 <button type="button" @click="redo()" :disabled="!future.length" class="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 transition hover:bg-neutral-100 disabled:opacity-30" title="{{ __('Redo') }}"><x-heroicon-o-arrow-uturn-right class="h-4 w-4" /></button>
                 <button type="button" @click="showShortcuts = true" class="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 transition hover:bg-neutral-100" title="{{ __('Keyboard shortcuts (?)') }}"><x-heroicon-o-command-line class="h-4 w-4" /></button>
+                <button type="button" @click="openMediaManager()" class="ml-1 hidden items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition hover:bg-neutral-50 sm:inline-flex"><x-heroicon-o-photo class="h-4 w-4" /> {{ __('Media') }}</button>
                 <button type="button" @click="showTemplates = true" class="ml-1 hidden items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition hover:bg-neutral-50 sm:inline-flex"><x-heroicon-o-squares-2x2 class="h-4 w-4" /> {{ __('Templates') }}</button>
                 <a href="{{ $publicUrl }}" target="_blank" class="ml-1 hidden rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition hover:bg-neutral-50 sm:inline-flex">{{ __('View live') }}</a>
                 <form x-ref="publishForm" method="POST" action="{{ $endpoints['publish'] }}">
@@ -101,7 +113,7 @@
                     <div x-show="leftTab === 'layers'">
                         <ul data-sortable data-parent="root" class="space-y-1">
                             <template x-for="node in doc.root.children" :key="node.id">
-                                <li>
+                                <li :data-id="node.id">
                                     <div @click="onLayerClick(node.id, $event)" :class="isSelected(node.id) ? 'border-brand-400 bg-brand-50' : 'border-transparent hover:bg-neutral-50'"
                                         class="flex items-center gap-2 rounded-md border px-2 py-1.5 text-xs">
                                         <span data-drag class="cursor-grab text-neutral-300 hover:text-neutral-500"><x-heroicon-o-bars-2 class="h-3.5 w-3.5" /></span>
@@ -112,7 +124,7 @@
                                     <template x-if="node.children && node.children.length">
                                         <ul :data-parent="node.id" data-sortable class="ml-4 mt-1 space-y-1 border-l border-neutral-100 pl-2">
                                             <template x-for="child in node.children" :key="child.id">
-                                                <li @click.stop="onLayerClick(child.id, $event)" :class="isSelected(child.id) ? 'border-brand-400 bg-brand-50' : 'border-transparent hover:bg-neutral-50'"
+                                                <li :data-id="child.id" @click.stop="onLayerClick(child.id, $event)" :class="isSelected(child.id) ? 'border-brand-400 bg-brand-50' : 'border-transparent hover:bg-neutral-50'"
                                                     class="flex items-center gap-2 rounded-md border px-2 py-1 text-xs">
                                                     <span data-drag class="cursor-grab text-neutral-300"><x-heroicon-o-bars-2 class="h-3 w-3" /></span>
                                                     <span class="flex-1 truncate text-neutral-600" x-text="(schemas[child.type] && schemas[child.type].label) || child.type"></span>
@@ -173,7 +185,21 @@
                                 <p class="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{{ __('SEO & sharing') }}</p>
                                 <div><label class="{{ $lblCls }}">{{ __('Meta title') }}</label><input name="seo_title" maxlength="70" value="{{ $seo['title'] }}" class="{{ $fldCls }}" /></div>
                                 <div><label class="{{ $lblCls }}">{{ __('Meta description') }}</label><textarea name="seo_description" rows="2" maxlength="200" class="{{ $fldCls }}">{{ $seo['description'] }}</textarea></div>
-                                <div><label class="{{ $lblCls }}">{{ __('Social image URL') }}</label><input name="seo_og_image" value="{{ $seo['og_image'] }}" class="{{ $fldCls }}" /></div>
+                                <div>
+                                    <label class="{{ $lblCls }}">{{ __('Social share image') }}</label>
+                                    <input type="hidden" name="seo_og_image" :value="seoOgImage" />
+                                    <template x-if="seoOgImage">
+                                        <div class="flex items-center gap-2">
+                                            <img :src="seoOgImage" alt="" class="h-11 w-20 shrink-0 rounded-lg border border-neutral-200 object-cover" />
+                                            <button type="button" @click="pickSeoImage()" class="flex-1 rounded-lg border border-neutral-200 px-2 py-2 text-xs font-medium text-neutral-600 transition hover:bg-neutral-50">{{ __('Change image') }}</button>
+                                            <button type="button" @click="seoOgImage = ''" class="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-neutral-300 hover:bg-rose-50 hover:text-rose-500" title="{{ __('Remove') }}"><x-heroicon-o-x-mark class="h-4 w-4" /></button>
+                                        </div>
+                                    </template>
+                                    <template x-if="!seoOgImage">
+                                        <button type="button" @click="pickSeoImage()" class="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-neutral-300 py-2.5 text-xs font-medium text-neutral-500 transition hover:border-brand-400 hover:text-brand-600"><x-heroicon-o-photo class="h-4 w-4" /> {{ __('Choose image') }}</button>
+                                    </template>
+                                    <p class="mt-1 text-[11px] text-neutral-400">{{ __('Shown when the page is shared on social media. 1200×630 recommended.') }}</p>
+                                </div>
                                 <label class="flex items-center gap-2 text-sm text-neutral-700"><input type="checkbox" name="seo_noindex" value="1" @checked($seo['noindex']) class="h-4 w-4 rounded border-neutral-300 text-brand-500" /> {{ __('Hide from search engines') }}</label>
                             </div>
 
@@ -211,6 +237,69 @@
                                     <div><label class="{{ $lblCls }}">{{ __('Headline') }}</label><input name="upsell_headline" value="{{ $offers['upsell_headline'] }}" class="{{ $fldCls }}" /></div>
                                 </div>
                                 <div><label class="{{ $lblCls }}">{{ __('Description') }}</label><textarea name="upsell_description" rows="2" maxlength="400" class="{{ $fldCls }}">{{ $offers['upsell_description'] }}</textarea></div>
+                            </div>
+
+                            {{-- ---- Tracking & Pixels ---- --}}
+                            @php
+                                $tkPatterns = [];
+                                foreach ($trackingProviders as $tp) {
+                                    $tkPatterns[$tp['key']] = ['field' => $tp['fields'][0]['key'], 're' => $tp['fields'][0]['pattern']];
+                                }
+                            @endphp
+                            <div class="space-y-3 border-t border-neutral-100 pt-4"
+                                x-data="{
+                                    tk: @js($tracking),
+                                    pat: @js($tkPatterns),
+                                    valid(k) { const p = this.pat[k]; const v = (this.tk[k] && this.tk[k][p.field]) || ''; return !p.re || new RegExp(p.re).test(v.trim()); },
+                                    statusDot(k) { if (!this.tk[k].enabled) return 'bg-neutral-300'; return this.valid(k) ? 'bg-emerald-500' : 'bg-amber-400'; },
+                                    test(k) { window.open('{{ $endpoints['trackingTest'] }}?provider=' + k, 'pptest', 'width=460,height=520'); },
+                                }">
+                                <p class="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{{ __('Tracking & pixels') }}</p>
+                                <p class="text-[11px] text-neutral-400">{{ __('Fire events to your ad platforms from this page only. Save before testing.') }}</p>
+
+                                @foreach ($trackingProviders as $tp)
+                                    @php $k = $tp['key']; @endphp
+                                    <div class="rounded-lg border border-neutral-200 p-3">
+                                        <div class="flex items-center justify-between">
+                                            <span class="flex items-center gap-2 text-sm font-medium text-neutral-800">
+                                                <span class="h-2 w-2 rounded-full" :class="statusDot('{{ $k }}')"></span>
+                                                {{ $tp['label'] }}
+                                            </span>
+                                            <label class="relative inline-flex cursor-pointer items-center">
+                                                <input type="checkbox" name="tracking[{{ $k }}][enabled]" value="1" x-model="tk['{{ $k }}'].enabled" class="peer sr-only" />
+                                                <span class="h-5 w-9 rounded-full bg-neutral-200 transition peer-checked:bg-brand-500 after:absolute after:start-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition peer-checked:after:translate-x-4"></span>
+                                            </label>
+                                        </div>
+                                        <div x-show="tk['{{ $k }}'].enabled" x-cloak class="mt-3 space-y-2">
+                                            @foreach ($tp['fields'] as $f)
+                                                <div>
+                                                    <label class="{{ $lblCls }}">{{ $f['label'] }}</label>
+                                                    <input type="{{ $f['secret'] ? 'password' : 'text' }}" autocomplete="off" spellcheck="false"
+                                                        name="tracking[{{ $k }}][{{ $f['key'] }}]" x-model="tk['{{ $k }}']['{{ $f['key'] }}']"
+                                                        placeholder="{{ $f['hint'] }}" class="{{ $fldCls }} font-mono" />
+                                                    @if ($loop->first)
+                                                        <p class="mt-1 text-[11px]" x-show="tk['{{ $k }}']['{{ $f['key'] }}']"
+                                                            :class="valid('{{ $k }}') ? 'text-emerald-600' : 'text-amber-600'"
+                                                            x-text="valid('{{ $k }}') ? '{{ __('Format looks valid') }}' : '{{ __('That doesn’t match the expected format') }}'"></p>
+                                                    @elseif ($f['hint'])
+                                                        <p class="mt-1 text-[11px] text-neutral-400">{{ $f['hint'] }}</p>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                            <div class="flex items-center gap-3 pt-1 text-[11px]">
+                                                <a href="{{ $tp['docsUrl'] }}" target="_blank" rel="noopener" class="font-medium text-brand-600 hover:underline">{{ __('Setup guide') }}</a>
+                                                <button type="button" @click="test('{{ $k }}')" class="font-medium text-neutral-600 hover:underline">{{ __('Send test event') }}</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+
+                                <div x-show="Object.keys(pat).some(k => tk[k].enabled)" x-cloak class="rounded-lg bg-neutral-50 p-3 space-y-2">
+                                    <p class="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{{ __('Privacy') }}</p>
+                                    <label class="flex items-center gap-2 text-xs text-neutral-700"><input type="checkbox" name="tracking[privacy][cookies]" value="1" x-model="tk.privacy.cookies" class="h-4 w-4 rounded border-neutral-300 text-brand-500" /> {{ __('Allow cookies') }}</label>
+                                    <label class="flex items-center gap-2 text-xs text-neutral-700"><input type="checkbox" name="tracking[privacy][consent_required]" value="1" x-model="tk.privacy.consent_required" class="h-4 w-4 rounded border-neutral-300 text-brand-500" /> {{ __('Wait for consent before tracking') }}</label>
+                                    <label class="flex items-center gap-2 text-xs text-neutral-700"><input type="checkbox" name="tracking[privacy][anonymize_ip]" value="1" x-model="tk.privacy.anonymize_ip" class="h-4 w-4 rounded border-neutral-300 text-brand-500" /> {{ __('Anonymize IP where supported') }}</label>
+                                </div>
                             </div>
 
                             <button type="submit" class="w-full rounded-lg bg-neutral-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-neutral-800">{{ __('Save settings') }}</button>
@@ -367,7 +456,19 @@
                                                 <input type="color" :value="styleValue(device,'bg') || '#ffffff'" @input="setStyle('bg',$event.target.value)" class="h-8 w-9 shrink-0 cursor-pointer rounded-lg border border-neutral-200" />
                                             </div>
                                         </div>
-                                        <div><label class="{{ $lbl }}">{{ __('Image URL') }}</label><input type="text" :value="styleValue(device,'bgImage')" @input="setStyle('bgImage',$event.target.value)" placeholder="https://…" class="{{ $inp }}" /></div>
+                                        <div>
+                                            <label class="{{ $lbl }}">{{ __('Image') }}</label>
+                                            <template x-if="styleValue(device,'bgImage')">
+                                                <div class="flex items-center gap-2">
+                                                    <img :src="styleValue(device,'bgImage')" alt="" class="h-9 w-12 shrink-0 rounded border border-neutral-200 object-cover" />
+                                                    <button type="button" @click="pickStyleImage('bgImage')" class="flex-1 rounded-lg border border-neutral-200 px-2 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-50">{{ __('Change') }}</button>
+                                                    <button type="button" @click="setStyle('bgImage','')" class="grid h-7 w-7 shrink-0 place-items-center rounded text-neutral-300 hover:text-rose-500"><x-heroicon-o-x-mark class="h-3.5 w-3.5" /></button>
+                                                </div>
+                                            </template>
+                                            <template x-if="!styleValue(device,'bgImage')">
+                                                <button type="button" @click="pickStyleImage('bgImage')" class="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-neutral-300 py-2.5 text-xs font-medium text-neutral-500 transition hover:border-brand-400 hover:text-brand-600"><x-heroicon-o-photo class="h-4 w-4" /> {{ __('Choose image') }}</button>
+                                            </template>
+                                        </div>
                                         <div class="grid grid-cols-2 gap-2">
                                             <div>
                                                 <label class="{{ $lbl }}">{{ __('Size') }}</label>
@@ -526,6 +627,24 @@
                             </div>
                         </button>
                     </template>
+                </div>
+            </div>
+        </div>
+
+        {{-- Media Library — picker (from an image field) + manager (from the toolbar) --}}
+        <div x-show="media.open" x-cloak @keydown.escape.window="media.picker ? mediaClose() : (media.open = false)"
+            class="fixed inset-0 z-[60] grid place-items-center bg-neutral-900/50 p-4">
+            <div class="flex h-[86vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+                <div class="flex items-center justify-between border-b border-neutral-100 px-5 py-3">
+                    <div class="flex items-center gap-2">
+                        <x-heroicon-o-photo class="h-5 w-5 text-brand-500" />
+                        <h2 class="text-sm font-semibold text-neutral-900">{{ __('Media Library') }}</h2>
+                        <span class="text-xs text-neutral-400"><span x-text="media.total"></span> {{ __('items') }}</span>
+                    </div>
+                    <button type="button" @click="media.picker ? mediaClose() : (media.open = false)" class="grid h-7 w-7 place-items-center rounded-md text-neutral-400 hover:bg-neutral-100"><x-heroicon-o-x-mark class="h-4 w-4" /></button>
+                </div>
+                <div class="min-h-0 flex-1">
+                    @include('frontend.seller.partials.media-panel')
                 </div>
             </div>
         </div>

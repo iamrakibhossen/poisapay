@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Frontend\DomainController;
 use App\Http\Controllers\Frontend\SellerController;
+use App\Shop\Http\Controllers\MediaController;
 use App\Shop\Http\Controllers\PageBuilderController;
 use Illuminate\Support\Facades\Route;
 
@@ -30,6 +31,7 @@ Route::controller(SellerController::class)->group(function () {
     Route::post('/shop/sales-pages/{slug}/duplicate', [PageBuilderController::class, 'duplicate'])->name('shop.sales-page.duplicate');
     Route::post('/shop/sales-pages/{slug}/template', [PageBuilderController::class, 'applyTemplate'])->name('shop.sales-page.template');
     Route::get('/shop/templates/{template}/preview', [PageBuilderController::class, 'templatePreview'])->name('shop.template.preview');
+    Route::get('/shop/sales-pages/{slug}/tracking-test', [PageBuilderController::class, 'trackingTest'])->name('shop.sales-page.tracking-test');
     Route::post('/shop/sales-pages/{slug}/revisions/{revision}/restore', [PageBuilderController::class, 'restore'])->name('shop.sales-page.restore');
     Route::get('/shop/funnels', 'funnels')->name('shop.funnels');
     Route::get('/shop/products', 'products')->name('shop.products');
@@ -56,6 +58,18 @@ Route::controller(SellerController::class)->group(function () {
     Route::delete('/shop/coupons/{id}', 'destroyCoupon')->name('shop.coupons.destroy');
     Route::get('/shop/analytics', 'analytics')->name('shop.analytics');
     Route::get('/shop/earnings', 'earnings')->name('shop.earnings');
+});
+
+// Media Library — merchant-scoped image library (JSON picker API + manage page).
+// A builder tool, so JSON endpoints are consistent with the builder's own.
+Route::controller(MediaController::class)->group(function () {
+    Route::get('/shop/media', 'index')->name('shop.media');
+    Route::get('/shop/media/items', 'items')->name('shop.media.items');
+    Route::post('/shop/media', 'store')->name('shop.media.store');
+    Route::post('/shop/media/{media}/restore', 'restore')->name('shop.media.restore');
+    Route::patch('/shop/media/{media}', 'update')->name('shop.media.update');
+    Route::post('/shop/media/{media}/replace', 'replace')->name('shop.media.replace');
+    Route::delete('/shop/media/{media}', 'destroy')->name('shop.media.destroy');
 });
 
 // Custom domains — own controller (real connect/verify/remove flow, one per page).
