@@ -236,7 +236,7 @@ class P2pController extends Controller
                 'datasets' => [['label' => __('Volume'), 'data' => $data, 'color' => '#2563eb']],
             ],
             'outcomeChart' => [
-                'id' => 'p2p-outcomes', 'title' => __('Order outcomes'), 'type' => 'doughnut',
+                'id' => 'p2p-outcomes', 'title' => __('Order outcomes'), 'type' => 'doughnut', 'span' => 'compact',
                 'labels' => [__('Completed'), __('Cancelled/Expired'), __('Open'), __('Disputed')],
                 'datasets' => [['data' => [$completed, $cancelled, $open, $disputed]]],
             ],
