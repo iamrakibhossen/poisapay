@@ -35,6 +35,10 @@
                         placeholder="123456" inputmode="numeric" autofocus :error="$errors->first('twoFactorCode')" />
         @endif
 
+        @unless ($needsTwoFactor)
+            <x-captcha feature="login" />
+        @endunless
+
         <x-ui.button type="submit" class="w-full">{{ $needsTwoFactor ? __('Verify & continue') : __('Sign in') }}</x-ui.button>
     </form>
 

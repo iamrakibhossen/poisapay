@@ -215,6 +215,20 @@ class SettingController extends Controller
                 ],
                 'booleans' => ['header_announcement_enabled'],
             ],
+            'captcha' => [
+                'group' => 'captcha',
+                'rules' => [
+                    'captcha_enabled' => 'boolean',
+                    'captcha_provider' => 'required|in:v2_checkbox,v2_invisible,v3',
+                    'captcha_site_key' => 'nullable|string|max:255',
+                    'captcha_secret_key' => 'nullable|string|max:255',
+                    'captcha_min_score' => 'required|numeric|min:0.1|max:1.0',
+                    'captcha_features' => 'nullable|array',
+                    'captcha_features.*' => 'string',
+                ],
+                'booleans' => ['captcha_enabled'],
+                'empty_arrays' => ['captcha_features'],
+            ],
         ];
     }
 
@@ -235,6 +249,14 @@ class SettingController extends Controller
         // Unchecked checkboxes are absent from the payload — default them to false.
         foreach ($config['booleans'] as $key) {
             $request->merge([$key => $request->boolean($key)]);
+        }
+
+        // Multi-select checkbox groups (e.g. captcha_features[]) are absent when none
+        // are ticked — default to an empty array so "untick all" actually persists.
+        foreach (($config['empty_arrays'] ?? []) as $key) {
+            if (! $request->has($key)) {
+                $request->merge([$key => []]);
+            }
         }
 
         $data = $request->validate($config['rules']);

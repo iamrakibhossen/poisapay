@@ -23,6 +23,8 @@
         </label>
         @error('terms')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
 
+        <x-captcha feature="register" />
+
         <x-ui.button type="submit" class="w-full">{{ __('Create account') }}</x-ui.button>
     </form>
 

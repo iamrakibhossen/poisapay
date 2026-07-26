@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'operator' => EnsureOperator::class,
             'webhook.log' => WebhookLogger::class,
+            'captcha' => \App\Http\Middleware\VerifyCaptcha::class,
         ]);
 
         $middleware->web(append: [

@@ -17,6 +17,7 @@
         'compliance' => ['label' => __('Compliance'), 'icon' => 'shield-exclamation'],
         'localization' => ['label' => __('Localization'), 'icon' => 'language'],
         'announcement' => ['label' => __('Announcement'), 'icon' => 'megaphone'],
+        'captcha' => ['label' => __('Google reCAPTCHA'), 'icon' => 'shield-check'],
     ];
 @endphp
 

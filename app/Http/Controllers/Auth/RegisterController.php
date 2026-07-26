@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Domain\Auth\RegisterUserAction;
 use App\Http\Controllers\Controller;
+use App\Support\Captcha\Captcha;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -30,6 +31,7 @@ class RegisterController extends Controller
             'email' => 'required|email|max:180|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
             'terms' => 'accepted',
+            'g-recaptcha-response' => Captcha::rule('register'),
         ]);
 
         $user = $action->execute([

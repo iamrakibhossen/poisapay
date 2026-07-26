@@ -426,7 +426,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // ── Platform settings (controller + Blade forms, not Livewire) ──
         Route::controller(SettingController::class)->group(function () {
-            $sections = 'general|branding|auth|deposit|withdrawal|transfer|kyc|risk|exchange|cards|merchant|shop|p2p|credit|rewards|compliance|localization|announcement';
+            $sections = 'general|branding|auth|deposit|withdrawal|transfer|kyc|risk|exchange|cards|merchant|shop|p2p|credit|rewards|compliance|localization|announcement|captcha';
             Route::get('/settings/{section?}', 'index')->where('section', $sections)->name('settings');
             Route::put('/settings/{section}', 'update')->where('section', $sections)->name('settings.update');
         });

@@ -16,6 +16,8 @@
             <x-ui.input :label="__('Email address')" type="email" name="email" :value="old('email')" icon="envelope"
                         :placeholder="__('you@example.com')" autocomplete="email" autofocus :error="$errors->first('email')" />
 
+            <x-captcha feature="forgot_password" />
+
             <x-ui.button type="submit" class="w-full">{{ __('Send reset link') }}</x-ui.button>
         </form>
     @endif

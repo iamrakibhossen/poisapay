@@ -19,8 +19,4 @@
             <a href="{{ route('admin.password.request') }}" class="font-medium text-brand-700 hover:text-brand-800">{{ __('Forgot your password?') }}</a>
         </p>
     @endunless
-
-    <div class="mt-6 rounded-xl border border-dashed border-neutral-300 p-3 text-center text-xs text-neutral-500">
-        {{ __('Demo') }} — <span class="font-mono">admin@poisapay.test</span> / <span class="font-mono">password</span>
-    </div>
 </x-layouts.admin-guest>

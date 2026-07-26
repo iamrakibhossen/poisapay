@@ -16,6 +16,8 @@
         <x-ui.input :label="__('Confirm password')" type="password" name="password_confirmation" icon="lock-closed"
                     :placeholder="__('••••••••')" autocomplete="new-password" />
 
+        <x-captcha feature="reset_password" />
+
         <x-ui.button type="submit" class="w-full">{{ __('Reset password') }}</x-ui.button>
     </form>
 

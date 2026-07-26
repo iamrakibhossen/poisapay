@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Support\Captcha\Captcha;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
@@ -21,7 +22,10 @@ class PasswordResetLinkController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $request->validate(['email' => 'required|email']);
+        $request->validate([
+            'email' => 'required|email',
+            'g-recaptcha-response' => Captcha::rule('forgot_password'),
+        ]);
 
         $status = Password::sendResetLink(['email' => $request->input('email')]);
 

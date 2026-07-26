@@ -9,6 +9,7 @@ use App\Domain\Auth\TwoFactorService;
 use App\Domain\Security\SuspiciousLoginDetector;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\Captcha\Captcha;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -51,8 +52,12 @@ class LoginController extends Controller
             return $this->complete($request, $user, (bool) $request->session()->pull('login_remember', false));
         }
 
-        // Step 1 — credentials.
-        $request->validate(['email' => 'required|email', 'password' => 'required']);
+        // Step 1 — credentials (+ optional captcha).
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+            'g-recaptcha-response' => Captcha::rule('login'),
+        ]);
 
         $key = 'login:'.md5($request->input('email').$request->ip());
         if (RateLimiter::tooManyAttempts($key, 5)) {
