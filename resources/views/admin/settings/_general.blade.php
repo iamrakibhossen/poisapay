@@ -4,7 +4,7 @@
         @method('PUT')
 
         <x-admin.input.group id="site_name" :label="__('Site Name')" required class="w-full">
-            <x-admin.input name="site_name" :value="old('site_name', getSetting('site_name', 'PoisaPay'))" required />
+            <x-admin.input name="site_name" :value="old('site_name', getSetting('site_name', 'PoishaPay'))" required />
         </x-admin.input.group>
 
         <x-admin.input.group id="site_slogan" :label="__('Slogan')" class="w-full">

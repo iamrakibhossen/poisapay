@@ -52,7 +52,7 @@
                 <div class="grid gap-4 sm:grid-cols-3">
                     @foreach ([
                         ['document-plus', __('1. Create an invoice'), __('Enter an amount and asset. We generate a unique payment request with a reference.')],
-                        ['qr-code', __('2. Share the QR or link'), __('Send the payment link or show the QR at the counter. Customers pay from any PoisaPay balance.')],
+                        ['qr-code', __('2. Share the QR or link'), __('Send the payment link or show the QR at the counter. Customers pay from any PoishaPay balance.')],
                         ['banknotes', __('3. Get paid instantly'), __('Funds settle to your wallet in your chosen asset, minus the flat fee. Refund in one click if needed.')],
                     ] as [$icon, $title, $desc])
                         <div class="pp-card p-5">
@@ -78,7 +78,7 @@
                     <ul class="space-y-3 text-sm">
                         <li class="flex items-start gap-3">
                             <span class="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-600"><x-heroicon-s-check class="h-3 w-3" /></span>
-                            <span class="text-neutral-700">{{ __('A PoisaPay account (you’re all set here).') }}</span>
+                            <span class="text-neutral-700">{{ __('A PoishaPay account (you’re all set here).') }}</span>
                         </li>
                         <li class="flex items-start gap-3">
                             <span class="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-amber-100 text-amber-600"><x-heroicon-s-exclamation-triangle class="h-3 w-3" /></span>

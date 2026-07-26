@@ -115,7 +115,7 @@
                     <div class="mt-6 border-t border-neutral-100 pt-6">
                         @if ($custodySimulated)
                             <x-ui.alert type="danger" :title="__('Demo / testnet — do not send real funds')" class="mb-5">
-                                {{ __('This is a simulated address for testing PoisaPay. The platform does not hold its private key; real funds sent here will be lost.') }}
+                                {{ __('This is a simulated address for testing PoishaPay. The platform does not hold its private key; real funds sent here will be lost.') }}
                             </x-ui.alert>
                         @endif
 
@@ -234,7 +234,7 @@
                     @if ($isCrypto)
                         @if ($custodySimulated)
                             <x-ui.alert type="danger" :title="__('Demo / testnet — do not send real funds')" class="mb-5">
-                                {{ __('This is a simulated address for testing PoisaPay. Real funds sent here will be lost.') }}
+                                {{ __('This is a simulated address for testing PoishaPay. Real funds sent here will be lost.') }}
                             </x-ui.alert>
                         @endif
                         @include('frontend.partials.deposit-address')

@@ -35,7 +35,7 @@ class TransferController extends ApiController
             ->when(ctype_digit($data['recipient']), fn ($b) => $b->orWhere('uid', $data['recipient']))
             ->first();
         if (! $recipient) {
-            return $this->fail('recipient_not_found', 'No PoisaPay user matches that ID, email or phone.', [], 404);
+            return $this->fail('recipient_not_found', 'No PoishaPay user matches that ID, email or phone.', [], 404);
         }
 
         try {

@@ -36,7 +36,7 @@ use Throwable;
  * SECURITY: the page itself only ever renders masked values (last4 + masked
  * expiry/CVV). Full details are revealed out-of-band via {@see self::revealSession()}:
  * for real providers the PAN/CVV render inside the issuer's PCI-DSS iframe in the
- * user's browser and never touch PoisaPay servers (we only mint a scoped client key).
+ * user's browser and never touch PoishaPay servers (we only mint a scoped client key).
  */
 class CardManageController extends Controller
 {

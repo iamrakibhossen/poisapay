@@ -1,6 +1,6 @@
 <x-layouts.guest :title="__('Sign in')">
     <h2 class="text-2xl font-bold tracking-tight text-neutral-900">{{ __('Welcome back') }}</h2>
-    <p class="mt-1.5 text-sm text-neutral-500">{{ __('Sign in to your PoisaPay account.') }}</p>
+    <p class="mt-1.5 text-sm text-neutral-500">{{ __('Sign in to your PoishaPay account.') }}</p>
 
     @if (session('status'))
         <div class="mt-6">
@@ -39,7 +39,7 @@
     </form>
 
     <p class="mt-6 text-center text-sm text-neutral-500">
-        {{ __('New to PoisaPay?') }}
+        {{ __('New to PoishaPay?') }}
         <a href="{{ route('register') }}" class="font-medium text-brand-600 hover:text-brand-700">{{ __('Create an account') }}</a>
     </p>
 </x-layouts.guest>

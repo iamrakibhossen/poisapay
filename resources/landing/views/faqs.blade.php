@@ -1,4 +1,4 @@
-<x-landing::layouts.master :title="__('Help Center')" :description="__('Answers to common questions about using PoisaPay — deposits, withdrawals, cards, security and more.')">
+<x-landing::layouts.master :title="__('Help Center')" :description="__('Answers to common questions about using PoishaPay — deposits, withdrawals, cards, security and more.')">
     @php
         // Flattened lowercased text of every FAQ, for the client-side search "no results" check.
         $allText = collect($groups)->flatMap(fn ($faqs) => $faqs->map(fn ($f) => \Illuminate\Support\Str::lower($f->question.' '.$f->answer)))->values();
@@ -12,7 +12,7 @@
                 {{ __('Questions,') }} <span class="lp-grad">{{ __('answered.') }}</span>
             </h1>
             <p class="mx-auto mt-4 max-w-xl text-slate-600">
-                {{ __('Everything you need to know about deposits, withdrawals, cards and security on PoisaPay.') }}
+                {{ __('Everything you need to know about deposits, withdrawals, cards and security on PoishaPay.') }}
             </p>
 
             {{-- Search --}}

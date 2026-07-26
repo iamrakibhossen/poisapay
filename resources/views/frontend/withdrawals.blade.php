@@ -1,6 +1,6 @@
 <x-layouts.app :title="__('Withdrawal history')">
     <div class="space-y-5">
-        <x-ui.page-header :title="__('Withdrawal history')" :subtitle="__('Every withdrawal and cash-out from your PoisaPay account.')">
+        <x-ui.page-header :title="__('Withdrawal history')" :subtitle="__('Every withdrawal and cash-out from your PoishaPay account.')">
             <x-slot:actions>
                 <x-ui.button href="{{ route('withdraw.index') }}" icon="plus" size="sm">{{ __('New withdrawal') }}</x-ui.button>
             </x-slot:actions>

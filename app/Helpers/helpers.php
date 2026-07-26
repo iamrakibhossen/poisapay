@@ -72,6 +72,6 @@ if (! function_exists('mediaUrl')) {
 if (! function_exists('siteName')) {
     function siteName(): string
     {
-        return (string) getSetting('site_name', config('app.name', 'PoisaPay'));
+        return (string) getSetting('site_name', config('app.name', 'PoishaPay'));
     }
 }

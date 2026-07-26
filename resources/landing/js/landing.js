@@ -1,5 +1,5 @@
 /* =============================================================================
-   PoisaPay Landing — isolated entry (ES module). Loaded ONLY by landing layouts,
+   PoishaPay Landing — isolated entry (ES module). Loaded ONLY by landing layouts,
    so it ships its own Alpine instance and never touches the app's frontend.js.
    All behaviour is encapsulated in the imported modules; only Alpine is exposed
    on window (its required convention), under an otherwise-clean `window.Landing`.

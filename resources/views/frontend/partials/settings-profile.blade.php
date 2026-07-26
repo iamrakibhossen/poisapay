@@ -12,10 +12,10 @@
     </span>
 </div>
 
-{{-- Shareable PoisaPay ID — hand this number out to get paid. --}}
+{{-- Shareable PoishaPay ID — hand this number out to get paid. --}}
 <div class="flex items-center justify-between rounded-xl border border-neutral-200 bg-neutral-50/60 px-4 py-3">
     <div class="min-w-0">
-        <p class="text-xs font-medium text-neutral-500">{{ __('Your PoisaPay ID') }}</p>
+        <p class="text-xs font-medium text-neutral-500">{{ __('Your PoishaPay ID') }}</p>
         <p class="tabular mt-0.5 text-lg font-semibold tracking-wide text-neutral-900">{{ $user->uid }}</p>
         <p class="mt-0.5 text-xs text-neutral-400">{{ __('Share this ID so anyone can send you money.') }}</p>
     </div>

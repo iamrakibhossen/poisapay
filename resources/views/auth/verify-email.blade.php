@@ -1,6 +1,6 @@
 <x-layouts.app :title="__('Verify your email')">
     <div class="mx-auto max-w-lg">
-        <x-ui.card :title="__('Please verify your email')" :subtitle="__('One more step before you can use PoisaPay.')">
+        <x-ui.card :title="__('Please verify your email')" :subtitle="__('One more step before you can use PoishaPay.')">
             <div class="space-y-5">
                 <x-ui.alert type="info" :title="__('Please verify your email')">
                     {{ __('We sent a verification link to') }}

@@ -3,7 +3,7 @@
         [id]{scroll-margin-top:6rem}
 
         /* ============================================================
-           PoisaPay landing — LIGHT theme, matched to the user dashboard
+           PoishaPay landing — LIGHT theme, matched to the user dashboard
            (theme-minimal): blue #2563EB primary, slate neutrals, white
            cards with hairline borders + soft shadows, Inter typography.
            Scoped to .poisa-landing so it never leaks into the app/admin.

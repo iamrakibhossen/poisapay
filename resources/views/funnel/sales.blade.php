@@ -82,7 +82,7 @@
                     <span class="inline-flex items-center gap-1"><x-heroicon-o-shield-check class="h-3.5 w-3.5" /> {{ __('Buyer protection') }}</span>
                     <span class="inline-flex items-center gap-1"><x-heroicon-o-arrow-uturn-left class="h-3.5 w-3.5" /> {{ __('14-day refund') }}</span>
                 </div>
-                <p class="mt-3 text-[11px] text-neutral-400">{{ __('Powered by PoisaHub') }}</p>
+                <p class="mt-3 text-[11px] text-neutral-400">{{ __('Powered by PoishaHub') }}</p>
             </footer>
         @endunless
 

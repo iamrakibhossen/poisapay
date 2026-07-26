@@ -8,6 +8,6 @@
         <div class="mt-7">
             @include('builder.blocks._buy', ['label' => $btn, 'class' => 'inline-block px-9 py-4 text-sm font-semibold text-white shadow-lg shadow-black/5 transition hover:-translate-y-0.5 hover:opacity-95'])
         </div>
-        <p class="mt-4 inline-flex items-center gap-1.5 text-[11px] text-neutral-400"><x-heroicon-o-lock-closed class="h-3.5 w-3.5" /> {{ __('Secure checkout with your PoisaPay wallet') }}</p>
+        <p class="mt-4 inline-flex items-center gap-1.5 text-[11px] text-neutral-400"><x-heroicon-o-lock-closed class="h-3.5 w-3.5" /> {{ __('Secure checkout with your PoishaPay wallet') }}</p>
     </div>
 </section>

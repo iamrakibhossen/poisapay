@@ -9,7 +9,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title }} · PoisaPay</title>
+    <title>{{ $title }} · PoishaPay</title>
     @vite(['resources/css/app.css', 'resources/js/frontend.js'])
     @include('partials.marketing-styles')
     @include('partials.brand-colors')

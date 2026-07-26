@@ -62,7 +62,7 @@ class ShopException extends RuntimeException
 
     public static function insufficientBalance(): self
     {
-        return new self('Insufficient PoisaPay balance for this purchase.');
+        return new self('Insufficient PoishaPay balance for this purchase.');
     }
 
     public static function outOfStock(): self

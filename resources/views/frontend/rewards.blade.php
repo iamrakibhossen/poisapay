@@ -36,7 +36,7 @@
             'danger' => 'bg-red-500', 'info' => 'bg-blue-500', 'primary' => 'bg-brand-500', 'indigo' => 'bg-indigo-500',
         ][$color] ?? 'bg-gray-400';
 
-        $shareMsg = __('Join me on PoisaPay — sign up with my link and we both earn rewards!');
+        $shareMsg = __('Join me on PoishaPay — sign up with my link and we both earn rewards!');
         $waUrl = $shareLink ? 'https://wa.me/?text='.urlencode($shareMsg.' '.$shareLink) : null;
         $tgUrl = $shareLink ? 'https://t.me/share/url?url='.urlencode($shareLink).'&text='.urlencode($shareMsg) : null;
     @endphp
@@ -50,7 +50,7 @@
                 copied: null,
                 copy(text, tag) { navigator.clipboard.writeText(text).then(() => { this.copied = tag; setTimeout(() => this.copied = null, 2000); }); },
                 nativeShare() {
-                    if (navigator.share) { navigator.share({ title: 'PoisaPay', text: @js($shareMsg), url: @js($shareLink) }).catch(() => {}); }
+                    if (navigator.share) { navigator.share({ title: 'PoishaPay', text: @js($shareMsg), url: @js($shareLink) }).catch(() => {}); }
                     else { this.copy(@js($shareLink), 'link'); }
                 },
             }">
@@ -205,7 +205,7 @@
                     </div>
                 @else
                     <x-ui.empty-state icon="user-group" :title="__('No referrals yet')"
-                        :description="__('Share your link to invite friends to PoisaPay.')" />
+                        :description="__('Share your link to invite friends to PoishaPay.')" />
                 @endif
             </x-ui.card>
         </div>

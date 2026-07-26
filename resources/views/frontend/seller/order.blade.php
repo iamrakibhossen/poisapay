@@ -116,7 +116,7 @@
                     </x-ui.card>
 
                     <x-ui.modal name="refund-order" :title="__('Refund this order?')"
-                        :subtitle="__('The buyer will be repaid :amount to their PoisaPay wallet.', ['amount' => $order['refundTotal']])">
+                        :subtitle="__('The buyer will be repaid :amount to their PoishaPay wallet.', ['amount' => $order['refundTotal']])">
                         <form method="POST" action="{{ route('shop.order.refund', ['id' => $order['id']]) }}" class="space-y-4">
                             @csrf
                             <x-ui.textarea name="reason" :label="__('Reason (optional)')" rows="3"

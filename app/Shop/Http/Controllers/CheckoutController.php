@@ -10,7 +10,7 @@ use App\Shop\Http\Requests\CheckoutRequest;
 use App\Shop\Http\Resources\OrderResource;
 use Illuminate\Http\JsonResponse;
 
-/** The buyer-facing checkout endpoint the PoisaPay payment page posts to. Thin. */
+/** The buyer-facing checkout endpoint the PoishaPay payment page posts to. Thin. */
 class CheckoutController extends Controller
 {
     public function store(CheckoutRequest $request, PlaceOrder $action): JsonResponse

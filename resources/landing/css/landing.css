@@ -1,5 +1,5 @@
 /* =============================================================================
-   PoisaPay Landing — isolated stylesheet.
+   PoishaPay Landing — isolated stylesheet.
    Self-contained bundle: its own Tailwind build (scanned from the landing view
    tree only) + the `.lp-*` design system. Loaded ONLY by landing layouts, so it
    never mixes with app.css / admin styles and never leaks into other modules.
@@ -37,7 +37,7 @@
 }
 
 /* ============================================================================
-   PoisaPay landing — LIGHT theme (blue #2563EB primary, slate neutrals, white
+   PoishaPay landing — LIGHT theme (blue #2563EB primary, slate neutrals, white
    cards with hairline borders + soft shadows, Inter). Scoped to .lp-wrapper.
    ============================================================================ */
 .lp-wrapper{

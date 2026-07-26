@@ -28,7 +28,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
- * The Sell money path. A buyer pays with their PoisaPay wallet; the Ledger (single
+ * The Sell money path. A buyer pays with their PoishaPay wallet; the Ledger (single
  * source of truth) moves the money in one balanced entry:
  *
  *   DR buyer user:available (order total)

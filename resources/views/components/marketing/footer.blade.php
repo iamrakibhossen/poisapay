@@ -22,12 +22,11 @@
             [__('System Status'), route('status')],
             [__('API Documentation'), $page('api')],
         ],
-        // All legal policies live on one combined page, linked by section anchor.
         __('Legal') => [
-            [__('Terms of Service'), $page('legal').'#terms'],
-            [__('Privacy Policy'), $page('legal').'#privacy'],
-            [__('AML & KYC Policy'), $page('legal').'#aml-kyc'],
-            [__('Compliance'), $page('legal').'#compliance'],
+            [__('Terms of Service'), $page('terms')],
+            [__('Privacy Policy'), $page('privacy')],
+            [__('AML & KYC Policy'), $page('aml-kyc')],
+            [__('Compliance'), $page('compliance')],
         ],
     ];
 
@@ -50,8 +49,8 @@
             {{-- Brand --}}
             <div class="sm:col-span-2 lg:col-span-1">
                 <a href="{{ $home }}" class="inline-flex items-center gap-2.5">
-                    <img src="{{ asset('images/logo.svg') }}" alt="PoisaPay" class="h-9 w-9 shrink-0" />
-                    <span class="text-lg font-bold text-slate-900">PoisaPay</span>
+                    <img src="{{ asset('images/logo.svg') }}" alt="PoishaPay" class="h-9 w-9 shrink-0" />
+                    <span class="text-lg font-bold text-slate-900">PoishaPay</span>
                 </a>
                 <p class="mt-4 max-w-xs text-sm leading-relaxed text-slate-500">
                     {{ __('Borderless global payments powered by digital assets. Manage your wallet, create virtual cards, exchange currencies, and pay merchants securely.') }}
@@ -90,7 +89,7 @@
 
         {{-- ═══════════ Bottom bar ═══════════ --}}
         <div class="flex flex-col items-center gap-4 border-t border-slate-200 py-8 text-sm text-slate-500 sm:flex-row sm:justify-between">
-            <p>© {{ date('Y') }} PoisaPay. {{ __('All rights reserved.') }}</p>
+            <p>© {{ date('Y') }} PoishaPay. {{ __('All rights reserved.') }}</p>
 
             <div class="flex items-center gap-2">
                 <button type="button" class="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-slate-600 ring-1 ring-slate-200 transition hover:bg-slate-100 hover:text-slate-900">

@@ -12,7 +12,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * PoisaPay design system — DollarHub design language.
+ * PoishaPay design system — DollarHub design language.
  * Primary = amber/gold (#FFC107), secondary = dark slate (#1F2937),
  * Lato (app) / Nunito (admin), 15px base, light-first. Buttons on the gold
  * primary use dark ink text for contrast. Neutral = surface/text gray scale.

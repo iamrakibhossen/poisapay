@@ -26,13 +26,13 @@ class DepositMethodSeeder extends Seeder
             ], 'Send money via Nagad, then enter the Transaction ID as the reference.', '10000', '5000000');
 
             $this->method($bdt->id, 'City Bank', 'bank', 2, [
-                'account_holder' => 'PoisaPay Ltd', 'bank_name' => 'City Bank', 'account_number' => '1234567890', 'branch' => 'Gulshan', 'routing_number' => '225261729',
+                'account_holder' => 'PoishaPay Ltd', 'bank_name' => 'City Bank', 'account_number' => '1234567890', 'branch' => 'Gulshan', 'routing_number' => '225261729',
             ], 'Transfer to the account above and enter the bank reference number.', '100000', null);
         }
 
         if ($usd) {
             $this->method($usd->id, 'Wire transfer', 'bank', 0, [
-                'account_holder' => 'PoisaPay Ltd', 'bank_name' => 'Standard Chartered', 'account_number' => 'US00-1234-5678', 'swift' => 'SCBLUS33',
+                'account_holder' => 'PoishaPay Ltd', 'bank_name' => 'Standard Chartered', 'account_number' => 'US00-1234-5678', 'swift' => 'SCBLUS33',
             ], 'Send an international wire and enter the wire reference.', '500', null);
         }
     }

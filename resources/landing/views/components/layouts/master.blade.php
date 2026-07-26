@@ -1,4 +1,4 @@
-@props(['title' => 'PoisaPay', 'description' => null, 'mainClass' => 'flex-1 pt-16'])
+@props(['title' => 'PoishaPay', 'description' => null, 'mainClass' => 'flex-1 pt-16'])
 
 {{-- Isolated Landing master layout. Loads ONLY the landing bundle (its own
      Tailwind + .lp-* design system + Alpine) — never app.css / frontend.js — so
@@ -13,7 +13,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title }} · PoisaPay</title>
+    <title>{{ $title }} · PoishaPay</title>
     @if ($description)<meta name="description" content="{{ $description }}">@endif
     @vite(['resources/landing/css/landing.css', 'resources/landing/js/landing.js'])
     @stack('head')

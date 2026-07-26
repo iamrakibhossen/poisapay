@@ -31,7 +31,7 @@
                             <span x-show="loading" x-cloak>{{ __('Adding…') }}</span>
                         </button>
                     </form>
-                    <p class="mt-2 text-center text-[11px] text-neutral-400">{{ __('Charged to your PoisaPay wallet · no card re-entry') }}</p>
+                    <p class="mt-2 text-center text-[11px] text-neutral-400">{{ __('Charged to your PoishaPay wallet · no card re-entry') }}</p>
                 </div>
             </div>
         @endif

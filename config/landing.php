@@ -92,7 +92,7 @@ return [
             ],
             'faqs' => [
                 ['q' => 'Is it a virtual or physical card?', 'a' => 'You get a virtual card you can use online and add to your mobile wallet to tap to pay in-store immediately. A physical card can also be issued if enabled on your account.'],
-                ['q' => 'Which balance does it spend from?', 'a' => 'It draws from your PoisaPay stablecoin balance and converts your asset to the merchant’s currency at the point of sale, so you can spend crypto without pre-converting it.'],
+                ['q' => 'Which balance does it spend from?', 'a' => 'It draws from your PoishaPay stablecoin balance and converts your asset to the merchant’s currency at the point of sale, so you can spend crypto without pre-converting it.'],
                 ['q' => 'What does it cost?', 'a' => 'There is no monthly or annual fee. A flat 1% is applied per transaction, and any one-time issuance price (if your operator sets one) is shown before you create the card.'],
                 ['q' => 'Can I freeze the card or set limits?', 'a' => 'Yes. Freeze and unfreeze instantly, set daily and per-transaction limits, restrict spending by country and block merchant categories — all from your dashboard, any time.'],
                 ['q' => 'What if a charge is wrong?', 'a' => 'Every transaction is risk-scored and monitored for fraud. If something looks wrong you can freeze the card and open a dispute on the charge directly from your dashboard.'],
@@ -103,7 +103,7 @@ return [
             'eyebrow' => 'Wallet',
             'icon' => 'wallet',
             'title' => 'One balance across every network',
-            'lead' => 'Hold, receive and send crypto and fiat from a single wallet. USDT on eight chains is one pooled balance — the network only matters when you deposit or withdraw. Send to any PoisaPay user instantly and free, valued live in your own currency.',
+            'lead' => 'Hold, receive and send crypto and fiat from a single wallet. USDT on eight chains is one pooled balance — the network only matters when you deposit or withdraw. Send to any PoishaPay user instantly and free, valued live in your own currency.',
             'highlights' => [
                 'One pooled balance per coin',
                 'Free, instant internal transfers',
@@ -112,10 +112,10 @@ return [
             ],
             'features' => [
                 ['icon' => 'link', 'title' => 'One balance per coin', 'desc' => 'Hold USDT on Tron, Ethereum, BNB Chain and more, yet see and spend one pooled balance — no juggling the same asset across chains.'],
-                ['icon' => 'paper-airplane', 'title' => 'Instant, free transfers', 'desc' => 'Send to any PoisaPay user in seconds with zero fee — it settles on our internal ledger, not on-chain, so it never waits for a block.'],
+                ['icon' => 'paper-airplane', 'title' => 'Instant, free transfers', 'desc' => 'Send to any PoishaPay user in seconds with zero fee — it settles on our internal ledger, not on-chain, so it never waits for a block.'],
                 ['icon' => 'arrow-down-tray', 'title' => 'On-chain deposits', 'desc' => 'Get a unique deposit address per network and fund your wallet from any external wallet or exchange.'],
                 ['icon' => 'squares-2x2', 'title' => 'Crypto & fiat together', 'desc' => 'Manage stablecoins, native coins and fiat side by side, each valued live in your chosen base currency.'],
-                ['icon' => 'arrows-right-left', 'title' => 'Swap & spend', 'desc' => 'Convert between assets at a transparent rate and spend straight from your balance with a PoisaPay card.'],
+                ['icon' => 'arrows-right-left', 'title' => 'Swap & spend', 'desc' => 'Convert between assets at a transparent rate and spend straight from your balance with a PoishaPay card.'],
                 ['icon' => 'shield-check', 'title' => 'Custodial security', 'desc' => 'The majority of crypto is held in offline cold storage, with continuous reconciliation against on-chain holdings.'],
             ],
             'grid' => [
@@ -138,10 +138,10 @@ return [
                 ['icon' => 'arrow-up-tray', 'title' => 'Withdraw anytime', 'desc' => 'Cash out on-chain to any external address on the network you choose.'],
             ],
             'faqs' => [
-                ['q' => 'What does "one balance per coin" mean?', 'a' => 'If you hold USDT on several networks, PoisaPay shows and spends it as a single pooled balance. The network only matters at the moment you deposit or withdraw on-chain.'],
+                ['q' => 'What does "one balance per coin" mean?', 'a' => 'If you hold USDT on several networks, PoishaPay shows and spends it as a single pooled balance. The network only matters at the moment you deposit or withdraw on-chain.'],
                 ['q' => 'Which coins and networks are supported?', 'a' => 'Stablecoins USDT and USDC plus native assets, across eight networks — Tron, Ethereum, BNB Smart Chain, Polygon, Arbitrum, Optimism, Base and Avalanche — alongside fiat balances.'],
-                ['q' => 'Are internal transfers really free?', 'a' => 'Yes. Sending to another PoisaPay user is instant and fee-free because it settles on our internal ledger rather than on-chain.'],
-                ['q' => 'What are the deposit and withdrawal fees?', 'a' => 'Deposits are free. Withdrawals carry a small percentage platform fee, shown before you confirm — PoisaPay absorbs the network gas cost.'],
+                ['q' => 'Are internal transfers really free?', 'a' => 'Yes. Sending to another PoishaPay user is instant and fee-free because it settles on our internal ledger rather than on-chain.'],
+                ['q' => 'What are the deposit and withdrawal fees?', 'a' => 'Deposits are free. Withdrawals carry a small percentage platform fee, shown before you confirm — PoishaPay absorbs the network gas cost.'],
                 ['q' => 'How are my assets kept safe?', 'a' => 'Balances are held custodially, with the majority of crypto in offline cold storage and continuous reconciliation against on-chain holdings. Every balance is derived from an immutable double-entry ledger.'],
                 ['q' => 'Can I see my balance in my own currency?', 'a' => 'Yes — choose a base currency and every asset is valued live in it, so you always know what your wallet is worth at a glance.'],
             ],
@@ -187,7 +187,7 @@ return [
             'faqs' => [
                 ['q' => 'How is the exchange rate set?', 'a' => 'Rates come from live market data with a small, transparent spread that is always shown before you confirm. Some pairs carry their own spread, and it is always disclosed in the quote.'],
                 ['q' => 'Will the rate change after I see it?', 'a' => 'No. Each quote locks a fixed rate for a few seconds. As long as you confirm within that window, the amount you receive is exactly what was shown.'],
-                ['q' => 'How fast are swaps?', 'a' => 'Instant. They settle to your PoisaPay balance the moment you confirm, on our internal ledger — there is no on-chain wait.'],
+                ['q' => 'How fast are swaps?', 'a' => 'Instant. They settle to your PoishaPay balance the moment you confirm, on our internal ledger — there is no on-chain wait.'],
                 ['q' => 'Can I swap between crypto and fiat?', 'a' => 'Yes, in either direction — stablecoin to fiat, fiat to crypto, or crypto to crypto — all from your wallet.'],
                 ['q' => 'Are there limits on a swap?', 'a' => 'Some pairs have a minimum and maximum amount per swap, and larger conversions may require a completed KYC level. Any limit is shown when you build the quote.'],
                 ['q' => 'What does a swap cost?', 'a' => 'The cost is the spread built into the quoted rate — there is nothing hidden on top. You always see the net amount you will receive before confirming.'],
@@ -197,7 +197,7 @@ return [
             'eyebrow' => 'Shop',
             'icon' => 'building-storefront',
             'title' => 'Sell anything, get paid instantly',
-            'lead' => 'Build a high-converting sales page with a real drag-and-drop editor, then sell digital or physical products with wallet, card and crypto checkout. Order bumps, 1-click upsells and coupons are built in — commission drops to as low as 3% as you grow, and every sale settles straight to your PoisaPay balance.',
+            'lead' => 'Build a high-converting sales page with a real drag-and-drop editor, then sell digital or physical products with wallet, card and crypto checkout. Order bumps, 1-click upsells and coupons are built in — commission drops to as low as 3% as you grow, and every sale settles straight to your PoishaPay balance.',
             'cta' => ['label' => 'Start selling', 'route' => 'shop'],
             'highlights' => [
                 'No monthly fee on the Free plan',
@@ -207,7 +207,7 @@ return [
             ],
             'features' => [
                 ['icon' => 'squares-2x2', 'title' => 'Visual page builder', 'desc' => 'Design sales pages with a real drag-and-drop block editor — hero, features, testimonials, FAQ, checkout. Draft, preview, publish and roll back with saved revisions. No code.'],
-                ['icon' => 'credit-card', 'title' => 'Instant checkout', 'desc' => 'Buyers pay with their PoisaPay wallet, a card or crypto. Funds settle straight to your balance — no external gateway, no payout waiting on a bank.'],
+                ['icon' => 'credit-card', 'title' => 'Instant checkout', 'desc' => 'Buyers pay with their PoishaPay wallet, a card or crypto. Funds settle straight to your balance — no external gateway, no payout waiting on a bank.'],
                 ['icon' => 'arrow-trending-up', 'title' => 'Bumps & upsells', 'desc' => 'Lift average order value with pre-purchase order bumps and 1-click post-purchase upsells — no re-entering payment details.'],
                 ['icon' => 'ticket', 'title' => 'Coupons & discounts', 'desc' => 'Run percentage or fixed-amount coupons with usage caps and expiry dates to launch promos and recover carts.'],
                 ['icon' => 'globe-alt', 'title' => 'Custom domains', 'desc' => 'Connect your own domain and publish a fully branded storefront and checkout — your name in the address bar, not ours.'],
@@ -230,14 +230,14 @@ return [
             'steps' => [
                 ['icon' => 'identification', 'title' => 'Apply to sell', 'desc' => 'Complete a short seller application with KYC. Once approved, your Shop dashboard unlocks.'],
                 ['icon' => 'cube', 'title' => 'Add your product', 'desc' => 'Create a digital or physical product, set the price in your own currency and pick how it settles.'],
-                ['icon' => 'squares-2x2', 'title' => 'Build your page', 'desc' => 'Drag in blocks, add order bumps and upsells, then publish to a PoisaPay link or your custom domain.'],
+                ['icon' => 'squares-2x2', 'title' => 'Build your page', 'desc' => 'Drag in blocks, add order bumps and upsells, then publish to a PoishaPay link or your custom domain.'],
                 ['icon' => 'banknotes', 'title' => 'Share & get paid', 'desc' => 'Buyers check out with wallet, card or crypto and your net lands in your balance after the refund window.'],
             ],
             'faqs' => [
                 ['q' => 'What does it cost to sell?', 'a' => 'Nothing to start — the Free plan has no monthly fee, one sales page and 8% commission per sale. Pro is $10/month for up to 3 products at 5% commission, and Business is $20/month for up to 10 products at 3% commission. There are no separate payment-processing fees.'],
                 ['q' => 'What can I sell?', 'a' => 'Seven product types: digital downloads, license keys, memberships, subscriptions, services, physical goods and bundles. Physical products support shipping and address capture at checkout.'],
-                ['q' => 'How and when do I get paid?', 'a' => 'Payments settle straight to your PoisaPay balance — no external gateway. Earnings can be held for the buyer’s refund window and then released automatically to your spendable balance, so refunds never leave you in the negative.'],
-                ['q' => 'How do buyers pay?', 'a' => 'Every checkout supports three rails: a PoisaPay wallet balance, a card, or crypto. Buyers pick whichever they have — you receive your settlement asset either way.'],
+                ['q' => 'How and when do I get paid?', 'a' => 'Payments settle straight to your PoishaPay balance — no external gateway. Earnings can be held for the buyer’s refund window and then released automatically to your spendable balance, so refunds never leave you in the negative.'],
+                ['q' => 'How do buyers pay?', 'a' => 'Every checkout supports three rails: a PoishaPay wallet balance, a card, or crypto. Buyers pick whichever they have — you receive your settlement asset either way.'],
                 ['q' => 'Do I need to code?', 'a' => 'No. The page builder is fully visual — drag blocks, edit inline, preview and publish. Saved revisions let you roll back any change.'],
                 ['q' => 'Can I use my own domain?', 'a' => 'Yes. Connect a custom domain to publish a branded storefront and checkout under your own name.'],
                 ['q' => 'How are refunds handled?', 'a' => 'You can approve refunds from your dashboard. A refund reverses the original ledger entries, revokes access to digital products and returns the buyer’s money — fully audited end to end.'],
@@ -271,7 +271,7 @@ return [
             'eyebrow' => 'Merchant Pay',
             'icon' => 'building-storefront',
             'title' => 'Accept crypto, settle instantly',
-            'lead' => 'Send a payment request and get paid in USDT, BTC or ETH. Every payment settles straight to your PoisaPay wallet the moment it clears — a flat 1% fee, no chargebacks, and a webhook for every paid invoice. Approval is instant, so you can start charging today.',
+            'lead' => 'Send a payment request and get paid in USDT, BTC or ETH. Every payment settles straight to your PoishaPay wallet the moment it clears — a flat 1% fee, no chargebacks, and a webhook for every paid invoice. Approval is instant, so you can start charging today.',
             'cta' => ['label' => 'Start accepting', 'route' => 'merchant'],
             'highlights' => [
                 'Flat 1% per payment',
@@ -281,7 +281,7 @@ return [
             ],
             'features' => [
                 ['icon' => 'document-text', 'title' => 'Payment requests', 'desc' => 'Create an invoice in seconds, share the link or show a QR — the customer pays in the crypto they hold.'],
-                ['icon' => 'bolt', 'title' => 'Instant settlement', 'desc' => 'The moment a payment clears, the net lands in your PoisaPay wallet — no multi-day payout wait, no bank in the middle.'],
+                ['icon' => 'bolt', 'title' => 'Instant settlement', 'desc' => 'The moment a payment clears, the net lands in your PoishaPay wallet — no multi-day payout wait, no bank in the middle.'],
                 ['icon' => 'banknotes', 'title' => 'Flat 1% fee', 'desc' => 'One simple processing fee per payment. No setup cost, no monthly fee, no per-coin surcharge.'],
                 ['icon' => 'shield-check', 'title' => 'No chargebacks', 'desc' => 'Crypto payments are final once settled, so you keep what you earn — no fraud reversals weeks later.'],
                 ['icon' => 'code-bracket', 'title' => 'Webhooks & API', 'desc' => 'Every paid invoice fires an invoice.paid event, so you can automate fulfilment, receipts and reconciliation.'],
@@ -304,11 +304,11 @@ return [
                 ['icon' => 'user-plus', 'title' => 'Create & verify', 'desc' => 'Register your business and complete KYC once — approval is instant.'],
                 ['icon' => 'document-text', 'title' => 'Send a request', 'desc' => 'Create a payment request and share the link or QR with your customer.'],
                 ['icon' => 'wallet', 'title' => 'Customer pays', 'desc' => 'They pay in the crypto they hold — from any wallet or exchange.'],
-                ['icon' => 'bolt', 'title' => 'Settle instantly', 'desc' => 'Your net lands in your PoisaPay balance the moment it clears.'],
+                ['icon' => 'bolt', 'title' => 'Settle instantly', 'desc' => 'Your net lands in your PoishaPay balance the moment it clears.'],
             ],
             'faqs' => [
                 ['q' => 'What does it cost to accept payments?', 'a' => 'A flat 1% processing fee per payment. There is no setup cost, no monthly fee and no per-coin surcharge — the fee is shown on every invoice.'],
-                ['q' => 'How fast do I get paid?', 'a' => 'Instantly. When a customer pays, the net amount settles straight to your PoisaPay wallet on our internal ledger — there is no multi-day payout or bank delay.'],
+                ['q' => 'How fast do I get paid?', 'a' => 'Instantly. When a customer pays, the net amount settles straight to your PoishaPay wallet on our internal ledger — there is no multi-day payout or bank delay.'],
                 ['q' => 'Which coins can customers pay with?', 'a' => 'Stablecoins USDT and USDC plus major assets like BTC and ETH. The customer pays in whatever they hold and you receive your settlement asset.'],
                 ['q' => 'Are there chargebacks?', 'a' => 'No. Once a crypto payment settles it is final, so you are protected from the fraud reversals common with card payments.'],
                 ['q' => 'Can I refund a customer?', 'a' => 'Yes. You can refund a paid invoice or cancel an unpaid one directly from your merchant dashboard, and the ledger records every step.'],

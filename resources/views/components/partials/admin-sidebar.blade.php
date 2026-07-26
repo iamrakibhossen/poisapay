@@ -33,8 +33,8 @@
             {{-- Logo --}}
             <div class="mb-2 flex h-16 items-center justify-center">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2.5 text-lg font-bold uppercase tracking-wider">
-                    <img src="{{ asset('images/logo.svg') }}" alt="PoisaPay" class="h-8 w-8 shrink-0" />
-                    <span class="text-white">PoisaPay</span>
+                    <img src="{{ asset('images/logo.svg') }}" alt="PoishaPay" class="h-8 w-8 shrink-0" />
+                    <span class="text-white">PoishaPay</span>
                 </a>
             </div>
 

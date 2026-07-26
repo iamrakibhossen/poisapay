@@ -71,7 +71,7 @@
                                 <div class="absolute inset-0 opacity-25" style="background-image:radial-gradient(circle at 82% 12%,#fff 1px,transparent 1px);background-size:26px 26px"></div>
                                 <div class="relative flex h-full flex-col justify-between">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-sm font-semibold">PoisaPay</span>
+                                        <span class="text-sm font-semibold">PoishaPay</span>
                                         <span class="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">{{ __('Virtual') }}</span>
                                     </div>
                                     <div class="h-8 w-11 rounded-md bg-gradient-to-br from-yellow-100 to-amber-300 shadow-inner"></div>

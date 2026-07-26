@@ -38,7 +38,7 @@
 
         {{-- How payouts work --}}
         <x-ui.alert type="info" :title="__('How payouts work')">
-            {{ __('Every sale credits your net earnings (after platform fees) straight to your PoisaPay wallet. Amounts stay Pending during the buyer’s refund window, then become Available — withdraw them to your bank or crypto wallet anytime.') }}
+            {{ __('Every sale credits your net earnings (after platform fees) straight to your PoishaPay wallet. Amounts stay Pending during the buyer’s refund window, then become Available — withdraw them to your bank or crypto wallet anytime.') }}
         </x-ui.alert>
 
         {{-- Recent earnings --}}

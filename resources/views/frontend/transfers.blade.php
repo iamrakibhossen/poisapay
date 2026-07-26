@@ -1,6 +1,6 @@
 <x-layouts.app :title="__('Transfer history')">
     <div class="space-y-5">
-        <x-ui.page-header :title="__('Transfer history')" :subtitle="__('Money you\'ve sent to and received from other PoisaPay users.')">
+        <x-ui.page-header :title="__('Transfer history')" :subtitle="__('Money you\'ve sent to and received from other PoishaPay users.')">
             <x-slot:actions>
                 <x-ui.button href="{{ route('send.index') }}" icon="plus" size="sm">{{ __('New transfer') }}</x-ui.button>
             </x-slot:actions>
