@@ -98,7 +98,7 @@
                             @foreach ($methods as $m)
                                 <label class="cursor-pointer">
                                     <input type="radio" name="payment_method_id" value="{{ $m->id }}" class="peer sr-only" required />
-                                    <span class="block truncate rounded-lg border-l-[3px] border-l-neutral-300 bg-neutral-50 px-2.5 py-2 text-xs font-medium text-neutral-600 transition hover:bg-neutral-100 peer-checked:border-l-brand-500 peer-checked:bg-brand-50 peer-checked:text-brand-700">{{ $m->name }}</span>
+                                    <span class="block truncate rounded-lg border border-neutral-200 border-l-[3px] border-l-neutral-300 px-2.5 py-2 text-xs font-medium text-neutral-600 transition hover:border-neutral-300 peer-checked:border-brand-500 peer-checked:border-l-brand-500 peer-checked:bg-brand-50 peer-checked:text-brand-700">{{ $m->name }}</span>
                                 </label>
                             @endforeach
                         </div>
