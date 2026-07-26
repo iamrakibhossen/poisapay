@@ -6,6 +6,7 @@ use App\Domain\P2p\CreateOrderAction;
 use App\Domain\P2p\MarkBuyerPaidAction;
 use App\Domain\P2p\OpenDisputeAction;
 use App\Domain\P2p\ResolveDisputeAction;
+use App\Domain\Transaction\TransactionFeedService;
 use App\Enums\KycStatus;
 use App\Enums\KycTier;
 use App\Models\Admin;
@@ -43,6 +44,18 @@ it('notifies both parties when a dispute is resolved', function () {
 
     expect($hasResolved($this->buyer))->toBeTrue()
         ->and($hasResolved($this->seller))->toBeTrue();
+});
+
+it('shows the settled trade in both parties’ transaction history after a ruling', function () {
+    app(ResolveDisputeAction::class)->execute($this->dispute->refresh(), $this->admin, 'buyer', 'ruled for buyer');
+
+    $feed = app(TransactionFeedService::class);
+    $p2pRows = fn (User $u) => collect($feed->feed($u)['items'])->where('group', 'p2p');
+
+    // Buyer sees a "Bought" row, seller a "Sold" row — the escrow settlement is
+    // now visible in the unified transaction feed (was previously missing).
+    expect($p2pRows($this->buyer)->pluck('title'))->toContain('Bought USDT')
+        ->and($p2pRows($this->seller)->pluck('title'))->toContain('Sold USDT');
 });
 
 it('lets an operator add an internal note that stays operator-only', function () {

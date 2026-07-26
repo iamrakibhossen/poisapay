@@ -12,6 +12,7 @@ use App\Models\Conversion;
 use App\Models\Deposit;
 use App\Models\JournalEntry;
 use App\Models\MerchantInvoice;
+use App\Models\P2pOrder;
 use App\Models\Transfer;
 use App\Models\User;
 use App\Models\Withdrawal;
@@ -82,6 +83,7 @@ class TransactionFeedService
             ->concat($this->transfers($userId))
             ->concat($this->conversions($userId))
             ->concat($this->payments($userId))
+            ->concat($this->p2p($userId))
             ->concat($this->cards($userId))
             ->concat($this->cardIssuance($userId))
             ->sortByDesc('_at')
@@ -117,6 +119,35 @@ class TransactionFeedService
                 'amount' => '-'.$w->money()->format(), 'status' => $w->status->label(), 'statusColor' => $w->status->color(),
                 'asset' => $w->asset->symbol, 'url' => route('wallet.show', $w->asset->symbol),
             ], $w->created_at));
+    }
+
+    /**
+     * P2P trades the user was party to — including admin dispute rulings, which
+     * settle the escrow on the ledger (buyer receives crypto / seller is refunded)
+     * but otherwise leave no trace in this feed. Buyer "buys" (receives net),
+     * seller "sells" (releases the gross crypto amount).
+     */
+    private function p2p(string $userId): Collection
+    {
+        return P2pOrder::with('asset')
+            ->where(fn ($q) => $q->where('buyer_id', $userId)->orWhere('seller_id', $userId))
+            ->latest()->limit(self::SOURCE_LIMIT)->get()
+            ->map(function (P2pOrder $o) use ($userId) {
+                $isBuyer = $o->buyer_id === $userId;
+                $money = $isBuyer ? $o->netMoney() : $o->cryptoMoney();
+
+                return $this->row([
+                    'group' => 'p2p', 'type' => 'P2P',
+                    'icon' => $isBuyer ? 'arrow-down-left' : 'arrow-up-right',
+                    'color' => $isBuyer ? 'success' : 'info',
+                    'title' => ($isBuyer ? 'Bought ' : 'Sold ').$o->asset->symbol,
+                    'subtitle' => 'P2P · '.$o->ref,
+                    'amount' => ($isBuyer ? '+' : '-').$money->format(),
+                    'status' => str($o->status->value)->headline()->toString(),
+                    'statusColor' => $o->status->color(),
+                    'asset' => $o->asset->symbol, 'url' => route('p2p.order', $o),
+                ], $o->created_at);
+            });
     }
 
     private function transfers(string $userId): Collection

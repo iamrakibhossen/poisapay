@@ -1315,6 +1315,12 @@ parameters:
 			path: app/Domain/Transaction/TransactionFeedService.php
 
 		-
+			message: '#^Method App\\Domain\\Transaction\\TransactionFeedService\:\:p2p\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/Transaction/TransactionFeedService.php
+
+		-
 			message: '#^Method App\\Domain\\Transaction\\TransactionFeedService\:\:payments\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
 			identifier: missingType.generics
 			count: 1

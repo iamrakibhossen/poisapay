@@ -10,7 +10,7 @@
         ]" />
 
         <x-ui.history-filters route="transactions" tab-param="type"
-            :tabs="['all' => __('All'), 'deposits' => __('Deposits'), 'withdrawals' => __('Withdrawals'), 'transfers' => __('Transfers'), 'swaps' => __('Swaps'), 'payments' => __('Payments'), 'cards' => __('Cards')]"
+            :tabs="['all' => __('All'), 'deposits' => __('Deposits'), 'withdrawals' => __('Withdrawals'), 'transfers' => __('Transfers'), 'swaps' => __('Swaps'), 'payments' => __('Payments'), 'p2p' => __('P2P'), 'cards' => __('Cards')]"
             :active="$filters['type']" :symbols="$feed['symbols']" :asset="$filters['asset']" :search="$filters['search']" />
 
         {{-- Activity table --}}
