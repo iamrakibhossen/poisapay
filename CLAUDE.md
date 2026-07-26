@@ -234,9 +234,65 @@ Shop/         commerce bounded context (App\Shop, ShopServiceProvider)
   (pos+neg), invalidated on any `Domain` write. Merchant UI `/shop/domains`, operator UI
   `/admin/shop-domains`. Events `Domain{Created,Verified,VerificationFailed,Removed}` +
   `Ssl{Issued,Failed}` (auto-audited `shop.domain.*`). See `docs/shop-audit/02-custom-domains.md`.
+- **Media Library** (`shop_media`, **one table** — no folders/usage tables by design,
+  `config/media.php`): merchant-scoped image library for the **page builder**. Replaces every
+  manual image-URL input with a **Choose Image / Choose Images** picker (`Field::image()` now
+  renders the picker in `builder-field.blade.php`; the background `bgImage` control too), so
+  **every** section that uses an image field is upgraded centrally — no per-block edits. Model
+  `App\Shop\Models\ShopMedia` (soft-deletes; the storage **disk is config-resolved via
+  `StorageDisk::media()`, never a column**). Four focused services: `MediaUploadService`
+  (dedup by sha256 `checksum`, permanent path `media/{seller}/{Ym}/…`, sync original store +
+  queued variants, replace-in-place keeping the URL, rename/alt), `MediaVariantService`
+  (intervention/image GD: thumb/medium/large **downscale-only** + a **WebP sibling** each,
+  metadata stripped, **SVG sanitised** before store), `MediaDeleteService` (soft delete →
+  restore → purge), `MediaUrlService` (URL→media resolve, cached; emits responsive
+  `<picture>`+`srcset`+WebP+lazy via the `<x-builder.image>` component). Variants generated on
+  the queue (`ProcessMediaImage`); the original is usable immediately. JSON API under
+  `/shop/media` (`MediaController`, `web`+`auth`, consistent with the builder's other JSON
+  endpoints) + standalone manager page `/shop/media`; picker UI in `resources/js/builder/media.js`
+  (drag-drop, multi-upload + progress, infinite scroll, search, sort, rename, replace, delete,
+  restore, copy URL, multi-select) merged into `pageBuilder` via `mediaMixin`. **Backward-compat:
+  image props still store a URL string** — legacy/external URLs render as a plain lazy `<img>`,
+  so existing pages are byte-identical; the picker is just a nicer way to produce that URL.
+  **Gallery block** enhanced: grid/masonry/carousel layouts, lightbox (zoom), captions, category
+  filter tabs, load-more. `intervention/image ^3` (GD) is the one added dependency.
+- **Tracking & Pixels** (`app/Shop/Tracking/*`, see its `README.md`): **per-sales-page**
+  marketing pixels — Meta / TikTok / GA4 / GTM — stored in `shop_sales_pages.tracking`
+  (jsonb). **Adapter pattern:** `TrackingManager` composes providers (registered in
+  `ShopServiceProvider`), each implementing `Contracts\TrackingProvider` — it declares
+  `fields()` (single source of truth for the builder UI **and** validation) and emits a
+  `headScript()` that self-registers `{key,init,fire(type,payload)}` into
+  `window.__ppTrackers`. One consent-gated runtime fans a single provider-agnostic
+  `TrackingEvent`/`TrackingEventType` (14 cases) out to all providers → **adding a network
+  = 1 new adapter + 1 registration line**, nothing else changes. Injected via
+  `layouts/sales.blade.php` (`:tracking`+`:trackingEvents`); `PublicSalesController` fires
+  PageView/ViewContent/InitiateCheckout/Purchase server-side; interaction events are
+  declarative `data-pp-track="cta_click"` + `window.ppTrack()`. Builder **Settings →
+  "Tracking & Pixels"** tab (generated from `providers()`) with toggle/status/validation/
+  **test-event** (`/shop/sales-pages/{slug}/tracking-test`) + privacy (cookies / wait-for-
+  consent / anonymize-IP). **Meta server-side (CAPI)** is opt-in per page via an access
+  token: **Purchase-only, queued** (`OrderPlaced` → `SendMetaCapiPurchaseEvent` →
+  `Jobs\SendMetaCapiPurchase`), **deduped** with the browser pixel via `event_id = order id`,
+  **PII SHA-256 hashed**; driver behind `Contracts\MetaCapiClient` (`simulated`|`http`,
+  `config/shop.php → tracking.meta_capi`, **wire `http` before prod**). Zero markup when a
+  page has no tracking configured.
 - **Sales-page builder v2:** schema-driven block-tree (`app/Shop/Builder/*`), one renderer
   for public + editor iframe, draft/publish + revisions. Adding a block = 1 `BlockLibrary`
   entry + 1 partial. v1→v2 auto-migration exists.
+  - **Section variants:** a section can offer multiple full **layout** variants (not just
+    colours). Add `Field::variant(['a'=>'A', …], 'a')` as the first content field → it renders a
+    segmented "Layout" picker in the panel (`variant` field type in `builder-field.blade.php`),
+    writes `props.variant`, and the partial `@switch($props['variant'])`es its whole markup. The
+    **first option must equal the current design** so existing pages stay byte-identical (defaults
+    fill `variant`). Marquee sections done (each + a `dark` toggle): **hero** (centered/split/
+    minimal/gradient/showcase), **features** (cards/iconTop/iconLeft/alternating), **cta-banner**
+    (gradient/simple/dark/card/split), **faq** (accordion/cards/split), **pricing** (cards/minimal/
+    compact + monthly/yearly toggle + `cols`), **testimonials** (cards/carousel/minimal/single).
+    Rolling the pattern to more sections is mechanical.
+  - **Fatal-safe icon/glyph components:** `<x-builder.icon name="bolt">` (curated Heroicon
+    whitelist → sparkle fallback, so a hand-typed icon can never 500 a page) and
+    `<x-builder.social-icon platform="instagram">` (brand SVGs, globe fallback). Repeater
+    sub-fields now also support `select` (per-row icon/platform pickers).
   - **Universal section controls** (Phase 1) live in `StyleCompiler` — every block gets the
     full control set for free via scoped `#id` CSS, no partial edits: per-side padding/margin,
     width/maxWidth/minHeight, border+radius, shadow presets (sm/md/lg/xl), opacity, z-index,
