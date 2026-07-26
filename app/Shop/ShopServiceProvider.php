@@ -18,17 +18,25 @@ use App\Shop\Models\Product;
 use App\Shop\Models\RefundRequest;
 use App\Shop\Models\SalesPage;
 use App\Shop\Models\Seller;
+use App\Shop\Models\ShopMedia;
 use App\Shop\Policies\DomainPolicy;
+use App\Shop\Policies\MediaPolicy;
 use App\Shop\Policies\ProductPolicy;
 use App\Shop\Policies\RefundRequestPolicy;
 use App\Shop\Policies\SalesPagePolicy;
 use App\Shop\Policies\SellerPolicy;
 use App\Shop\Services\Dns\SystemDnsResolver;
 use App\Shop\Services\Domain\DomainResolver;
+use App\Shop\Services\Media\MediaUrlService;
 use App\Shop\Services\SalesPageService;
 use App\Shop\Services\SellerService;
 use App\Shop\Services\Ssl\AcmeSslProvisioner;
 use App\Shop\Services\Ssl\SimulatedSslProvisioner;
+use App\Shop\Tracking\Providers\Ga4Provider;
+use App\Shop\Tracking\Providers\GtmProvider;
+use App\Shop\Tracking\Providers\MetaProvider;
+use App\Shop\Tracking\Providers\TikTokProvider;
+use App\Shop\Tracking\TrackingManager;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -46,6 +54,7 @@ class ShopServiceProvider extends ServiceProvider
         SalesPage::class => SalesPagePolicy::class,
         RefundRequest::class => RefundRequestPolicy::class,
         Domain::class => DomainPolicy::class,
+        ShopMedia::class => MediaPolicy::class,
     ];
 
     public function register(): void
@@ -53,6 +62,18 @@ class ShopServiceProvider extends ServiceProvider
         // The block catalogue is a process-wide singleton: one source of truth for
         // the palette, generated property panel, validation, and render dispatch.
         $this->app->singleton(BlockRegistry::class, fn () => new BlockRegistry(BlockLibrary::all()));
+
+        // Per-sales-page tracking/pixels. Adding a network = one new provider here.
+        $this->app->singleton(TrackingManager::class, fn () => new TrackingManager([
+            new MetaProvider,
+            new TikTokProvider,
+            new Ga4Provider,
+            new GtmProvider,
+        ]));
+
+        // One URL service per request so its URL→media memo (on top of the cache) is
+        // shared across every image rendered on a page.
+        $this->app->singleton(MediaUrlService::class);
 
         // Custom-domain DNS + SSL sit behind contracts so tests swap in fakes and
         // the SSL provider is chosen by config (simulated by default, ACME in prod).
