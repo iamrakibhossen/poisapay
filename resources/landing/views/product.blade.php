@@ -1,4 +1,4 @@
-<x-landing::layouts.master :title="$product['title']" :description="$product['lead']">
+<x-landing::layouts.master :seo="$seo">
     {{-- ═══════════ Hero ═══════════ --}}
     <section class="mx-auto max-w-7xl px-4 pt-14 sm:px-6 lg:px-8 sm:pt-20">
         <div class="grid items-center gap-12 lg:grid-cols-2">

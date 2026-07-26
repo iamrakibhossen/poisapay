@@ -43,17 +43,7 @@
         ['q' => __('How are my funds secured?'), 'a' => __('Funds sit in custodial cold storage with 2FA, device controls and continuous monitoring. Every balance is tracked on an exact double-entry ledger.')],
     ];
 @endphp
-<x-landing::layouts.master
-    main-class="flex-1"
-    title="Spend crypto like cash, with a premium virtual card"
-    description="A premium crypto wallet with a beautiful virtual card. Hold, send and spend crypto and Taka anywhere — instant deposits, Apple & Google Pay, bank-grade custody. Built for Bangladesh."
->
-    @push('head')
-        <meta property="og:title" content="PoishaPay · Spend crypto like cash">
-        <meta property="og:description" content="A premium crypto wallet with a beautiful virtual card. Spend crypto anywhere.">
-        <meta property="og:type" content="website">
-    @endpush
-
+<x-landing::layouts.master main-class="flex-1" :seo="$seo">
     {{-- ===================== HERO ===================== --}}
     <section id="exchange" class="relative overflow-hidden px-4 pb-16 pt-32 sm:px-6 lg:px-8 lg:pb-24 lg:pt-40">
         <div class="mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-[1.05fr_1fr] lg:gap-8">

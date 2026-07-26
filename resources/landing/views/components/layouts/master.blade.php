@@ -1,4 +1,4 @@
-@props(['title' => 'PoishaPay', 'description' => null, 'mainClass' => 'flex-1 pt-16'])
+@props(['title' => 'PoishaPay', 'description' => null, 'mainClass' => 'flex-1 pt-16', 'seo' => null])
 
 {{-- Isolated Landing master layout. Loads ONLY the landing bundle (its own
      Tailwind + .lp-* design system + Alpine) — never app.css / frontend.js — so
@@ -7,14 +7,13 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full scroll-smooth">
 <head>
-    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
-    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
-
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title }} · PoishaPay</title>
-    @if ($description)<meta name="description" content="{{ $description }}">@endif
+
+    {{-- All SEO/meta/icons/JSON-LD come from the reusable component (one source). --}}
+    <x-seo.meta :seo="$seo ?? \App\Support\Seo\SeoData::make($title !== 'PoishaPay' ? $title : null, $description)" />
+
     @vite(['resources/landing/css/landing.css', 'resources/landing/js/landing.js'])
     @stack('head')
 </head>

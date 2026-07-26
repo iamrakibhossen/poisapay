@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Landing;
 
 use App\Http\Controllers\Controller;
 use App\Models\Page;
+use App\Support\Seo\SeoData;
 use Illuminate\Contracts\View\View;
 
 /**
@@ -20,6 +21,13 @@ final class PageController extends Controller
             ->where('slug', $slug)
             ->firstOrFail();
 
-        return view('landing::page', ['page' => $page]);
+        $seo = SeoData::make($page->title, $page->meta_description)
+            ->withCanonical(route('page.show', $page->slug))
+            ->withBreadcrumbs([
+                ['name' => 'Home', 'url' => route('home')],
+                ['name' => $page->title, 'url' => route('page.show', $page->slug)],
+            ]);
+
+        return view('landing::page', ['page' => $page, 'seo' => $seo]);
     }
 }

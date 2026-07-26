@@ -1,4 +1,4 @@
-<x-landing::layouts.master :title="$page->title" :description="$page->meta_description">
+<x-landing::layouts.master :seo="$seo">
     <div class="mx-auto max-w-3xl px-4 pb-24 pt-6 sm:px-6">
         <article class="lp-card p-8 sm:p-10
             [&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:scroll-mt-24 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-slate-900

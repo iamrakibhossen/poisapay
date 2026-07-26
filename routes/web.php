@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Auth\EmailVerificationController;
+use App\Http\Controllers\Seo\RobotsController;
+use App\Http\Controllers\Seo\SitemapController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\LoginController;
@@ -37,6 +39,15 @@ use Illuminate\Support\Facades\Route;
 // Public marketing / landing pages (home `/`, /help-center, /pages/{slug}, /prices,
 // /rates, /status, /products/{product}, /merchants) are owned by the isolated Landing
 // module — see routes/landing.php. Route names are unchanged, so every route() resolves.
+
+// SEO — dynamic robots.txt + XML sitemaps (public, isolated from business logic).
+Route::get('/robots.txt', RobotsController::class);
+Route::controller(SitemapController::class)->group(function () {
+    Route::get('/sitemap.xml', 'index');
+    Route::get('/sitemap-core.xml', 'core');
+    Route::get('/sitemap-pages.xml', 'pages');
+    Route::get('/sitemap-products.xml', 'products');
+});
 
 // Funnel platform — public product sales pages (standalone, conversion-first).
 Route::controller(PublicSalesController::class)->group(function () {
