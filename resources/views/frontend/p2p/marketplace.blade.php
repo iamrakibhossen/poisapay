@@ -94,11 +94,11 @@
                     {{-- Payment method (required) — pick one --}}
                     <div>
                         <label class="mb-1 block text-xs font-medium text-neutral-500">{{ __('Payment method') }}</label>
-                        <div class="flex flex-wrap gap-1.5">
+                        <div class="grid grid-cols-2 gap-1.5">
                             @foreach ($methods as $m)
                                 <label class="cursor-pointer">
                                     <input type="radio" name="payment_method_id" value="{{ $m->id }}" class="peer sr-only" required />
-                                    <span class="inline-flex items-center gap-1 rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs font-medium text-neutral-600 transition peer-checked:border-brand-500 peer-checked:bg-brand-50 peer-checked:text-brand-700 hover:border-neutral-300">{{ $m->name }}</span>
+                                    <span class="block truncate rounded-lg border border-neutral-200 border-l-2 border-l-neutral-300 px-2.5 py-2 text-xs font-medium text-neutral-600 transition hover:border-neutral-300 peer-checked:border-brand-500 peer-checked:border-l-brand-500 peer-checked:bg-brand-50 peer-checked:text-brand-700">{{ $m->name }}</span>
                                 </label>
                             @endforeach
                         </div>
@@ -304,11 +304,11 @@
                 {{-- Payment method (required before placing an order) — pick one --}}
                 <div>
                     <label class="pp-label">{{ __('Payment method') }}</label>
-                    <div class="flex flex-wrap gap-1.5">
+                    <div class="grid grid-cols-2 gap-2">
                         <template x-for="m in (ad?.methods || [])" :key="m.id">
                             <label class="cursor-pointer">
                                 <input type="radio" name="payment_method_id" :value="m.id" class="peer sr-only" required />
-                                <span class="inline-flex items-center gap-1 rounded-lg border border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-600 transition peer-checked:border-brand-500 peer-checked:bg-brand-50 peer-checked:text-brand-700 hover:border-neutral-300" x-text="m.name"></span>
+                                <span class="block truncate rounded-lg border border-neutral-200 border-l-2 border-l-neutral-300 px-3 py-2.5 text-sm font-medium text-neutral-600 transition hover:border-neutral-300 peer-checked:border-brand-500 peer-checked:border-l-brand-500 peer-checked:bg-brand-50 peer-checked:text-brand-700" x-text="m.name"></span>
                             </label>
                         </template>
                     </div>
