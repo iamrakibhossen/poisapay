@@ -85,6 +85,16 @@ it('notifies the seller when their shop is approved or suspended', function () {
     expect($titles)->toContain('Shop approved')->toContain('Shop suspended');
 });
 
+it('is idempotent — a replayed event never duplicates notifications', function () {
+    $order = shopOrder();
+
+    OrderPlaced::dispatch($order);
+    OrderPlaced::dispatch($order); // replay / retry
+
+    expect($this->buyer->notifications()->count())->toBe(1)
+        ->and($this->sellerUser->notifications()->count())->toBe(1);
+});
+
 it('renders the template with payload tokens', function () {
     OrderPlaced::dispatch(shopOrder());
 

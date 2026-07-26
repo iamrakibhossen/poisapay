@@ -53,8 +53,8 @@ class ShopNotificationSubscriber
         $order = $event->order->loadMissing(['asset', 'seller.user', 'buyer']);
         $data = ['number' => $order->number, 'product' => $this->productLabel($order), 'amount' => $order->total()->format()];
 
-        $this->to($order->buyer, 'shop.order.created', $data, route('purchases.show', $order));
-        $this->to($order->seller?->user, 'shop.purchase.new', $data, $this->sellerOrderUrl($order));
+        $this->to($order->buyer, 'shop.order.created', $data, route('purchases.show', $order), $order->id);
+        $this->to($order->seller?->user, 'shop.purchase.new', $data, $this->sellerOrderUrl($order), $order->id);
     }
 
     public function onOrderStatusChanged(OrderStatusChanged $event): void
@@ -71,7 +71,7 @@ class ShopNotificationSubscriber
         }
 
         $order = $event->order->loadMissing('buyer');
-        $this->to($order->buyer, $key, ['number' => $order->number], route('purchases.show', $order));
+        $this->to($order->buyer, $key, ['number' => $order->number], route('purchases.show', $order), $order->id);
     }
 
     public function onReviewSubmitted(ReviewSubmitted $event): void
@@ -81,7 +81,7 @@ class ShopNotificationSubscriber
             'buyer' => $review->buyer?->name ?? 'A buyer',
             'rating' => (string) $review->rating,
             'product' => $review->product?->name ?? 'your product',
-        ], route('shop.reviews'));
+        ], route('shop.reviews'), $review->id);
     }
 
     public function onProductStatusChanged(ProductStatusChanged $event): void
@@ -96,7 +96,7 @@ class ShopNotificationSubscriber
         }
 
         $product = $event->product->loadMissing('seller.user');
-        $this->to($product->seller?->user, $key, ['product' => $product->name], route('shop.products.edit', $product->id));
+        $this->to($product->seller?->user, $key, ['product' => $product->name], route('shop.products.edit', $product->id), $product->id.':'.$event->to->value);
     }
 
     public function onSellerStatusChanged(SellerStatusChanged $event): void
@@ -112,13 +112,13 @@ class ShopNotificationSubscriber
         }
 
         $seller = $event->seller->loadMissing('user');
-        $this->to($seller->user, $key, ['reason' => $event->reason ?? '—'], route('shop'));
+        $this->to($seller->user, $key, ['reason' => $event->reason ?? '—'], route('shop'), $seller->id.':'.$event->to->value);
     }
 
     public function onSellerApplied(SellerApplied $event): void
     {
         $seller = $event->seller->loadMissing('user');
-        $this->to($seller->user, 'shop.seller.applied', [], route('shop'));
+        $this->to($seller->user, 'shop.seller.applied', [], route('shop'), $seller->id);
     }
 
     public function onRefundRequested(RefundRequested $event): void
@@ -128,7 +128,7 @@ class ShopNotificationSubscriber
         $this->to($order?->seller?->user, 'shop.refund.requested', [
             'number' => $order?->number ?? '',
             'amount' => $this->amount($order, (int) $req->amount_requested),
-        ], $order ? $this->sellerOrderUrl($order) : null);
+        ], $order ? $this->sellerOrderUrl($order) : null, 'req:'.$req->id);
     }
 
     public function onRefundApproved(RefundApproved $event): void
@@ -148,14 +148,19 @@ class ShopNotificationSubscriber
         $this->to($req->buyer, $key, [
             'number' => $order?->number ?? '',
             'amount' => $this->amount($order, (int) ($req->amount_refunded ?: $req->amount_requested)),
-        ], $order ? route('purchases.show', $order) : null);
+        ], $order ? route('purchases.show', $order) : null, $req->id);
     }
 
-    /** Deliver one notification if the recipient exists. */
-    private function to(?User $user, string $key, array $data, ?string $url = null): void
+    /**
+     * Deliver one notification if the recipient exists. A subject id makes the
+     * delivery idempotent (dedupe = key:subject) so an event replay / job retry
+     * never sends the same notification twice.
+     */
+    private function to(?User $user, string $key, array $data, ?string $url = null, string|int|null $subject = null): void
     {
         if ($user !== null) {
-            $this->notifications->send($user, $key, $data, null, $url);
+            $dedupe = $subject !== null ? $key.':'.$subject : null;
+            $this->notifications->send($user, $key, $data, null, $url, $dedupe);
         }
     }
 

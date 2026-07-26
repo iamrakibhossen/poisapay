@@ -27,8 +27,15 @@ class NotificationService
     /**
      * @param  array<string, mixed>  $data  template placeholders + optional 'url'
      */
-    public function send(User $user, string $key, array $data = [], ?string $category = null, ?string $url = null): void
+    public function send(User $user, string $key, array $data = [], ?string $category = null, ?string $url = null, ?string $dedupe = null): void
     {
+        // Idempotent delivery: skip if an identical notification (same dedupe key)
+        // already exists for this user — guards against event replay / job retry.
+        // `notifications.data` is a text column, so cast to jsonb to read the key.
+        if ($dedupe !== null && $user->notifications()->whereRaw("(data::jsonb)->>'dedupe' = ?", [$dedupe])->exists()) {
+            return;
+        }
+
         $template = NotificationTemplate::resolve($key, $user->locale ?? 'en');
 
         $category ??= $template?->category ?? 'product';
@@ -55,6 +62,7 @@ class NotificationService
                 url: $link,
                 category: $category,
                 channels: $channels,
+                dedupe: $dedupe,
             ));
         }
 

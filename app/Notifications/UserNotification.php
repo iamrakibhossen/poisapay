@@ -20,6 +20,9 @@ class UserNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
+    /** Retry a failed delivery a few times with growing backoff. */
+    public int $tries = 3;
+
     /** @param  array<int, string>  $channels  Laravel channel names (database/mail/broadcast) */
     public function __construct(
         public string $title,
@@ -27,7 +30,14 @@ class UserNotification extends Notification implements ShouldQueue
         public ?string $url = null,
         public string $category = 'product',
         public array $channels = ['database'],
+        public ?string $dedupe = null,
     ) {}
+
+    /** @return array<int, int> */
+    public function backoff(): array
+    {
+        return [10, 30, 60];
+    }
 
     /** @return array<int, string> */
     public function via(object $notifiable): array
@@ -43,6 +53,7 @@ class UserNotification extends Notification implements ShouldQueue
             'body' => $this->body,
             'url' => $this->url,
             'category' => $this->category,
+            'dedupe' => $this->dedupe,
         ];
     }
 
