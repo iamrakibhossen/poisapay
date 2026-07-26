@@ -17,7 +17,7 @@
     <header class="sticky top-0 z-40 border-b border-neutral-200/70 bg-neutral-50/80 backdrop-blur">
         <nav class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3.5 sm:px-6">
             <a href="{{ route('home') }}" class="flex items-center gap-2.5">
-                <span class="grid h-9 w-9 place-items-center rounded-xl bg-brand-500 text-ink-900"><x-heroicon-s-bolt class="h-5 w-5" /></span>
+                <img src="{{ asset('images/logo.svg') }}" alt="PoisaPay" class="h-9 w-9 shrink-0" />
                 <span class="text-lg font-bold text-neutral-900">PoisaPay</span>
             </a>
             <div class="flex items-center gap-4 text-sm">

@@ -50,9 +50,7 @@
             {{-- Brand --}}
             <div class="sm:col-span-2 lg:col-span-1">
                 <a href="{{ $home }}" class="inline-flex items-center gap-2.5">
-                    <span class="grid h-9 w-9 place-items-center rounded-xl text-white" style="background:linear-gradient(120deg,var(--brand),var(--brand-600))">
-                        <x-heroicon-s-bolt class="h-5 w-5" />
-                    </span>
+                    <img src="{{ asset('images/logo.svg') }}" alt="PoisaPay" class="h-9 w-9 shrink-0" />
                     <span class="text-lg font-bold text-slate-900">PoisaPay</span>
                 </a>
                 <p class="mt-4 max-w-xs text-sm leading-relaxed text-slate-500">

@@ -19,9 +19,7 @@
 >
     <nav class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
         <a href="{{ route('home') }}" class="flex items-center gap-2.5">
-            <span class="grid h-9 w-9 place-items-center rounded-xl text-white" style="background:linear-gradient(120deg,var(--brand),var(--brand-600));box-shadow:0 8px 20px -8px rgba(37,99,235,.6)">
-                <x-heroicon-s-bolt class="h-5 w-5" />
-            </span>
+            <img src="{{ asset('images/logo.svg') }}" alt="PoisaPay" class="h-9 w-9 shrink-0" />
             <span class="text-lg font-bold tracking-tight text-slate-900">PoisaPay</span>
         </a>
 
