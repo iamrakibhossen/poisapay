@@ -34,6 +34,21 @@
             </div>
         </x-ui.card>
 
+        {{-- Conversion CTA --}}
+        <div class="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-brand-100 bg-gradient-to-r from-brand-50 to-white p-5 shadow-[var(--shadow-card)]">
+            <div class="flex items-center gap-3">
+                <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white text-brand-600 ring-1 ring-brand-100"><x-heroicon-o-bolt class="h-5 w-5" /></span>
+                <div>
+                    <p class="text-sm font-semibold text-neutral-900">{{ __('Grow your P2P trading') }}</p>
+                    <p class="text-xs text-neutral-500">{{ __('Post an ad to get discovered, or grab the best price on the marketplace.') }}</p>
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <a href="{{ route('p2p') }}"><x-ui.button variant="secondary" icon="squares-2x2">{{ __('Browse market') }}</x-ui.button></a>
+                <a href="{{ route('p2p.ads.create') }}"><x-ui.button icon="plus">{{ __('Post an ad') }}</x-ui.button></a>
+            </div>
+        </div>
+
         {{-- KPIs --}}
         <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
             @foreach ($kpis as $kpi)

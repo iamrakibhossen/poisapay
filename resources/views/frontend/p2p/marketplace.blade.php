@@ -281,7 +281,10 @@
             <form method="POST" action="{{ route('p2p.orders.store') }}" class="space-y-4"
                 x-data="{
                     amount: '',
+                    feeBps: {{ (int) getSetting('p2p_taker_fee_bps', (int) config('p2p.taker_fee_bps', 0)) }},
                     get fiatTotal() { return this.amount && this.ad ? Number(this.amount) * Number(this.ad.price) : 0; },
+                    get fee() { return this.amount > 0 ? Number(this.amount) * this.feeBps / 10000 : 0; },
+                    get net() { return this.amount > 0 ? Number(this.amount) - this.fee : 0; },
                     get valid() { return this.amount > 0; },
                     setPct(p) { if (this.ad) this.amount = (Number(this.ad.avail) * p).toFixed(2).replace(/\.?0+$/, ''); },
                 }">
@@ -339,10 +342,20 @@
                     <p x-show="ad && (!ad.methods || !ad.methods.length)" x-cloak class="mt-1 text-xs text-amber-600">{{ __('This advertiser hasn’t listed a payment method.') }}</p>
                 </div>
 
-                {{-- Live total --}}
-                <div class="flex items-center justify-between rounded-xl bg-neutral-50 px-3 py-2.5 text-sm">
-                    <span class="text-neutral-500" x-text="ad?.side === 'buy' ? '{{ __('You pay') }}' : '{{ __('You receive') }}'"></span>
-                    <span class="tabular text-base font-bold text-neutral-900"><span x-text="fiatTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})"></span> <span class="text-xs font-medium text-neutral-400" x-text="ad?.fiat"></span></span>
+                {{-- Live summary --}}
+                <div class="space-y-1.5 rounded-xl bg-neutral-50 px-3 py-2.5 text-sm">
+                    <div class="flex items-center justify-between text-neutral-500">
+                        <span x-text="ad?.side === 'buy' ? '{{ __('You pay') }}' : '{{ __('You receive') }}'"></span>
+                        <span class="tabular font-semibold text-neutral-900"><span x-text="fiatTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})"></span> <span class="text-xs font-medium text-neutral-400" x-text="ad?.fiat"></span></span>
+                    </div>
+                    <div class="flex items-center justify-between text-neutral-500" x-show="feeBps > 0" x-cloak>
+                        <span>{{ __('Platform fee') }} (<span x-text="(feeBps / 100)"></span>%)</span>
+                        <span class="tabular text-neutral-600">−<span x-text="fee.toLocaleString(undefined, {maximumFractionDigits: 6})"></span> <span class="text-xs text-neutral-400" x-text="ad?.sym"></span></span>
+                    </div>
+                    <div class="flex items-center justify-between border-t border-neutral-200 pt-1.5" x-show="feeBps > 0 && amount" x-cloak>
+                        <span class="font-medium text-neutral-700" x-text="ad?.side === 'buy' ? '{{ __('You receive') }}' : '{{ __('Buyer receives') }}'"></span>
+                        <span class="tabular text-base font-bold text-neutral-900"><span x-text="net.toLocaleString(undefined, {maximumFractionDigits: 6})"></span> <span class="text-xs font-medium text-neutral-400" x-text="ad?.sym"></span></span>
+                    </div>
                 </div>
 
                 <x-ui.button type="submit" class="w-full" x-bind:disabled="!valid" :variant="$buyActive ? 'success' : 'danger'">
