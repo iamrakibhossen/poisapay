@@ -306,7 +306,7 @@
                     <label class="pp-label">{{ __('Payment method') }}</label>
                     <div class="space-y-2">
                         <template x-for="m in (ad?.methods || [])" :key="m.id">
-                            <label class="flex cursor-pointer items-center gap-3 rounded-lg border-l-[3px] border-l-neutral-300 bg-neutral-50 px-3 py-2.5 transition hover:bg-neutral-100 has-[:checked]:border-l-brand-500 has-[:checked]:bg-brand-50">
+                            <label class="flex cursor-pointer items-center gap-3 rounded-lg bg-neutral-50 px-3 py-2.5 transition hover:bg-neutral-100 has-[:checked]:bg-brand-50">
                                 <input type="radio" name="payment_method_id" :value="m.id" required class="h-4 w-4 shrink-0 border-neutral-300 text-brand-600 focus:ring-brand-500" />
                                 <span class="truncate text-sm font-medium text-neutral-700" x-text="m.name"></span>
                             </label>
