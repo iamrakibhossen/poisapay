@@ -4,7 +4,7 @@
         <blockquote class="mt-4 text-xl font-medium leading-relaxed text-neutral-800 sm:text-2xl">“{{ $props['quote'] ?? __('This changed everything for my business.') }}”</blockquote>
         @if (! empty($props['name']))
             <figcaption class="mt-5 flex items-center justify-center gap-2.5">
-                @if (! empty($props['photo']))<img src="{{ $props['photo'] }}" alt="{{ $props['name'] }}" class="h-9 w-9 rounded-full object-cover" loading="lazy" />@endif
+                @if (! empty($props['photo']))<x-builder.image :src="$props['photo']" :alt="$props['name']" sizes="36px" class="h-9 w-9 rounded-full object-cover" />@endif
                 <span class="text-sm"><span class="font-semibold text-neutral-900">{{ $props['name'] }}</span>@if (! empty($props['role']))<span class="text-neutral-400"> · {{ $props['role'] }}</span>@endif</span>
             </figcaption>
         @endif

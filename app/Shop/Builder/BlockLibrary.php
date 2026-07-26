@@ -49,11 +49,13 @@ final class BlockLibrary
                     Field::select('preset', 'Layout', ['left' => 'Brand left', 'center' => 'Brand centered', 'minimal' => 'Minimal'], 'left'),
                     Field::text('brand', 'Brand name', ''), // blank → the store name
                     Field::toggle('showLogo', 'Show logo mark', true),
+                    Field::image('logo', 'Logo image', ''), // blank → store logo, then initials
                     Field::repeater('links', 'Menu links', [Field::text('label', 'Label', ''), Field::link('href', 'URL', '#')], [
                         ['label' => 'Features', 'href' => '#features'],
                         ['label' => 'Pricing', 'href' => '#pricing'],
                         ['label' => 'FAQ', 'href' => '#faq'],
                     ]),
+                    Field::repeater('socialLinks', 'Social icons', [self::socialField(), Field::link('url', 'URL', '#')], []),
                     Field::text('cta', 'Button label', 'Buy now'),
                     Field::text('secondaryLabel', 'Secondary link', ''),
                     Field::link('secondaryHref', 'Secondary URL', '#'),
@@ -65,9 +67,10 @@ final class BlockLibrary
             new ConfigBlock('footer', 'Footer', 'building-storefront', BlockCategory::Layout, schema: [
                 'content' => [
                     Field::text('brandName', 'Brand name', ''), // blank → the store name
+                    Field::image('logo', 'Logo image', ''), // blank → store logo, then initials
                     Field::textarea('tagline', 'Tagline', 'Everything you need, in one place.'),
                     Field::repeater('links', 'Links', [Field::text('label', 'Label', ''), Field::link('url', 'URL', '#')], []),
-                    Field::repeater('socialLinks', 'Social links', [Field::text('label', 'Label', ''), Field::link('url', 'URL', '#')], []),
+                    Field::repeater('socialLinks', 'Social icons', [self::socialField(), Field::link('url', 'URL', '#')], []),
                     Field::text('copyright', 'Copyright', ''), // blank → © year brand
                     Field::toggle('darkMode', 'Dark footer', false),
                 ],
@@ -97,11 +100,24 @@ final class BlockLibrary
             ]),
             new ConfigBlock('features', 'Feature grid', 'squares-2x2', BlockCategory::Content, schema: [
                 'content' => [
+                    Field::variant([
+                        'cards' => 'Cards', 'iconTop' => 'Icon top', 'iconLeft' => 'Icon left', 'alternating' => 'Alternating',
+                    ], 'cards'),
                     Field::text('eyebrow', 'Eyebrow', 'Features'),
                     Field::text('heading', 'Heading', 'Everything you get'),
-                    Field::repeater('items', 'Features', [Field::text('title', 'Title', '')], [
-                        ['title' => 'Fast setup'], ['title' => 'Beautiful UI'], ['title' => 'Great support'], ['title' => 'Lifetime updates'],
+                    Field::text('sub', 'Subheading', ''),
+                    Field::number('cols', 'Columns', 2, 2, 4),
+                    Field::repeater('items', 'Features', [
+                        Field::text('title', 'Title', ''),
+                        Field::textarea('desc', 'Description', ''),
+                        self::iconField(),
+                    ], [
+                        ['title' => 'Fast setup', 'desc' => 'Go live in minutes, not weeks.', 'icon' => 'bolt'],
+                        ['title' => 'Beautiful UI', 'desc' => 'Polished, responsive design out of the box.', 'icon' => 'sparkles'],
+                        ['title' => 'Great support', 'desc' => 'Real humans, fast replies.', 'icon' => 'chat-bubble-left-right'],
+                        ['title' => 'Lifetime updates', 'desc' => 'Buy once, get every future update.', 'icon' => 'arrow-path'],
                     ]),
+                    Field::toggle('dark', 'Dark background', false),
                 ],
             ]),
             new ConfigBlock('benefits', 'Benefits', 'check-badge', BlockCategory::Content, schema: [
@@ -136,11 +152,15 @@ final class BlockLibrary
             ]),
             new ConfigBlock('faq', 'FAQ', 'question-mark-circle', BlockCategory::Content, schema: [
                 'content' => [
+                    Field::variant(['accordion' => 'Accordion', 'cards' => 'Cards', 'split' => 'Two-column'], 'accordion'),
+                    Field::text('eyebrow', 'Eyebrow', 'FAQ'),
                     Field::text('heading', 'Heading', 'Questions & answers'),
+                    Field::text('sub', 'Subheading', ''),
                     Field::repeater('items', 'Questions', [Field::text('q', 'Question', ''), Field::textarea('a', 'Answer', '')], [
                         ['q' => 'What do I get?', 'a' => 'Instant access to everything listed, right after payment.'],
                         ['q' => 'Refund policy?', 'a' => '14-day money-back guarantee, no questions asked.'],
                     ]),
+                    Field::toggle('dark', 'Dark background', false),
                 ],
             ]),
 
@@ -260,8 +280,18 @@ final class BlockLibrary
             new ConfigBlock('gallery', 'Gallery', 'rectangle-stack', BlockCategory::Media, schema: [
                 'content' => [
                     Field::text('heading', 'Heading', ''),
+                    Field::select('layout', 'Layout', ['grid' => 'Grid', 'masonry' => 'Masonry', 'carousel' => 'Carousel'], 'grid'),
                     Field::number('cols', 'Columns', 3, 2, 5),
-                    Field::repeater('items', 'Images', [Field::image('src', 'Image URL', ''), Field::text('alt', 'Alt text', '')], [
+                    Field::toggle('lightbox', 'Click to zoom (lightbox)', true),
+                    Field::toggle('captions', 'Show captions', false),
+                    Field::toggle('filter', 'Category filter tabs', false),
+                    Field::number('perLoad', 'Show at first (0 = all)', 0, 0, 60),
+                    Field::repeater('items', 'Images', [
+                        Field::image('src', 'Image URL', ''),
+                        Field::text('alt', 'Alt text', ''),
+                        Field::text('caption', 'Caption', ''),
+                        Field::text('category', 'Category', ''),
+                    ], [
                         ['src' => ''], ['src' => ''], ['src' => ''],
                     ]),
                 ],
@@ -288,13 +318,20 @@ final class BlockLibrary
             ]),
             new ConfigBlock('testimonials', 'Testimonials', 'chat-bubble-left-ellipsis', BlockCategory::SocialProof, schema: [
                 'content' => [
+                    Field::variant([
+                        'cards' => 'Cards', 'carousel' => 'Carousel', 'minimal' => 'Minimal', 'single' => 'Single quote',
+                    ], 'cards'),
+                    Field::text('eyebrow', 'Eyebrow', 'Reviews'),
                     Field::text('heading', 'Heading', 'Loved by buyers'),
+                    Field::number('cols', 'Columns', 2, 1, 3),
                     Field::repeater('items', 'Testimonials', [
-                        Field::text('name', 'Name', ''), Field::text('role', 'Role', ''), Field::textarea('quote', 'Quote', ''),
+                        Field::text('name', 'Name', ''), Field::text('role', 'Role', ''),
+                        Field::textarea('quote', 'Quote', ''), Field::image('photo', 'Photo', ''),
                     ], [
                         ['name' => 'Aisha K.', 'role' => 'Indie founder', 'quote' => 'I launched my MVP in 4 days — paid for itself instantly.'],
                         ['name' => 'Tanvir H.', 'role' => 'Agency lead', 'quote' => 'Huge time saver on every client project.'],
                     ]),
+                    Field::toggle('dark', 'Dark background', false),
                 ],
             ]),
             new ConfigBlock('guarantee', 'Guarantee', 'shield-check', BlockCategory::SocialProof, schema: [
@@ -353,14 +390,22 @@ final class BlockLibrary
             // ─── Commerce (dynamic — read live product/offer data) ──────────────
             new ConfigBlock('hero', 'Hero', 'sparkles', BlockCategory::Commerce, schema: [
                 'content' => [
+                    Field::variant([
+                        'centered' => 'Centered', 'split' => 'Split', 'minimal' => 'Minimal',
+                        'gradient' => 'Gradient', 'showcase' => 'Showcase',
+                    ], 'centered'),
+                    Field::text('eyebrow', 'Eyebrow', ''),
                     Field::text('headline', 'Headline', 'A headline that sells the outcome'),
                     Field::text('tagline', 'Tagline', 'A short, punchy value line.'),
                     Field::textarea('desc', 'Description', 'Describe what the buyer gets and why it’s worth it.'),
                     Field::text('btn', 'Button label', 'Buy now'),
+                    Field::image('image', 'Hero image', ''), // used by Split / Showcase
                     Field::toggle('showRating', 'Show rating badge', true),
+                    Field::toggle('showTrust', 'Show trust row', true),
+                    Field::toggle('dark', 'Dark background', false),
                 ],
             ]),
-            new ConfigBlock('product', 'Product card', 'cube', BlockCategory::Commerce, schema: [
+            new ConfigBlock('product', 'Single product', 'cube', BlockCategory::Commerce, schema: [
                 'content' => [
                     Field::text('name', 'Name override', ''),
                     Field::textarea('summary', 'Summary override', ''),
@@ -388,11 +433,16 @@ final class BlockLibrary
             ]),
             new ConfigBlock('pricing', 'Pricing', 'currency-dollar', BlockCategory::Commerce, schema: [
                 'content' => [
+                    Field::variant(['cards' => 'Cards', 'minimal' => 'Minimal', 'compact' => 'Compact'], 'cards'),
                     Field::text('heading', 'Heading', 'Simple, honest pricing'),
                     Field::text('sub', 'Subheading', 'Pick the plan that fits. Upgrade anytime.'),
+                    Field::number('cols', 'Columns', 3, 2, 4),
+                    Field::toggle('billingToggle', 'Monthly / Yearly toggle', false),
+                    Field::text('yearlyNote', 'Yearly note', 'Save 20% billed yearly'),
                     Field::repeater('items', 'Plans', [
                         Field::text('name', 'Name', ''),
-                        Field::text('price', 'Price', ''),
+                        Field::text('price', 'Monthly price', ''),
+                        Field::text('priceYearly', 'Yearly price', ''),
                         Field::text('period', 'Period', ''),
                         Field::text('desc', 'Description', ''),
                         Field::textarea('features', 'Features (one per line)', ''),
@@ -400,13 +450,14 @@ final class BlockLibrary
                         Field::text('badge', 'Badge', ''),
                         Field::toggle('featured', 'Highlight this plan', false),
                     ], [
-                        ['name' => 'Starter', 'price' => '$19', 'period' => '/mo', 'desc' => 'For getting started', 'features' => "1 project\nEmail support\nBasic analytics", 'cta' => 'Start now'],
-                        ['name' => 'Pro', 'price' => '$49', 'period' => '/mo', 'desc' => 'For growing teams', 'features' => "Unlimited projects\nPriority support\nAdvanced analytics\nCustom domain", 'cta' => 'Go Pro', 'badge' => 'Most popular', 'featured' => true],
-                        ['name' => 'Scale', 'price' => '$99', 'period' => '/mo', 'desc' => 'For high volume', 'features' => "Everything in Pro\nDedicated manager\nSLA & onboarding", 'cta' => 'Contact us'],
+                        ['name' => 'Starter', 'price' => '$19', 'priceYearly' => '$15', 'period' => '/mo', 'desc' => 'For getting started', 'features' => "1 project\nEmail support\nBasic analytics", 'cta' => 'Start now'],
+                        ['name' => 'Pro', 'price' => '$49', 'priceYearly' => '$39', 'period' => '/mo', 'desc' => 'For growing teams', 'features' => "Unlimited projects\nPriority support\nAdvanced analytics\nCustom domain", 'cta' => 'Go Pro', 'badge' => 'Most popular', 'featured' => true],
+                        ['name' => 'Scale', 'price' => '$99', 'priceYearly' => '$79', 'period' => '/mo', 'desc' => 'For high volume', 'features' => "Everything in Pro\nDedicated manager\nSLA & onboarding", 'cta' => 'Contact us'],
                     ]),
+                    Field::toggle('dark', 'Dark background', false),
                 ],
             ]),
-            new ConfigBlock('product-grid', 'Product grid', 'squares-plus', BlockCategory::Commerce, schema: [
+            new ConfigBlock('product-grid', 'Products (grid)', 'squares-plus', BlockCategory::Commerce, schema: [
                 'content' => [
                     Field::text('heading', 'Heading', 'Shop the collection'),
                     Field::text('sub', 'Subheading', ''),
@@ -427,9 +478,15 @@ final class BlockLibrary
             ]),
             new ConfigBlock('cta-banner', 'CTA banner', 'rocket-launch', BlockCategory::Commerce, schema: [
                 'content' => [
+                    Field::variant([
+                        'gradient' => 'Gradient', 'simple' => 'Simple', 'dark' => 'Dark',
+                        'card' => 'Floating card', 'split' => 'Split',
+                    ], 'gradient'),
+                    Field::text('eyebrow', 'Eyebrow', ''),
                     Field::text('heading', 'Heading', 'Ready to get started?'),
                     Field::text('sub', 'Subheading', 'Join thousands already using it today.'),
                     Field::text('btn', 'Button label', 'Get started'),
+                    Field::text('note', 'Small note', ''),
                 ],
             ]),
             new ConfigBlock('sticky-cta', 'Sticky CTA bar', 'bolt', BlockCategory::Commerce, schema: [
@@ -459,5 +516,46 @@ final class BlockLibrary
                 ],
             ]),
         ];
+    }
+
+    /**
+     * A curated icon picker for repeater rows (features, benefits, …). Values map
+     * to Heroicons via the `<x-builder.icon>` component (which is fatal-safe).
+     *
+     * @return array<string, mixed>
+     */
+    private static function iconField(string $key = 'icon', string $default = 'sparkles'): array
+    {
+        return Field::select($key, 'Icon', [
+            'sparkles' => 'Sparkles', 'bolt' => 'Bolt', 'check-circle' => 'Check', 'shield-check' => 'Shield',
+            'rocket-launch' => 'Rocket', 'star' => 'Star', 'heart' => 'Heart', 'gift' => 'Gift',
+            'clock' => 'Clock', 'chart-bar' => 'Chart', 'globe-alt' => 'Globe', 'credit-card' => 'Card',
+            'truck' => 'Shipping', 'user-group' => 'Team', 'chat-bubble-left-right' => 'Chat',
+            'arrow-path' => 'Sync / Updates', 'light-bulb' => 'Idea', 'lock-closed' => 'Lock',
+            'trophy' => 'Trophy', 'academic-cap' => 'Learn', 'banknotes' => 'Money', 'cog-6-tooth' => 'Settings',
+        ], $default);
+    }
+
+    /**
+     * Platform picker for a social-links repeater row — the value maps to a brand
+     * glyph in the `<x-builder.social-icon>` component (header + footer).
+     *
+     * @return array<string, mixed>
+     */
+    private static function socialField(): array
+    {
+        return Field::select('platform', 'Platform', [
+            'website' => 'Website',
+            'facebook' => 'Facebook',
+            'instagram' => 'Instagram',
+            'x' => 'X (Twitter)',
+            'youtube' => 'YouTube',
+            'linkedin' => 'LinkedIn',
+            'tiktok' => 'TikTok',
+            'pinterest' => 'Pinterest',
+            'whatsapp' => 'WhatsApp',
+            'telegram' => 'Telegram',
+            'github' => 'GitHub',
+        ], 'website');
     }
 }

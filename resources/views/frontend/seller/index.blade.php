@@ -375,6 +375,7 @@
                         ['cube', __('Products'), __('Create and manage your products.'), route('shop.products'), $counts['products']],
                         ['document-text', __('Sales pages'), __('Customize each product landing page.'), route('shop.sales-pages'), $counts['pages'] ?: null],
                         ['squares-2x2', __('Funnels'), __('Order bumps, upsells and downsells.'), route('shop.funnels'), null],
+                        ['photo', __('Media Library'), __('Upload, optimise and reuse images.'), route('shop.media'), null],
                     ],
                     __('Customers') => [
                         ['inbox-stack', __('Orders'), __('Track sales and fulfilment.'), route('shop.orders'), $counts['sales'] ?: null],

@@ -1,4 +1,5 @@
 import Sortable from 'sortablejs';
+import { mediaMixin } from './media';
 
 /*
  * The visual page builder — a single Alpine component that owns the block-tree
@@ -7,9 +8,10 @@ import Sortable from 'sortablejs';
  * refresh the inline preview (which is the REAL server render, so editor === live).
  *
  * Registered as Alpine.data('pageBuilder', …) and mounted with x-data="pageBuilder(config)".
+ * The Media Library picker is merged in via mediaMixin (see ./media.js).
  */
 export default function pageBuilder(config) {
-    return {
+    return Object.assign({
         // ── server-provided ──────────────────────────────────────────────────
         schemas: config.schemas,
         palette: config.palette,
@@ -22,6 +24,7 @@ export default function pageBuilder(config) {
         doc: config.document,
         name: config.name,
         productId: config.productId,
+        seoOgImage: config.seoOgImage || '', // social share image (posts via the settings form)
         selectedId: null, // the "primary" selection — the one the inspector edits
         selectedIds: [], // full multi-selection (includes the primary)
         editingId: null, // node currently inline-edited on the canvas
@@ -53,9 +56,13 @@ export default function pageBuilder(config) {
             // Deep-link to a specific left panel (e.g. Funnels → "Edit offers" → ?tab=settings).
             const tab = new URLSearchParams(window.location.search).get('tab');
             if (['blocks', 'layers', 'theme', 'settings'].includes(tab)) this.leftTab = tab;
+            this.mediaInit();
             this.refreshPreview();
             window.addEventListener('keydown', (e) => this.onKey(e));
             this.$watch('selectedIds', () => this.highlight());
+            // Re-bind SortableJS whenever the Layers panel is (re)shown — its nested
+            // lists are rendered lazily by x-if, so they may not exist at first mount.
+            this.$watch('leftTab', (t) => t === 'layers' && this.$nextTick(() => this.mountSortables()));
             this.$nextTick(() => this.mountSortables());
         },
 
@@ -563,11 +570,29 @@ export default function pageBuilder(config) {
             const fromId = evt.from.getAttribute('data-parent') || 'root';
             const toId = evt.to.getAttribute('data-parent') || 'root';
             if (fromId === toId && evt.oldIndex === evt.newIndex) return;
+
+            // The moved node id (from the layer <li data-id>). Reordering by id is
+            // index-independent, so it can't desync from a stale DOM index.
+            const movedId = evt.item && evt.item.getAttribute('data-id');
+            if (!movedId) return;
+
+            // Revert SortableJS's DOM mutation so Alpine's keyed x-for remains the ONE
+            // source of truth — otherwise Sortable's move + Alpine's re-render fight and
+            // the item occasionally snaps back or duplicates ("sometimes not working").
+            evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex] || null);
+
             this.snapshot();
-            const from = fromId === 'root' ? this.doc.root.children : (this.find(fromId)?.children || []);
-            const to = toId === 'root' ? this.doc.root.children : (this.find(toId)?.children || []);
-            const [moved] = from.splice(evt.oldIndex, 1);
-            if (moved) to.splice(evt.newIndex, 0, moved);
+            let moved = null;
+            this.walk(this.doc.root.children, (n, arr, i) => {
+                if (n.id === movedId) { moved = arr.splice(i, 1)[0]; return true; }
+            });
+            if (!moved) { this.past.pop(); return; }
+
+            const toNode = toId === 'root' ? this.doc.root : this.find(toId);
+            if (!toNode) { this.past.pop(); return; }
+            const toArr = (toNode.children = toNode.children || []);
+            toArr.splice(Math.min(evt.newIndex, toArr.length), 0, moved);
+
             this.commit({ immediate: true });
             this.$nextTick(() => this.mountSortables());
         },
@@ -591,6 +616,12 @@ export default function pageBuilder(config) {
             if ((e.key === 'Backspace' || e.key === 'Delete') && this.selectionOrPrimary().length) { e.preventDefault(); this.removeSelected(); }
         },
 
+        // Pick the social share (OG) image from the Media Library. Bound to a hidden
+        // field in the settings form, so it posts server-side like the other SEO fields.
+        pickSeoImage() {
+            this.openMediaPicker({ multiple: false, onSelect: (urls) => { if (urls[0] != null) this.seoOgImage = urls[0]; } });
+        },
+
         // ── device switch ────────────────────────────────────────────────────
         setDevice(d) {
             this.device = d;
@@ -598,5 +629,5 @@ export default function pageBuilder(config) {
         get frameWidth() {
             return { desktop: '100%', tablet: '834px', mobile: '390px' }[this.device];
         },
-    };
+    }, mediaMixin(config.media || {}));
 }

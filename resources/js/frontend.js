@@ -5,6 +5,7 @@ import './chart';
 import Alpine from 'alpinejs';
 import persist from '@alpinejs/persist';
 import pageBuilder from './builder/index';
+import { mediaManager } from './builder/media';
 
 /*
  * Entry for the authenticated user frontend (traditional server-rendered Blade).
@@ -16,6 +17,9 @@ Alpine.plugin(persist);
 
 // Visual sales-page builder (seller area). Mounted with x-data="pageBuilder(cfg)".
 Alpine.data('pageBuilder', pageBuilder);
+
+// Standalone Media Library manager (/shop/media). Mounted with x-data="mediaManager(cfg)".
+Alpine.data('mediaManager', mediaManager);
 
 /*
  * P2P order chat (Phase 2). Live delivery over the private `p2p.order.{id}`

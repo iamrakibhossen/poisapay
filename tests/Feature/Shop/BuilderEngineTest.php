@@ -85,6 +85,51 @@ it('renders known blocks and safely skips unknown ones', function () {
         ->and((string) $out['html'])->not->toContain('not_a_real_block');
 });
 
+it('renders every layout variant of the upgraded sections without error', function () {
+    $sections = [
+        'hero' => ['centered', 'split', 'minimal', 'gradient', 'showcase'],
+        'features' => ['cards', 'iconTop', 'iconLeft', 'alternating'],
+        'cta-banner' => ['gradient', 'simple', 'dark', 'card', 'split'],
+        'faq' => ['accordion', 'cards', 'split'],
+        'pricing' => ['cards', 'minimal', 'compact'],
+        'testimonials' => ['cards', 'carousel', 'minimal', 'single'],
+    ];
+    $registry = app(BlockRegistry::class);
+    $ctx = new RenderContext('demo', ['name' => 'X', 'price' => '$49', 'comparePrice' => '$99'], ['name' => 'S', 'initials' => 'S']);
+
+    foreach ($sections as $type => $variants) {
+        foreach ($variants as $variant) {
+            $node = BuilderNode::fromArray(['id' => 'b_v'.substr(md5($type.$variant), 0, 8), 'type' => $type, 'props' => ['variant' => $variant, 'dark' => true, 'billingToggle' => true]]);
+            $html = $registry->get($type)->render($node, $ctx, '');
+            expect($html)->toBeString()->not->toBe('');
+            expect($html)->toContain($node->id); // rendered its own root
+        }
+    }
+});
+
+it('renders an uploaded logo + brand social icons in the header and footer', function () {
+    $doc = BuilderDocument::fromArray([
+        'schema' => 2, 'globals' => BuilderDocument::defaultGlobals(),
+        'root' => ['id' => 'root', 'type' => 'page', 'children' => [
+            ['id' => 'b_header0001', 'type' => 'header', 'props' => [
+                'logo' => '/storage/media/s/logo.png',
+                'socialLinks' => [['platform' => 'instagram', 'url' => 'https://instagram.com/store']],
+            ]],
+            ['id' => 'b_footer0001', 'type' => 'footer', 'props' => [
+                'logo' => '/storage/media/s/logo.png',
+                'socialLinks' => [['platform' => 'x', 'url' => 'https://x.com/store']],
+            ]],
+        ]],
+    ]);
+    $ctx = new RenderContext('demo', ['name' => 'X', 'price' => '$1'], ['name' => 'S', 'initials' => 'S']);
+    $html = (string) app(Renderer::class)->render($doc, $ctx)['html'];
+
+    expect($html)->toContain('/storage/media/s/logo.png')        // uploaded logo used, not initials
+        ->and($html)->toContain('https://instagram.com/store')   // header social link
+        ->and($html)->toContain('https://x.com/store')           // footer social link
+        ->and(substr_count($html, '<svg'))->toBeGreaterThanOrEqual(2); // brand glyphs rendered
+});
+
 it('compiles the extended visual control set into scoped css', function () {
     $node = BuilderNode::fromArray([
         'id' => 'b_ctrl00001', 'type' => 'section',

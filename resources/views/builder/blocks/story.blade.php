@@ -3,7 +3,7 @@
     <div class="mx-auto grid max-w-4xl items-center gap-8 px-5 md:grid-cols-2">
         <div class="{{ ($props['imageSide'] ?? 'left') === 'right' ? 'md:order-2' : '' }}">
             @if ($img)
-                <img src="{{ $img }}" alt="{{ $props['heading'] ?? '' }}" class="w-full rounded-3xl object-cover shadow-sm" loading="lazy" />
+                <x-builder.image :src="$img" :alt="$props['heading'] ?? ''" sizes="(min-width: 768px) 50vw, 100vw" class="w-full rounded-3xl object-cover shadow-sm" />
             @else
                 <div class="grid aspect-square place-items-center rounded-3xl bg-neutral-50 text-neutral-300"><x-heroicon-o-photo class="h-10 w-10" /></div>
             @endif

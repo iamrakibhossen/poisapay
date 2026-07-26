@@ -12,12 +12,12 @@ function uploadRequest(string $field, UploadedFile $file): Request
     return Request::create('/', 'POST', [], [], [$field => $file]);
 }
 
-it('stores an upload on the given disk under a date-bucketed path', function () {
-    Storage::fake('public');
+it('stores an upload on the media disk under a mime + date-bucketed path', function () {
+    Storage::fake('public'); // the media disk resolves to `public` by default
 
-    $path = Asset::store(uploadRequest('logo', UploadedFile::fake()->image('logo.png')), 'logo', null, 'shop/logos', 'public');
+    $path = Asset::store(uploadRequest('logo', UploadedFile::fake()->image('logo.png')), 'logo');
 
-    expect($path)->toStartWith('uploads/shop/logos/')
+    expect($path)->toStartWith('uploads/images/')
         ->and($path)->toEndWith('.png')
         ->and(Storage::disk('public')->exists($path))->toBeTrue();
 });
@@ -26,14 +26,14 @@ it('keeps the old path when the request carries no file', function () {
     expect(Asset::store(Request::create('/', 'POST'), 'logo', 'existing/path.png'))->toBe('existing/path.png');
 });
 
-it('removes a file only from the given disk', function () {
+it('removes a file from the media disk', function () {
     Storage::fake('public');
-    $path = Asset::store(uploadRequest('a', UploadedFile::fake()->image('a.jpg')), 'a', null, 'x', 'public');
+    $path = Asset::store(uploadRequest('a', UploadedFile::fake()->image('a.jpg')), 'a');
 
-    expect(Asset::removeFile($path, 'public'))->toBeTrue()
+    expect(Asset::removeFile($path))->toBeTrue()
         ->and(Storage::disk('public')->exists($path))->toBeFalse()
-        ->and(Asset::removeFile(null, 'public'))->toBeFalse()
-        ->and(Asset::removeFile('missing/file.png', 'public'))->toBeFalse();
+        ->and(Asset::removeFile(null))->toBeFalse()
+        ->and(Asset::removeFile('missing/file.png'))->toBeFalse();
 });
 
 it('resolves URLs, passing through absolute and root-relative paths', function () {

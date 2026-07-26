@@ -82,6 +82,19 @@ final class Field
         return self::make('icon', $key, $label, $default);
     }
 
+    /**
+     * The section's layout/style variant — a select rendered as a prominent
+     * "Layout" picker at the top of the panel. The block partial switches its whole
+     * markup on `props.variant`, so a variant is a real layout, not just a colour.
+     *
+     * @param  array<string, string>  $options  value => label
+     * @return array<string, mixed>
+     */
+    public static function variant(array $options, string $default = ''): array
+    {
+        return self::make('variant', 'variant', 'Layout / style', $default !== '' ? $default : array_key_first($options), ['options' => $options]);
+    }
+
     /** A design-token colour reference or raw hex. @return array<string, mixed> */
     public static function color(string $key, string $label, string $default = ''): array
     {

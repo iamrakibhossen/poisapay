@@ -4,7 +4,7 @@
 @endphp
 <div id="{{ $node->id }}" class="mx-auto {{ $w }} px-5 py-6">
     @if ($src)
-        <img src="{{ $src }}" alt="{{ $props['alt'] ?? '' }}" loading="lazy" class="w-full rounded-2xl object-cover shadow-sm ring-1 ring-black/[0.03]">
+        <x-builder.image :src="$src" :alt="$props['alt'] ?? ''" sizes="(min-width: 896px) 896px, 100vw" class="w-full rounded-2xl object-cover shadow-sm ring-1 ring-black/[0.03]" />
     @elseif ($ctx->editing)
         <div class="grid aspect-video w-full place-items-center rounded-2xl border-2 border-dashed border-neutral-200 text-neutral-400">
             <span class="inline-flex items-center gap-2 text-sm"><x-heroicon-o-photo class="h-5 w-5" /> {{ __('Add an image') }}</span>

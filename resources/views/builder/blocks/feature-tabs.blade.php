@@ -17,7 +17,7 @@
                             @if (! empty($t['body']))<p class="mt-2 text-sm leading-relaxed text-neutral-500">{{ $t['body'] }}</p>@endif
                         </div>
                         @if (! empty($t['image']))
-                            <img src="{{ $t['image'] }}" alt="{{ $t['title'] ?? '' }}" class="w-full rounded-2xl object-cover" loading="lazy" />
+                            <x-builder.image :src="$t['image']" :alt="$t['title'] ?? ''" sizes="(min-width: 768px) 50vw, 100vw" class="w-full rounded-2xl object-cover" />
                         @else
                             <div class="grid h-40 place-items-center rounded-2xl bg-neutral-50 text-neutral-300"><x-heroicon-o-photo class="h-8 w-8" /></div>
                         @endif

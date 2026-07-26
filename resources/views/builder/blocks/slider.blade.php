@@ -8,7 +8,7 @@
                     @foreach ($items as $it)
                         @php $src = is_array($it) ? ($it['src'] ?? '') : $it; $cap = is_array($it) ? ($it['caption'] ?? '') : ''; @endphp
                         <div class="w-full shrink-0">
-                            @if ($src)<img src="{{ $src }}" alt="{{ $cap }}" class="aspect-video w-full object-cover" loading="lazy" />@endif
+                            @if ($src)<x-builder.image :src="$src" :alt="$cap" sizes="(min-width: 768px) 768px, 100vw" class="aspect-video w-full object-cover" />@endif
                             @if ($cap)<p class="px-4 py-3 text-center text-sm text-neutral-500">{{ $cap }}</p>@endif
                         </div>
                     @endforeach

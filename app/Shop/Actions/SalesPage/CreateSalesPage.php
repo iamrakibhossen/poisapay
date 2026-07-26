@@ -46,10 +46,12 @@ class CreateSalesPage
     }
 
     /**
-     * A demo sales page built from the standard high-converting block sequence.
-     * Commerce blocks pull the product's name/price/checkout from render context;
-     * content blocks fall back to their schema defaults, so the page reads well
-     * immediately and the seller just tweaks copy.
+     * A premium, high-converting starter — a real header/footer + variant-based
+     * sections, personalised with the product's name/summary in the hero. Commerce
+     * blocks pull price/checkout from render context; content blocks fall back to
+     * schema defaults, so the page reads well immediately and the seller just tweaks
+     * copy. (Aligned with the {@see \App\Shop\Builder\Templates\TemplateLibrary}
+     * quality bar.)
      *
      * @return array<string, mixed>
      */
@@ -62,17 +64,35 @@ class CreateSalesPage
         );
 
         $root = new BuilderNode(id: 'root', type: 'page', children: [
+            $node('header', ['cta' => 'Buy now']),
             $node('hero', array_filter([
+                'variant' => 'centered',
+                'eyebrow' => 'New',
                 'headline' => $product->name,
+                'tagline' => 'Everything you need, in one place',
                 'desc' => $product->summary ?: null,
+                'btn' => 'Buy now',
             ])),
-            $node('features'),
-            $node('benefits'),
-            $node('testimonials'),
+            $node('logos', ['heading' => 'Trusted by teams everywhere']),
+            $node('features', ['variant' => 'iconTop', 'cols' => 3, 'eyebrow' => 'Features', 'heading' => 'Everything you get']),
+            $node('benefits', ['eyebrow' => 'Benefits', 'heading' => 'Why you’ll love it']),
+            $node('testimonials', ['variant' => 'cards', 'cols' => 3, 'heading' => 'Loved by buyers']),
             $node('guarantee'),
-            $node('faq'),
+            $node('faq', ['variant' => 'accordion']),
             $node('product'),
-            $node('cta'),
+            $node('cta-banner', ['variant' => 'gradient', 'heading' => 'Ready to get started?', 'sub' => 'Instant, secure checkout.', 'btn' => 'Buy now']),
+            $node('footer', [
+                'tagline' => 'Made with care.',
+                'links' => [
+                    ['label' => 'Features', 'url' => '#features'],
+                    ['label' => 'FAQ', 'url' => '#faq'],
+                ],
+                'socialLinks' => [
+                    ['platform' => 'x', 'url' => 'https://x.com'],
+                    ['platform' => 'instagram', 'url' => 'https://instagram.com'],
+                    ['platform' => 'linkedin', 'url' => 'https://linkedin.com'],
+                ],
+            ]),
         ]);
 
         return (new BuilderDocument($root))->toArray();

@@ -7,7 +7,9 @@
     $brand = ($props['brandName'] ?? '') ?: ($props['brand'] ?? '') ?: ($ctx->seller['name'] ?? '');
     $tagline = (string) ($props['tagline'] ?? '');
     $dark = (bool) ($props['darkMode'] ?? false) || (bool) ($props['dark'] ?? false);
-    $logo = $ctx->seller['logo'] ?? null;
+    // Uploaded logo wins → store logo → initials badge.
+    $logoUploaded = trim((string) ($props['logo'] ?? '')) !== '';
+    $logo = $logoUploaded ? $props['logo'] : ($ctx->seller['logo'] ?? null);
     $year = date('Y');
     $href = fn ($u) => $ctx->editing ? '#' : (($u ?? '#') ?: '#');
 
@@ -35,11 +37,19 @@
     if (empty($socialRaw) && ! empty($props['social'])) {
         $socialRaw = $props['social'];
     }
+    // {platform, url} rows → brand icons. Legacy rows carried only a {label}: use it
+    // as the platform key (so "Instagram" still maps to the glyph) and keep the label
+    // for the aria/tooltip. Placeholder rows (blank / "#") are dropped.
     $social = collect($socialRaw)
         ->map(fn ($s) => is_array($s)
-            ? ['label' => trim((string) ($s['label'] ?? '')), 'url' => $s['url'] ?? $s['href'] ?? '#']
-            : ['label' => trim((string) $s), 'url' => '#'])
-        ->filter(fn ($s) => $s['label'] !== '');
+            ? [
+                'platform' => trim((string) ($s['platform'] ?? ($s['label'] ?? 'website'))) ?: 'website',
+                'label' => trim((string) ($s['label'] ?? ($s['platform'] ?? ''))),
+                'url' => (string) ($s['url'] ?? $s['href'] ?? ''),
+            ]
+            : ['platform' => trim((string) $s) ?: 'website', 'label' => trim((string) $s), 'url' => ''])
+        ->filter(fn ($s) => $s['url'] !== '' && $s['url'] !== '#')
+        ->take(8);
 
     $bg = $dark ? 'bg-neutral-900 text-neutral-300' : 'border-t border-neutral-100 bg-neutral-50 text-neutral-600';
     $head = $dark ? 'text-white' : 'text-neutral-900';
@@ -48,14 +58,18 @@
 @endphp
 <footer id="{{ $node->id }}" class="pp-block {{ $bg }} py-10">
     <div class="mx-auto max-w-3xl px-5 text-center">
-        <div class="flex items-center justify-center gap-2.5">
+        {{-- Clicking the logo/brand goes home (like the header). --}}
+        <a href="{{ $href('/') }}" class="inline-flex items-center justify-center gap-2.5">
             @if ($logo)
-                <img src="{{ $logo }}" alt="{{ $brand }}" class="h-8 w-8 rounded-lg object-cover" />
+                <x-builder.image :src="$logo" :alt="$brand" sizes="180px" class="{{ $logoUploaded ? 'h-8 w-auto max-w-[180px] object-contain' : 'h-8 w-8 rounded-lg object-cover' }}" />
             @else
                 <span class="grid h-8 w-8 place-items-center rounded-lg text-sm font-bold text-white" style="background: var(--pp-accent)">{{ mb_strtoupper(mb_substr($brand ?: '?', 0, 1)) }}</span>
             @endif
-            <span class="text-base font-bold {{ $head }}">{{ $brand }}</span>
-        </div>
+            {{-- An uploaded logo IS the brand mark → hide the text name to avoid duplication. --}}
+            @if (! $logoUploaded)
+                <span class="text-base font-bold {{ $head }}">{{ $brand }}</span>
+            @endif
+        </a>
         @if ($tagline !== '')<p class="mx-auto mt-2 max-w-md text-sm {{ $muted }}">{{ $tagline }}</p>@endif
 
         @if ($links->isNotEmpty())
@@ -65,8 +79,12 @@
         @endif
 
         @if ($social->isNotEmpty())
-            <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
-                @foreach ($social as $s)<a href="{{ $href($s['url']) }}" class="rounded-lg border {{ $line }} px-2.5 py-1 text-xs font-medium transition hover:opacity-80">{{ $s['label'] }}</a>@endforeach
+            <div class="mt-5 flex flex-wrap items-center justify-center gap-2">
+                @foreach ($social as $s)
+                    <a href="{{ $href($s['url']) }}" @if (! $ctx->editing) target="_blank" rel="noopener" @endif class="grid h-9 w-9 place-items-center rounded-full border {{ $line }} {{ $muted }} transition hover:opacity-80" aria-label="{{ $s['label'] ?: $s['platform'] }}" title="{{ $s['label'] ?: $s['platform'] }}">
+                        <x-builder.social-icon :platform="$s['platform']" class="h-[18px] w-[18px]" />
+                    </a>
+                @endforeach
             </div>
         @endif
 

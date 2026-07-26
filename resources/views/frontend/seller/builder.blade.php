@@ -168,6 +168,16 @@
                                 @endforeach
                             </select>
                         </div>
+
+                        {{-- Direct checkout link — for buttons ("Open link" action) or external sites/ads. --}}
+                        <div class="border-t border-neutral-100 pt-4" x-data="{ copied: false, url() { return '{{ rtrim(config('app.url'), '/') }}/checkout/' + productId } }">
+                            <label class="mb-1 block text-xs font-medium text-neutral-500">{{ __('Checkout link') }}</label>
+                            <div class="flex gap-1.5">
+                                <input type="text" readonly :value="url()" @focus="$event.target.select()" class="w-full truncate rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-600" />
+                                <button type="button" @click="navigator.clipboard && navigator.clipboard.writeText(url()); copied = true; setTimeout(() => copied = false, 1500)" class="shrink-0 rounded-lg border border-neutral-200 px-2.5 text-xs font-semibold text-neutral-600 transition hover:bg-neutral-50" x-text="copied ? '{{ __('Copied') }}' : '{{ __('Copy') }}'"></button>
+                            </div>
+                            <p class="mt-1 text-[11px] text-neutral-400">{{ __('Sends buyers straight to this product’s checkout. Use it on any button (Open link) or an external site/ad. Publish the page first.') }}</p>
+                        </div>
                     </div>
 
                     {{-- ---- Settings: SEO + revenue offers (server-authoritative; plain POST) ---- --}}

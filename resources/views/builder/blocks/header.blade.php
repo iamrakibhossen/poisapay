@@ -8,8 +8,18 @@
     $transparent = (bool) ($props['transparent'] ?? false);
     $preset = in_array($props['preset'] ?? 'left', ['left', 'center', 'minimal'], true) ? $props['preset'] : 'left';
     $links = $preset === 'minimal' ? [] : ($props['links'] ?? []);
-    $logo = $ctx->seller['logo'] ?? null;
+    // Uploaded logo wins → store logo → initials badge.
+    $logoUploaded = trim((string) ($props['logo'] ?? '')) !== '';
+    $logo = $logoUploaded ? $props['logo'] : ($ctx->seller['logo'] ?? null);
     $initials = $ctx->seller['initials'] ?? mb_substr($brand, 0, 1);
+    // Social icons: {platform, url}. Placeholder rows (blank / "#") are dropped.
+    $social = collect($props['socialLinks'] ?? [])
+        ->map(fn ($s) => [
+            'platform' => trim((string) ($s['platform'] ?? ($s['label'] ?? 'website'))) ?: 'website',
+            'url' => (string) ($s['url'] ?? $s['href'] ?? ''),
+        ])
+        ->filter(fn ($s) => $s['url'] !== '' && $s['url'] !== '#')
+        ->take(8);
     $cta = $props['cta'] ?? __('Buy now');
     $secondary = trim((string) ($props['secondaryLabel'] ?? ''));
     $secondaryHref = $props['secondaryHref'] ?? '#';
@@ -26,12 +36,15 @@
         <a href="{{ $ctx->editing ? '#' : '/' }}" class="flex items-center gap-2.5 {{ $preset === 'center' ? 'sm:absolute sm:left-1/2 sm:-translate-x-1/2' : '' }}">
             @if ($props['showLogo'] ?? true)
                 @if ($logo)
-                    <img src="{{ $logo }}" alt="{{ $brand }}" class="h-8 w-8 rounded-lg object-cover" />
+                    <x-builder.image :src="$logo" :alt="$brand" sizes="180px" class="{{ $logoUploaded ? 'h-8 w-auto max-w-[180px] object-contain' : 'h-8 w-8 rounded-lg object-cover' }}" />
                 @else
                     <span class="grid h-8 w-8 place-items-center rounded-lg text-sm font-bold text-white" style="background: var(--pp-accent)">{{ mb_strtoupper($initials) }}</span>
                 @endif
             @endif
-            <span class="text-base font-bold tracking-tight {{ $brandColor }}">{{ $brand }}</span>
+            {{-- An uploaded logo IS the brand mark → hide the text name to avoid duplication. --}}
+            @if (! $logoUploaded)
+                <span class="text-base font-bold tracking-tight {{ $brandColor }}">{{ $brand }}</span>
+            @endif
         </a>
 
         {{-- Desktop menu --}}
@@ -46,6 +59,15 @@
 
         {{-- Desktop actions --}}
         <div class="hidden shrink-0 items-center gap-3 md:flex">
+            @if ($social->isNotEmpty())
+                <div class="flex items-center gap-0.5">
+                    @foreach ($social as $s)
+                        <a href="{{ $ctx->editing ? '#' : $s['url'] }}" @if (! $ctx->editing) target="_blank" rel="noopener" @endif class="grid h-8 w-8 place-items-center rounded-lg {{ $linkColor }} transition hover:opacity-80" aria-label="{{ $s['platform'] }}">
+                            <x-builder.social-icon :platform="$s['platform']" class="h-[18px] w-[18px]" />
+                        </a>
+                    @endforeach
+                </div>
+            @endif
             @if ($secondary !== '')<a href="{{ $ctx->editing ? '#' : $secondaryHref }}" class="text-sm font-semibold {{ $linkColor }}">{{ $secondary }}</a>@endif
             @include('builder.blocks._buy', ['label' => $cta, 'class' => 'px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:opacity-90'])
         </div>
@@ -71,5 +93,14 @@
             @if ($secondary !== '')<a href="{{ $ctx->editing ? '#' : $secondaryHref }}" class="text-center text-sm font-semibold text-neutral-600">{{ $secondary }}</a>@endif
             @include('builder.blocks._buy', ['label' => $cta, 'class' => 'w-full px-4 py-2.5 text-sm font-semibold text-white'])
         </div>
+        @if ($social->isNotEmpty())
+            <div class="mt-4 flex items-center gap-1.5 border-t border-neutral-100 pt-4">
+                @foreach ($social as $s)
+                    <a href="{{ $ctx->editing ? '#' : $s['url'] }}" @if (! $ctx->editing) target="_blank" rel="noopener" @endif class="grid h-9 w-9 place-items-center rounded-lg border border-neutral-200 text-neutral-600 transition hover:bg-neutral-50" aria-label="{{ $s['platform'] }}">
+                        <x-builder.social-icon :platform="$s['platform']" class="h-[18px] w-[18px]" />
+                    </a>
+                @endforeach
+            </div>
+        @endif
     </div>
 </header>

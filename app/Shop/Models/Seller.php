@@ -68,6 +68,12 @@ class Seller extends Model
         return $this->belongsTo(User::class);
     }
 
+    /** @return HasMany<ShopMedia, $this> */
+    public function media(): HasMany
+    {
+        return $this->hasMany(ShopMedia::class);
+    }
+
     /** @return BelongsTo<Asset, $this> */
     public function settlementAsset(): BelongsTo
     {

@@ -9,7 +9,7 @@
                     @php $m = is_array($m) ? $m : ['name' => $m]; @endphp
                     <div class="text-center">
                         @if (! empty($m['photo']))
-                            <img src="{{ $m['photo'] }}" alt="{{ $m['name'] ?? '' }}" class="mx-auto h-24 w-24 rounded-full object-cover" loading="lazy" />
+                            <x-builder.image :src="$m['photo']" :alt="$m['name'] ?? ''" sizes="96px" class="mx-auto h-24 w-24 rounded-full object-cover" />
                         @else
                             <div class="mx-auto grid h-24 w-24 place-items-center rounded-full text-xl font-bold text-white" style="background: var(--pp-accent)">{{ mb_strtoupper(mb_substr($m['name'] ?? '?', 0, 1)) }}</div>
                         @endif
