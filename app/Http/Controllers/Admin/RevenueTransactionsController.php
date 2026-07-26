@@ -82,6 +82,8 @@ class RevenueTransactionsController extends Controller
             LedgerAccountType::FeeIncome->value => 'Service Fee',
             LedgerAccountType::FeeCard->value => 'Card Fee',
             LedgerAccountType::FxSpreadIncome->value => 'FX Margin',
+            LedgerAccountType::ShopCommissionIncome->value => 'Shop Commission',
+            LedgerAccountType::P2pFeeIncome->value => 'P2P Fee',
         ];
     }
 }

@@ -6,6 +6,7 @@ use App\Domain\Ledger\LedgerService;
 use App\Domain\P2p\ConfirmReleaseAction;
 use App\Domain\P2p\CreateOrderAction;
 use App\Domain\P2p\MarkBuyerPaidAction;
+use App\Domain\Revenue\RevenueService;
 use App\Enums\KycStatus;
 use App\Enums\KycTier;
 use App\Enums\LedgerAccountType;
@@ -77,6 +78,23 @@ it('completes the trade: escrow → buyer (net) + fee income, seller down gross'
         ->and($this->ledger->availableBalance($this->seller, $this->usdt->id)->baseString())->toBe('900000000')
         ->and(p2pFeeIncomeBase($this->usdt->id))->toBe('1000000')
         ->and(p2pEscrowBase($this->seller, $this->usdt->id))->toBe('0');
+});
+
+it('surfaces the P2P taker fee in the platform revenue wallet', function () {
+    $order = app(CreateOrderAction::class)->execute($this->buyer, $this->ad, Money::ofDecimal('100', 6, 'USDT'));
+    app(MarkBuyerPaidAction::class)->execute($order->refresh(), $this->buyer);
+    app(ConfirmReleaseAction::class)->execute($order->refresh(), $this->seller);
+
+    $revenue = app(RevenueService::class);
+
+    // The 1% taker fee (1 USDT) is spendable revenue, counted as collected, and
+    // listed as a "P2P Fee" transaction — the whole point of this regression.
+    expect($revenue->balance($this->usdt)->baseString())->toBe('1000000')
+        ->and($revenue->collected($this->usdt)->baseString())->toBe('1000000');
+
+    $row = $revenue->transactionsQuery()->where('l.asset_id', $this->usdt->id)->first();
+    expect($row)->not->toBeNull()
+        ->and($revenue->feeTypeLabel($row->account_type, $row->entry_type))->toBe('P2P Fee');
 });
 
 it('never double-releases: a second confirm throws and balances are unchanged', function () {

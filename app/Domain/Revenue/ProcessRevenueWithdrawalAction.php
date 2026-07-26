@@ -29,11 +29,13 @@ use RuntimeException;
  */
 class ProcessRevenueWithdrawalAction
 {
-    /** Income accounts drawn from, in order. */
+    /** Income accounts drawn from, in order. Must cover every RevenueService::REVENUE_TYPES account or wallet balance would be un-withdrawable. */
     private const FEE_ACCOUNTS = [
         LedgerAccountType::FxSpreadIncome,
         LedgerAccountType::FeeCard,
         LedgerAccountType::FeeIncome,
+        LedgerAccountType::ShopCommissionIncome,
+        LedgerAccountType::P2pFeeIncome,
     ];
 
     public function __construct(

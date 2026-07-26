@@ -27,6 +27,7 @@ class RevenueService
         LedgerAccountType::FeeCard,
         LedgerAccountType::FxSpreadIncome,
         LedgerAccountType::ShopCommissionIncome,
+        LedgerAccountType::P2pFeeIncome,
     ];
 
     /**
@@ -138,6 +139,7 @@ class RevenueService
             LedgerAccountType::FeeCard->value => 'Card Fee',
             LedgerAccountType::FxSpreadIncome->value => 'FX Margin',
             LedgerAccountType::ShopCommissionIncome->value => 'Shop Commission',
+            LedgerAccountType::P2pFeeIncome->value => 'P2P Fee',
             default => match (true) {
                 str_contains($entryType, 'withdrawal') => 'Withdrawal Fee',
                 str_contains($entryType, 'deposit') => 'Deposit Fee',
