@@ -19,6 +19,10 @@
             <x-admin.input.boolean name="p2p_require_full_kyc" :value="old('p2p_require_full_kyc', getSetting('p2p_require_full_kyc', false))" />
         </x-admin.input.group>
 
+        <x-admin.input.group id="p2p_auto_match" :label="__('Enable Quick Trade (auto-matching)')" class="w-full" :hints="__('On = buyers can enter an amount + payment method and be auto-matched to the best-priced offer (price-time priority), opening escrow instantly. Off = manual ad selection only.')">
+            <x-admin.input.boolean name="p2p_auto_match" :value="old('p2p_auto_match', getSetting('p2p_auto_match', false))" />
+        </x-admin.input.group>
+
         <div class="border-t border-gray-200 pt-5">
             <p class="text-sm font-semibold text-neutral-900">{{ __('Risk & limits') }}</p>
             <p class="text-xs text-neutral-500">{{ __('Hard limits block a trade before escrow; high-value trades raise an AML alert.') }}</p>
