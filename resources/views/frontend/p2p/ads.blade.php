@@ -65,14 +65,12 @@
             @endif
         </x-ui.card>
 
-        {{-- Status tabs --}}
-        <div class="flex gap-1 overflow-x-auto border-b border-neutral-200">
+        {{-- Status pill tabs (transactions-page pattern) --}}
+        <div class="-mx-1 flex flex-nowrap gap-1 overflow-x-auto px-1 lg:flex-wrap">
             @foreach ($tabs as $key => $label)
-                @php $active = $tab === $key; @endphp
                 <a href="{{ route('p2p.ads', $key === 'all' ? [] : ['tab' => $key]) }}"
-                   class="-mb-px flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors {{ $active ? 'border-brand-500 text-neutral-900' : 'border-transparent text-neutral-500 hover:text-neutral-900' }}">
-                    {{ $label }}
-                    <span class="rounded-full px-1.5 py-0.5 text-xs tabular {{ $active ? 'bg-brand-50 text-brand-700' : 'bg-neutral-100 text-neutral-500' }}">{{ number_format($counts[$key] ?? 0) }}</span>
+                   class="shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition {{ $tab === $key ? 'bg-neutral-900 text-white' : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800' }}">
+                    {{ $label }} <span class="tabular opacity-70">{{ number_format($counts[$key] ?? 0) }}</span>
                 </a>
             @endforeach
         </div>
@@ -174,7 +172,30 @@
                 @endforeach
             </div>
 
-            <div>{{ $ads->links() }}</div>
+            {{-- Pagination — prev / next (matches the transactions page) --}}
+            @if ($ads->lastPage() > 1)
+                <div class="flex items-center justify-between text-sm">
+                    @if (! $ads->onFirstPage())
+                        <a href="{{ $ads->previousPageUrl() }}" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 font-medium text-neutral-700 transition hover:bg-gray-50">
+                            <x-heroicon-o-chevron-left class="h-4 w-4" /> {{ __('Previous') }}
+                        </a>
+                    @else
+                        <span class="inline-flex items-center gap-1.5 rounded-lg border border-gray-100 px-3 py-1.5 font-medium text-neutral-300">
+                            <x-heroicon-o-chevron-left class="h-4 w-4" /> {{ __('Previous') }}
+                        </span>
+                    @endif
+                    <span class="text-neutral-500">{{ __('Page :page of :last', ['page' => $ads->currentPage(), 'last' => $ads->lastPage()]) }}</span>
+                    @if ($ads->hasMorePages())
+                        <a href="{{ $ads->nextPageUrl() }}" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 font-medium text-neutral-700 transition hover:bg-gray-50">
+                            {{ __('Next') }} <x-heroicon-o-chevron-right class="h-4 w-4" />
+                        </a>
+                    @else
+                        <span class="inline-flex items-center gap-1.5 rounded-lg border border-gray-100 px-3 py-1.5 font-medium text-neutral-300">
+                            {{ __('Next') }} <x-heroicon-o-chevron-right class="h-4 w-4" />
+                        </span>
+                    @endif
+                </div>
+            @endif
         @endif
 
         {{-- Bulk action bar (shown when ads are selected) --}}
