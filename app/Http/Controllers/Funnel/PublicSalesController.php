@@ -178,14 +178,28 @@ class PublicSalesController extends Controller
         return null;
     }
 
-    /** PoisaPay-hosted payment page — the buyer confirms with their wallet balance. */
+    /** Funnel pay page (/p/{slug}/checkout) — delegates to the shared renderer. */
     public function pay(Request $request, string $slug): View|RedirectResponse
     {
         if (! $request->user()) {
             return $this->guestToAccount($request, $slug);
         }
 
-        $page = $this->publishedPage($slug);
+        return $this->payPage($request, $this->publishedPage($slug), [
+            'confirm' => route('funnel.pay.confirm', ['slug' => $slug]),
+            'coupon' => route('funnel.pay', ['slug' => $slug]),
+        ]);
+    }
+
+    /**
+     * PoisaPay-hosted payment page — the buyer confirms with their wallet balance.
+     * The form endpoints are injected so the SAME page renders identically for the
+     * funnel (/p/{slug}/checkout) and the central checkout (/checkout/{product}).
+     *
+     * @param  array{confirm: string, coupon: string}  $urls
+     */
+    private function payPage(Request $request, SalesPage $page, array $urls): View
+    {
         $product = $page->product;
         $seller = $page->seller;
         $asset = $product->priceAsset;
@@ -256,12 +270,14 @@ class PublicSalesController extends Controller
                 : ['icon' => 'check-badge', 'text' => __('Delivered right after payment')]);
 
         return view('funnel.pay', [
-            'slug' => $slug,
+            'slug' => $page->slug,
             'page' => $page,
             'product' => $product,
             'seller' => $seller,
             'asset' => $asset,
             'backUrl' => $this->storefrontBackUrl($request, $page),
+            'confirmUrl' => $urls['confirm'],
+            'couponUrl' => $urls['coupon'],
             'productImage' => Asset::url($product->image),
             'rating' => $rating,
             'delivery' => $delivery,
@@ -300,14 +316,23 @@ class PublicSalesController extends Controller
         ]);
     }
 
-    /** Place the real order: debit buyer, credit seller + platform commission via the Ledger. */
+    /** Funnel order placement (POST /p/{slug}/checkout) — delegates to the shared path. */
     public function payConfirm(Request $request, string $slug, PlaceOrder $placeOrder): RedirectResponse
     {
         if (! $request->user()) {
             return $this->guestToAccount($request, $slug);
         }
 
-        $page = $this->publishedPage($slug);
+        return $this->placeOrderFor($request, $this->publishedPage($slug), $placeOrder, route('funnel.thankyou', ['slug' => $slug]));
+    }
+
+    /**
+     * Place the real order: debit buyer, credit seller + platform commission via the
+     * Ledger. Shared by the funnel and the central checkout; $thankYouUrl keeps the
+     * buyer on whichever surface they came through.
+     */
+    private function placeOrderFor(Request $request, SalesPage $page, PlaceOrder $placeOrder, string $thankYouUrl): RedirectResponse
+    {
         $product = $page->product;
 
         $rules = [
@@ -369,7 +394,7 @@ class PublicSalesController extends Controller
         $request->session()->forget("shop:idem:{$page->getKey()}");
         $this->analytics->track($page, AnalyticsService::PURCHASE, $request, orderId: $order->getKey());
 
-        return redirect()->route('funnel.thankyou', ['slug' => $slug])->with('order_id', $order->getKey());
+        return redirect()->to($thankYouUrl)->with('order_id', $order->getKey());
     }
 
     /**
@@ -405,13 +430,50 @@ class PublicSalesController extends Controller
         return $this->handoffTo($request, $page, empty($data['coupon']) ? null : $data['coupon']);
     }
 
-    /** Shareable direct checkout link — poisapay.com/checkout/{product}. */
-    public function directCheckout(Request $request, string $product): RedirectResponse
+    /** The central checkout PAGE — /checkout/{product}. Renders the shared pay page. */
+    public function directCheckout(Request $request, string $product): View|RedirectResponse
     {
         if (! feature('shop_enabled', false)) {
             abort(404);
         }
 
+        $page = $this->productPage($product);
+
+        if (! $request->user()) {
+            return $this->guestToAccount($request, $page->slug, route('checkout.show', ['product' => $product]));
+        }
+
+        return $this->payPage($request, $page, [
+            'confirm' => route('checkout.pay', ['product' => $product]),
+            'coupon' => route('checkout.show', ['product' => $product]),
+        ]);
+    }
+
+    /** Place the order from the central checkout (POST /checkout/{product}). */
+    public function confirmDirect(Request $request, string $product, PlaceOrder $placeOrder): RedirectResponse
+    {
+        if (! feature('shop_enabled', false)) {
+            abort(404);
+        }
+
+        $page = $this->productPage($product);
+
+        if (! $request->user()) {
+            return $this->guestToAccount($request, $page->slug, route('checkout.show', ['product' => $product]));
+        }
+
+        return $this->placeOrderFor($request, $page, $placeOrder, route('checkout.thankyou', ['product' => $product]));
+    }
+
+    /** Central thank-you — /checkout/{product}/thank-you. */
+    public function centralThankYou(Request $request, string $product): View
+    {
+        return $this->thankYouView($request, $this->productPage($product));
+    }
+
+    /** Resolve a product to its primary published sales page (404 if none). */
+    private function productPage(string $product): SalesPage
+    {
         $found = Product::find($product);
         abort_if($found === null, 404);
 
@@ -419,21 +481,21 @@ class PublicSalesController extends Controller
             ->where('status', SalesPageStatus::Published)->latest('published_at')->first();
         abort_if($page === null, 404);
 
-        return $this->handoffTo($request, $page, null);
+        return $page;
     }
 
-    /** Route the buyer into the central funnel pay flow (guest → account first). */
+    /** Route the buyer to the central checkout page (guest → account step first). */
     private function handoffTo(Request $request, SalesPage $page, ?string $coupon): RedirectResponse
     {
-        $pay = route('funnel.pay', ['slug' => $page->slug])
+        $checkout = route('checkout.show', ['product' => $page->product_id])
             .($coupon !== null && trim($coupon) !== '' ? '?coupon='.urlencode($coupon) : '');
 
         if ($request->user()) {
-            return redirect()->to($pay);
+            return redirect()->to($checkout);
         }
 
-        // Guest: the on-funnel express-account step, then resume the pay page.
-        $request->session()->put('url.intended', $pay);
+        // Guest: the on-funnel express-account step, then resume the central checkout.
+        $request->session()->put('url.intended', $checkout);
 
         return redirect()->route('funnel.account', ['slug' => $page->slug]);
     }
@@ -463,8 +525,11 @@ class PublicSalesController extends Controller
 
     public function thankYou(Request $request, string $slug): View
     {
-        $page = $this->publishedPage($slug);
+        return $this->thankYouView($request, $this->publishedPage($slug));
+    }
 
+    private function thankYouView(Request $request, SalesPage $page): View
+    {
         $order = null;
         if (($orderId = $request->session()->get('order_id')) && $request->user()) {
             $order = Order::with('items')
@@ -474,7 +539,7 @@ class PublicSalesController extends Controller
         }
 
         return view('funnel.thank-you', [
-            'slug' => $slug,
+            'slug' => $page->slug,
             'page' => $page,
             'product' => $page->product,
             'seller' => $page->seller,

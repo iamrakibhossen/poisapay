@@ -168,7 +168,7 @@
                         <button type="button" x-show="! showCoupon" x-on:click="showCoupon = true" class="inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:text-brand-700">
                             <x-heroicon-o-tag class="h-3.5 w-3.5" /> {{ __('Have a discount code?') }}
                         </button>
-                        <form x-show="showCoupon" x-cloak method="GET" action="{{ route('funnel.pay', ['slug' => $slug]) }}" class="flex items-center gap-2">
+                        <form x-show="showCoupon" x-cloak method="GET" action="{{ $couponUrl }}" class="flex items-center gap-2">
                             <input name="coupon" value="{{ $couponCode }}" placeholder="{{ __('Discount code') }}"
                                 class="flex-1 rounded-lg border {{ $couponInvalid ? 'border-rose-300' : 'border-neutral-200' }} px-3 py-2 text-sm uppercase focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
                             <button type="submit" class="rounded-lg bg-neutral-900 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-neutral-700">{{ __('Apply') }}</button>
@@ -195,7 +195,7 @@
                 @endif
 
                 {{-- ═══ Checkout form: variation + shipping + wallet ═══ --}}
-                <form id="checkout" method="POST" action="{{ route('funnel.pay.confirm', ['slug' => $slug]) }}" x-on:submit="loading = true" class="mt-4 space-y-4">
+                <form id="checkout" method="POST" action="{{ $confirmUrl }}" x-on:submit="loading = true" class="mt-4 space-y-4">
                     @csrf
                     <input type="hidden" name="idempotency_key" value="{{ $idempotencyKey }}" />
                     <input type="hidden" name="quantity" :value="qty" />

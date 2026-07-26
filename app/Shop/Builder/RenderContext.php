@@ -121,7 +121,10 @@ final class RenderContext
                     'type' => $p->type->value,
                     'price' => $asset ? $asset->money((string) $p->price_amount)->format(2) : null,
                     'comparePrice' => ($asset && $p->compare_price_amount) ? $asset->money((string) $p->compare_price_amount)->format(2) : null,
-                    'url' => $page ? route('funnel.sales', ['slug' => $page->slug]) : null,
+                    // Absolute central-checkout URL on the platform host — starts checkout
+                    // for this product and works from any storefront (custom domain too),
+                    // where a relative /p/{slug} link would resolve to the wrong page.
+                    'url' => $page ? rtrim((string) config('app.url'), '/').'/checkout/'.$p->getKey() : null,
                 ];
             })->all();
     }
