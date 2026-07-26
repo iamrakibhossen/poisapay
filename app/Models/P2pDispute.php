@@ -53,4 +53,9 @@ class P2pDispute extends Model
     {
         return $this->hasMany(P2pDisputeEvidence::class, 'dispute_id');
     }
+
+    public function notes(): HasMany
+    {
+        return $this->hasMany(P2pDisputeNote::class, 'dispute_id')->latest();
+    }
 }

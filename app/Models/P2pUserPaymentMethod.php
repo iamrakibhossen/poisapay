@@ -19,7 +19,7 @@ class P2pUserPaymentMethod extends Model
     protected $table = 'p2p_user_payment_methods';
 
     protected $fillable = [
-        'user_id', 'payment_method_id', 'label', 'account', 'is_active',
+        'user_id', 'payment_method_id', 'label', 'account', 'is_active', 'is_default',
     ];
 
     protected function casts(): array
@@ -27,6 +27,7 @@ class P2pUserPaymentMethod extends Model
         return [
             'account' => 'encrypted:array',
             'is_active' => 'boolean',
+            'is_default' => 'boolean',
         ];
     }
 

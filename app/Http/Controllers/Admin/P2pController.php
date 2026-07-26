@@ -12,6 +12,8 @@ use App\Models\Asset;
 use App\Models\LedgerAccount;
 use App\Models\P2pDispute;
 use App\Models\P2pDisputeEvidence;
+use App\Models\P2pDisputeNote;
+use App\Models\P2pMerchantProfile;
 use App\Models\P2pOrder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -56,6 +58,43 @@ class P2pController extends Controller
         ]);
     }
 
+    public function merchants(Request $request): View
+    {
+        $this->authorizeP2p('view-p2p');
+
+        $search = trim((string) $request->query('search', ''));
+
+        $merchants = P2pMerchantProfile::query()
+            ->with('user')
+            ->when($search !== '', fn ($q) => $q->whereHas('user', fn ($u) => $u
+                ->where('name', 'ilike', '%'.$search.'%')->orWhere('email', 'ilike', '%'.$search.'%')))
+            ->orderByRaw('case when featured_until > now() then 0 else 1 end')
+            ->orderByDesc('trade_count')
+            ->paginate(25)
+            ->withQueryString();
+
+        return view('admin.p2p-merchants', ['merchants' => $merchants, 'search' => $search]);
+    }
+
+    /** Grant or revoke a time-boxed featured promotion for a merchant. */
+    public function feature(Request $request, string $userId): RedirectResponse
+    {
+        $this->authorizeP2p('manage-p2p');
+
+        $data = $request->validate(['days' => ['nullable', 'integer', 'min:1', 'max:365']]);
+        $profile = P2pMerchantProfile::where('user_id', $userId)->firstOrFail();
+
+        if ($profile->isFeatured()) {
+            $profile->update(['featured_until' => null]);
+
+            return back()->with('success', 'Merchant unfeatured.');
+        }
+
+        $profile->update(['featured_until' => now()->addDays((int) ($data['days'] ?? 30))]);
+
+        return back()->with('success', 'Merchant featured for '.((int) ($data['days'] ?? 30)).' days.');
+    }
+
     public function disputes(Request $request): View
     {
         $this->authorizeP2p('view-p2p');
@@ -75,9 +114,25 @@ class P2pController extends Controller
         $dispute->load([
             'order.buyer', 'order.seller', 'order.asset',
             'order.events', 'order.messages', 'evidence', 'assignedAdmin',
+            'notes.admin',
         ]);
 
         return view('admin.p2p-dispute', ['dispute' => $dispute]);
+    }
+
+    public function addNote(Request $request, P2pDispute $dispute): RedirectResponse
+    {
+        $this->authorizeP2p('manage-p2p');
+
+        $data = $request->validate(['body' => ['required', 'string', 'max:2000']]);
+
+        P2pDisputeNote::create([
+            'dispute_id' => $dispute->id,
+            'admin_id' => Auth::guard('admin')->id(),
+            'body' => $data['body'],
+        ]);
+
+        return back()->with('success', 'Internal note added.');
     }
 
     public function assign(Request $request, P2pDispute $dispute, AssignDisputeAction $action): RedirectResponse

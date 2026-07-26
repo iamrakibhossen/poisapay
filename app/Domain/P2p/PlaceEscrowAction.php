@@ -14,7 +14,6 @@ use App\Models\P2pEscrow;
 use App\Models\P2pOrder;
 use App\Support\Money;
 use Illuminate\Support\Facades\DB;
-use RuntimeException;
 
 /**
  * Lock the seller's gross USDT into escrow (available → user:p2p_escrow) — the
@@ -73,7 +72,7 @@ class PlaceEscrowAction
         $current = Money::ofBase($row->balance ?? '0', $amount->decimals, $amount->symbol);
 
         if ($current->isLessThan($amount)) {
-            throw new RuntimeException("Insufficient balance to escrow: have {$current->toDecimal()}, need {$amount->toDecimal()}.");
+            throw new InsufficientEscrowFundsException("Insufficient balance to escrow: have {$current->toDecimal()}, need {$amount->toDecimal()}.");
         }
     }
 }

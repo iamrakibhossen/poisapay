@@ -28,6 +28,7 @@ class P2pOrder extends Model
         'fee_amount', 'net_amount', 'taker_fee_bps', 'fiat_amount', 'price',
         'fiat_currency', 'payment_method_id', 'status', 'expires_at',
         'buyer_paid_at', 'released_at', 'cancelled_at', 'cancel_reason', 'meta',
+        'taker_ip', 'taker_fingerprint',
     ];
 
     protected function casts(): array
@@ -47,7 +48,8 @@ class P2pOrder extends Model
 
     public function ad(): BelongsTo
     {
-        return $this->belongsTo(P2pAd::class, 'ad_id');
+        // withTrashed so an order still resolves its ad after the ad is retired.
+        return $this->belongsTo(P2pAd::class, 'ad_id')->withTrashed();
     }
 
     public function buyer(): BelongsTo
@@ -88,6 +90,17 @@ class P2pOrder extends Model
     public function dispute(): HasOne
     {
         return $this->hasOne(P2pDispute::class, 'order_id');
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(P2pReview::class, 'order_id');
+    }
+
+    /** The review this user left on this order, if any. */
+    public function reviewBy(string $userId): ?P2pReview
+    {
+        return $this->reviews->firstWhere('rater_id', $userId);
     }
 
     public function cryptoMoney(): Money

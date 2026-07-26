@@ -10,6 +10,7 @@ use App\Enums\P2pOrderStatus;
 use App\Models\Admin;
 use App\Models\P2pDispute;
 use App\Models\P2pOrder;
+use App\Notifications\LedgerEventNotification;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -74,6 +75,23 @@ class ResolveDisputeAction
             return $order;
         });
 
+        $this->notifyOutcome($order, $winner);
+
         return $order;
+    }
+
+    /** Tell both parties how the dispute was ruled (after the settlement commits). */
+    private function notifyOutcome(P2pOrder $order, string $winner): void
+    {
+        $order->loadMissing(['buyer', 'seller']);
+
+        $body = $winner === 'buyer'
+            ? __('The operator ruled for the buyer — the escrow was released to the buyer.')
+            : __('The operator ruled for the seller — the escrow was refunded to the seller.');
+        $url = route('p2p.order', $order);
+
+        foreach ([$order->buyer, $order->seller] as $party) {
+            $party?->notify(new LedgerEventNotification(__('P2P dispute resolved'), $body, 'p2p.dispute.resolved', $url));
+        }
     }
 }

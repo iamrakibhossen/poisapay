@@ -10,28 +10,12 @@
     @endphp
 
     <div class="space-y-6"
-         x-data="{
-            ad: null,
-            search: '', method: '', online: false, verified: false, dir: 'default', shown: 0,
-            choose(a) { this.ad = a; $dispatch('open-modal', 'p2p-order'); },
-            visible(el) {
-                const d = el.dataset;
-                if (this.search && !d.name.includes(this.search.toLowerCase().trim())) return false;
-                if (this.method && !d.methods.split(',').includes(this.method)) return false;
-                if (this.online && d.online !== '1') return false;
-                if (this.verified && d.verified !== '1') return false;
-                return true;
-            },
-            order(el) {
-                const p = Math.round((parseFloat(el.dataset.price) || 0) * 100);
-                return this.dir === 'asc' ? p : this.dir === 'desc' ? -p : 0;
-            },
-         }"
-         x-effect="shown = [...$root.querySelectorAll('[data-adrow]')].filter(el => visible(el)).length">
+         x-data="{ ad: null, choose(a) { this.ad = a; $dispatch('open-modal', 'p2p-order'); } }">
 
         {{-- Header --}}
         <x-ui.page-header :title="__('P2P Marketplace')" :subtitle="__('Buy and sell USDT peer-to-peer — every trade is protected by escrow until both sides confirm.')">
             <x-slot:actions>
+                <a href="{{ route('p2p.dashboard') }}"><x-ui.button variant="secondary" icon="chart-bar">{{ __('Dashboard') }}</x-ui.button></a>
                 <a href="{{ route('p2p.orders') }}"><x-ui.button variant="secondary" icon="clock">{{ __('My orders') }}</x-ui.button></a>
                 <a href="{{ route('p2p.ads') }}"><x-ui.button variant="secondary" icon="megaphone">{{ __('My ads') }}</x-ui.button></a>
             </x-slot:actions>
@@ -94,69 +78,54 @@
 
                 <p class="flex items-center gap-1.5 text-sm text-neutral-500">
                     <x-heroicon-o-funnel class="h-4 w-4 text-neutral-400" />
-                    {{ __('Showing') }} <span class="font-semibold tabular text-neutral-900" x-text="shown"></span>
-                    {{ __('of') }} <span class="tabular">{{ $ads->count() }}</span>
+                    <span class="font-semibold tabular text-neutral-900">{{ number_format($ads->total()) }}</span> {{ trans_choice('ad|ads', $ads->total()) }}
                 </p>
             </div>
 
-            {{-- Row 2: search + filters --}}
-            <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
-                {{-- Search --}}
-                <div class="relative flex-1">
+            {{-- Row 2: server-side search, filters & sort --}}
+            <form method="GET" action="{{ route('p2p') }}" class="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
+                <input type="hidden" name="side" value="{{ $want }}">
+
+                <div class="relative min-w-0 flex-1">
                     <x-heroicon-o-magnifying-glass class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
-                    <input type="text" x-model="search" placeholder="{{ __('Search advertiser…') }}" class="pp-input h-10 w-full min-h-0 py-0 pl-9 pr-9 text-sm">
-                    <button type="button" x-show="search" x-cloak @click="search=''" aria-label="{{ __('Clear search') }}"
-                            class="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700">
-                        <x-heroicon-o-x-mark class="h-4 w-4" />
-                    </button>
+                    <input type="text" name="q" value="{{ $filters['q'] }}" placeholder="{{ __('Search advertiser…') }}" class="pp-input h-10 w-full min-h-0 py-0 pl-9 pr-3 text-sm">
                 </div>
 
-                <div class="grid grid-cols-2 gap-3 sm:flex sm:items-center">
-                    {{-- Payment method --}}
-                    <div class="relative">
-                        <x-heroicon-o-credit-card class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
-                        <select x-model="method" class="pp-input h-10 w-full min-h-0 py-0 pl-9 pr-8 text-sm sm:w-auto">
-                            <option value="">{{ __('All payments') }}</option>
-                            @foreach ($methods as $m)
-                                <option value="{{ strtolower($m->name) }}">{{ $m->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+                <input type="text" name="amount" inputmode="decimal" value="{{ $filters['amount'] }}" placeholder="{{ __('Amount') }}" class="pp-input h-10 min-h-0 py-0 px-3 text-sm sm:w-32">
 
-                    {{-- Price sort --}}
-                    <div class="relative">
-                        <x-heroicon-o-arrows-up-down class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
-                        <select x-model="dir" class="pp-input h-10 w-full min-h-0 py-0 pl-9 pr-8 text-sm sm:w-auto">
-                            <option value="default">{{ __('Recommended') }}</option>
-                            <option value="asc">{{ __('Price: low → high') }}</option>
-                            <option value="desc">{{ __('Price: high → low') }}</option>
-                        </select>
-                    </div>
-                </div>
+                <select name="method" class="pp-input h-10 min-h-0 py-0 px-3 text-sm sm:w-auto">
+                    <option value="">{{ __('All payments') }}</option>
+                    @foreach ($methods as $m)
+                        <option value="{{ $m->id }}" @selected($filters['method'] === $m->id)>{{ $m->name }}</option>
+                    @endforeach
+                </select>
 
-                {{-- Toggles --}}
-                <div class="flex items-center gap-2">
-                    <button type="button" class="pp-chip flex-1 justify-center sm:flex-none" :class="{ 'is-on': online }" @click="online = !online">
-                        <span class="h-2 w-2 rounded-full bg-green-500"></span> {{ __('Online') }}
-                    </button>
-                    <button type="button" class="pp-chip flex-1 justify-center sm:flex-none" :class="{ 'is-on': verified }" @click="verified = !verified">
-                        <x-heroicon-s-check-badge class="h-4 w-4 text-brand-500" /> {{ __('Verified') }}
-                    </button>
-                </div>
-            </div>
+                <select name="sort" class="pp-input h-10 min-h-0 py-0 px-3 text-sm sm:w-auto">
+                    @foreach (['recommended' => __('Recommended'), 'price' => __('Best price'), 'completion' => __('Highest completion'), 'fast_release' => __('Fastest release'), 'trades' => __('Most trades')] as $val => $label)
+                        <option value="{{ $val }}" @selected($filters['sort'] === $val)>{{ $label }}</option>
+                    @endforeach
+                </select>
 
-            {{-- Active filter feedback --}}
-            <div x-show="search || method || online || verified || dir !== 'default'" x-cloak
-                 class="flex flex-wrap items-center gap-2 border-t border-neutral-100 pt-3 text-xs">
-                <span class="font-medium text-neutral-400">{{ __('Filters:') }}</span>
-                <span x-show="online" class="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 font-medium text-green-700">{{ __('Online') }}
-                    <button type="button" @click="online=false"><x-heroicon-o-x-mark class="h-3 w-3" /></button></span>
-                <span x-show="verified" class="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 font-medium text-brand-700">{{ __('Verified') }}
-                    <button type="button" @click="verified=false"><x-heroicon-o-x-mark class="h-3 w-3" /></button></span>
-                <span x-show="method" class="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-0.5 font-medium text-neutral-700" x-text="method"></span>
-                <button type="button" @click="search=''; method=''; online=false; verified=false; dir='default'"
-                        class="ml-auto font-medium text-neutral-500 hover:text-neutral-900">{{ __('Clear all') }}</button>
-            </div>
+                <label class="pp-chip cursor-pointer has-[:checked]:border-green-300 has-[:checked]:bg-green-50 has-[:checked]:text-green-700">
+                    <input type="checkbox" name="online" value="1" @checked($filters['online']) class="sr-only">
+                    <span class="h-2 w-2 rounded-full bg-green-500"></span> {{ __('Online') }}
+                </label>
+                <label class="pp-chip cursor-pointer has-[:checked]:border-brand-300 has-[:checked]:bg-brand-50 has-[:checked]:text-brand-700">
+                    <input type="checkbox" name="verified" value="1" @checked($filters['verified']) class="sr-only">
+                    <x-heroicon-s-check-badge class="h-4 w-4 text-brand-500" /> {{ __('Verified') }}
+                </label>
+                <label class="pp-chip cursor-pointer has-[:checked]:border-amber-300 has-[:checked]:bg-amber-50 has-[:checked]:text-amber-700">
+                    <input type="checkbox" name="fav" value="1" @checked($filters['fav']) class="sr-only">
+                    <x-heroicon-s-star class="h-4 w-4 text-amber-400" /> {{ __('Favourites') }}
+                </label>
+                <label class="pp-chip cursor-pointer has-[:checked]:border-violet-300 has-[:checked]:bg-violet-50 has-[:checked]:text-violet-700">
+                    <input type="checkbox" name="express" value="1" @checked($filters['express']) class="sr-only">
+                    <x-heroicon-s-bolt class="h-4 w-4 text-violet-500" /> {{ __('Express') }}
+                </label>
+
+                <x-ui.button type="submit" variant="secondary" icon="funnel">{{ __('Apply') }}</x-ui.button>
+                <a href="{{ route('p2p', ['side' => $want]) }}" class="text-sm font-medium text-neutral-500 hover:text-neutral-900">{{ __('Clear') }}</a>
+            </form>
         </div>
 
         {{-- Offer card grid --}}
@@ -170,15 +139,7 @@
                     $methodsCsv = strtolower($ad->paymentMethods->pluck('name')->implode(','));
                     $completion = number_format(($p->completion_rate_bps ?? 0) / 100, 1);
                 @endphp
-                <div data-adrow
-                     data-name="{{ strtolower($ad->user->name) }}"
-                     data-online="{{ $online ? '1' : '0' }}"
-                     data-verified="{{ $verified ? '1' : '0' }}"
-                     data-methods="{{ $methodsCsv }}"
-                     data-price="{{ $ad->fixed_price ?? 0 }}"
-                     x-show="visible($el)" x-transition.opacity
-                     :style="`order:${order($el)}`"
-                     class="flex flex-col rounded-2xl border border-neutral-200 bg-white p-5 shadow-[var(--shadow-card)] transition-all hover:border-neutral-300 hover:shadow-md">
+                <div class="flex flex-col rounded-2xl border border-neutral-200 bg-white p-5 shadow-[var(--shadow-card)] transition-all hover:border-neutral-300 hover:shadow-md">
 
                     {{-- Advertiser --}}
                     <div class="mb-4 flex items-center justify-between gap-2">
@@ -196,6 +157,8 @@
                                 </a>
                                 <p class="mt-0.5 text-xs text-neutral-500">
                                     {{ $p->trade_count ?? 0 }} {{ __('trades') }} · {{ $completion }}% {{ __('completion') }}
+                                    @if (($p ?? null) && $p->isFeatured())<span class="ml-1 inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700"><x-heroicon-s-sparkles class="h-3 w-3" />{{ __('Featured') }}</span>@endif
+                                    @if ($ad->is_express)<span class="ml-1 inline-flex items-center gap-0.5 rounded-full bg-violet-100 px-1.5 py-0.5 text-[10px] font-semibold text-violet-700"><x-heroicon-s-bolt class="h-3 w-3" />{{ __('Express') }}</span>@endif
                                 </p>
                             </div>
                         </div>
@@ -255,15 +218,6 @@
                 </div>
             @endforelse
 
-            {{-- Client-side "no matches" state --}}
-            @if (count($ads))
-                <div x-show="shown === 0" x-cloak class="sm:col-span-2 lg:col-span-3">
-                    <div class="pp-row p-4">
-                        <x-ui.empty-state icon="magnifying-glass" :title="__('No matching ads')"
-                            :description="__('No advertisers match your filters. Try clearing a filter or widening your search.')" />
-                    </div>
-                </div>
-            @endif
         </div>
 
         <div>{{ $ads->withQueryString()->links() }}</div>

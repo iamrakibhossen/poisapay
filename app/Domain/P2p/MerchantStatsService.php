@@ -6,6 +6,7 @@ namespace App\Domain\P2p;
 
 use App\Models\P2pMerchantProfile;
 use App\Models\P2pOrder;
+use App\Models\P2pReview;
 use Brick\Math\BigInteger;
 
 /**
@@ -33,6 +34,34 @@ class MerchantStatsService
     public function recordFailure(P2pOrder $order): void
     {
         $this->bump($order->seller_id, false, '0', null, null);
+    }
+
+    /**
+     * Recompute a trader's cached feedback aggregates (average star rating,
+     * review count, positive-feedback count) from p2p_reviews — one indexed
+     * aggregate over their received reviews.
+     */
+    public function recordReview(string $userId): void
+    {
+        $row = P2pReview::query()
+            ->where('ratee_id', $userId)
+            ->selectRaw('count(*) as c, coalesce(sum(rating), 0) as s, coalesce(sum(case when is_positive then 1 else 0 end), 0) as p')
+            ->first();
+
+        $count = (int) ($row->c ?? 0);
+        $sum = (int) ($row->s ?? 0);
+        $positive = (int) ($row->p ?? 0);
+
+        $profile = P2pMerchantProfile::firstOrCreate(
+            ['user_id' => $userId],
+            ['trade_count' => 0, 'completed_count' => 0, 'completion_rate_bps' => 0, 'total_volume' => '0'],
+        );
+
+        $profile->update([
+            'review_count' => $count,
+            'positive_count' => $positive,
+            'rating' => $count > 0 ? round($sum / $count, 2) : 0,
+        ]);
     }
 
     private function bump(string $userId, bool $completed, string $volumeBase, ?int $paySeconds, ?int $releaseSeconds): void

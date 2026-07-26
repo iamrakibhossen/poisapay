@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Listeners;
 
 use App\Domain\P2p\P2pChatService;
+use App\Enums\P2pMessageType;
 use App\Events\P2pBuyerMarkedPaid;
 use App\Events\P2pOrderCancelled;
 use App\Events\P2pOrderCompleted;
@@ -38,7 +39,18 @@ class P2pChatSubscriber
 
     public function onCreated(P2pOrderCreated $event): void
     {
-        $this->say($event->orderId, 'Order opened — the seller\'s USDT is locked in escrow. Buyer, please pay within the time limit and mark the payment as sent.');
+        $order = P2pOrder::with('ad')->find($event->orderId);
+        if (! $order) {
+            return;
+        }
+
+        $this->chat->system($order, 'Order opened — the seller\'s USDT is locked in escrow. Buyer, please pay within the time limit and mark the payment as sent.');
+
+        // The advertiser's configured auto-reply, posted on their behalf.
+        $autoReply = trim((string) ($order->ad->auto_reply ?? ''));
+        if ($autoReply !== '') {
+            $this->chat->record($order, 'user', (string) $order->ad->user_id, P2pMessageType::Text, $autoReply);
+        }
     }
 
     public function onBuyerPaid(P2pBuyerMarkedPaid $event): void

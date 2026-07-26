@@ -6,11 +6,13 @@ namespace App\Domain\P2p;
 
 use App\Domain\Audit\ActivityLogger;
 use App\Domain\Compliance\AccountGuard;
+use App\Domain\Ledger\LedgerService;
 use App\Enums\KycTier;
 use App\Enums\P2pAdStatus;
 use App\Enums\P2pAdType;
 use App\Enums\P2pPriceType;
 use App\Models\P2pAd;
+use App\Models\P2pMerchantProfile;
 use App\Models\User;
 use App\Support\Money;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +28,8 @@ use RuntimeException;
  */
 class CreateAdAction
 {
+    public function __construct(private readonly LedgerService $ledger) {}
+
     public function execute(User $user, array $input): P2pAd
     {
         if (! feature('p2p_enabled', false)) {
@@ -46,7 +50,27 @@ class CreateAdAction
 
         $total = Money::ofBase((string) $input['total_amount'], (int) ($input['decimals'] ?? 6), (string) ($input['symbol'] ?? 'USDT'));
 
-        return DB::transaction(function () use ($user, $input, $priceType, $total): P2pAd {
+        // A sell ad advertises USDT the seller must actually hold — funds are not
+        // locked at ad time (escrow is per-order), but you can't advertise inventory
+        // you don't have.
+        if (P2pAdType::from($input['side']) === P2pAdType::Sell) {
+            $available = $this->ledger->availableBalance($user, (int) $input['asset_id']);
+            if ($available->isLessThan($total)) {
+                throw new RuntimeException(sprintf(
+                    'You need at least %s %s in your balance to post this sell ad — you have %s.',
+                    $total->toDecimal(),
+                    (string) ($input['symbol'] ?? 'USDT'),
+                    $available->toDecimal(),
+                ));
+            }
+        }
+
+        $express = (bool) ($input['is_express'] ?? false);
+        if ($express && ! P2pMerchantProfile::expressEligible((string) $user->getKey())) {
+            throw new RuntimeException('Express needs a fast average release time — build a faster track record first.');
+        }
+
+        return DB::transaction(function () use ($user, $input, $priceType, $total, $express): P2pAd {
             $ad = P2pAd::create([
                 'user_id' => $user->getKey(),
                 'side' => P2pAdType::from($input['side']),
@@ -68,6 +92,7 @@ class CreateAdAction
                 'trade_hours' => $input['trade_hours'] ?? null,
                 'status' => P2pAdStatus::from($input['status'] ?? P2pAdStatus::Active->value),
                 'priority' => $input['priority'] ?? 0,
+                'is_express' => $express,
             ]);
 
             if (! empty($input['payment_method_ids'])) {

@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * A P2P advertisement (offer). `available_amount` is the remaining crypto (base
@@ -22,7 +23,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class P2pAd extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, SoftDeletes;
 
     protected $table = 'p2p_ads';
 
@@ -30,7 +31,7 @@ class P2pAd extends Model
         'user_id', 'side', 'asset_id', 'fiat_currency', 'price_type', 'fixed_price',
         'margin_bps', 'min_order', 'max_order', 'available_amount', 'total_amount',
         'daily_limit', 'payment_window_min', 'min_completion_bps', 'auto_reply',
-        'terms', 'countries', 'trade_hours', 'status', 'priority',
+        'terms', 'countries', 'trade_hours', 'status', 'priority', 'is_express',
     ];
 
     protected function casts(): array
@@ -47,6 +48,7 @@ class P2pAd extends Model
             'margin_bps' => 'integer',
             'priority' => 'integer',
             'payment_window_min' => 'integer',
+            'is_express' => 'boolean',
         ];
     }
 

@@ -346,6 +346,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::controller(SellerAdminController::class)->group(function () {
             Route::get('/sellers', 'index')->name('sellers');
             Route::post('/sellers/{seller}/plan', 'updatePlan')->name('sellers.plan');
+            Route::post('/sellers/{seller}/status', 'updateStatus')->name('sellers.status');
         });
         // ── Refund review (escalated buyer refund requests) ──
         Route::controller(RefundAdminController::class)->group(function () {
@@ -397,10 +398,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // ── P2P marketplace: order monitoring + dispute adjudication ──
         Route::controller(P2pController::class)->group(function () {
             Route::get('/p2p/orders', 'orders')->name('p2p');
+            Route::get('/p2p/merchants', 'merchants')->name('p2p-merchants');
+            Route::post('/p2p/merchants/{userId}/feature', 'feature')->name('p2p-merchants.feature');
             Route::get('/p2p/disputes', 'disputes')->name('p2p-disputes');
             Route::get('/p2p/disputes/{dispute}', 'dispute')->name('p2p-disputes.show');
             Route::post('/p2p/disputes/{dispute}/assign', 'assign')->name('p2p-disputes.assign');
             Route::post('/p2p/disputes/{dispute}/resolve', 'resolve')->name('p2p-disputes.resolve');
+            Route::post('/p2p/disputes/{dispute}/notes', 'addNote')->name('p2p-disputes.notes');
             Route::get('/p2p/dispute-evidence/{evidence}', 'disputeEvidence')->name('p2p-disputes.evidence');
         });
         // P2P payment-method catalog + per-method field schemas.

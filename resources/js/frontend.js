@@ -42,6 +42,10 @@ Alpine.data('p2pChat', (orderId, meId) => ({
         if (window.Echo) {
             window.Echo.private(`p2p.order.${orderId}`)
                 .listen('.p2p.message', (m) => this.add(m))
+                .listen('.p2p.status', () => {
+                    // Order stage changed elsewhere — refresh to show the new step & actions.
+                    window.location.reload();
+                })
                 .listenForWhisper('typing', (e) => {
                     if (e && e.id !== meId) {
                         this.typing = true;

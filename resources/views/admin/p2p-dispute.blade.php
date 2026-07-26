@@ -76,6 +76,29 @@
                         @endforelse
                     </div>
                 </x-ui.card>
+
+                {{-- Internal notes (operators only, never shown to the parties) --}}
+                <x-ui.card>
+                    <h3 class="text-sm font-semibold text-neutral-900">{{ __('Internal notes') }}</h3>
+                    <div class="mt-3 space-y-2">
+                        @forelse ($dispute->notes as $note)
+                            <div class="rounded-lg border border-amber-100 bg-amber-50/50 px-3 py-2 text-sm">
+                                <p class="whitespace-pre-line text-neutral-700">{{ $note->body }}</p>
+                                <p class="mt-1 text-xs text-neutral-400">{{ $note->admin?->name ?? __('Operator') }} · {{ $note->created_at?->diffForHumans() }}</p>
+                            </div>
+                        @empty
+                            <p class="text-sm text-neutral-400">{{ __('No internal notes yet.') }}</p>
+                        @endforelse
+                    </div>
+                    @if ($canManage)
+                        <form method="POST" action="{{ route('admin.p2p-disputes.notes', $dispute) }}" class="mt-3 space-y-2 border-t border-neutral-100 pt-3">
+                            @csrf
+                            <textarea name="body" rows="2" required maxlength="2000" placeholder="{{ __('Add an internal note…') }}"
+                                class="w-full rounded-lg border-neutral-200 text-sm focus:border-brand-500 focus:ring-brand-500"></textarea>
+                            <x-ui.button type="submit" size="sm" variant="secondary" icon="plus">{{ __('Add note') }}</x-ui.button>
+                        </form>
+                    @endif
+                </x-ui.card>
             </div>
 
             {{-- Timeline + chat transcript --}}

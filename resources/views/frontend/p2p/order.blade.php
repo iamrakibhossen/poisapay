@@ -312,6 +312,39 @@
                         </div>
                     </x-ui.card>
                 @endif
+
+                {{-- Rate the counterparty on a settled trade --}}
+                @if ($order->status->isSuccessful())
+                    <x-ui.card>
+                        <div class="mb-3 text-sm font-semibold text-neutral-900">{{ __('Rate :name', ['name' => $cp->name]) }}</div>
+                        @if ($myReview)
+                            <div class="flex items-center gap-1 text-amber-500">
+                                @for ($i = 1; $i <= 5; $i++)
+                                    <x-heroicon-s-star @class(['h-5 w-5', 'text-neutral-200' => $i > $myReview->rating]) />
+                                @endfor
+                            </div>
+                            @if ($myReview->comment)
+                                <p class="mt-2 text-sm text-neutral-600">{{ $myReview->comment }}</p>
+                            @endif
+                            <p class="mt-2 text-xs text-neutral-400">{{ __('You have already reviewed this trade.') }}</p>
+                        @else
+                            <form method="POST" action="{{ route('p2p.order.review', $order) }}" x-data="{ rating: 0, hover: 0 }" class="space-y-3">@csrf
+                                <div class="flex items-center gap-1">
+                                    @for ($i = 1; $i <= 5; $i++)
+                                        <button type="button" x-on:click="rating = {{ $i }}" x-on:mouseenter="hover = {{ $i }}" x-on:mouseleave="hover = 0"
+                                            class="text-amber-400 transition hover:scale-110" :aria-pressed="rating >= {{ $i }}">
+                                            <x-heroicon-s-star class="h-7 w-7" ::class="(hover || rating) >= {{ $i }} ? '' : 'text-neutral-200'" />
+                                        </button>
+                                    @endfor
+                                    <input type="hidden" name="rating" :value="rating">
+                                </div>
+                                <textarea name="comment" rows="2" maxlength="500" placeholder="{{ __('Add a comment (optional)') }}"
+                                    class="w-full rounded-lg border-neutral-200 text-sm focus:border-brand-500 focus:ring-brand-500"></textarea>
+                                <x-ui.button type="submit" variant="primary" class="w-full" x-bind:disabled="rating === 0">{{ __('Submit review') }}</x-ui.button>
+                            </form>
+                        @endif
+                    </x-ui.card>
+                @endif
             </div>
 
             {{-- ─── Live chat ─── --}}

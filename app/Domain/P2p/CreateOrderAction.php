@@ -4,17 +4,23 @@ declare(strict_types=1);
 
 namespace App\Domain\P2p;
 
+use App\Domain\Audit\ActivityLogger;
+use App\Domain\Auth\DeviceService;
 use App\Domain\Compliance\AccountGuard;
 use App\Domain\Compliance\RaiseAlertAction;
+use App\Domain\Risk\RiskAssessment;
 use App\Enums\KycTier;
+use App\Enums\P2pAdStatus;
 use App\Enums\P2pAdType;
 use App\Enums\P2pOrderStatus;
 use App\Enums\RiskLevel;
 use App\Events\P2pOrderCreated;
 use App\Jobs\P2pExpireOrderJob;
 use App\Models\P2pAd;
+use App\Models\P2pBlock;
 use App\Models\P2pOrder;
 use App\Models\User;
+use App\Notifications\LedgerEventNotification;
 use App\Support\Money;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
@@ -39,17 +45,24 @@ class CreateOrderAction
         private readonly RaiseAlertAction $alerts,
     ) {}
 
-    public function execute(User $taker, P2pAd $ad, Money $cryptoAmount, ?string $paymentMethodId = null): P2pOrder
+    public function execute(User $taker, P2pAd $ad, Money $cryptoAmount, ?string $paymentMethodId = null, ?string $ip = null, ?string $fingerprint = null): P2pOrder
     {
         if (! feature('p2p_enabled', false)) {
             throw new RuntimeException('P2P marketplace is not enabled.');
         }
+
+        // Network fingerprint for fraud analysis (falls back to the live request).
+        $ip ??= request()->ip();
+        $fingerprint ??= DeviceService::fingerprint(request());
 
         $ad->loadMissing(['asset', 'user']);
         $advertiser = $ad->user;
 
         if ($advertiser->getKey() === $taker->getKey()) {
             throw new RuntimeException('You cannot trade against your own ad.');
+        }
+        if (P2pBlock::existsBetween((string) $taker->getKey(), (string) $advertiser->getKey())) {
+            throw new RuntimeException('You cannot trade with this merchant.');
         }
         if (! $ad->status->isMatchable()) {
             throw new RuntimeException('This ad is not available for trading.');
@@ -67,7 +80,17 @@ class CreateOrderAction
         }
 
         // Risk & compliance (hard checks throw before any escrow is locked).
-        $assessment = $this->risk->assess($taker, $advertiser, $ad, $cryptoAmount);
+        $assessment = $this->risk->assess($taker, $advertiser, $ad, $cryptoAmount, $fingerprint);
+
+        // Critical risk can auto-freeze the taker (default-off flag). A frozen
+        // account is blocked from all value movement by AccountGuard thereafter.
+        if ($assessment->level === RiskLevel::Critical && feature('p2p_auto_freeze', false)) {
+            $taker->update(['is_frozen' => true]);
+            $this->alerts->execute($taker, 'p2p_auto_freeze', $assessment->level, $assessment->score, $assessment->reasons, 'p2p');
+            ActivityLogger::log('p2p.auto_freeze', $taker, ['score' => $assessment->score, 'reasons' => $assessment->reasons]);
+
+            throw new RuntimeException('Your account is under review — P2P trading is paused. Please contact support.');
+        }
 
         // Advertiser-configured trading constraints (hours, requirement, country).
         $this->guard->assertOrderable($ad, $taker);
@@ -91,7 +114,31 @@ class CreateOrderAction
             throw new RuntimeException("Order total {$fiat} {$ad->fiat_currency} is outside the ad limits ({$min}–{$max}).");
         }
 
-        $order = DB::transaction(function () use ($ad, $sellerId, $buyerId, $cryptoAmount, $fee, $net, $feeBps, $fiat, $unitPrice, $paymentMethodId, $assessment): P2pOrder {
+        try {
+            $order = $this->openOrder($ad, $sellerId, $buyerId, $cryptoAmount, $fee, $net, $feeBps, $fiat, $unitPrice, $paymentMethodId, $assessment, $ip, $fingerprint);
+        } catch (InsufficientEscrowFundsException $e) {
+            // The order rolled back. If the funding party is the ad owner, the ad
+            // is under-funded — pause it so buyers stop hitting escrow failures.
+            if ($ad->user_id === $sellerId) {
+                $this->autoPauseAd($ad, $advertiser);
+            }
+            throw $e;
+        }
+
+        P2pOrderCreated::dispatch($order->id);
+        P2pExpireOrderJob::dispatch($order->id)->delay($order->expires_at);
+
+        // Flagged (non-low) trades raise an AML alert onto the taker's compliance case.
+        if ($assessment->level !== RiskLevel::Low) {
+            $this->alerts->execute($taker, 'p2p_high_risk_trade', $assessment->level, $assessment->score, $assessment->reasons, 'p2p', $order);
+        }
+
+        return $order;
+    }
+
+    private function openOrder(P2pAd $ad, string $sellerId, string $buyerId, Money $cryptoAmount, Money $fee, Money $net, int $feeBps, BigDecimal $fiat, BigDecimal $unitPrice, ?string $paymentMethodId, RiskAssessment $assessment, ?string $ip, ?string $fingerprint): P2pOrder
+    {
+        return DB::transaction(function () use ($ad, $sellerId, $buyerId, $cryptoAmount, $fee, $net, $feeBps, $fiat, $unitPrice, $paymentMethodId, $assessment, $ip, $fingerprint): P2pOrder {
             // Lock the ad row and re-check inventory to serialise concurrent orders.
             $lockedAd = P2pAd::where('id', $ad->id)->lockForUpdate()->firstOrFail();
             $available = Money::ofBase($lockedAd->available_amount, $cryptoAmount->decimals, $cryptoAmount->symbol);
@@ -123,6 +170,8 @@ class CreateOrderAction
                 'meta' => $assessment->score > 0
                     ? ['risk' => ['score' => $assessment->score, 'level' => $assessment->level->value, 'reasons' => $assessment->reasons]]
                     : null,
+                'taker_ip' => $ip,
+                'taker_fingerprint' => $fingerprint,
             ]);
 
             // Lock the seller's USDT (rolls back the order + inventory if funds are short).
@@ -132,15 +181,24 @@ class CreateOrderAction
 
             return $order;
         });
+    }
 
-        P2pOrderCreated::dispatch($order->id);
-        P2pExpireOrderJob::dispatch($order->id)->delay($order->expires_at);
-
-        // Flagged (non-low) trades raise an AML alert onto the taker's compliance case.
-        if ($assessment->level !== RiskLevel::Low) {
-            $this->alerts->execute($taker, 'p2p_high_risk_trade', $assessment->level, $assessment->score, $assessment->reasons, 'p2p', $order);
+    /** Pause an under-funded ad and alert its owner to top up. Best-effort, out of band. */
+    private function autoPauseAd(P2pAd $ad, User $advertiser): void
+    {
+        $fresh = P2pAd::find($ad->id);
+        if (! $fresh || $fresh->status !== P2pAdStatus::Active) {
+            return;
         }
 
-        return $order;
+        $fresh->update(['status' => P2pAdStatus::Paused]);
+        ActivityLogger::log('p2p.ad.auto_paused', $fresh, ['reason' => 'insufficient_balance']);
+
+        $advertiser->notify(new LedgerEventNotification(
+            __('Ad paused — top up to resume'),
+            __('Your P2P ad was paused because your available balance could not cover a new order’s escrow. Add funds, then resume it from My Ads.'),
+            'p2p.ad.auto_paused',
+            route('p2p.ads'),
+        ));
     }
 }

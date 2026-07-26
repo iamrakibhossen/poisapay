@@ -31,6 +31,7 @@ Schedule::command('poisapay:resolve-failed-withdrawals')->everyFiveMinutes()->wi
 
 // P2P marketplace: expire orders past their payment window and refund escrow.
 Schedule::command('p2p:process-timeouts')->everyMinute()->withoutOverlapping();
+Schedule::command('p2p:sweep-presence')->everyFiveMinutes()->withoutOverlapping();
 
 // Sell: release held seller earnings to spendable once the refund window passes
 // (no-op unless the sell_earnings_hold flag is on).

@@ -19,6 +19,9 @@
             ['label' => __('Completion rate'), 'value' => number_format($rate, 1).'%'],
             ['label' => __('Avg. release'), 'value' => $profile->avg_release_seconds ? max(1, (int) round($profile->avg_release_seconds / 60)).' '.__('min') : '—'],
             ['label' => __('Lifetime volume'), 'value' => $volume->format()],
+            ['label' => __('Positive feedback'), 'value' => $profile->review_count > 0
+                ? number_format($profile->positivePercent(), 1).'% ('.number_format($profile->review_count).')'
+                : '—'],
         ];
 
         $adGroups = [
@@ -57,6 +60,7 @@
 
             <div class="mb-2 flex flex-wrap items-center justify-center gap-2">
                 <x-ui.badge color="primary">{{ $rep->levelLabel((int) $profile->level) }}</x-ui.badge>
+                @if ($profile->isFeatured())<x-ui.badge color="warning" icon="sparkles">{{ __('Featured') }}</x-ui.badge>@endif
                 @if ($profile->vacation_mode)<x-ui.badge color="warning">{{ __('On vacation') }}</x-ui.badge>@endif
             </div>
 
@@ -78,6 +82,24 @@
                         </x-ui.button>
                     </form>
                 </div>
+            @else
+                <div class="mt-4 flex flex-wrap justify-center gap-3">
+                    <form method="POST" action="{{ route('p2p.merchant.favourite', $trader) }}">
+                        @csrf
+                        <x-ui.button type="submit" :variant="$isFavourite ? 'primary' : 'secondary'" size="sm" :icon="$isFavourite ? 'star' : 'star'">
+                            {{ $isFavourite ? __('Favourited') : __('Favourite') }}
+                        </x-ui.button>
+                    </form>
+                    <form method="POST" action="{{ route('p2p.merchant.block', $trader) }}">
+                        @csrf
+                        <x-ui.button type="submit" :variant="$isBlocked ? 'danger' : 'secondary'" size="sm" icon="no-symbol">
+                            {{ $isBlocked ? __('Unblock') : __('Block') }}
+                        </x-ui.button>
+                    </form>
+                </div>
+                @if ($isBlocked)
+                    <p class="mt-2 text-xs text-red-500">{{ __('You have blocked this merchant — their ads are hidden and you can’t trade with them.') }}</p>
+                @endif
             @endif
 
             {{-- Verifications --}}
@@ -91,7 +113,7 @@
         </div>
 
         {{-- Stats --}}
-        <div class="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-neutral-100 bg-neutral-100 sm:grid-cols-3 lg:grid-cols-5">
+        <div class="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-neutral-100 bg-neutral-100 sm:grid-cols-3 lg:grid-cols-6">
             @foreach ($stats as $stat)
                 <div class="bg-white px-4 py-5 text-center">
                     <div class="text-xs font-medium uppercase tracking-wide text-neutral-500">{{ $stat['label'] }}</div>
@@ -99,6 +121,37 @@
                 </div>
             @endforeach
         </div>
+
+        {{-- Feedback --}}
+        @if ($reviews->isNotEmpty())
+            <div class="mt-12">
+                <h2 class="mb-4 flex items-center gap-2 text-xl font-semibold text-neutral-900">
+                    {{ __('Feedback') }}
+                    <span class="text-sm font-medium text-neutral-500">({{ number_format($profile->review_count) }})</span>
+                </h2>
+                <div class="space-y-3">
+                    @foreach ($reviews as $review)
+                        <div class="rounded-xl border border-neutral-200 p-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <x-ui.avatar :name="$review->rater->name" size="sm" />
+                                    <span class="text-sm font-medium text-neutral-900">{{ $review->rater->name }}</span>
+                                </div>
+                                <div class="flex items-center gap-0.5 text-amber-500">
+                                    @for ($i = 1; $i <= 5; $i++)
+                                        <x-heroicon-s-star @class(['h-4 w-4', 'text-neutral-200' => $i > $review->rating]) />
+                                    @endfor
+                                </div>
+                            </div>
+                            @if ($review->comment)
+                                <p class="mt-2 text-sm text-neutral-600">{{ $review->comment }}</p>
+                            @endif
+                            <p class="mt-1 text-xs text-neutral-400">{{ $review->created_at->diffForHumans() }}</p>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
 
         {{-- Ad groups --}}
         <div class="mt-12 space-y-10">

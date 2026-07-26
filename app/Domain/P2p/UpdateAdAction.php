@@ -8,6 +8,7 @@ use App\Domain\Audit\ActivityLogger;
 use App\Domain\Compliance\AccountGuard;
 use App\Enums\P2pPriceType;
 use App\Models\P2pAd;
+use App\Models\P2pMerchantProfile;
 use App\Models\User;
 use App\Support\Money;
 use Illuminate\Support\Facades\DB;
@@ -46,7 +47,12 @@ class UpdateAdAction
         $decimals = (int) ($input['decimals'] ?? 6);
         $symbol = (string) ($input['symbol'] ?? 'USDT');
 
-        return DB::transaction(function () use ($user, $ad, $input, $priceType, $decimals, $symbol): P2pAd {
+        $express = (bool) ($input['is_express'] ?? false);
+        if ($express && ! P2pMerchantProfile::expressEligible((string) $user->getKey())) {
+            throw new RuntimeException('Express needs a fast average release time — build a faster track record first.');
+        }
+
+        return DB::transaction(function () use ($user, $ad, $input, $priceType, $decimals, $symbol, $express): P2pAd {
             // Re-read under a row lock so `locked` is consistent with any order
             // opening concurrently against this ad.
             $ad = P2pAd::whereKey($ad->getKey())->lockForUpdate()->firstOrFail();
@@ -70,6 +76,8 @@ class UpdateAdAction
                 'available_amount' => $newTotal->minus($locked)->baseString(),
                 'payment_window_min' => $input['payment_window_min'],
                 'terms' => $input['terms'] ?? null,
+                'auto_reply' => $input['auto_reply'] ?? null,
+                'is_express' => $express,
             ]);
 
             if (isset($input['payment_method_ids'])) {

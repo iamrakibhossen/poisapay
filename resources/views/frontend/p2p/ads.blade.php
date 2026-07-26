@@ -9,11 +9,11 @@
         ];
     @endphp
 
-    <div class="space-y-5">
+    <div class="space-y-5" x-data="{ del: { url: '', ref: '' }, sel: [], submitBulk(action) { this.$refs.bulkAction.value = action; this.$refs.bulkForm.submit(); } }">
         {{-- Header --}}
         <x-ui.page-header :title="__('My ads')" :subtitle="__('Manage your P2P advertisements and availability.')">
             <x-slot:actions>
-                <a href="{{ route('p2p') }}"><x-ui.button variant="secondary" icon="arrow-left">{{ __('Marketplace') }}</x-ui.button></a>
+                <a href="{{ route('p2p.dashboard') }}"><x-ui.button variant="secondary" icon="chart-bar">{{ __('Dashboard') }}</x-ui.button></a>
                 <a href="{{ route('p2p.payment-methods') }}"><x-ui.button variant="secondary" icon="credit-card">{{ __('Payment accounts') }}</x-ui.button></a>
                 <a href="{{ route('p2p.ads.create') }}"><x-ui.button icon="plus">{{ __('Post ad') }}</x-ui.button></a>
             </x-slot:actions>
@@ -101,12 +101,15 @@
                         $toggleable = in_array($ad->status->value, ['active', 'paused']);
                     @endphp
                     <div class="flex flex-col rounded-2xl border border-neutral-200 bg-white p-5 shadow-[var(--shadow-card)] transition-colors hover:border-neutral-300">
-                        {{-- Header: side + status --}}
+                        {{-- Header: select + side + status --}}
                         <div class="flex items-center justify-between gap-2">
-                            <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold {{ $isBuy ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}">
-                                <span class="h-1.5 w-1.5 rounded-full {{ $isBuy ? 'bg-green-500' : 'bg-red-500' }}"></span>
-                                {{ $isBuy ? __('Buy USDT') : __('Sell USDT') }}
-                            </span>
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" value="{{ $ad->id }}" x-model="sel" class="h-4 w-4 rounded border-neutral-300 text-brand-600 focus:ring-brand-500">
+                                <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold {{ $isBuy ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}">
+                                    <span class="h-1.5 w-1.5 rounded-full {{ $isBuy ? 'bg-green-500' : 'bg-red-500' }}"></span>
+                                    {{ $isBuy ? __('Buy USDT') : __('Sell USDT') }}
+                                </span>
+                            </label>
                             <x-ui.badge :color="$ad->status->color()" dot>{{ $ad->status->label() }}</x-ui.badge>
                         </div>
 
@@ -148,26 +151,71 @@
                         @endif
 
                         {{-- Actions --}}
-                        @if ($editable || $toggleable)
-                            <div class="mt-5 flex items-center gap-2 border-t border-neutral-100 pt-4">
-                                @if ($editable)
-                                    <a href="{{ route('p2p.ads.edit', $ad) }}" class="flex-1"><x-ui.button size="sm" variant="secondary" icon="pencil-square" class="w-full">{{ __('Edit') }}</x-ui.button></a>
-                                @endif
-                                @if ($toggleable)
-                                    <form method="POST" action="{{ route('p2p.ads.toggle', $ad) }}" class="flex-1">
-                                        @csrf
-                                        <x-ui.button type="submit" size="sm" :variant="$ad->status->value === 'active' ? 'secondary' : 'success'" :icon="$ad->status->value === 'active' ? 'pause' : 'play'" class="w-full">
-                                            {{ $ad->status->value === 'active' ? __('Pause') : __('Resume') }}
-                                        </x-ui.button>
-                                    </form>
-                                @endif
-                            </div>
-                        @endif
+                        <div class="mt-5 flex flex-wrap items-center gap-2 border-t border-neutral-100 pt-4">
+                            @if ($editable)
+                                <a href="{{ route('p2p.ads.edit', $ad) }}" class="flex-1"><x-ui.button size="sm" variant="secondary" icon="pencil-square" class="w-full">{{ __('Edit') }}</x-ui.button></a>
+                            @endif
+                            @if ($toggleable)
+                                <form method="POST" action="{{ route('p2p.ads.toggle', $ad) }}" class="flex-1">
+                                    @csrf
+                                    <x-ui.button type="submit" size="sm" :variant="$ad->status->value === 'active' ? 'secondary' : 'success'" :icon="$ad->status->value === 'active' ? 'pause' : 'play'" class="w-full">
+                                        {{ $ad->status->value === 'active' ? __('Pause') : __('Resume') }}
+                                    </x-ui.button>
+                                </form>
+                            @endif
+                            <form method="POST" action="{{ route('p2p.ads.duplicate', $ad) }}">
+                                @csrf
+                                <x-ui.button type="submit" size="sm" variant="secondary" icon="document-duplicate" title="{{ __('Duplicate') }}">{{ __('Duplicate') }}</x-ui.button>
+                            </form>
+                            <x-ui.button type="button" size="sm" variant="danger" icon="trash" title="{{ __('Delete') }}"
+                                x-on:click="del = { url: '{{ route('p2p.ads.delete', $ad) }}', ref: '{{ $ad->side->value }} · {{ $totalMoney->format() }}' }; $dispatch('open-modal', 'p2p-ad-delete')">{{ __('Delete') }}</x-ui.button>
+                        </div>
                     </div>
                 @endforeach
             </div>
 
             <div>{{ $ads->links() }}</div>
         @endif
+
+        {{-- Bulk action bar (shown when ads are selected) --}}
+        <div x-show="sel.length" x-cloak
+             class="sticky bottom-4 z-30 mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white/95 p-3 shadow-[var(--shadow-pop)] backdrop-blur">
+            <span class="px-2 text-sm font-medium text-neutral-700"><span x-text="sel.length"></span> {{ __('selected') }}</span>
+            <div class="flex flex-wrap items-center gap-2">
+                <x-ui.button type="button" size="sm" variant="secondary" icon="pause" x-on:click="submitBulk('pause')">{{ __('Pause') }}</x-ui.button>
+                <x-ui.button type="button" size="sm" variant="secondary" icon="play" x-on:click="submitBulk('resume')">{{ __('Resume') }}</x-ui.button>
+                <x-ui.button type="button" size="sm" variant="secondary" icon="archive-box" x-on:click="submitBulk('archive')">{{ __('Archive') }}</x-ui.button>
+                <x-ui.button type="button" size="sm" variant="danger" icon="trash" x-on:click="$dispatch('open-modal', 'p2p-bulk-delete')">{{ __('Delete') }}</x-ui.button>
+                <button type="button" class="px-2 text-sm text-neutral-500 hover:text-neutral-900" x-on:click="sel = []">{{ __('Clear') }}</button>
+            </div>
+        </div>
+
+        {{-- Hidden bulk form — ids injected from the current selection --}}
+        <form method="POST" action="{{ route('p2p.ads.bulk') }}" x-ref="bulkForm" class="hidden">
+            @csrf
+            <input type="hidden" name="action" x-ref="bulkAction">
+            <template x-for="id in sel" :key="id"><input type="hidden" name="ids[]" :value="id"></template>
+        </form>
+
+        <x-ui.modal name="p2p-bulk-delete" :title="__('Delete selected ads')" maxWidth="sm">
+            <p class="text-sm text-neutral-600"><span x-text="sel.length"></span> {{ __('ad(s) will be deleted. Ads with open orders are skipped.') }}</p>
+            <div class="mt-5 flex justify-end gap-2">
+                <x-ui.button type="button" variant="secondary" x-on:click="$dispatch('close-modal', 'p2p-bulk-delete')">{{ __('Cancel') }}</x-ui.button>
+                <x-ui.button type="button" variant="danger" icon="trash" x-on:click="$dispatch('close-modal', 'p2p-bulk-delete'); submitBulk('delete')">{{ __('Delete') }}</x-ui.button>
+            </div>
+        </x-ui.modal>
+
+        {{-- Delete confirmation (shared) --}}
+        <x-ui.modal name="p2p-ad-delete" :title="__('Delete ad')" maxWidth="sm">
+            <p class="text-sm text-neutral-600">{{ __('Delete this ad?') }} <span class="font-medium text-neutral-900" x-text="del.ref"></span></p>
+            <p class="mt-1 text-xs text-neutral-400">{{ __('Ads with open orders can’t be deleted. This can’t be undone.') }}</p>
+            <div class="mt-5 flex justify-end gap-2">
+                <x-ui.button type="button" variant="secondary" x-on:click="$dispatch('close-modal', 'p2p-ad-delete')">{{ __('Cancel') }}</x-ui.button>
+                <form method="POST" :action="del.url">
+                    @csrf @method('DELETE')
+                    <x-ui.button type="submit" variant="danger" icon="trash">{{ __('Delete ad') }}</x-ui.button>
+                </form>
+            </div>
+        </x-ui.modal>
     </div>
 </x-layouts.app>

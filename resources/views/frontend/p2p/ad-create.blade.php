@@ -13,6 +13,8 @@
     $totalVal     = old('total_amount', $editing ? $trim(\App\Support\Money::ofBase($ad->total_amount, $decs)->toDecimal()) : '');
     $windowVal    = old('payment_window_min', $editing ? $ad->payment_window_min : 15);
     $termsVal     = old('terms', $editing ? $ad->terms : '');
+    $autoReplyVal = old('auto_reply', $editing ? $ad->auto_reply : '');
+    $expressVal   = (bool) old('is_express', $editing ? $ad->is_express : false);
     $selectedMethods = old('payment_method_ids', $editing ? $ad->paymentMethods->pluck('id')->all() : []);
 
     $locked = null;
@@ -84,8 +86,9 @@
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div>
                         <x-ui.input name="total_amount" :label="__('Total USDT to advertise')" type="text" inputmode="decimal" :value="$totalVal" placeholder="1000" :error="$errors->first('total_amount')" />
+                        <p class="mt-1.5 text-xs text-neutral-500">{{ __('Minimum 100 USDT. A sell ad must be covered by your USDT balance.') }}</p>
                         @if ($locked)
-                            <p class="mt-1.5 text-xs text-neutral-500">{{ __(':locked is locked in open orders — total can\'t go below that.', ['locked' => $locked]) }}</p>
+                            <p class="mt-1 text-xs text-neutral-500">{{ __(':locked is locked in open orders — total can\'t go below that.', ['locked' => $locked]) }}</p>
                         @endif
                     </div>
                     <x-ui.input name="payment_window_min" :label="__('Payment window (minutes)')" type="number" :value="$windowVal" :error="$errors->first('payment_window_min')" />
@@ -115,6 +118,13 @@
                 </div>
 
                 <x-ui.textarea name="terms" :label="__('Terms (optional)')" :value="$termsVal" :placeholder="__('Notes for the counterparty…')" rows="3" />
+
+                <x-ui.textarea name="auto_reply" :label="__('Auto-reply (optional)')" :value="$autoReplyVal" :placeholder="__('Sent to the buyer automatically when an order opens — e.g. payment steps…')" rows="2" />
+
+                <input type="hidden" name="is_express" value="0">
+                <x-ui.checkbox name="is_express" value="1" :checked="$expressVal" align="start"
+                    :label="__('Offer Express trade')"
+                    :hint="__('Commit to fast release. Requires a fast average release time — new merchants qualify by default.')" />
 
                 <div class="flex justify-end gap-3">
                     <a href="{{ route('p2p.ads') }}"><x-ui.button type="button" variant="secondary">{{ __('Cancel') }}</x-ui.button></a>

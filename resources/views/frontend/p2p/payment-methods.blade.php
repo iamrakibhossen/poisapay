@@ -39,7 +39,10 @@
                                 {{ \Illuminate\Support\Str::substr($acc->method->name ?? '?', 0, 2) }}
                             </span>
                             <div class="min-w-0 flex-1">
-                                <p class="truncate text-sm font-semibold text-neutral-900">{{ $acc->method->name ?? __('Account') }}</p>
+                                <p class="flex items-center gap-1.5 truncate text-sm font-semibold text-neutral-900">
+                                    {{ $acc->method->name ?? __('Account') }}
+                                    @if ($acc->is_default)<span class="rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-600">{{ __('Default') }}</span>@endif
+                                </p>
                                 @if ($acc->label)<p class="truncate text-xs text-neutral-400">{{ $acc->label }}</p>@endif
                             </div>
                             <button type="button" aria-label="{{ __('Remove account') }}"
@@ -62,6 +65,13 @@
                                 @endif
                             @endforeach
                         </dl>
+
+                        @unless ($acc->is_default)
+                            <form method="POST" action="{{ route('p2p.payment-methods.default', $acc) }}" class="mt-4 border-t border-neutral-100 pt-3">
+                                @csrf
+                                <x-ui.button type="submit" size="sm" variant="secondary" icon="star" class="w-full">{{ __('Set as default') }}</x-ui.button>
+                            </form>
+                        @endunless
                     </div>
                 @endforeach
             </div>

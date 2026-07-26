@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\P2p;
 
 use App\Enums\P2pOrderStatus;
+use App\Events\P2pOrderStatusChanged;
 use App\Models\P2pAd;
 use App\Models\P2pOrder;
 use App\Models\P2pOrderEvent;
@@ -36,6 +37,9 @@ class P2pOrderService
 
         $order->forceFill(array_merge($attributes, ['status' => $to]))->save();
         $this->recordEvent($order, $from->value, $to->value, $actorType, $actorId, $note);
+
+        // Live-refresh both parties' order pages (after the enclosing tx commits).
+        P2pOrderStatusChanged::dispatch((string) $order->id, $to->value);
     }
 
     public function recordEvent(

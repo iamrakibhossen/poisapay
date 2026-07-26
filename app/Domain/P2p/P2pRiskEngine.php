@@ -11,6 +11,7 @@ use App\Enums\RiskLevel;
 use App\Models\P2pAd;
 use App\Models\P2pOrder;
 use App\Models\User;
+use App\Models\UserDevice;
 use App\Support\Money;
 use Brick\Math\BigInteger;
 use RuntimeException;
@@ -27,7 +28,7 @@ class P2pRiskEngine
 {
     public function __construct(private readonly ComplianceListService $lists) {}
 
-    public function assess(User $taker, User $counterparty, P2pAd $ad, Money $crypto): RiskAssessment
+    public function assess(User $taker, User $counterparty, P2pAd $ad, Money $crypto, ?string $fingerprint = null): RiskAssessment
     {
         // ── Hard: sanctions / denylist on either party ──
         foreach ([$taker, $counterparty] as $party) {
@@ -82,6 +83,12 @@ class P2pRiskEngine
             $reasons[] = 'high_risk_country';
         }
 
+        // Taker is on the same device/IP the counterparty uses — a wash-trade tell.
+        if ($fingerprint !== null && $fingerprint !== '' && $this->sharesDevice($counterparty, $fingerprint)) {
+            $score += 50;
+            $reasons[] = 'shared_device';
+        }
+
         $score = min($score, 100);
 
         return new RiskAssessment($score, RiskLevel::fromScore($score), $reasons);
@@ -116,6 +123,19 @@ class P2pRiskEngine
             ->where(fn ($q) => $q->where('buyer_id', $user->getKey())->orWhere('seller_id', $user->getKey()))
             ->where('created_at', '>=', $since)
             ->count();
+    }
+
+    /** Has the counterparty ever used this device (login or a prior trade)? */
+    private function sharesDevice(User $counterparty, string $fingerprint): bool
+    {
+        if (UserDevice::query()->where('user_id', $counterparty->getKey())->where('fingerprint', $fingerprint)->exists()) {
+            return true;
+        }
+
+        return P2pOrder::query()
+            ->where(fn ($q) => $q->where('buyer_id', $counterparty->getKey())->orWhere('seller_id', $counterparty->getKey()))
+            ->where('taker_fingerprint', $fingerprint)
+            ->exists();
     }
 
     private function counterpartyTradeCount(User $a, User $b): int
