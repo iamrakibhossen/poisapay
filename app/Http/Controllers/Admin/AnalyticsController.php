@@ -15,6 +15,7 @@ use App\Domain\Analytics\Reports\LossReport;
 use App\Domain\Analytics\Reports\OverviewReport;
 use App\Domain\Analytics\Reports\ProfitLossReport;
 use App\Domain\Analytics\Reports\RevenueReport;
+use App\Domain\Analytics\Reports\ShopReport;
 use App\Domain\Analytics\Reports\TreasuryReport;
 use App\Domain\Analytics\Reports\WalletReport;
 use App\Domain\Analytics\Reports\WithdrawalReport;
@@ -44,6 +45,7 @@ class AnalyticsController extends Controller
         'wallet' => [WalletReport::class, 'wallet', 'Balance Sheet'],
         'treasury' => [TreasuryReport::class, 'building-library', 'Balance Sheet'],
         'cards' => [CardReport::class, 'credit-card', 'Products'],
+        'shop' => [ShopReport::class, 'building-storefront', 'Products'],
         'compliance' => [ComplianceReport::class, 'shield-check', 'Risk & Compliance'],
     ];
 

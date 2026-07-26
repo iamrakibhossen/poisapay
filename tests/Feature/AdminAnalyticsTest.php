@@ -6,6 +6,13 @@ use App\Domain\Analytics\Period;
 use App\Models\Admin;
 use App\Models\AnalyticsDailyMetric;
 use App\Models\User;
+use App\Shop\Actions\Order\PlaceOrder;
+use App\Shop\DTOs\CheckoutData;
+use App\Shop\Enums\ProductStatus;
+use App\Shop\Enums\ProductType;
+use App\Shop\Enums\SellerStatus;
+use App\Shop\Models\Product;
+use App\Shop\Models\Seller;
 use Illuminate\Support\Facades\Artisan;
 
 use function Pest\Laravel\actingAs;
@@ -20,7 +27,7 @@ beforeEach(function () {
     $this->admin->syncRoles(['super-admin']);
 });
 
-$sections = ['deposits', 'withdrawals', 'exchange', 'revenue', 'pnl', 'loss', 'wallet', 'treasury', 'cards', 'compliance'];
+$sections = ['deposits', 'withdrawals', 'exchange', 'revenue', 'pnl', 'loss', 'wallet', 'treasury', 'cards', 'shop', 'compliance'];
 
 it('renders the executive overview', function () {
     User::factory()->count(3)->create();
@@ -36,6 +43,31 @@ it('renders every analytics section', function () use ($sections) {
         actingAs($this->admin, 'admin')->get(route('admin.analytics.section', $section))
             ->assertOk();
     }
+});
+
+it('renders the shop section with real commission after a sale', function () {
+    updateSetting('shop_enabled', true);
+
+    $buyer = User::factory()->create();
+    creditUser($buyer, $this->asset, '100000000');
+    $seller = Seller::create([
+        'user_id' => User::factory()->create()->id, 'status' => SellerStatus::Approved,
+        'categories' => [], 'commission_bps' => 1000,
+    ]);
+    $product = Product::create([
+        'seller_id' => $seller->id, 'type' => ProductType::Digital,
+        'name' => 'Kit', 'slug' => 'kit', 'status' => ProductStatus::Published,
+        'price_amount' => 10_000000, 'price_asset_id' => $this->asset->id,
+    ]);
+    app(PlaceOrder::class)->execute($buyer, CheckoutData::fromArray([
+        'product_id' => $product->id, 'quantity' => 1, 'idempotency_key' => 'ana-1',
+    ]));
+
+    actingAs($this->admin, 'admin')->get(route('admin.analytics.section', 'shop'))
+        ->assertOk()
+        ->assertSee('Shop Analytics')
+        ->assertSee('Commission')
+        ->assertSee('GMV');
 });
 
 it('404s an unknown section and the overview alias', function () {
