@@ -7,13 +7,13 @@ namespace App\Shop\Models;
 use App\Models\Asset;
 use App\Models\User;
 use App\Shop\Enums\SellerStatus;
+use App\Utilities\Asset as AssetUtil;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * A seller on the Sell platform — a core User approved to publish products.
@@ -147,8 +147,6 @@ class Seller extends Model
     /** Public URL of the store logo, or null when none is set. */
     public function logoUrl(): ?string
     {
-        return $this->logo_path
-            ? Storage::disk('public')->url($this->logo_path)
-            : null;
+        return AssetUtil::url($this->logo_path);
     }
 }

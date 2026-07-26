@@ -40,11 +40,12 @@ use App\Shop\Services\AnalyticsService;
 use App\Shop\Services\SellerService;
 use App\Shop\Services\ShopRevenueService;
 use App\Support\Money;
+use App\Utilities\Asset as AssetUtil;
 use Brick\Math\BigInteger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -209,13 +210,8 @@ class SellerController extends Controller
             'logo' => ['required', 'image', 'mimes:png,jpg,jpeg,webp,svg', 'max:1024'], // 1 MB
         ]);
 
-        // Replace any previous file.
-        if ($seller->logo_path) {
-            Storage::disk('public')->delete($seller->logo_path);
-        }
-
-        $path = $request->file('logo')->store('sell/logos', 'public');
-        $seller->update(['logo_path' => $path]);
+        // Replace any previous file (validation guarantees a real upload).
+        $seller->update(['logo_path' => AssetUtil::store($request, 'logo', $seller->logo_path, 'shop/logos')]);
 
         return redirect()->route('shop')->with('success', __('Store logo updated.'));
     }
@@ -225,7 +221,7 @@ class SellerController extends Controller
     {
         $seller = $sellers->forUser($request->user());
         if ($seller?->logo_path) {
-            Storage::disk('public')->delete($seller->logo_path);
+            AssetUtil::removeFile($seller->logo_path, 'public');
             $seller->update(['logo_path' => null]);
         }
 
@@ -1337,19 +1333,123 @@ class SellerController extends Controller
         ];
     }
 
-    /** Funnel builder. FRONTEND-FIRST: a sample funnel so the flow is reviewable. */
-    public function funnels(Request $request): View
+    /**
+     * Funnels dashboard: every published sales page with its configured order-bump
+     * + 1-click upsell, alongside live 30-day performance derived from real orders.
+     * Offers are edited in the page builder's Settings tab (server-authoritative);
+     * this page is the overview + entry point, not a second editor.
+     */
+    public function funnels(Request $request, SellerService $sellers): View
     {
+        $seller = $sellers->forUser($request->user());
+
+        $pages = $seller
+            ? $seller->salesPages()
+                ->where('status', SalesPageStatus::Published->value)
+                ->with(['product.priceAsset', 'bumpProduct', 'upsellProduct'])
+                ->latest('updated_at')->get()
+            : new Collection;
+
+        $since = now()->subDays(30);
+        $paidExclude = [OrderStatus::Pending->value, OrderStatus::Cancelled->value];
+        $pageIds = $pages->pluck('id')->all();
+
+        // 30-day performance grouped by sales page (three lean aggregate queries,
+        // no N+1): front purchases, 1-click upsell orders, and bump attach lines.
+        $mainByPage = $upsellByPage = $bumpByPage = new Collection;
+        if ($pageIds !== []) {
+            $mainByPage = Order::query()
+                ->whereIn('sales_page_id', $pageIds)->whereNull('parent_order_id')
+                ->whereNotIn('status', $paidExclude)->where('created_at', '>=', $since)
+                ->groupBy('sales_page_id')
+                ->selectRaw('sales_page_id, count(*) as orders')
+                ->get()->keyBy('sales_page_id');
+
+            $upsellByPage = Order::query()
+                ->whereIn('sales_page_id', $pageIds)->whereNotNull('parent_order_id')
+                ->whereNotIn('status', $paidExclude)->where('created_at', '>=', $since)
+                ->groupBy('sales_page_id')
+                ->selectRaw('sales_page_id, count(*) as orders, coalesce(sum(seller_net_amount), 0) as net')
+                ->get()->keyBy('sales_page_id');
+
+            $bumpByPage = DB::table('shop_order_items as oi')
+                ->join('shop_orders as o', 'o.id', '=', 'oi.order_id')
+                ->where('oi.kind', OrderItemKind::OrderBump->value)
+                ->whereIn('o.sales_page_id', $pageIds)
+                ->whereNotIn('o.status', $paidExclude)->where('o.created_at', '>=', $since)
+                ->groupBy('o.sales_page_id')
+                ->selectRaw('o.sales_page_id as sales_page_id, count(*) as attaches, coalesce(sum(oi.seller_net_amount), 0) as net')
+                ->get()->keyBy('sales_page_id');
+        }
+
+        $totalExtra = $totalMain = $totalUpsell = 0;
+        $repAsset = $seller?->settlementAsset;
+
+        $funnels = $pages->map(function (SalesPage $pg) use (
+            $mainByPage, $upsellByPage, $bumpByPage, &$totalExtra, &$totalMain, &$totalUpsell, &$repAsset
+        ) {
+            $asset = $pg->product?->priceAsset;
+            $repAsset ??= $asset;
+            $money = fn (?int $m) => $m === null ? null
+                : ($asset ? $asset->money((string) $m)->format(2) : number_format($m / 100, 2));
+
+            $mainCount = (int) ($mainByPage[$pg->id]->orders ?? 0);
+            $bumpCount = (int) ($bumpByPage[$pg->id]->attaches ?? 0);
+            $upCount = (int) ($upsellByPage[$pg->id]->orders ?? 0);
+            $extra = (int) ($bumpByPage[$pg->id]->net ?? 0) + (int) ($upsellByPage[$pg->id]->net ?? 0);
+
+            $totalExtra += $extra;
+            $totalMain += $mainCount;
+            $totalUpsell += $upCount;
+
+            $steps = [];
+            if ($pg->bumpProduct) {
+                $steps[] = [
+                    'kind' => 'bump', 'label' => __('Order bump'), 'icon' => 'plus-circle',
+                    'offer' => $pg->bump_headline ?: $pg->bumpProduct->name,
+                    'product' => $pg->bumpProduct->name,
+                    'price' => $money($pg->bumpAmount()),
+                    'where' => __('Shown inside checkout'),
+                    'rate' => $mainCount > 0 ? (int) round($bumpCount / $mainCount * 100) : null,
+                    'taken' => $bumpCount,
+                ];
+            }
+            if ($pg->upsellProduct) {
+                $steps[] = [
+                    'kind' => 'upsell', 'label' => __('1-click upsell'), 'icon' => 'arrow-trending-up',
+                    'offer' => $pg->upsell_headline ?: $pg->upsellProduct->name,
+                    'product' => $pg->upsellProduct->name,
+                    'price' => $money($pg->upsellAmount()),
+                    'where' => __('One-click after payment'),
+                    'rate' => $mainCount > 0 ? (int) round($upCount / $mainCount * 100) : null,
+                    'taken' => $upCount,
+                ];
+            }
+
+            return [
+                'name' => $pg->name,
+                'slug' => $pg->slug,
+                'product' => $pg->product?->name ?? '—',
+                'price' => $money($pg->product ? (int) $pg->product->price_amount : null) ?? '—',
+                'editUrl' => route('shop.sales-page.edit', ['slug' => $pg->slug]).'?tab=settings',
+                'publicUrl' => route('funnel.sales', ['slug' => $pg->slug]),
+                'steps' => $steps,
+                'orders' => $mainCount,
+                'extra' => $money($extra) ?? $money(0),
+            ];
+        })->all();
+
+        $fmt = fn (int $m) => $repAsset ? $repAsset->money((string) $m)->format(2) : number_format($m / 100, 2);
+        $withOffers = collect($funnels)->filter(fn ($f) => $f['steps'] !== [])->count();
+        $upsellRate = $totalMain > 0 ? (int) round($totalUpsell / $totalMain * 100) : 0;
+
         return view('frontend.seller.funnels', [
-            'funnel' => [
-                'name' => 'LaunchKit funnel',
-                'product' => 'LaunchKit — Laravel SaaS Boilerplate',
-                'price' => '$49',
-                'steps' => [
-                    ['kind' => 'bump', 'label' => 'Order bump', 'offer' => 'Premium UI Kit add-on', 'price' => '$19', 'rate' => 34, 'icon' => 'plus-circle', 'where' => 'Shown inside checkout'],
-                    ['kind' => 'upsell', 'label' => 'Upsell #1', 'offer' => 'Extended Team License', 'price' => '$59', 'rate' => 22, 'icon' => 'arrow-trending-up', 'where' => 'One-click after payment'],
-                    ['kind' => 'downsell', 'label' => 'Downsell', 'offer' => 'Single-site License', 'price' => '$29', 'rate' => 11, 'icon' => 'arrow-trending-down', 'where' => 'If the upsell is skipped'],
-                ],
+            'funnels' => $funnels,
+            'hasPages' => (bool) $seller?->salesPages()->exists(),
+            'kpis' => [
+                [__('Extra revenue · 30d'), $fmt($totalExtra), 'arrow-trending-up', 'text-emerald-600'],
+                [__('Funnels with offers'), (string) $withOffers, 'rectangle-group', 'text-neutral-900'],
+                [__('Upsell take rate'), $upsellRate.'%', 'sparkles', 'text-neutral-900'],
             ],
         ]);
     }
@@ -1377,6 +1477,8 @@ class SellerController extends Controller
         if (! ($seller?->canSell() ?? false)) {
             return redirect()->route('shop');
         }
+
+        $validated['image_url'] = AssetUtil::store($request, 'image', null, 'shop/products');
 
         try {
             $product = $action->execute($seller, $this->toProductData($validated, $request));
@@ -1462,6 +1564,9 @@ class SellerController extends Controller
         }
         $product = $seller->products()->findOrFail($id);
 
+        // Replace the cover only when a new file is uploaded; otherwise keep it.
+        $validated['image_url'] = AssetUtil::store($request, 'image', $product->image_url, 'shop/products');
+
         try {
             $action->execute($product, $this->toProductData($validated, $request));
         } catch (ShopException $e) {
@@ -1482,6 +1587,7 @@ class SellerController extends Controller
             'price_asset_id' => ['required', 'integer', 'exists:assets,id'],
             'summary' => ['nullable', 'string', 'max:300'],
             'description' => ['nullable', 'string'],
+            'image' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'], // 2 MB cover
             // Physical extras (kept in attributes until the variant matrix lands)
             'weight' => ['nullable', 'numeric', 'min:0'],
             'sku' => ['nullable', 'string', 'max:64'],
@@ -1598,6 +1704,7 @@ class SellerController extends Controller
             'name' => $validated['name'],
             'summary' => $validated['summary'] ?? null,
             'description' => $validated['description'] ?? null,
+            'image_url' => $validated['image_url'] ?? null,
             'price_amount' => (int) $base,
             'price_asset_id' => $asset->id,
             'requires_shipping' => $validated['type'] === 'physical',

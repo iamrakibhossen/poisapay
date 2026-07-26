@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\KycStatus;
 use App\Enums\KycTier;
+use App\Utilities\Asset as AssetUtil;
 use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -15,7 +16,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Laravel\Sanctum\HasApiTokens;
@@ -73,7 +73,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /** Public URL of the uploaded profile picture, or null to fall back to initials. */
     public function avatarUrl(): ?string
     {
-        return $this->image ? Storage::disk('public')->url($this->image) : null;
+        return AssetUtil::url($this->image);
     }
 
     /** A unique 9-digit public account ID others use to send money. */

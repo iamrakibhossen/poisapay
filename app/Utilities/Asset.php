@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Utilities;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -11,39 +14,76 @@ final class Asset
     public static function fileName(string $name): string
     {
         $extension = pathinfo($name, PATHINFO_EXTENSION);
-        return Str::random(10) . ($extension ? '.' . strtolower($extension) : '');
+
+        return Str::random(10).($extension ? '.'.strtolower($extension) : '');
+    }
+
+    /**
+     * The single entry point for public media uploads. Stores the request's file
+     * for `$name` under a date-bucketed unique path and returns the stored path;
+     * deletes and replaces `$old` when a new file is present, and returns `$old`
+     * unchanged when the request carries no file (so edits keep the current image).
+     */
+    public static function store(Request $request, string $name, ?string $old = null, string $directory = 'images', ?string $disk = 'public'): ?string
+    {
+        if (! $request->hasFile($name)) {
+            return $old;
+        }
+
+        self::removeFile($old, $disk);
+        $file = $request->file($name);
+        $path = self::generateUploadPath($file->getClientOriginalName(), $directory);
+        Storage::disk($disk ?? config('filesystems.default'))->put($path, $file->getContent());
+
+        return $path;
+    }
+
+    /**
+     * Public URL for a stored asset. Absolute URLs and root-relative paths pass
+     * through unchanged; everything else resolves against the given disk.
+     */
+    public static function url(?string $path, ?string $disk = 'public'): ?string
+    {
+        if (blank($path)) {
+            return null;
+        }
+        if (str_starts_with($path, 'http') || str_starts_with($path, '/')) {
+            return $path;
+        }
+
+        return Storage::disk($disk ?? 'public')->url($path);
     }
 
     public static function generateUploadPath(string $fileName, string $directory = 'images'): string
     {
-        $fileName = static::fileName($fileName);
+        $fileName = self::fileName($fileName);
         $fileName = Str::lower($fileName);
-        $unique   = bin2hex(random_bytes(8));
+        $unique = bin2hex(random_bytes(8));
 
         $datePath = implode('/', array_map(
-            fn($part) => hash('crc32b', $part),
+            fn ($part) => hash('crc32b', $part),
             [date('Y'), date('m'), date('d')]
         ));
 
         return "uploads/{$directory}/{$datePath}/{$unique}{$fileName}";
     }
 
-    public static function removeFile(?string $path): bool
+    public static function removeFile(?string $path, ?string $disk = null): bool
     {
-        if (!$path) {
+        if (! $path) {
             return false;
         }
 
-        $disk = Storage::disk(config('filesystems.default'));
+        $disk = Storage::disk($disk ?? config('filesystems.default'));
 
-        if (!$disk->exists($path)) {
+        if (! $disk->exists($path)) {
             return false;
         }
 
         $deleted = @$disk->delete($path);
 
-        Cache::forget('asset:exists:' . md5($path));
-        Cache::forget('asset:thumb:' . md5($path));
+        Cache::forget('asset:exists:'.md5($path));
+        Cache::forget('asset:thumb:'.md5($path));
 
         return $deleted;
     }
@@ -51,6 +91,7 @@ final class Asset
     public static function fileExtension(?string $path): ?string
     {
         $extension = Str::afterLast($path, '.');
+
         return $extension === $path ? null : $extension;
     }
 
@@ -132,7 +173,7 @@ final class Asset
             return '';
         }
 
-        return Cache::rememberForever('asset:thumb:' . md5($originalPath), function () use ($originalPath) {
+        return Cache::rememberForever('asset:thumb:'.md5($originalPath), function () use ($originalPath) {
             $pathInfo = pathinfo($originalPath);
             $disk = Storage::disk(config('filesystems.default'));
 

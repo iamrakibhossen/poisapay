@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\Notification\AdminNotifier;
 use App\Support\Settings;
-use Illuminate\Support\Facades\Storage;
+use App\Utilities\Asset as AssetUtil;
 
 if (! function_exists('getSetting')) {
     /** Read a configurable setting (cached). */
@@ -65,14 +65,7 @@ if (! function_exists('mediaUrl')) {
     /** Resolve a stored media path to a URL, with a fallback. */
     function mediaUrl(?string $path, ?string $default = null): string
     {
-        if (blank($path)) {
-            return $default ?? '';
-        }
-        if (str_starts_with($path, 'http') || str_starts_with($path, '/')) {
-            return $path;
-        }
-
-        return Storage::disk('public')->url($path);
+        return AssetUtil::url($path) ?? $default ?? '';
     }
 }
 

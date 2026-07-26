@@ -15,12 +15,12 @@ use App\Models\Asset;
 use App\Models\UserDevice;
 use App\Models\UserSpendingPriority;
 use App\Support\BaseCurrency;
+use App\Utilities\Asset as AssetUtil;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -126,12 +126,9 @@ class SettingsController extends Controller
 
         // Profile picture: a new upload replaces the old file; ticking "remove" clears it.
         if ($request->hasFile('avatar')) {
-            if ($user->image) {
-                Storage::disk('public')->delete($user->image);
-            }
-            $user->image = $request->file('avatar')->store('avatars/'.$user->id, 'public');
+            $user->image = AssetUtil::store($request, 'avatar', $user->image, 'avatars/'.$user->id);
         } elseif ($request->boolean('remove_avatar') && $user->image) {
-            Storage::disk('public')->delete($user->image);
+            AssetUtil::removeFile($user->image, 'public');
             $user->image = null;
         }
 
