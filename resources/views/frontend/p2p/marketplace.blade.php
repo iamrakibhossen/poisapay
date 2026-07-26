@@ -120,57 +120,42 @@
             </div>
         </div>
 
-        {{-- Sticky filter toolbar --}}
-        <div class="pp-toolbar sticky top-4 z-20 space-y-4 p-4">
-            {{-- Row 1: live count --}}
-            <div class="flex items-center justify-center gap-1.5 text-sm text-neutral-500">
-                <x-heroicon-o-funnel class="h-4 w-4 text-neutral-400" />
-                <span class="font-semibold tabular text-neutral-900">{{ number_format($ads->total()) }}</span> {{ trans_choice('offer|offers', $ads->total()) }} {{ __('available') }}
+        {{-- Filter toolbar — same pattern as the transactions page: pill tabs + right-aligned form --}}
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
+            {{-- Sort pills (query-string links, preserve other filters) --}}
+            <div class="-mx-1 flex flex-nowrap gap-1 overflow-x-auto px-1 lg:flex-wrap">
+                @foreach (['recommended' => __('Recommended'), 'price' => __('Best price'), 'completion' => __('Completion'), 'fast_release' => __('Fastest'), 'trades' => __('Most trades')] as $val => $label)
+                    <a href="{{ route('p2p', array_merge(request()->query(), ['sort' => $val, 'page' => 1])) }}"
+                        class="shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition {{ $filters['sort'] === $val ? 'bg-neutral-900 text-white' : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800' }}">
+                        {{ $label }}
+                    </a>
+                @endforeach
             </div>
 
-            {{-- Row 2: server-side search, filters & sort --}}
-            <form method="GET" action="{{ route('p2p') }}" class="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
-                <input type="hidden" name="side" value="{{ $want }}">
+            <form method="GET" action="{{ route('p2p') }}" class="flex flex-wrap gap-2 lg:ml-auto">
+                <input type="hidden" name="side" value="{{ $want }}" />
+                <input type="hidden" name="sort" value="{{ $filters['sort'] }}" />
 
-                <div class="relative min-w-0 flex-1">
-                    <x-heroicon-o-magnifying-glass class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
-                    <input type="text" name="q" value="{{ $filters['q'] }}" placeholder="{{ __('Search advertiser…') }}" class="pp-input h-10 w-full min-h-0 py-0 pl-9 pr-3 text-sm">
-                </div>
-
-                <input type="text" name="amount" inputmode="decimal" value="{{ $filters['amount'] }}" placeholder="{{ __('Amount') }}" class="pp-input h-10 min-h-0 py-0 px-3 text-sm sm:w-32">
-
-                <select name="method" class="pp-input h-10 min-h-0 py-0 px-3 text-sm sm:w-auto">
+                <select name="method" onchange="this.form.submit()" class="pp-input w-36 text-sm">
                     <option value="">{{ __('All payments') }}</option>
                     @foreach ($methods as $m)
                         <option value="{{ $m->id }}" @selected($filters['method'] === $m->id)>{{ $m->name }}</option>
                     @endforeach
                 </select>
 
-                <select name="sort" class="pp-input h-10 min-h-0 py-0 px-3 text-sm sm:w-auto">
-                    @foreach (['recommended' => __('Recommended'), 'price' => __('Best price'), 'completion' => __('Highest completion'), 'fast_release' => __('Fastest release'), 'trades' => __('Most trades')] as $val => $label)
-                        <option value="{{ $val }}" @selected($filters['sort'] === $val)>{{ $label }}</option>
-                    @endforeach
-                </select>
-
                 <label class="pp-chip cursor-pointer has-[:checked]:border-green-300 has-[:checked]:bg-green-50 has-[:checked]:text-green-700">
-                    <input type="checkbox" name="online" value="1" @checked($filters['online']) class="sr-only">
+                    <input type="checkbox" name="online" value="1" @checked($filters['online']) onchange="this.form.submit()" class="sr-only">
                     <span class="h-2 w-2 rounded-full bg-green-500"></span> {{ __('Online') }}
                 </label>
                 <label class="pp-chip cursor-pointer has-[:checked]:border-brand-300 has-[:checked]:bg-brand-50 has-[:checked]:text-brand-700">
-                    <input type="checkbox" name="verified" value="1" @checked($filters['verified']) class="sr-only">
+                    <input type="checkbox" name="verified" value="1" @checked($filters['verified']) onchange="this.form.submit()" class="sr-only">
                     <x-heroicon-s-check-badge class="h-4 w-4 text-brand-500" /> {{ __('Verified') }}
                 </label>
-                <label class="pp-chip cursor-pointer has-[:checked]:border-amber-300 has-[:checked]:bg-amber-50 has-[:checked]:text-amber-700">
-                    <input type="checkbox" name="fav" value="1" @checked($filters['fav']) class="sr-only">
-                    <x-heroicon-s-star class="h-4 w-4 text-amber-400" /> {{ __('Favourites') }}
-                </label>
-                <label class="pp-chip cursor-pointer has-[:checked]:border-violet-300 has-[:checked]:bg-violet-50 has-[:checked]:text-violet-700">
-                    <input type="checkbox" name="express" value="1" @checked($filters['express']) class="sr-only">
-                    <x-heroicon-s-bolt class="h-4 w-4 text-violet-500" /> {{ __('Express') }}
-                </label>
 
-                <x-ui.button type="submit" variant="secondary" icon="funnel">{{ __('Apply') }}</x-ui.button>
-                <a href="{{ route('p2p', ['side' => $want]) }}" class="text-sm font-medium text-neutral-500 hover:text-neutral-900">{{ __('Clear') }}</a>
+                <div class="relative flex-1 lg:w-56 lg:flex-none">
+                    <x-heroicon-o-magnifying-glass class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+                    <input type="search" name="q" value="{{ $filters['q'] }}" placeholder="{{ __('Search advertiser…') }}" class="pp-input w-full !pl-10 text-sm" />
+                </div>
             </form>
         </div>
 
@@ -266,21 +251,27 @@
 
         </div>
 
-        {{-- Prev / next pager --}}
-        @if ($ads->hasPages())
-            <div class="flex items-center justify-between gap-3">
-                @if ($ads->onFirstPage())
-                    <span class="inline-flex cursor-not-allowed items-center gap-1.5 rounded-xl border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-300"><x-heroicon-o-arrow-left class="h-4 w-4" /> {{ __('Previous') }}</span>
+        {{-- Pagination — prev / next (matches the transactions page) --}}
+        @if ($ads->lastPage() > 1)
+            <div class="flex items-center justify-between text-sm">
+                @if (! $ads->onFirstPage())
+                    <a href="{{ $ads->previousPageUrl() }}" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 font-medium text-neutral-700 transition hover:bg-gray-50">
+                        <x-heroicon-o-chevron-left class="h-4 w-4" /> {{ __('Previous') }}
+                    </a>
                 @else
-                    <a href="{{ $ads->previousPageUrl() }}" class="inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition hover:border-brand-300 hover:bg-brand-50/40"><x-heroicon-o-arrow-left class="h-4 w-4" /> {{ __('Previous') }}</a>
+                    <span class="inline-flex items-center gap-1.5 rounded-lg border border-gray-100 px-3 py-1.5 font-medium text-neutral-300">
+                        <x-heroicon-o-chevron-left class="h-4 w-4" /> {{ __('Previous') }}
+                    </span>
                 @endif
-
-                <span class="text-xs font-medium text-neutral-500">{{ __('Page :current of :last', ['current' => $ads->currentPage(), 'last' => $ads->lastPage()]) }}</span>
-
+                <span class="text-neutral-500">{{ __('Page :page of :last', ['page' => $ads->currentPage(), 'last' => $ads->lastPage()]) }}</span>
                 @if ($ads->hasMorePages())
-                    <a href="{{ $ads->nextPageUrl() }}" class="inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition hover:border-brand-300 hover:bg-brand-50/40">{{ __('Next') }} <x-heroicon-o-arrow-right class="h-4 w-4" /></a>
+                    <a href="{{ $ads->nextPageUrl() }}" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 font-medium text-neutral-700 transition hover:bg-gray-50">
+                        {{ __('Next') }} <x-heroicon-o-chevron-right class="h-4 w-4" />
+                    </a>
                 @else
-                    <span class="inline-flex cursor-not-allowed items-center gap-1.5 rounded-xl border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-300">{{ __('Next') }} <x-heroicon-o-arrow-right class="h-4 w-4" /></span>
+                    <span class="inline-flex items-center gap-1.5 rounded-lg border border-gray-100 px-3 py-1.5 font-medium text-neutral-300">
+                        {{ __('Next') }} <x-heroicon-o-chevron-right class="h-4 w-4" />
+                    </span>
                 @endif
             </div>
         @endif
