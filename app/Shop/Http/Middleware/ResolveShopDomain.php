@@ -52,7 +52,16 @@ class ResolveShopDomain
     private function rewriteToPage(Request $request, string $slug): Request
     {
         $suffix = rtrim($request->getPathInfo(), '/');   // "" | "/checkout" | ...
-        $path = '/p/'.$slug.$suffix;
+        $prefix = '/p/'.$slug;
+
+        // URLs generated on the custom host already carry the full `/p/{slug}` funnel
+        // path (route() uses the request host), e.g. the Buy form posts to
+        // shop.example.com/p/{slug}/buy. Pass those through as-is instead of adding a
+        // second `/p/{slug}` — otherwise every checkout action would 404. A bare
+        // suffix (shop.example.com/checkout) is mapped onto the page as before.
+        $path = ($suffix === $prefix || str_starts_with($suffix, $prefix.'/'))
+            ? $suffix
+            : $prefix.$suffix;
 
         $query = $request->getQueryString();
         $uri = $path.($query !== null && $query !== '' ? '?'.$query : '');

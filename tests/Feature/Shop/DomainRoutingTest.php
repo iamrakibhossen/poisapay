@@ -56,6 +56,24 @@ it('serves the sales page on a verified custom domain', function () {
         ->assertSee('LaunchKit');
 });
 
+it('routes an already-prefixed funnel path (buy/checkout actions) without double-prefixing', function () {
+    ($this->connect)('store.acme.com');
+    $buyer = User::factory()->create();
+    creditUser($buyer, $this->asset, '1000000');
+
+    // route() on the custom host renders form actions as store.acme.com/p/{slug}/checkout.
+    // The middleware must pass that through, not turn it into /p/{slug}/p/{slug}/checkout → 404.
+    $this->actingAs($buyer)
+        ->get('http://store.acme.com/p/launchkit-main/checkout')
+        ->assertOk()
+        ->assertSee('Total');
+
+    // A bare suffix (store.acme.com/checkout) still maps onto the page too.
+    $this->actingAs($buyer)
+        ->get('http://store.acme.com/checkout')
+        ->assertOk();
+});
+
 it('serves the same page on the www alias', function () {
     ($this->connect)('store.acme.com');
 
