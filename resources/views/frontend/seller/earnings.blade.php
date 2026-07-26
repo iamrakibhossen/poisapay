@@ -5,7 +5,15 @@
                 <h1 class="text-2xl font-semibold tracking-tight text-neutral-900">{{ __('Earnings & payouts') }}</h1>
                 <p class="mt-1 text-sm text-neutral-500">{{ __('What you’ve earned from sales, and how to withdraw it.') }}</p>
             </div>
-            <x-ui.button :href="$withdrawUrl" icon="arrow-up-tray">{{ __('Withdraw') }}</x-ui.button>
+            <div class="flex items-center gap-4">
+                @if ($withdrawable)
+                    <div class="text-right">
+                        <p class="text-[11px] font-medium uppercase tracking-wide text-neutral-400">{{ __('Withdrawable now') }}</p>
+                        <p class="tabular text-lg font-bold tracking-tight text-neutral-900">{{ $withdrawable }}</p>
+                    </div>
+                @endif
+                <x-ui.button :href="$withdrawUrl" icon="arrow-up-tray">{{ __('Withdraw') }}</x-ui.button>
+            </div>
         </div>
 
         {{-- Balances --}}
@@ -61,5 +69,27 @@
                 </x-ui.history-table>
             @endif
         </div>
+
+        {{-- Payouts (standard wallet withdrawals of your settlement asset) --}}
+        @if (! empty($payouts))
+            <div>
+                <h2 class="mb-3 px-1 text-sm font-semibold text-neutral-900">{{ __('Payouts') }}</h2>
+                <x-ui.history-table :columns="[
+                    ['label' => __('Amount')],
+                    ['label' => __('Method')],
+                    ['label' => __('Status')],
+                    ['label' => __('Date'), 'align' => 'right'],
+                ]">
+                    @foreach ($payouts as $p)
+                        <tr class="transition hover:bg-neutral-50/70">
+                            <td class="tabular px-5 py-4 align-middle text-sm font-semibold text-neutral-900">{{ $p['amount'] }}</td>
+                            <td class="px-5 py-4 align-middle text-sm text-neutral-500">{{ $p['method'] }}</td>
+                            <td class="px-5 py-4 align-middle"><x-ui.badge :color="$p['color']" dot>{{ $p['status'] }}</x-ui.badge></td>
+                            <td class="whitespace-nowrap px-5 py-4 text-right align-middle text-xs text-neutral-400">{{ $p['date'] }}</td>
+                        </tr>
+                    @endforeach
+                </x-ui.history-table>
+            </div>
+        @endif
     </div>
 </x-layouts.app>

@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Domain\Ledger\LedgerService;
 use App\Http\Controllers\Controller;
 use App\Models\Asset;
+use App\Models\User;
+use App\Models\Withdrawal;
 use App\Shop\Actions\Coupon\CreateCoupon;
 use App\Shop\Actions\Order\RefundOrder;
 use App\Shop\Actions\Order\SendMessage;
@@ -211,7 +214,7 @@ class SellerController extends Controller
         ]);
 
         // Replace any previous file (validation guarantees a real upload).
-        $seller->update(['logo_path' => AssetUtil::store($request, 'logo', $seller->logo_path, 'shop/logos')]);
+        $seller->update(['logo_path' => AssetUtil::store($request, 'logo', $seller->logo_path)]);
 
         return redirect()->route('shop')->with('success', __('Store logo updated.'));
     }
@@ -221,7 +224,7 @@ class SellerController extends Controller
     {
         $seller = $sellers->forUser($request->user());
         if ($seller?->logo_path) {
-            AssetUtil::removeFile($seller->logo_path, 'public');
+            AssetUtil::removeFile($seller->logo_path);
             $seller->update(['logo_path' => null]);
         }
 
@@ -848,7 +851,7 @@ class SellerController extends Controller
         };
     }
 
-    public function earnings(Request $request, SellerService $sellers): View|RedirectResponse
+    public function earnings(Request $request, SellerService $sellers, LedgerService $ledger): View|RedirectResponse
     {
         $seller = $sellers->forUser($request->user());
         if (! $seller || ! $seller->canSell()) {
@@ -857,12 +860,50 @@ class SellerController extends Controller
 
         [$balances, $recent] = $this->sellerEarnings($seller);
 
+        // Payouts reuse the standard wallet withdrawal (shop earnings already sit
+        // in the seller's spendable balance) — no separate money path. "Withdrawable
+        // now" is the real ledger-available balance in the settlement asset.
+        $asset = $seller->settlementAsset;
+        $withdrawable = $asset
+            ? $ledger->availableBalance($request->user(), (int) $asset->id)->format(2)
+            : null;
+
         return view('frontend.seller.earnings', [
             'balances' => $balances,
             'recent' => $recent,
-            'assetCode' => ($seller->settlementAsset ?? $seller->orders()->first()?->asset)?->symbol,
+            'payouts' => $this->sellerPayouts($request->user(), $asset),
+            'withdrawable' => $withdrawable,
+            'assetCode' => ($asset ?? $seller->orders()->first()?->asset)?->symbol,
             'withdrawUrl' => route('withdraw.index'),
         ]);
+    }
+
+    /**
+     * The seller's recent wallet payouts in their settlement asset. These are
+     * standard {@see Withdrawal}s — shop earnings pool into the same spendable
+     * balance, so cashing out earnings IS a wallet withdrawal (no parallel flow).
+     *
+     * @return list<array{amount: string, method: string, status: string, color: string, date: string|null}>
+     */
+    private function sellerPayouts(User $user, ?Asset $asset): array
+    {
+        if ($asset === null) {
+            return [];
+        }
+
+        return $user->withdrawals()
+            ->where('asset_id', $asset->id)
+            ->latest()
+            ->limit(10)
+            ->get()
+            ->map(fn (Withdrawal $w) => [
+                'amount' => $w->money()->format(2),
+                'method' => (string) ($w->isFiatPayout() ? __('Bank / mobile') : __('Crypto')),
+                'status' => Str::headline($w->status->value),
+                'color' => $w->status->color(),
+                'date' => $w->created_at?->format('M j, Y'),
+            ])
+            ->all();
     }
 
     /**
@@ -1478,7 +1519,7 @@ class SellerController extends Controller
             return redirect()->route('shop');
         }
 
-        $validated['image_url'] = AssetUtil::store($request, 'image', null, 'shop/products');
+        $validated['image'] = AssetUtil::store($request, 'image');
 
         try {
             $product = $action->execute($seller, $this->toProductData($validated, $request));
@@ -1565,7 +1606,7 @@ class SellerController extends Controller
         $product = $seller->products()->findOrFail($id);
 
         // Replace the cover only when a new file is uploaded; otherwise keep it.
-        $validated['image_url'] = AssetUtil::store($request, 'image', $product->image_url, 'shop/products');
+        $validated['image'] = AssetUtil::store($request, 'image', $product->image);
 
         try {
             $action->execute($product, $this->toProductData($validated, $request));
@@ -1704,7 +1745,7 @@ class SellerController extends Controller
             'name' => $validated['name'],
             'summary' => $validated['summary'] ?? null,
             'description' => $validated['description'] ?? null,
-            'image_url' => $validated['image_url'] ?? null,
+            'image' => $validated['image'] ?? null,
             'price_amount' => (int) $base,
             'price_asset_id' => $asset->id,
             'requires_shipping' => $validated['type'] === 'physical',
