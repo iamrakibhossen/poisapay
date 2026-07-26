@@ -136,13 +136,6 @@
                 <input type="hidden" name="side" value="{{ $want }}" />
                 <input type="hidden" name="sort" value="{{ $filters['sort'] }}" />
 
-                <select name="method" onchange="this.form.submit()" class="pp-input w-36 text-sm">
-                    <option value="">{{ __('All payments') }}</option>
-                    @foreach ($methods as $m)
-                        <option value="{{ $m->id }}" @selected($filters['method'] === $m->id)>{{ $m->name }}</option>
-                    @endforeach
-                </select>
-
                 <label class="pp-chip cursor-pointer has-[:checked]:border-green-300 has-[:checked]:bg-green-50 has-[:checked]:text-green-700">
                     <input type="checkbox" name="online" value="1" @checked($filters['online']) onchange="this.form.submit()" class="sr-only">
                     <span class="h-2 w-2 rounded-full bg-green-500"></span> {{ __('Online') }}
@@ -151,6 +144,13 @@
                     <input type="checkbox" name="verified" value="1" @checked($filters['verified']) onchange="this.form.submit()" class="sr-only">
                     <x-heroicon-s-check-badge class="h-4 w-4 text-brand-500" /> {{ __('Verified') }}
                 </label>
+
+                <select name="method" onchange="this.form.submit()" class="pp-input w-36 text-sm">
+                    <option value="">{{ __('All payments') }}</option>
+                    @foreach ($methods as $m)
+                        <option value="{{ $m->id }}" @selected($filters['method'] === $m->id)>{{ $m->name }}</option>
+                    @endforeach
+                </select>
 
                 <div class="relative flex-1 lg:w-56 lg:flex-none">
                     <x-heroicon-o-magnifying-glass class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
