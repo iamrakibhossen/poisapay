@@ -18,51 +18,30 @@
             </x-slot:actions>
         </x-ui.page-header>
 
-        {{-- Status tabs --}}
-        <div class="flex gap-1 overflow-x-auto border-b border-neutral-200">
-            @foreach ($tabs as $key => $label)
-                @php $active = $tab === $key; @endphp
-                <a href="{{ route('p2p.orders', array_merge(request()->except(['tab', 'page']), $key === 'all' ? [] : ['tab' => $key])) }}"
-                   class="-mb-px flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors {{ $active ? 'border-brand-500 text-neutral-900' : 'border-transparent text-neutral-500 hover:text-neutral-900' }}">
-                    {{ $label }}
-                    <span class="rounded-full px-1.5 py-0.5 text-xs tabular {{ $active ? 'bg-brand-50 text-brand-700' : 'bg-neutral-100 text-neutral-500' }}">{{ number_format($counts[$key] ?? 0) }}</span>
-                </a>
-            @endforeach
-        </div>
-
-        {{-- Search + advanced filters --}}
-        <form method="GET" action="{{ route('p2p.orders') }}"
-              x-data="{ adv: {{ request()->hasAny(['role', 'from', 'to']) ? 'true' : 'false' }} }" class="space-y-3">
-            <input type="hidden" name="tab" value="{{ $tab }}">
-            <div class="flex flex-wrap items-center gap-3">
-                <div class="relative min-w-[12rem] flex-1">
-                    <x-heroicon-o-magnifying-glass class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ __('Search order number…') }}"
-                           class="pp-input h-10 w-full min-h-0 py-0 pl-9 text-sm">
-                </div>
-                <button type="button" @click="adv = !adv"
-                        class="pp-chip" :class="{ 'is-on': adv }">
-                    <x-heroicon-o-adjustments-horizontal class="h-4 w-4" /> {{ __('Filters') }}
-                    @if (request()->hasAny(['role', 'from', 'to']))<span class="h-1.5 w-1.5 rounded-full bg-brand-500"></span>@endif
-                </button>
-                <x-ui.button type="submit" icon="magnifying-glass">{{ __('Search') }}</x-ui.button>
-                @if ($hasFilters)
-                    <a href="{{ route('p2p.orders') }}" class="text-sm font-medium text-neutral-500 hover:text-neutral-900">{{ __('Reset') }}</a>
-                @endif
+        {{-- Filter toolbar — same pattern as the transactions page: pill tabs + right-aligned form --}}
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
+            <div class="-mx-1 flex flex-nowrap gap-1 overflow-x-auto px-1 lg:flex-wrap">
+                @foreach ($tabs as $key => $label)
+                    <a href="{{ route('p2p.orders', array_merge(request()->except(['tab', 'page']), $key === 'all' ? [] : ['tab' => $key])) }}"
+                       class="shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition {{ $tab === $key ? 'bg-neutral-900 text-white' : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800' }}">
+                        {{ $label }} <span class="tabular opacity-70">{{ number_format($counts[$key] ?? 0) }}</span>
+                    </a>
+                @endforeach
             </div>
 
-            {{-- Advanced --}}
-            <div x-show="adv" x-cloak x-transition
-                 class="grid grid-cols-1 gap-3 rounded-xl border border-neutral-200 bg-white p-4 shadow-[var(--shadow-card)] sm:grid-cols-3">
-                <x-ui.select :label="__('Side')" name="role">
-                    <option value="">{{ __('All') }}</option>
+            <form method="GET" action="{{ route('p2p.orders') }}" class="flex gap-2 lg:ml-auto">
+                <input type="hidden" name="tab" value="{{ $tab }}">
+                <select name="role" onchange="this.form.submit()" class="pp-input w-32 text-sm">
+                    <option value="">{{ __('All sides') }}</option>
                     <option value="buying" @selected(request('role') === 'buying')>{{ __('Buying') }}</option>
                     <option value="selling" @selected(request('role') === 'selling')>{{ __('Selling') }}</option>
-                </x-ui.select>
-                <x-ui.input :label="__('From')" name="from" type="date" :value="request('from')" />
-                <x-ui.input :label="__('To')" name="to" type="date" :value="request('to')" />
-            </div>
-        </form>
+                </select>
+                <div class="relative flex-1 lg:w-56 lg:flex-none">
+                    <x-heroicon-o-magnifying-glass class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+                    <input type="search" name="search" value="{{ request('search') }}" placeholder="{{ __('Search order number…') }}" class="pp-input w-full !pl-10 text-sm" />
+                </div>
+            </form>
+        </div>
 
         {{-- Orders --}}
         @if ($orders->isEmpty())
@@ -162,7 +141,30 @@
                 @endforeach
             </div>
 
-            <div>{{ $orders->links() }}</div>
+            {{-- Pagination — prev / next (matches the transactions page) --}}
+            @if ($orders->lastPage() > 1)
+                <div class="flex items-center justify-between text-sm">
+                    @if (! $orders->onFirstPage())
+                        <a href="{{ $orders->previousPageUrl() }}" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 font-medium text-neutral-700 transition hover:bg-gray-50">
+                            <x-heroicon-o-chevron-left class="h-4 w-4" /> {{ __('Previous') }}
+                        </a>
+                    @else
+                        <span class="inline-flex items-center gap-1.5 rounded-lg border border-gray-100 px-3 py-1.5 font-medium text-neutral-300">
+                            <x-heroicon-o-chevron-left class="h-4 w-4" /> {{ __('Previous') }}
+                        </span>
+                    @endif
+                    <span class="text-neutral-500">{{ __('Page :page of :last', ['page' => $orders->currentPage(), 'last' => $orders->lastPage()]) }}</span>
+                    @if ($orders->hasMorePages())
+                        <a href="{{ $orders->nextPageUrl() }}" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 font-medium text-neutral-700 transition hover:bg-gray-50">
+                            {{ __('Next') }} <x-heroicon-o-chevron-right class="h-4 w-4" />
+                        </a>
+                    @else
+                        <span class="inline-flex items-center gap-1.5 rounded-lg border border-gray-100 px-3 py-1.5 font-medium text-neutral-300">
+                            {{ __('Next') }} <x-heroicon-o-chevron-right class="h-4 w-4" />
+                        </span>
+                    @endif
+                </div>
+            @endif
         @endif
     </div>
 </x-layouts.app>
