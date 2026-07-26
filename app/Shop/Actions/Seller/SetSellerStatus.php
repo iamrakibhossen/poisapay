@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Shop\Actions\Seller;
 
 use App\Models\Admin;
-use App\Notifications\OperatorNotification;
 use App\Shop\Enums\SellerStatus;
 use App\Shop\Events\SellerStatusChanged;
 use App\Shop\Models\Seller;
@@ -46,13 +45,8 @@ class SetSellerStatus
                 ]);
             }
 
+            // Seller notification delivered by ShopNotificationSubscriber (SellerStatusChanged).
             SellerStatusChanged::dispatch($seller, $from, $to, $operator, $reason);
-
-            $seller->user?->notify(new OperatorNotification(
-                title: 'Seller account updated',
-                body: "Your seller account is now {$to->label()}.".($reason ? " Reason: {$reason}" : ''),
-                category: 'seller',
-            ));
 
             return $seller->refresh();
         });

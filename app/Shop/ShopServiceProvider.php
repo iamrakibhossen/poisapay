@@ -10,6 +10,7 @@ use App\Shop\Contracts\AuditableEvent;
 use App\Shop\Events\SellerApplied;
 use App\Shop\Listeners\AuditShopEvent;
 use App\Shop\Listeners\NotifyOperatorsOfSellerApplication;
+use App\Shop\Listeners\ShopNotificationSubscriber;
 use App\Shop\Models\Product;
 use App\Shop\Models\RefundRequest;
 use App\Shop\Models\SalesPage;
@@ -52,6 +53,10 @@ class ShopServiceProvider extends ServiceProvider
 
         // Alert operators when a seller applies so the application can be reviewed.
         Event::listen(SellerApplied::class, NotifyOperatorsOfSellerApplication::class);
+
+        // All Shop user-notifications route through one subscriber → NotificationService
+        // (templates + per-category channel preferences + broadcast). See the subscriber.
+        Event::subscribe(ShopNotificationSubscriber::class);
 
         foreach ($this->policies as $model => $policy) {
             Gate::policy($model, $policy);

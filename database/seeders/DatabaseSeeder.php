@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             CardProviderSeeder::class,
             RewardCampaignSeeder::class,
             NotificationTemplateSeeder::class,
+            ShopNotificationTemplateSeeder::class,
             DepositMethodSeeder::class,
             WithdrawalMethodSeeder::class,
             P2pSeeder::class,

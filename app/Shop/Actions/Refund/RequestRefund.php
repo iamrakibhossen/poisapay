@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Shop\Actions\Refund;
 
 use App\Models\User;
-use App\Notifications\UserNotification;
 use App\Shop\Enums\RefundRequestStatus;
 use App\Shop\Events\RefundRequested;
 use App\Shop\Exceptions\ShopException;
@@ -55,14 +54,8 @@ class RequestRefund
                 'sla_due_at' => now()->addDays((int) getSetting('shop_refund_sla_days', 3)),
             ]);
 
+            // Notifications are delivered by ShopNotificationSubscriber (RefundRequested).
             RefundRequested::dispatch($request);
-
-            $order->seller?->user?->notify(new UserNotification(
-                __('New refund request'),
-                __('A buyer requested a refund on order :number.', ['number' => $order->number]),
-                route('shop.order', ['id' => $order->getKey()]),
-                'product',
-            ));
 
             return $request;
         });

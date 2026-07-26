@@ -6,7 +6,6 @@ namespace App\Shop\Actions\Refund;
 
 use App\Models\Admin;
 use App\Models\JournalEntry;
-use App\Notifications\UserNotification;
 use App\Shop\Actions\Order\RefundOrder;
 use App\Shop\Enums\RefundRequestStatus;
 use App\Shop\Events\RefundApproved;
@@ -52,9 +51,8 @@ class ResolveRefundRequest
                 'resolved_at' => now(),
             ]);
 
+            // Buyer notification delivered by ShopNotificationSubscriber (RefundApproved).
             RefundApproved::dispatch($fresh);
-            $this->notifyBuyer($fresh, __('Refund approved'),
-                __('Your refund on order :number was approved.', ['number' => $order->number]));
 
             return $fresh;
         });
@@ -77,20 +75,10 @@ class ResolveRefundRequest
                 'resolved_at' => now(),
             ]);
 
+            // Buyer notification delivered by ShopNotificationSubscriber (RefundRejected).
             RefundRejected::dispatch($fresh);
-            $this->notifyBuyer($fresh, __('Refund declined'),
-                __('Your refund on order :number was declined.', ['number' => $fresh->order->number]));
 
             return $fresh;
         });
-    }
-
-    private function notifyBuyer(RefundRequest $request, string $title, string $body): void
-    {
-        $request->buyer?->notify(new UserNotification(
-            $title, $body,
-            route('purchases.show', ['order' => $request->order_id]),
-            'product',
-        ));
     }
 }
