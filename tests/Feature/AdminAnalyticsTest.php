@@ -27,7 +27,7 @@ beforeEach(function () {
     $this->admin->syncRoles(['super-admin']);
 });
 
-$sections = ['deposits', 'withdrawals', 'exchange', 'revenue', 'pnl', 'loss', 'wallet', 'treasury', 'cards', 'shop', 'compliance'];
+$sections = ['deposits', 'withdrawals', 'exchange', 'revenue', 'pnl', 'loss', 'wallet', 'treasury', 'cards', 'shop', 'p2p', 'compliance'];
 
 it('renders the executive overview', function () {
     User::factory()->count(3)->create();

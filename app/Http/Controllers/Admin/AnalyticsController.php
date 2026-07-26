@@ -13,6 +13,7 @@ use App\Domain\Analytics\Reports\DepositReport;
 use App\Domain\Analytics\Reports\ExchangeReport;
 use App\Domain\Analytics\Reports\LossReport;
 use App\Domain\Analytics\Reports\OverviewReport;
+use App\Domain\Analytics\Reports\P2pReport;
 use App\Domain\Analytics\Reports\ProfitLossReport;
 use App\Domain\Analytics\Reports\RevenueReport;
 use App\Domain\Analytics\Reports\ShopReport;
@@ -46,6 +47,7 @@ class AnalyticsController extends Controller
         'treasury' => [TreasuryReport::class, 'building-library', 'Balance Sheet'],
         'cards' => [CardReport::class, 'credit-card', 'Products'],
         'shop' => [ShopReport::class, 'building-storefront', 'Products'],
+        'p2p' => [P2pReport::class, 'user-group', 'Products'],
         'compliance' => [ComplianceReport::class, 'shield-check', 'Risk & Compliance'],
     ];
 
