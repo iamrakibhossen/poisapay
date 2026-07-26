@@ -60,4 +60,24 @@ return [
             'localhost', 'example.com', 'example.org', 'example.net',
         ],
     ],
+
+    // ── Tracking / pixels ───────────────────────────────────────────────────
+    // Per-sales-page browser pixels are always on (client-side, no config here).
+    // Server-side Meta Conversions API (CAPI) is opt-in per page (the page must
+    // carry a Conversions API token) AND enabled here. Only the Purchase event is
+    // sent server-side — the browser pixel covers the rest — and it's queued,
+    // deduped with the pixel via a shared event_id, and PII is hashed.
+    'tracking' => [
+        'meta_capi' => [
+            // `simulated` = no network (default; logs intent). `http` posts to the
+            // Graph API — wire it (and set tokens per page) before enabling in prod.
+            'driver' => env('SHOP_META_CAPI_DRIVER', 'simulated'),
+            'api_version' => env('SHOP_META_CAPI_VERSION', 'v21.0'),
+            // Optional Meta "Test Events" code to route sends to the test stream.
+            'test_event_code' => env('SHOP_META_CAPI_TEST_CODE'),
+            // Queued job retry ceiling + backoff (seconds).
+            'max_attempts' => (int) env('SHOP_META_CAPI_ATTEMPTS', 5),
+            'backoff' => (int) env('SHOP_META_CAPI_BACKOFF', 60),
+        ],
+    ],
 ];

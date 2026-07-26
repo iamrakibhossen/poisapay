@@ -63,6 +63,31 @@ Per page: allow/deny cookies, **wait for consent** (defers all `init()` until
 `ppTrackingConsent()`), and anonymize-IP where the network supports it. When a
 page has no configured provider, **nothing** is rendered (zero overhead).
 
+## Server-side (Meta Conversions API)
+
+Browser pixels lose events to iOS/ad-blockers, so **Purchase** is *also* sent
+server-side via Meta's Conversions API — but only when a page opts in by saving a
+**Conversions API token** (the Meta card's second field). Design choices that keep
+request volume tiny and the data correct:
+
+- **Purchase only.** The 13 other events stay browser-only. ~90% less server traffic.
+- **Queued, never inline.** `OrderPlaced` → `SendMetaCapiPurchaseEvent` listener →
+  `SendMetaCapiPurchase` job (Horizon). Checkout never waits on Meta; retries with
+  backoff (`shop.tracking.meta_capi.max_attempts`/`backoff`).
+- **Deduped with the pixel.** Both send `event_id = order id`, so Meta counts one
+  conversion. The browser `fbq('track','Purchase',…,{eventID})` and the CAPI event
+  share it; retries stay idempotent.
+- **PII hashed.** Email is SHA-256'd (lowercased/trimmed); ip/ua/`_fbp`/`_fbc` are
+  captured at dispatch and sent raw as Meta expects.
+- **Driver behind a contract.** `MetaCapiClient` → `simulated` (default, no network,
+  logs intent) or `http` (`HttpMetaCapiClient`, posts a batch to
+  `graph.facebook.com/{ver}/{pixel}/events`). Set `SHOP_META_CAPI_DRIVER=http` +
+  per-page tokens before enabling in prod. `config/shop.php → tracking.meta_capi`.
+
+Adding another network's server-side API (TikTok Events API, GA4 Measurement
+Protocol) follows the same shape: a `*CapiClient` contract + driver + an
+`OrderPlaced` listener — no change to the browser layer.
+
 ## Test events
 
 Builder → Settings → Tracking & Pixels → *Send test event* opens

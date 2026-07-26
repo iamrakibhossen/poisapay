@@ -5023,6 +5023,18 @@ parameters:
 			path: app/Shop/Http/Resources/SalesPageResource.php
 
 		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$slug\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Shop/Listeners/SendMetaCapiPurchaseEvent.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$tracking\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Shop/Listeners/SendMetaCapiPurchaseEvent.php
+
+		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
 			identifier: property.notFound
 			count: 2
@@ -5555,6 +5567,30 @@ parameters:
 			identifier: staticMethod.unresolvableReturnType
 			count: 1
 			path: app/Shop/Services/SalesPageService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$currency_code\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Shop/Tracking/Capi/MetaPurchaseEvent.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Shop/Tracking/Capi/MetaPurchaseEvent.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Shop/Tracking/Capi/MetaPurchaseEvent.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:money\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Shop/Tracking/Capi/MetaPurchaseEvent.php
 
 		-
 			message: '#^Method App\\Support\\AdminMenu\:\:groups\(\) return type has no value type specified in iterable type array\.$#'

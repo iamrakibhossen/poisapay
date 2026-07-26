@@ -550,7 +550,11 @@ class PublicSalesController extends Controller
         $events = [TrackingEvent::of(TrackingEventType::PageView)];
         if ($order) {
             $events[] = TrackingEvent::of(TrackingEventType::Purchase,
-                $this->trackingProduct($page->product, (int) $order->total_amount) + ['order_id' => (string) $order->getKey()],
+                $this->trackingProduct($page->product, (int) $order->total_amount) + [
+                    'order_id' => (string) $order->getKey(),
+                    // Shared with the server-side CAPI Purchase so Meta dedups the pair.
+                    'event_id' => (string) $order->getKey(),
+                ],
             );
         }
 

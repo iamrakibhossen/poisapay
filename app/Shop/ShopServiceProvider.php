@@ -9,9 +9,11 @@ use App\Shop\Builder\BlockRegistry;
 use App\Shop\Contracts\AuditableEvent;
 use App\Shop\Contracts\DnsResolver;
 use App\Shop\Contracts\SslProvisioner;
+use App\Shop\Events\OrderPlaced;
 use App\Shop\Events\SellerApplied;
 use App\Shop\Listeners\AuditShopEvent;
 use App\Shop\Listeners\NotifyOperatorsOfSellerApplication;
+use App\Shop\Listeners\SendMetaCapiPurchaseEvent;
 use App\Shop\Listeners\ShopNotificationSubscriber;
 use App\Shop\Models\Domain;
 use App\Shop\Models\Product;
@@ -32,6 +34,9 @@ use App\Shop\Services\SalesPageService;
 use App\Shop\Services\SellerService;
 use App\Shop\Services\Ssl\AcmeSslProvisioner;
 use App\Shop\Services\Ssl\SimulatedSslProvisioner;
+use App\Shop\Tracking\Capi\HttpMetaCapiClient;
+use App\Shop\Tracking\Capi\SimulatedMetaCapiClient;
+use App\Shop\Tracking\Contracts\MetaCapiClient;
 use App\Shop\Tracking\Providers\Ga4Provider;
 use App\Shop\Tracking\Providers\GtmProvider;
 use App\Shop\Tracking\Providers\MetaProvider;
@@ -75,6 +80,12 @@ class ShopServiceProvider extends ServiceProvider
         // shared across every image rendered on a page.
         $this->app->singleton(MediaUrlService::class);
 
+        // Meta Conversions API: simulated (no network) by default, real HTTP in prod.
+        $this->app->bind(MetaCapiClient::class, fn () => match (config('shop.tracking.meta_capi.driver')) {
+            'http' => new HttpMetaCapiClient,
+            default => new SimulatedMetaCapiClient,
+        });
+
         // Custom-domain DNS + SSL sit behind contracts so tests swap in fakes and
         // the SSL provider is chosen by config (simulated by default, ACME in prod).
         $this->app->bind(DnsResolver::class, SystemDnsResolver::class);
@@ -91,6 +102,10 @@ class ShopServiceProvider extends ServiceProvider
 
         // Alert operators when a seller applies so the application can be reviewed.
         Event::listen(SellerApplied::class, NotifyOperatorsOfSellerApplication::class);
+
+        // A paid order queues the server-side Meta Purchase (only if the page opted
+        // into CAPI). Deduped with the browser pixel via the shared event_id.
+        Event::listen(OrderPlaced::class, SendMetaCapiPurchaseEvent::class);
 
         // All Shop user-notifications route through one subscriber → NotificationService
         // (templates + per-category channel preferences + broadcast). See the subscriber.
