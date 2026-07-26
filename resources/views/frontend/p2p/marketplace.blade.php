@@ -110,21 +110,22 @@
             </form>
         @endif
 
-        {{-- Buy / Sell + sticky filter toolbar --}}
-        <div class="pp-toolbar sticky top-4 z-20 space-y-4 p-4">
-            {{-- Row 1: side switch + live count --}}
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div class="pp-seg">
-                    <a href="{{ route('p2p', ['side' => 'buy']) }}"
-                       class="{{ $buyActive ? 'bg-green-600 text-white shadow-sm' : 'text-neutral-500 hover:text-neutral-900' }}">{{ __('Buy USDT') }}</a>
-                    <a href="{{ route('p2p', ['side' => 'sell']) }}"
-                       class="{{ ! $buyActive ? 'bg-red-600 text-white shadow-sm' : 'text-neutral-500 hover:text-neutral-900' }}">{{ __('Sell USDT') }}</a>
-                </div>
+        {{-- Buy / Sell — two separate buttons, centered --}}
+        <div class="flex justify-center">
+            <div class="inline-flex gap-2 rounded-2xl bg-neutral-100 p-1.5 shadow-inner">
+                <a href="{{ route('p2p', ['side' => 'buy']) }}"
+                   class="rounded-xl px-10 py-2.5 text-sm font-bold transition {{ $buyActive ? 'bg-green-600 text-white shadow-sm' : 'text-neutral-500 hover:text-neutral-900' }}">{{ __('Buy USDT') }}</a>
+                <a href="{{ route('p2p', ['side' => 'sell']) }}"
+                   class="rounded-xl px-10 py-2.5 text-sm font-bold transition {{ ! $buyActive ? 'bg-red-600 text-white shadow-sm' : 'text-neutral-500 hover:text-neutral-900' }}">{{ __('Sell USDT') }}</a>
+            </div>
+        </div>
 
-                <p class="flex items-center gap-1.5 text-sm text-neutral-500">
-                    <x-heroicon-o-funnel class="h-4 w-4 text-neutral-400" />
-                    <span class="font-semibold tabular text-neutral-900">{{ number_format($ads->total()) }}</span> {{ trans_choice('ad|ads', $ads->total()) }}
-                </p>
+        {{-- Sticky filter toolbar --}}
+        <div class="pp-toolbar sticky top-4 z-20 space-y-4 p-4">
+            {{-- Row 1: live count --}}
+            <div class="flex items-center justify-center gap-1.5 text-sm text-neutral-500">
+                <x-heroicon-o-funnel class="h-4 w-4 text-neutral-400" />
+                <span class="font-semibold tabular text-neutral-900">{{ number_format($ads->total()) }}</span> {{ trans_choice('offer|offers', $ads->total()) }} {{ __('available') }}
             </div>
 
             {{-- Row 2: server-side search, filters & sort --}}
@@ -265,7 +266,24 @@
 
         </div>
 
-        <div>{{ $ads->withQueryString()->links() }}</div>
+        {{-- Prev / next pager --}}
+        @if ($ads->hasPages())
+            <div class="flex items-center justify-between gap-3">
+                @if ($ads->onFirstPage())
+                    <span class="inline-flex cursor-not-allowed items-center gap-1.5 rounded-xl border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-300"><x-heroicon-o-arrow-left class="h-4 w-4" /> {{ __('Previous') }}</span>
+                @else
+                    <a href="{{ $ads->previousPageUrl() }}" class="inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition hover:border-brand-300 hover:bg-brand-50/40"><x-heroicon-o-arrow-left class="h-4 w-4" /> {{ __('Previous') }}</a>
+                @endif
+
+                <span class="text-xs font-medium text-neutral-500">{{ __('Page :current of :last', ['current' => $ads->currentPage(), 'last' => $ads->lastPage()]) }}</span>
+
+                @if ($ads->hasMorePages())
+                    <a href="{{ $ads->nextPageUrl() }}" class="inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition hover:border-brand-300 hover:bg-brand-50/40">{{ __('Next') }} <x-heroicon-o-arrow-right class="h-4 w-4" /></a>
+                @else
+                    <span class="inline-flex cursor-not-allowed items-center gap-1.5 rounded-xl border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-300">{{ __('Next') }} <x-heroicon-o-arrow-right class="h-4 w-4" /></span>
+                @endif
+            </div>
+        @endif
 
         {{-- Order modal (shared, populated by Alpine) --}}
         <x-ui.modal name="p2p-order" :title="__('Place order')" maxWidth="sm">
