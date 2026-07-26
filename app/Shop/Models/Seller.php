@@ -12,11 +12,25 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * A seller on the Sell platform — a core User approved to publish products.
  *
+ * @property string $id
+ * @property string $user_id
+ * @property string|null $brand_name
+ * @property string|null $logo_path
+ * @property array<int, string>|null $categories
  * @property SellerStatus $status
+ * @property int|null $commission_bps
+ * @property int|null $settlement_asset_id
+ * @property string|null $plan
+ * @property Carbon|null $reviewed_at
+ * @property Carbon|null $approved_at
+ * @property-read User|null $user
+ * @property-read Asset|null $settlementAsset
  */
 class Seller extends Model
 {
@@ -44,42 +58,59 @@ class Seller extends Model
         ];
     }
 
-    /** Core module relation (Sell consumes Users, never owns them). */
+    /**
+     * Core module relation (Sell consumes Users, never owns them).
+     *
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /** @return BelongsTo<Asset, $this> */
     public function settlementAsset(): BelongsTo
     {
         return $this->belongsTo(Asset::class, 'settlement_asset_id');
     }
 
+    /** @return HasMany<Product, $this> */
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
     }
 
+    /** @return HasMany<SalesPage, $this> */
     public function salesPages(): HasMany
     {
         return $this->hasMany(SalesPage::class);
     }
 
+    /** @return HasMany<Domain, $this> */
+    public function domains(): HasMany
+    {
+        return $this->hasMany(Domain::class);
+    }
+
+    /** @return HasMany<Order, $this> */
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
     }
 
+    /** @return HasMany<SellerApplication, $this> */
     public function applications(): HasMany
     {
         return $this->hasMany(SellerApplication::class);
     }
 
+    /** @return HasMany<Review, $this> */
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
     }
 
+    /** @return HasMany<Coupon, $this> */
     public function coupons(): HasMany
     {
         return $this->hasMany(Coupon::class);
@@ -117,7 +148,7 @@ class Seller extends Model
     public function logoUrl(): ?string
     {
         return $this->logo_path
-            ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->logo_path)
+            ? Storage::disk('public')->url($this->logo_path)
             : null;
     }
 }

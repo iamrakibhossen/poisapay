@@ -39,6 +39,9 @@ class ShopReport extends Report
         return 'Shop Analytics';
     }
 
+    /**
+     * @return array{kpis: list<array<string, mixed>>, charts: list<array<string, mixed>>, tables: list<array<string, mixed>>, alerts: list<array<string, mixed>>, notes: list<string>}
+     */
     public function build(Period $period): array
     {
         $e = $this->envelope();

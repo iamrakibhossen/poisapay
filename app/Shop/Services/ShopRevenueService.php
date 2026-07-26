@@ -116,7 +116,11 @@ class ShopRevenueService
         ];
     }
 
-    /** Daily net-sales series for a chart. @return array<int, array{label: string, value: float}> */
+    /**
+     * Daily net-sales series for a chart.
+     *
+     * @return array<int, array{label: string, value: float}>
+     */
     public function dailyNetSalesSeries(Asset $asset, int $days = 14): array
     {
         return collect(range($days - 1, 0))->map(function (int $d) use ($asset) {
@@ -190,7 +194,8 @@ class ShopRevenueService
             $q->where('e.created_at', '<', $until);
         }
 
-        return BigInteger::of((string) ($q->sum('l.amount') ?? '0'));
+        // Builder::sum() already coalesces an empty result to 0, so it never returns null.
+        return BigInteger::of((string) $q->sum('l.amount'));
     }
 
     /**
