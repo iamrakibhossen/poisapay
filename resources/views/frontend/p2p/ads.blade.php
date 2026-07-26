@@ -145,7 +145,7 @@
                         @if ($ad->paymentMethods->isNotEmpty())
                             <div class="mt-2 flex flex-wrap gap-1.5">
                                 @foreach ($ad->paymentMethods as $m)
-                                    <span class="inline-flex items-center rounded-md border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-xs font-medium text-neutral-600">{{ $m->name }}</span>
+                                    <span class="inline-flex items-center rounded-md border border-neutral-200 border-l-[3px] border-l-brand-400 bg-neutral-50 px-2 py-0.5 text-xs font-medium text-neutral-600">{{ $m->name }}</span>
                                 @endforeach
                             </div>
                         @endif
