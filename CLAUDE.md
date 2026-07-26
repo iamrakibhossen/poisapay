@@ -181,7 +181,16 @@ Shop/         commerce bounded context (App\Shop, ShopServiceProvider)
 ## Revenue Engine Rules
 
 - Platform profit is realized as ledger income accounts (e.g. swap spread → `FxSpreadIncome`,
-  Shop commission → `sell:commission_income`).
+  Shop commission → `sell:commission_income`, P2P taker fee → `p2p:fee_income`).
+- **The Revenue Wallet has no table** — its balance and every "revenue transaction" are
+  *derived* from ledger credits to a single account set: `RevenueService::REVENUE_TYPES`.
+  **When you add a new income `LedgerAccountType`, add it in three places or the money is
+  invisible/stuck:** `RevenueService::REVENUE_TYPES` (balance/stats/transactions), the draw
+  list `ProcessRevenueWithdrawalAction::FEE_ACCOUNTS` (else the balance is un-withdrawable),
+  and `RevenueService::feeTypeLabel()` + `RevenueTransactionsController::feeTypeOptions()`
+  (human label + filter). These three lists must stay in sync. (P2P fee income was posted
+  to the ledger since the P2P build but omitted from all four → never surfaced as revenue;
+  now included.)
 - Revenue withdrawals go through `RequestRevenueWithdrawalAction` →
   `ProcessRevenueWithdrawalAction` (`app/Domain/Revenue`) and `WithdrawProfitAction` —
   profit leaves via the ledger like any other money path.
@@ -211,6 +220,17 @@ Shop/         commerce bounded context (App\Shop, ShopServiceProvider)
   Subscription / Service / Bundle (no Course case; "Students" module dropped).
 - **Earnings hold→release:** flag `sell_earnings_hold`, hourly release command.
 - **Refunds:** `RefundOrder` reverses the ledger and revokes access (full money-path).
+- **Digital file delivery:** the seller's product `file` (digital/license) is stored on a
+  **private** disk (`config/shop.php → files.disk`) as a checksummed, versioned
+  `ProductFile` via `ProductFileService` (new upload supersedes the current version),
+  `scan_status = Pending`. A queued `ScanProductFile` runs a `Contracts\FileScanner`
+  (`simulated` = EICAR-only default | `clamav` for prod, `files.scanner`) → `Clean`
+  (deliverable) or `Infected` (quarantined: dropped as current, never served); an
+  inconclusive scan throws → retry. `FileScanStatus` enum is cast on `ProductFile`.
+  `PurchasesController::download` serves **only the current Clean file**, enforces the
+  count/expiry `Download` grant issued by `PlaceOrder::grantDigitalDelivery`, and excludes
+  refunded orders; buyers see "Preparing your download…" while a file scans (was a bare
+  "File pending"). **Wire ClamAV before trusting uploads in prod.**
 - **Funnel offers:** each sales page carries a server-authoritative **order bump**
   (pre-checkout, same balanced order) + **1-click upsell** (post-purchase, child order via
   `parent_order_id`) — columns on `shop_sales_pages`, edited in the builder **Settings** tab
