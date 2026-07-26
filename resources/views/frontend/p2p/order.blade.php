@@ -172,7 +172,7 @@
                         </x-ui.list-group-item>
                         @if ($order->paymentMethod)
                             <x-ui.list-group-item :label="__('Payment method')" class="!py-2.5">
-                                <x-slot:value><span class="inline-flex items-center rounded-md border border-neutral-200 border-l-[3px] border-l-brand-400 bg-neutral-50 px-2 py-0.5 text-xs font-medium text-neutral-600">{{ $order->paymentMethod->name }}</span></x-slot:value>
+                                <x-slot:value><span class="inline-flex items-center border-l-[3px] bg-neutral-50 px-2 py-0.5 text-xs font-medium text-neutral-600" style="border-left-color: #{{ substr(md5($order->paymentMethod->key ?? $order->paymentMethod->name), 0, 6) }}">{{ $order->paymentMethod->name }}</span></x-slot:value>
                             </x-ui.list-group-item>
                         @endif
                         <x-ui.list-group-item :label="__('Opened')" :value="$order->created_at?->format('d M, Y · h:i A')" class="!py-2.5" />
