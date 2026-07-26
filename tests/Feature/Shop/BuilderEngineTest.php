@@ -407,6 +407,38 @@ it('applies a starter template to the working draft', function () {
         ->assertNotFound();
 });
 
+it('hydrates applied-template nodes with full block defaults so every field is editable', function () {
+    [$user, , , $page] = makeBuilderPage();
+    $registry = app(BlockRegistry::class);
+
+    $this->actingAs($user)
+        ->postJson(route('shop.sales-page.template', ['slug' => 'main-page']), ['template' => 'saas'])
+        ->assertOk();
+
+    $flatten = function (array $nodes) use (&$flatten): array {
+        $out = [];
+        foreach ($nodes as $n) {
+            $out[] = $n;
+            if (! empty($n['children'])) {
+                $out = array_merge($out, $flatten($n['children']));
+            }
+        }
+
+        return $out;
+    };
+
+    $nodes = collect($flatten($page->fresh()->draft['root']['children'] ?? []))
+        ->filter(fn ($n) => ($n['type'] ?? null) !== 'page' && $registry->has($n['type'] ?? ''));
+
+    expect($nodes)->not->toBeEmpty();
+    // Every default prop key is present on the applied node → the property panel
+    // binds to real keys instead of undefined, so template values are editable.
+    $nodes->each(function ($n) use ($registry) {
+        $missing = array_diff(array_keys($registry->get($n['type'])->defaults()), array_keys($n['props'] ?? []));
+        expect($missing)->toBe([], "block {$n['type']} is missing default props after applying the template");
+    });
+});
+
 it('renders a live template preview for the gallery thumbnail', function () {
     [$user] = makeBuilderPage();
 

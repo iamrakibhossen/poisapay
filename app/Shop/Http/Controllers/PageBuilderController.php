@@ -388,10 +388,49 @@ class PageBuilderController extends Controller
         $document = TemplateLibrary::document($validated['template']);
         abort_if($document === null, 404);
 
+        // Templates store only the props they override (the renderer fills the rest
+        // from schema defaults). But the EDITOR's property panel binds to each block's
+        // full field set, so a template node's missing keys can't be edited. Hydrate
+        // every node with its block defaults on apply → applied templates behave
+        // exactly like hand-built blocks.
+        $document = $this->hydrateDefaults($document);
+
         $clean = $this->sanitizer->clean($document);
         $page->update(['draft' => $clean, 'version' => $page->version + 1]);
 
         return response()->json(['document' => $clean, 'savedAt' => now()->toIso8601String()]);
+    }
+
+    /**
+     * Merge each node's block-schema default props under its (override) props, so an
+     * applied template carries the full, editable prop set — recursively.
+     *
+     * @param  array<string, mixed>  $document
+     * @return array<string, mixed>
+     */
+    private function hydrateDefaults(array $document): array
+    {
+        $walk = function (array &$nodes) use (&$walk): void {
+            foreach ($nodes as &$node) {
+                $type = $node['type'] ?? null;
+                if (is_string($type) && $this->registry->has($type)) {
+                    $node['props'] = array_replace(
+                        $this->registry->get($type)->defaults(),
+                        is_array($node['props'] ?? null) ? $node['props'] : [],
+                    );
+                }
+                if (! empty($node['children']) && is_array($node['children'])) {
+                    $walk($node['children']);
+                }
+            }
+            unset($node);
+        };
+
+        if (! empty($document['root']['children']) && is_array($document['root']['children'])) {
+            $walk($document['root']['children']);
+        }
+
+        return $document;
     }
 
     /**
