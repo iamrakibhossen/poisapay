@@ -20,7 +20,10 @@
              payment always happens on one trusted host. CSRF-exempt handoff. --}}
         <form id="buy" method="POST" action="{{ rtrim(config('app.url'), '/') }}/checkout" class="hidden">
             <input type="hidden" name="slug" value="{{ $slug }}">
-            <input type="hidden" name="return_url" value="{{ url()->current() }}">
+            {{-- On a custom domain the storefront's clean URL is the root (it serves the
+                 same page); on the platform host it's /p/{slug}. --}}
+            <input type="hidden" name="return_url"
+                value="{{ \App\Shop\Support\PlatformHost::is(request()->getHost()) ? url()->current() : url('/') }}">
         </form>
 
         {{-- Store top bar (chrome — hidden when the built page has its own header block) --}}
