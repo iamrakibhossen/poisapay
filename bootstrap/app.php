@@ -26,6 +26,12 @@ return Application::configure(basePath: dirname(__DIR__))
             SetLocale::class,
         ]);
 
+        // The central checkout entry is a cross-origin handoff (a storefront on a
+        // custom domain posts the buyer here), so no same-origin CSRF token can be
+        // present. Safe because it carries only a page id — price/commission are
+        // re-resolved server-side and the actual charge downstream is CSRF-protected.
+        $middleware->validateCsrfTokens(except: ['checkout']);
+
         // Global (pre-routing) so it can rewrite a custom domain onto the funnel
         // routes. Appended → runs after the framework's proxy/host middleware, so
         // Request::getHost() is already the real, proxy-resolved host.

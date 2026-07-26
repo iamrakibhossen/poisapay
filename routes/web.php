@@ -50,6 +50,11 @@ Route::controller(PublicSalesController::class)->group(function () {
     Route::post('/p/{slug}/account', 'accountSubmit')->middleware('throttle:10,1')->name('funnel.account.submit');
     Route::get('/p/{slug}/thank-you', 'thankYou')->name('funnel.thankyou');
     Route::post('/p/{slug}/upsell', 'upsellAccept')->name('funnel.upsell');
+
+    // Central hosted checkout (always on the platform host). A storefront's Buy form
+    // posts here — cross-origin from a custom domain — then the funnel runs centrally.
+    Route::post('/checkout', 'enter')->name('checkout.enter');           // CSRF-exempt (see bootstrap/app.php)
+    Route::get('/checkout/{product}', 'directCheckout')->name('checkout.direct');
 });
 Route::post('/locale', [LocaleController::class, 'update'])->name('locale.switch');
 

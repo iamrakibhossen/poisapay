@@ -360,6 +360,65 @@ class PublicSalesController extends Controller
         return redirect()->route('funnel.thankyou', ['slug' => $slug])->with('order_id', $order->getKey());
     }
 
+    /**
+     * Central checkout entry (platform host). A storefront's Buy form posts here —
+     * possibly cross-origin from a custom domain — carrying only the page id (a
+     * selection, never a price). We hand off to the SAME funnel on THIS platform
+     * host, so payment always happens centrally with one PoisaPay session and one
+     * trusted domain. CSRF-exempt by design (cross-origin handoff); the actual
+     * order placement downstream is same-origin + CSRF-protected + price is
+     * re-resolved server-side, so a tampered post can't change what's charged.
+     */
+    public function enter(Request $request): RedirectResponse
+    {
+        if (! feature('shop_enabled', false)) {
+            abort(404);
+        }
+
+        $data = $request->validate([
+            'slug' => ['required', 'string', 'max:200'],
+            'coupon' => ['nullable', 'string', 'max:40'],
+        ]);
+
+        // publishedPage() 404s an unknown/unpublished slug (host-header/takeover safe).
+        $page = $this->publishedPage($data['slug']);
+
+        return $this->handoffTo($request, $page, empty($data['coupon']) ? null : $data['coupon']);
+    }
+
+    /** Shareable direct checkout link — poisapay.com/checkout/{product}. */
+    public function directCheckout(Request $request, string $product): RedirectResponse
+    {
+        if (! feature('shop_enabled', false)) {
+            abort(404);
+        }
+
+        $found = Product::find($product);
+        abort_if($found === null, 404);
+
+        $page = SalesPage::where('product_id', $found->getKey())
+            ->where('status', SalesPageStatus::Published)->latest('published_at')->first();
+        abort_if($page === null, 404);
+
+        return $this->handoffTo($request, $page, null);
+    }
+
+    /** Route the buyer into the central funnel pay flow (guest → account first). */
+    private function handoffTo(Request $request, SalesPage $page, ?string $coupon): RedirectResponse
+    {
+        $pay = route('funnel.pay', ['slug' => $page->slug])
+            .($coupon !== null && trim($coupon) !== '' ? '?coupon='.urlencode($coupon) : '');
+
+        if ($request->user()) {
+            return redirect()->to($pay);
+        }
+
+        // Guest: the on-funnel express-account step, then resume the pay page.
+        $request->session()->put('url.intended', $pay);
+
+        return redirect()->route('funnel.account', ['slug' => $page->slug]);
+    }
+
     public function thankYou(Request $request, string $slug): View
     {
         $page = $this->publishedPage($slug);

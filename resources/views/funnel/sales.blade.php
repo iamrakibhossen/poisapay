@@ -15,8 +15,12 @@
 
     <div style="font-family: var(--pp-font, Inter, ui-sans-serif, system-ui)"
         class="min-h-screen bg-white pb-20 text-neutral-900 lg:pb-0">
-        {{-- The single real checkout form; every buy button on the page references it. --}}
-        <form id="buy" method="POST" action="{{ route('funnel.checkout', ['slug' => $slug]) }}" class="hidden">@csrf</form>
+        {{-- The single real checkout form; every buy button references it. Posts to the
+             CENTRAL checkout on the platform host — even from a custom domain — so
+             payment always happens on one trusted host. CSRF-exempt handoff. --}}
+        <form id="buy" method="POST" action="{{ rtrim(config('app.url'), '/') }}/checkout" class="hidden">
+            <input type="hidden" name="slug" value="{{ $slug }}">
+        </form>
 
         {{-- Store top bar (chrome — hidden when the built page has its own header block) --}}
         @unless ($hasHeader ?? false)
