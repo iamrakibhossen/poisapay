@@ -2355,13 +2355,19 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$files\.$#'
 			identifier: property.notFound
-			count: 4
+			count: 2
 			path: app/Http/Controllers/Frontend/PurchasesController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
 			identifier: property.notFound
 			count: 3
+			path: app/Http/Controllers/Frontend/PurchasesController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$image\.$#'
+			identifier: property.notFound
+			count: 1
 			path: app/Http/Controllers/Frontend/PurchasesController.php
 
 		-
@@ -2372,6 +2378,12 @@ parameters:
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$reviews\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Frontend/PurchasesController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$salesPages\.$#'
 			identifier: property.notFound
 			count: 1
 			path: app/Http/Controllers/Frontend/PurchasesController.php

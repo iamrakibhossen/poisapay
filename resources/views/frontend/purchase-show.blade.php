@@ -25,15 +25,28 @@
                 @foreach ($items as $p)
                     <x-ui.card>
                         <div class="flex items-start gap-3">
-                            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-600"><x-dynamic-component :component="'heroicon-o-'.$p['icon']" class="h-5 w-5" /></span>
+                            @if (! empty($p['image']))
+                                <img src="{{ $p['image'] }}" alt="" class="h-12 w-12 shrink-0 rounded-lg object-cover ring-1 ring-neutral-200" />
+                            @else
+                                <span class="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-600"><x-dynamic-component :component="'heroicon-o-'.$p['icon']" class="h-5 w-5" /></span>
+                            @endif
                             <div class="min-w-0 flex-1">
                                 <p class="text-sm font-semibold text-neutral-900">{{ $p['name'] }}</p>
                                 <p class="text-xs text-neutral-500">{{ $p['price'] }}</p>
+                                @if (($p['type'] ?? '') === 'digital')
+                                    @if (! empty($p['downloadUrl']))
+                                        <p class="mt-1 inline-flex items-center gap-1 text-xs font-medium text-emerald-600"><x-heroicon-o-check-circle class="h-4 w-4" /> {{ __('Ready to download') }}</p>
+                                    @elseif (! empty($p['fileStatus']))
+                                        <p class="mt-1 inline-flex items-center gap-1 text-xs text-amber-600"><x-heroicon-o-clock class="h-4 w-4" /> {{ $p['fileStatus'] }}</p>
+                                    @endif
+                                @endif
                             </div>
                             @if (! empty($p['downloadUrl']))
                                 <x-ui.button href="{{ $p['downloadUrl'] }}" size="sm" icon="arrow-down-tray">{{ __('Download') }}</x-ui.button>
                             @elseif (! empty($p['fileStatus']))
                                 <x-ui.button size="sm" icon="clock" variant="secondary" disabled>{{ $p['fileStatus'] }}</x-ui.button>
+                            @elseif (! empty($p['productUrl']))
+                                <x-ui.button href="{{ $p['productUrl'] }}" size="sm" variant="secondary" icon="arrow-path">{{ __('Buy again') }}</x-ui.button>
                             @endif
                         </div>
 
@@ -214,6 +227,15 @@
                 <a href="{{ $order['messagesUrl'] }}" class="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm font-medium text-neutral-700 transition hover:border-brand-200 hover:bg-brand-50/40">
                     <span class="inline-flex items-center gap-2"><x-heroicon-o-chat-bubble-left-right class="h-4 w-4 text-neutral-400" /> {{ __('Message seller') }}</span>
                     @if ($order['unread'])<span class="h-2 w-2 rounded-full bg-brand-500"></span>@else<x-heroicon-s-chevron-right class="h-4 w-4 text-neutral-300" />@endif
+                </a>
+
+                {{-- Trust + discovery --}}
+                <div class="rounded-xl border border-neutral-100 bg-neutral-50/60 px-4 py-3">
+                    <p class="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-500"><x-heroicon-o-shield-check class="h-4 w-4 text-emerald-500" /> {{ __('Protected by PoisaPay Buyer Protection') }}</p>
+                </div>
+                <a href="{{ route('home') }}" class="flex items-center justify-between rounded-xl border border-brand-100 bg-gradient-to-r from-brand-50/70 to-white px-4 py-3 text-sm font-medium text-neutral-800 transition hover:border-brand-200">
+                    <span class="inline-flex items-center gap-2"><x-heroicon-o-sparkles class="h-4 w-4 text-brand-500" /> {{ __('Discover more products') }}</span>
+                    <x-heroicon-s-chevron-right class="h-4 w-4 text-brand-300" />
                 </a>
             </div>
         </div>

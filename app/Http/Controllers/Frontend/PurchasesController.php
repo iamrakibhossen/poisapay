@@ -14,12 +14,14 @@ use App\Shop\Enums\FileScanStatus;
 use App\Shop\Enums\OrderStatus;
 use App\Shop\Enums\ProductType;
 use App\Shop\Enums\RefundRequestStatus;
+use App\Shop\Enums\SalesPageStatus;
 use App\Shop\Exceptions\ShopException;
 use App\Shop\Models\Download;
 use App\Shop\Models\Order;
 use App\Shop\Models\OrderItem;
 use App\Shop\Models\RefundRequest;
 use App\Support\Money;
+use App\Utilities\Asset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -52,14 +54,20 @@ class PurchasesController extends Controller
                 ->whereNotIn('status', [OrderStatus::Pending->value, OrderStatus::Cancelled->value]))
             ->with([
                 'order.asset', 'order.seller.user',
-                'product.files', 'product.reviews', 'variant', 'licenses',
+                'product.files', 'product.reviews', 'product.salesPages', 'variant', 'licenses',
             ])
             ->latest()
             ->get();
 
         $purchases = $items->map(fn (OrderItem $item) => $this->present($item))->all();
 
-        return view('frontend.purchases', ['purchases' => $purchases]);
+        $stats = [
+            'orders' => $items->pluck('order_id')->unique()->count(),
+            'downloads' => collect($purchases)->whereNotNull('downloadUrl')->count(),
+            'sellers' => $items->pluck('order.seller_id')->filter()->unique()->count(),
+        ];
+
+        return view('frontend.purchases', ['purchases' => $purchases, 'stats' => $stats]);
     }
 
     /** A single purchase (order) in full: items, delivery, totals, tracking. */
@@ -313,14 +321,19 @@ class PurchasesController extends Controller
         $type = $item->product?->type ?? ProductType::Digital;
         $placed = $order->paid_at ?? $order->created_at;
 
+        // Repeat-purchase link: the product's primary published sales page.
+        $slug = $item->product?->salesPages->firstWhere('status', SalesPageStatus::Published)?->slug;
+
         $card = [
             'name' => $item->name_snapshot,
             'type' => $type->value,
             'icon' => self::ICONS[$type->value] ?? 'cube',
+            'image' => Asset::url($item->product?->image),
             'seller' => $order->seller?->displayName() ?? __('Seller'),
             'date' => $placed?->format('M j, Y') ?? '—',
             'price' => $order->asset->money((string) $item->line_total_amount)->format(2),
             'messagesUrl' => route('purchases.messages', $order->id),
+            'productUrl' => $slug ? route('funnel.sales', ['slug' => $slug]) : null,
             'unread' => (bool) $order->buyer_unread,
             'orderId' => $order->id,
             'productId' => $item->product_id,

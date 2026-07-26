@@ -1,13 +1,27 @@
 <x-layouts.app :title="__('My Purchases')">
-    <div class="mt-6 space-y-5">
-        <div class="flex items-center gap-3">
-            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-50 text-brand-600">
-                <x-heroicon-o-shopping-bag class="h-5 w-5" />
-            </span>
-            <div>
-                <h1 class="text-2xl font-semibold tracking-tight text-neutral-900">{{ __('My Purchases') }}</h1>
-                <p class="mt-1 text-sm text-neutral-500">{{ __('Download your files, track orders and view license keys anytime.') }}</p>
+    @php
+        $count = fn ($t) => collect($purchases)->where('type', $t)->count();
+        $tabs = array_filter([
+            'all' => __('All'),
+            'digital' => $count('digital') ? __('Downloads') : null,
+            'physical' => $count('physical') ? __('Shipments') : null,
+            'license' => $count('license') ? __('Keys') : null,
+        ]);
+    @endphp
+
+    <div class="mt-6 space-y-5" x-data="{ filter: 'all' }">
+        {{-- Header --}}
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-50 text-brand-600">
+                    <x-heroicon-o-shopping-bag class="h-5 w-5" />
+                </span>
+                <div>
+                    <h1 class="text-2xl font-semibold tracking-tight text-neutral-900">{{ __('My Purchases') }}</h1>
+                    <p class="mt-0.5 text-sm text-neutral-500">{{ __('Download files, track shipments and view keys — anytime.') }}</p>
+                </div>
             </div>
+            <x-ui.button href="{{ route('home') }}" variant="secondary" size="sm" icon="squares-2x2">{{ __('Discover more') }}</x-ui.button>
         </div>
 
         @if (session('error'))
@@ -15,27 +29,70 @@
         @endif
 
         @if (count($purchases))
+            {{-- Summary chips --}}
+            <div class="grid grid-cols-3 gap-3">
+                @foreach ([
+                    ['label' => __('Purchases'), 'value' => $stats['orders'], 'icon' => 'shopping-bag', 'accent' => 'text-brand-600'],
+                    ['label' => __('Ready to download'), 'value' => $stats['downloads'], 'icon' => 'arrow-down-tray', 'accent' => 'text-emerald-600'],
+                    ['label' => __('Sellers'), 'value' => $stats['sellers'], 'icon' => 'building-storefront', 'accent' => 'text-neutral-700'],
+                ] as $s)
+                    <div class="pp-card flex items-center gap-3 p-3.5">
+                        <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-neutral-50 {{ $s['accent'] }}"><x-dynamic-component :component="'heroicon-o-'.$s['icon']" class="h-5 w-5" /></span>
+                        <div class="min-w-0">
+                            <p class="text-lg font-semibold leading-none text-neutral-900">{{ $s['value'] }}</p>
+                            <p class="mt-1 truncate text-xs text-neutral-500">{{ $s['label'] }}</p>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            {{-- Filter tabs --}}
+            @if (count($tabs) > 2)
+                <div class="flex flex-wrap gap-1.5">
+                    @foreach ($tabs as $key => $label)
+                        <button type="button" x-on:click="filter = '{{ $key }}'"
+                            :class="filter === '{{ $key }}' ? 'bg-neutral-900 text-white' : 'bg-white text-neutral-500 ring-1 ring-neutral-200 hover:text-neutral-900'"
+                            class="rounded-full px-3.5 py-1.5 text-xs font-semibold transition">{{ $label }}</button>
+                    @endforeach
+                </div>
+            @endif
+
             <div class="space-y-3">
                 @foreach ($purchases as $p)
-                    <div class="pp-card p-4 sm:p-5" x-data="{ showKey: false, showTrack: false }">
-                        <div class="flex flex-wrap items-center gap-4">
-                            <span class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600">
-                                <x-dynamic-component :component="'heroicon-o-'.$p['icon']" class="h-6 w-6" />
-                            </span>
-                            <div class="min-w-0 flex-1">
-                                <a href="{{ route('purchases.show', ['order' => $p['orderId']]) }}" class="truncate text-sm font-semibold text-neutral-900 hover:text-brand-600">{{ $p['name'] }}</a>
-                                <p class="text-xs text-neutral-500">{{ __('by') }} {{ $p['seller'] }} · {{ $p['date'] }} · {{ $p['price'] }}</p>
+                    <div class="pp-card p-4 sm:p-5" x-data="{ showKey: false, showTrack: false }"
+                        x-show="filter === 'all' || filter === '{{ $p['type'] }}'" x-transition.opacity>
+                        <div class="flex flex-wrap items-start gap-4">
+                            {{-- Thumbnail --}}
+                            @if (! empty($p['image']))
+                                <img src="{{ $p['image'] }}" alt="" class="h-14 w-14 shrink-0 rounded-xl object-cover ring-1 ring-neutral-200" />
+                            @else
+                                <span class="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600">
+                                    <x-dynamic-component :component="'heroicon-o-'.$p['icon']" class="h-6 w-6" />
+                                </span>
+                            @endif
 
+                            <div class="min-w-0 flex-1">
+                                <a href="{{ route('purchases.show', ['order' => $p['orderId']]) }}" class="block truncate text-sm font-semibold text-neutral-900 hover:text-brand-600">{{ $p['name'] }}</a>
+                                <p class="mt-0.5 text-xs text-neutral-500">{{ __('by') }} {{ $p['seller'] }} · {{ $p['date'] }} · <span class="font-medium text-neutral-700">{{ $p['price'] }}</span></p>
+
+                                {{-- Status line --}}
                                 @if (($p['type'] ?? '') === 'digital')
-                                    <p class="mt-1 inline-flex items-center gap-1 text-xs text-neutral-400"><x-heroicon-o-document class="h-3.5 w-3.5" /> {{ $p['file'] ?? __('File pending from seller') }}</p>
+                                    @if (! empty($p['downloadUrl']))
+                                        <p class="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-emerald-600"><x-heroicon-o-check-circle class="h-4 w-4" /> {{ __('Ready to download') }}</p>
+                                    @elseif (! empty($p['fileStatus']))
+                                        <p class="mt-1.5 inline-flex items-center gap-1 text-xs text-amber-600"><x-heroicon-o-clock class="h-4 w-4" /> {{ $p['fileStatus'] }}</p>
+                                    @else
+                                        <p class="mt-1.5 inline-flex items-center gap-1 text-xs text-neutral-400"><x-heroicon-o-document class="h-3.5 w-3.5" /> {{ __('File pending from seller') }}</p>
+                                    @endif
                                 @elseif (($p['type'] ?? '') === 'physical')
-                                    <p class="mt-1 inline-flex items-center gap-2 text-xs">
+                                    <p class="mt-1.5 inline-flex items-center gap-2 text-xs">
                                         <x-ui.badge color="info" dot>{{ $p['shipStatus'] }}</x-ui.badge>
                                         <span class="text-neutral-400">{{ __('Tracking') }}: <span class="font-mono text-neutral-500">{{ $p['tracking'] }}</span></span>
                                     </p>
                                 @endif
                             </div>
 
+                            {{-- Primary action --}}
                             <div class="shrink-0">
                                 @if (($p['type'] ?? '') === 'license')
                                     <x-ui.button x-on:click="showKey = ! showKey" variant="secondary" size="sm" icon="key">{{ $p['action'] }}</x-ui.button>
@@ -131,57 +188,36 @@
                         @endif
 
                         {{-- Quick links --}}
-                        <div class="mt-3 flex flex-wrap gap-4 border-t border-neutral-100 pt-3 text-xs">
+                        <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-neutral-100 pt-3 text-xs">
                             <a href="{{ route('purchases.show', ['order' => $p['orderId']]) }}" class="inline-flex items-center gap-1 font-medium text-neutral-500 hover:text-brand-600"><x-heroicon-o-document-magnifying-glass class="h-3.5 w-3.5" /> {{ __('View details') }}</a>
                             <a href="{{ $p['messagesUrl'] }}" class="inline-flex items-center gap-1 font-medium text-neutral-500 hover:text-brand-600"><x-heroicon-o-chat-bubble-left-right class="h-3.5 w-3.5" /> {{ __('Message seller') }}@if (! empty($p['unread']))<span class="ml-0.5 inline-block h-1.5 w-1.5 rounded-full bg-brand-500"></span>@endif</a>
-                            <a href="#" class="inline-flex items-center gap-1 font-medium text-neutral-500 hover:text-rose-600"><x-heroicon-o-arrow-uturn-left class="h-3.5 w-3.5" /> {{ __('Request refund') }}</a>
+                            @if (! empty($p['productUrl']))
+                                <a href="{{ $p['productUrl'] }}" class="inline-flex items-center gap-1 font-medium text-brand-600 hover:text-brand-700"><x-heroicon-o-arrow-path class="h-3.5 w-3.5" /> {{ __('Buy again') }}</a>
+                            @endif
+                            <a href="{{ route('purchases.show', ['order' => $p['orderId']]) }}" class="ml-auto inline-flex items-center gap-1 font-medium text-neutral-400 hover:text-rose-600"><x-heroicon-o-arrow-uturn-left class="h-3.5 w-3.5" /> {{ __('Request refund') }}</a>
                         </div>
                     </div>
-
-                    {{-- Contact seller modal --}}
-                    <x-ui.modal name="contact-{{ $loop->index }}" :title="__('Contact seller')" :subtitle="$p['seller']" maxWidth="lg">
-                        <div x-data="{ sent: false }">
-                            <div x-show="! sent" class="space-y-4">
-                                <div class="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50/60 p-3">
-                                    <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-600"><x-dynamic-component :component="'heroicon-o-'.$p['icon']" class="h-5 w-5" /></span>
-                                    <div class="min-w-0">
-                                        <p class="truncate text-sm font-medium text-neutral-900">{{ $p['name'] }}</p>
-                                        <p class="text-xs text-neutral-400">{{ __('Purchased') }} {{ $p['date'] }} · {{ $p['price'] }}</p>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="mb-1 block text-xs font-medium text-neutral-500">{{ __('Subject') }}</label>
-                                    <select class="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
-                                        <option>{{ __('Question about my order') }}</option>
-                                        <option>{{ __('Problem with the product') }}</option>
-                                        <option>{{ __('Shipping / delivery') }}</option>
-                                        <option>{{ __('Refund request') }}</option>
-                                        <option>{{ __('Other') }}</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="mb-1 block text-xs font-medium text-neutral-500">{{ __('Message') }}</label>
-                                    <textarea rows="4" placeholder="{{ __('Write your message to the seller…') }}" class="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"></textarea>
-                                </div>
-                                <div class="flex items-center justify-between gap-3">
-                                    <p class="text-[11px] text-neutral-400">{{ __('The seller usually replies within a day.') }}</p>
-                                    <x-ui.button x-on:click="sent = true" icon="paper-airplane">{{ __('Send message') }}</x-ui.button>
-                                </div>
-                            </div>
-
-                            {{-- Sent state --}}
-                            <div x-show="sent" x-cloak class="py-6 text-center">
-                                <span class="mx-auto grid h-12 w-12 place-items-center rounded-full bg-emerald-100 text-emerald-600"><x-heroicon-o-check class="h-6 w-6" /></span>
-                                <p class="mt-3 text-sm font-semibold text-neutral-900">{{ __('Message sent') }}</p>
-                                <p class="mt-1 text-xs text-neutral-500">{{ __('We’ve notified :seller — replies land in your notifications.', ['seller' => $p['seller']]) }}</p>
-                            </div>
-                        </div>
-                    </x-ui.modal>
                 @endforeach
+            </div>
+
+            {{-- Repeat-purchase nudge --}}
+            <div class="pp-card flex flex-wrap items-center justify-between gap-4 bg-gradient-to-r from-brand-50/70 to-white p-5">
+                <div class="flex items-center gap-3">
+                    <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white text-brand-600 ring-1 ring-brand-100"><x-heroicon-o-sparkles class="h-5 w-5" /></span>
+                    <div>
+                        <p class="text-sm font-semibold text-neutral-900">{{ __('Looking for something new?') }}</p>
+                        <p class="text-xs text-neutral-500">{{ __('Discover more products from trusted sellers.') }}</p>
+                    </div>
+                </div>
+                <x-ui.button href="{{ route('home') }}" size="sm" icon="arrow-right">{{ __('Browse products') }}</x-ui.button>
             </div>
         @else
             <div class="pp-card">
-                <x-ui.empty-state icon="shopping-bag" :title="__('No purchases yet')" :description="__('Products you buy will appear here for download and access.')" />
+                <x-ui.empty-state icon="shopping-bag" :title="__('No purchases yet')" :description="__('Products you buy will appear here for download and access.')">
+                    <x-slot:action>
+                        <x-ui.button href="{{ route('home') }}" icon="squares-2x2">{{ __('Browse products') }}</x-ui.button>
+                    </x-slot:action>
+                </x-ui.empty-state>
             </div>
         @endif
     </div>
