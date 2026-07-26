@@ -7,20 +7,28 @@ namespace App\Shop;
 use App\Shop\Builder\BlockLibrary;
 use App\Shop\Builder\BlockRegistry;
 use App\Shop\Contracts\AuditableEvent;
+use App\Shop\Contracts\DnsResolver;
+use App\Shop\Contracts\SslProvisioner;
 use App\Shop\Events\SellerApplied;
 use App\Shop\Listeners\AuditShopEvent;
 use App\Shop\Listeners\NotifyOperatorsOfSellerApplication;
 use App\Shop\Listeners\ShopNotificationSubscriber;
+use App\Shop\Models\Domain;
 use App\Shop\Models\Product;
 use App\Shop\Models\RefundRequest;
 use App\Shop\Models\SalesPage;
 use App\Shop\Models\Seller;
+use App\Shop\Policies\DomainPolicy;
 use App\Shop\Policies\ProductPolicy;
 use App\Shop\Policies\RefundRequestPolicy;
 use App\Shop\Policies\SalesPagePolicy;
 use App\Shop\Policies\SellerPolicy;
+use App\Shop\Services\Dns\SystemDnsResolver;
+use App\Shop\Services\Domain\DomainResolver;
 use App\Shop\Services\SalesPageService;
 use App\Shop\Services\SellerService;
+use App\Shop\Services\Ssl\AcmeSslProvisioner;
+use App\Shop\Services\Ssl\SimulatedSslProvisioner;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -37,6 +45,7 @@ class ShopServiceProvider extends ServiceProvider
         Product::class => ProductPolicy::class,
         SalesPage::class => SalesPagePolicy::class,
         RefundRequest::class => RefundRequestPolicy::class,
+        Domain::class => DomainPolicy::class,
     ];
 
     public function register(): void
@@ -44,6 +53,14 @@ class ShopServiceProvider extends ServiceProvider
         // The block catalogue is a process-wide singleton: one source of truth for
         // the palette, generated property panel, validation, and render dispatch.
         $this->app->singleton(BlockRegistry::class, fn () => new BlockRegistry(BlockLibrary::all()));
+
+        // Custom-domain DNS + SSL sit behind contracts so tests swap in fakes and
+        // the SSL provider is chosen by config (simulated by default, ACME in prod).
+        $this->app->bind(DnsResolver::class, SystemDnsResolver::class);
+        $this->app->bind(SslProvisioner::class, fn () => match (config('shop.custom_domains.ssl.driver')) {
+            'acme' => new AcmeSslProvisioner,
+            default => new SimulatedSslProvisioner,
+        });
     }
 
     public function boot(): void
@@ -71,6 +88,11 @@ class ShopServiceProvider extends ServiceProvider
         SalesPage::saved(fn (SalesPage $page) => app(SalesPageService::class)->forget($page));
         SalesPage::deleted(fn (SalesPage $page) => app(SalesPageService::class)->forget($page));
         Product::saved(fn (Product $product) => app(SalesPageService::class)->forgetForProduct($product));
+
+        // Any domain write (status, ssl, disable, removal) drops its routing-cache
+        // entry so the host resolves to fresh state on the next request.
+        Domain::saved(fn (Domain $domain) => app(DomainResolver::class)->forget($domain));
+        Domain::deleted(fn (Domain $domain) => app(DomainResolver::class)->forget($domain));
 
         $this->loadRoutesFrom(__DIR__.'/routes/web.php');
     }

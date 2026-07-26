@@ -36,6 +36,7 @@ Schedule::command('p2p:sweep-presence')->everyFiveMinutes()->withoutOverlapping(
 // Sell: release held seller earnings to spendable once the refund window passes
 // (no-op unless the sell_earnings_hold flag is on).
 Schedule::command('poisapay:shop-release-earnings')->hourly()->withoutOverlapping();
+Schedule::command('shop:low-balance-alerts')->dailyAt('08:00')->withoutOverlapping();
 
 // Sell: escalate refund requests the seller ignored past their response SLA.
 Schedule::command('poisapay:shop-escalate-refunds')->hourly()->withoutOverlapping();
