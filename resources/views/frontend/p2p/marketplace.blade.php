@@ -65,6 +65,51 @@
             </div>
         </div>
 
+        {{-- Auto-match / Quick trade — instantly open an order against the best-priced offer --}}
+        @if (feature('p2p_auto_match', false))
+            <form method="POST" action="{{ route('p2p.match') }}" class="rounded-2xl border border-brand-100 bg-gradient-to-br from-brand-50/60 to-white p-4 shadow-[var(--shadow-card)]"
+                  x-data="{ side: '{{ $buyActive ? 'buy' : 'sell' }}' }">
+                @csrf
+                <input type="hidden" name="side" :value="side" />
+                <div class="flex items-center gap-2">
+                    <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-500 text-white"><x-heroicon-o-bolt class="h-4 w-4" /></span>
+                    <div>
+                        <p class="text-sm font-semibold text-neutral-900">{{ __('Quick trade') }}</p>
+                        <p class="text-xs text-neutral-500">{{ __('We auto-match you to the best-priced offer and open escrow instantly.') }}</p>
+                    </div>
+                </div>
+
+                <div class="mt-4 grid gap-3 sm:grid-cols-[auto_1fr_1fr_auto] sm:items-end">
+                    {{-- Side --}}
+                    <div class="pp-seg self-stretch">
+                        <button type="button" @click="side = 'buy'" :class="side === 'buy' ? 'bg-green-600 text-white shadow-sm' : 'text-neutral-500'">{{ __('Buy') }}</button>
+                        <button type="button" @click="side = 'sell'" :class="side === 'sell' ? 'bg-red-600 text-white shadow-sm' : 'text-neutral-500'">{{ __('Sell') }}</button>
+                    </div>
+                    {{-- Amount --}}
+                    <div>
+                        <label class="mb-1 block text-xs font-medium text-neutral-500">{{ __('Amount (USDT)') }}</label>
+                        <input name="amount" type="number" step="0.01" min="0.01" required placeholder="100.00"
+                            class="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm tabular focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
+                    </div>
+                    {{-- Payment method (required) — pick one --}}
+                    <div>
+                        <label class="mb-1 block text-xs font-medium text-neutral-500">{{ __('Payment method') }}</label>
+                        <div class="flex flex-wrap gap-1.5">
+                            @foreach ($methods as $m)
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="payment_method_id" value="{{ $m->id }}" class="peer sr-only" required />
+                                    <span class="inline-flex items-center gap-1 rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs font-medium text-neutral-600 transition peer-checked:border-brand-500 peer-checked:bg-brand-50 peer-checked:text-brand-700 hover:border-neutral-300">{{ $m->name }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+                    <x-ui.button type="submit" icon="bolt" ::class="side === 'buy' ? '!bg-green-600 hover:!bg-green-700' : '!bg-red-600 hover:!bg-red-700'">
+                        <span x-text="side === 'buy' ? '{{ __('Match & Buy') }}' : '{{ __('Match & Sell') }}'"></span>
+                    </x-ui.button>
+                </div>
+            </form>
+        @endif
+
         {{-- Buy / Sell + sticky filter toolbar --}}
         <div class="pp-toolbar sticky top-4 z-20 space-y-4 p-4">
             {{-- Row 1: side switch + live count --}}
@@ -201,7 +246,7 @@
                     {{-- Trade --}}
                     <button type="button"
                         class="mt-auto block w-full rounded-lg px-5 py-2.5 text-center text-sm font-semibold text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 {{ $buyActive ? 'bg-green-600 hover:bg-green-700 focus-visible:ring-green-400' : 'bg-red-600 hover:bg-red-500 focus-visible:ring-red-400' }}"
-                        x-on:click="choose({ id: '{{ $ad->id }}', price: '{{ $ad->fixed_price ?? 0 }}', min: '{{ $ad->min_order }}', max: '{{ $ad->max_order }}', sym: '{{ $ad->asset->symbol }}', fiat: '{{ $ad->fiat_currency }}', who: '{{ addslashes($ad->user->name) }}', side: '{{ $want }}' })">
+                        x-on:click="choose({ id: '{{ $ad->id }}', price: '{{ $ad->fixed_price ?? 0 }}', min: '{{ $ad->min_order }}', max: '{{ $ad->max_order }}', sym: '{{ $ad->asset->symbol }}', fiat: '{{ $ad->fiat_currency }}', who: '{{ addslashes($ad->user->name) }}', side: '{{ $want }}', methods: {{ Illuminate\Support\Js::from($ad->paymentMethods->map(fn ($m) => ['id' => $m->id, 'name' => $m->name])->values()) }} })">
                         {{ $buyActive ? __('Buy') : __('Sell') }} USDT
                     </button>
                 </div>
@@ -254,6 +299,20 @@
                         <span x-show="amount && ad">≈ <span class="font-semibold tabular text-neutral-700" x-text="(Number(amount) * Number(ad?.price)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})"></span> <span x-text="ad?.fiat"></span></span>
                         <span class="text-neutral-400">{{ __('Limit') }} <span class="tabular" x-text="Number(ad?.min).toLocaleString()"></span>–<span class="tabular" x-text="Number(ad?.max).toLocaleString()"></span></span>
                     </p>
+                </div>
+
+                {{-- Payment method (required before placing an order) — pick one --}}
+                <div>
+                    <label class="pp-label">{{ __('Payment method') }}</label>
+                    <div class="flex flex-wrap gap-1.5">
+                        <template x-for="m in (ad?.methods || [])" :key="m.id">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="payment_method_id" :value="m.id" class="peer sr-only" required />
+                                <span class="inline-flex items-center gap-1 rounded-lg border border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-600 transition peer-checked:border-brand-500 peer-checked:bg-brand-50 peer-checked:text-brand-700 hover:border-neutral-300" x-text="m.name"></span>
+                            </label>
+                        </template>
+                    </div>
+                    <p x-show="ad && (!ad.methods || !ad.methods.length)" x-cloak class="mt-1 text-xs text-amber-600">{{ __('This advertiser hasn’t listed a payment method.') }}</p>
                 </div>
 
                 <x-ui.button type="submit" class="w-full" :variant="$buyActive ? 'success' : 'danger'">

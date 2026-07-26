@@ -7,6 +7,7 @@ use App\Enums\KycStatus;
 use App\Enums\KycTier;
 use App\Models\P2pAd;
 use App\Models\P2pOrder;
+use App\Models\P2pPaymentMethod;
 use App\Models\User;
 use App\Support\Money;
 
@@ -19,6 +20,8 @@ beforeEach(function () {
     $this->buyer = User::factory()->create(['kyc_tier' => KycTier::Full, 'kyc_status' => KycStatus::Approved]);
     creditUser($this->seller, $this->usdt, '1000000000');
     $this->ad = P2pAd::factory()->create(['user_id' => $this->seller->id, 'asset_id' => $this->usdt->id]);
+    $this->method = P2pPaymentMethod::firstOrCreate(['key' => 'page-bank'], ['name' => 'Bank', 'type' => 'bank', 'is_active' => true, 'sort' => 1]);
+    $this->ad->paymentMethods()->attach($this->method->id);
     $this->order = app(CreateOrderAction::class)->execute($this->buyer, $this->ad, Money::ofDecimal('100', 6, 'USDT'));
 });
 
@@ -46,7 +49,7 @@ it('opens an order from the marketplace via a form POST', function () {
     $buyer2 = User::factory()->create(['kyc_tier' => KycTier::Full, 'kyc_status' => KycStatus::Approved]);
     $this->actingAs($buyer2);
 
-    $this->post(route('p2p.orders.store'), ['ad_id' => $this->ad->id, 'amount' => '50'])
+    $this->post(route('p2p.orders.store'), ['ad_id' => $this->ad->id, 'amount' => '50', 'payment_method_id' => $this->method->id])
         ->assertRedirect();
 
     expect(P2pOrder::where('buyer_id', $buyer2->id)->count())->toBe(1);

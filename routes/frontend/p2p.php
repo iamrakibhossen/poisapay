@@ -43,6 +43,7 @@ Route::middleware([EnsureP2pEnabled::class, TrackP2pPresence::class])->group(fun
         // Orders + lifecycle.
         Route::get('/p2p/orders', 'orders')->name('p2p.orders');
         Route::post('/p2p/orders', 'createOrder')->name('p2p.orders.store')->middleware('throttle:30,1');
+        Route::post('/p2p/match', 'autoMatch')->name('p2p.match')->middleware('throttle:20,1');
         Route::get('/p2p/orders/{order}', 'order')->name('p2p.order');
         Route::post('/p2p/orders/{order}/paid', 'markPaid')->name('p2p.order.paid');
         Route::post('/p2p/orders/{order}/release', 'release')->name('p2p.order.release');

@@ -13,6 +13,7 @@ use App\Domain\P2p\CreateOrderAction;
 use App\Domain\P2p\DuplicateAdAction;
 use App\Domain\P2p\MarkBuyerPaidAction;
 use App\Domain\P2p\OpenDisputeAction;
+use App\Domain\P2p\P2pMatchingService;
 use App\Domain\P2p\P2pReputationService;
 use App\Domain\P2p\SubmitReviewAction;
 use App\Domain\P2p\UpdateAdAction;
@@ -550,23 +551,57 @@ class P2pController extends Controller
         $data = $request->validate([
             'ad_id' => ['required', 'string', 'exists:p2p_ads,id'],
             'amount' => ['required', 'numeric', 'gt:0'],
-            'payment_method_id' => ['nullable', 'string', 'exists:p2p_payment_methods,id'],
+            'payment_method_id' => ['required', 'string', 'exists:p2p_payment_methods,id'],
         ]);
 
-        $ad = P2pAd::with('asset')->findOrFail($data['ad_id']);
+        $ad = P2pAd::with(['asset', 'paymentMethods'])->findOrFail($data['ad_id']);
+
+        // The buyer must pick a method this offer actually accepts.
+        if (! $ad->paymentMethods->contains('id', $data['payment_method_id'])) {
+            return back()->with('error', __('Choose a payment method this offer accepts.'));
+        }
 
         try {
             $order = $action->execute(
                 $request->user(),
                 $ad,
                 Money::ofDecimal($data['amount'], $ad->asset->decimals, $ad->asset->symbol),
-                $data['payment_method_id'] ?? null,
+                $data['payment_method_id'],
             );
         } catch (Throwable $e) {
             return back()->with('error', $e->getMessage());
         }
 
         return redirect()->route('p2p.order', $order)->with('success', 'Order opened — escrow is locked.');
+    }
+
+    /**
+     * Auto-match: open an escrow order against the best-priced eligible offer for a
+     * side + amount + payment method (price-time priority). Flag-gated; reuses
+     * {@see CreateOrderAction} as the money gate — no new value path.
+     */
+    public function autoMatch(Request $request, P2pMatchingService $matcher): RedirectResponse
+    {
+        if (! feature('p2p_auto_match', false)) {
+            return back()->with('error', __('Auto-matching isn’t available right now.'));
+        }
+
+        $data = $request->validate([
+            'side' => ['required', 'in:buy,sell'],
+            'amount' => ['required', 'numeric', 'gt:0'],
+            'payment_method_id' => ['required', 'string', 'exists:p2p_payment_methods,id'],
+        ]);
+
+        // Buy crypto → take a Sell ad; sell crypto → take a Buy ad.
+        $adSide = $data['side'] === 'buy' ? P2pAdType::Sell : P2pAdType::Buy;
+
+        try {
+            $order = $matcher->match($request->user(), $adSide, (string) $data['amount'], $data['payment_method_id']);
+        } catch (Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('p2p.order', $order)->with('success', __('Matched! Order opened — escrow is locked.'));
     }
 
     public function order(Request $request, P2pOrder $order): View
