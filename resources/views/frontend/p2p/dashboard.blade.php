@@ -56,8 +56,8 @@
             @endforeach
         </div>
 
-        {{-- Charts --}}
-        <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {{-- Charts — two equal columns on one row --}}
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <x-analytics.chart :chart="$volumeChart" />
             <x-analytics.chart :chart="$outcomeChart" />
         </div>

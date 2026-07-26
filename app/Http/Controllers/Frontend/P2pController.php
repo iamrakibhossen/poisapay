@@ -232,7 +232,7 @@ class P2pController extends Controller
             'successRate30' => $orders30 > 0 ? round($success30 / $orders30 * 100, 1) : 0.0,
             'volumeChart' => [
                 'id' => 'p2p-volume', 'title' => __('Traded volume (14 days)'), 'subtitle' => 'USDT',
-                'type' => 'area', 'span' => 'full', 'labels' => $labels,
+                'type' => 'area', 'span' => 'compact', 'labels' => $labels,
                 'datasets' => [['label' => __('Volume'), 'data' => $data, 'color' => '#2563eb']],
             ],
             'outcomeChart' => [
