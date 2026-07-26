@@ -60,7 +60,7 @@
 
         <p class="mt-8 text-center text-xs text-slate-400">
             {{ __('Reload this page for the latest status.') }}
-            <a href="{{ route('faqs.public') }}" class="font-medium text-brand-700 hover:underline">{{ __('Need help?') }}</a>
+            <a href="{{ route('help-center') }}" class="font-medium text-brand-700 hover:underline">{{ __('Need help?') }}</a>
         </p>
     </div>
 </x-layouts.marketing>

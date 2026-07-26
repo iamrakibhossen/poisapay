@@ -39,8 +39,10 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 Route::view('/', 'marketing.home')->name('home');
-Route::view('/merchants', 'marketing.merchants')->name('merchants');   // marketing (console lives at /merchant, behind auth)
-Route::get('/faqs', FaqController::class)->name('faqs.public');
+// Merchant Pay marketing lives as a product page; keep /merchants as a named redirect.
+Route::get('/merchants', fn () => redirect()->route('products.show', 'merchant-pay'))->name('merchants');
+Route::get('/help-center', FaqController::class)->name('help-center');
+Route::redirect('/faqs', '/help-center');   // legacy path
 Route::get('/pages/{slug}', [PageController::class, 'show'])->name('page.show');
 
 // Funnel platform — public product sales pages (standalone, conversion-first).

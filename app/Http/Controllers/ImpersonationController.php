@@ -22,8 +22,14 @@ class ImpersonationController extends Controller
         $admin = Auth::guard('admin')->user();
         abort_unless($admin && ($admin->can('impersonate-users') || $admin->hasRole('super-admin')), 403);
 
-        // Never leak an existing impersonation into a nested one.
-        abort_if(session()->has('impersonator_id'), 409, 'Already impersonating.');
+        // Already impersonating? Switch cleanly to the new target rather than
+        // erroring — the operator (admin guard) never changes; only the web-guard
+        // session swaps. Record the hand-off so the audit trail stays complete.
+        if (session()->has('impersonator_id')) {
+            if ($previous = User::find(Auth::guard('web')->id())) {
+                ActivityLogger::log('user.impersonation.stopped', $previous, ['admin_id' => $admin->id, 'reason' => 'switched'], actor: $admin);
+            }
+        }
 
         session(['impersonator_id' => $admin->id]);
         Auth::guard('web')->login($user);

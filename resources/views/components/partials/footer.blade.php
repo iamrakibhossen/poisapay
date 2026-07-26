@@ -3,7 +3,7 @@
 @php
     $legal = route('page.show', 'legal');
     $links = [
-        [__('Help'), route('faqs.public')],
+        [__('Help'), route('help-center')],
         [__('Terms'), $legal.'#terms'],
         [__('Privacy'), $legal.'#privacy'],
         [__('Status'), route('status')],

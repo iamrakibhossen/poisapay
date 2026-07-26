@@ -21,7 +21,7 @@
                 <span class="text-lg font-bold text-neutral-900">PoisaPay</span>
             </a>
             <div class="flex items-center gap-4 text-sm">
-                <a href="{{ route('faqs.public') }}" class="font-medium text-neutral-600 hover:text-neutral-900">{{ __('FAQs') }}</a>
+                <a href="{{ route('help-center') }}" class="font-medium text-neutral-600 hover:text-neutral-900">{{ __('FAQs') }}</a>
                 @auth
                     <a href="{{ route('dashboard') }}" class="rounded-lg bg-brand-500 px-4 py-2 font-semibold text-ink-900 hover:bg-brand-400">{{ __('Dashboard') }}</a>
                 @else

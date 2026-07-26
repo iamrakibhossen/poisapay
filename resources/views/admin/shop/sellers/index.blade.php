@@ -8,7 +8,7 @@
         };
     @endphp
 
-    <div class="space-y-6" x-data="{ planEditingId: null }">
+    <div class="space-y-6" x-data="{ planEditingId: null, statusFor: null, statusAction: null, statusLabel: '' }">
         <x-ui.page-header :title="__('Sellers')" :subtitle="__('Manage marketplace sellers, plan tiers and commission.')" />
 
         {{-- Stat cards --}}
@@ -71,6 +71,27 @@
                     <td class="px-3 py-3">
                         <div class="flex items-center justify-end gap-1.5">
                             @if ($canManage)
+                                @switch($seller->status)
+                                    @case(\App\Shop\Enums\SellerStatus::PendingReview)
+                                        <form method="POST" action="{{ route('admin.sellers.status', $seller->id) }}" class="inline">
+                                            @csrf <input type="hidden" name="action" value="approve">
+                                            <x-ui.button type="submit" variant="primary" size="sm" icon="check">{{ __('Approve') }}</x-ui.button>
+                                        </form>
+                                        <x-ui.button type="button" variant="danger" size="sm" icon="x-mark"
+                                            x-on:click="statusFor='{{ $seller->id }}'; statusAction='reject'; statusLabel='{{ __('Reject application') }}'">{{ __('Reject') }}</x-ui.button>
+                                        @break
+                                    @case(\App\Shop\Enums\SellerStatus::Approved)
+                                        <x-ui.button type="button" variant="danger" size="sm" icon="pause"
+                                            x-on:click="statusFor='{{ $seller->id }}'; statusAction='suspend'; statusLabel='{{ __('Suspend seller') }}'">{{ __('Suspend') }}</x-ui.button>
+                                        @break
+                                    @case(\App\Shop\Enums\SellerStatus::Suspended)
+                                    @case(\App\Shop\Enums\SellerStatus::Rejected)
+                                        <form method="POST" action="{{ route('admin.sellers.status', $seller->id) }}" class="inline">
+                                            @csrf <input type="hidden" name="action" value="reactivate">
+                                            <x-ui.button type="submit" variant="primary" size="sm" icon="check">{{ __('Approve') }}</x-ui.button>
+                                        </form>
+                                        @break
+                                @endswitch
                                 <x-ui.button type="button" x-on:click="planEditingId = '{{ $seller->id }}'" variant="secondary" size="sm" icon="adjustments-horizontal">{{ __('Plan') }}</x-ui.button>
                             @endif
                         </div>
@@ -108,6 +129,29 @@
                             <div class="flex justify-end gap-2">
                                 <x-ui.button type="button" variant="secondary" x-on:click="planEditingId = null">{{ __('Cancel') }}</x-ui.button>
                                 <x-ui.button type="submit" variant="primary" icon="check">{{ __('Save') }}</x-ui.button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                {{-- Reject / suspend modal (optional reason, sent to the seller) --}}
+                <div x-show="statusFor === '{{ $seller->id }}'" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div class="fixed inset-0 bg-gray-500/60" x-on:click="statusFor = null"></div>
+                    <div class="relative w-full max-w-md pp-card p-6">
+                        <div class="mb-4 flex items-start justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold text-neutral-900" x-text="statusLabel"></h3>
+                                <p class="text-sm text-neutral-500">{{ $seller->brand_name ?: $seller->user?->name }}</p>
+                            </div>
+                            <button type="button" x-on:click="statusFor = null" class="rounded-lg p-1 text-neutral-400 hover:bg-neutral-100"><x-heroicon-o-x-mark class="h-5 w-5" /></button>
+                        </div>
+                        <form method="POST" action="{{ route('admin.sellers.status', $seller->id) }}" class="space-y-4">
+                            @csrf
+                            <input type="hidden" name="action" x-bind:value="statusAction">
+                            <x-ui.textarea :label="__('Reason (optional)')" name="reason" rows="3" :placeholder="__('Shared with the seller in their notification.')" />
+                            <div class="flex justify-end gap-2">
+                                <x-ui.button type="button" variant="secondary" x-on:click="statusFor = null">{{ __('Cancel') }}</x-ui.button>
+                                <x-ui.button type="submit" variant="danger" icon="check">{{ __('Confirm') }}</x-ui.button>
                             </div>
                         </form>
                     </div>

@@ -12,12 +12,78 @@
             </a>
             <h1 class="mt-2 text-2xl font-semibold tracking-tight text-neutral-900">{{ $editing ? __('Edit product') : __('Create product') }}</h1>
             <p class="mt-1 text-sm text-neutral-500">
-                {{ $editing ? __('Changes go live on the sales page immediately.') : __('A shareable sales page is generated automatically when you publish.') }}
+                {{ $editing ? __('Changes go live on the sales page immediately.') : __('Create it, then publish to generate a shareable sales page.') }}
             </p>
         </div>
 
         @if ($errors->has('product'))
             <x-ui.alert type="danger">{{ $errors->first('product') }}</x-ui.alert>
+        @endif
+        @if (session('error'))
+            <x-ui.alert type="danger">{{ session('error') }}</x-ui.alert>
+        @endif
+
+        @if ($editing)
+            @if (session('success'))
+                <x-ui.alert type="success">{{ session('success') }}</x-ui.alert>
+            @endif
+            @if ($errors->has('sales_page'))
+                <x-ui.alert type="danger">{{ $errors->first('sales_page') }}</x-ui.alert>
+            @endif
+
+            @php
+                $isPublished = $product->status === \App\Shop\Enums\ProductStatus::Published;
+                $page = $salesPage ?? null;
+                $pageLive = $page && $page->status === \App\Shop\Enums\SalesPageStatus::Published;
+            @endphp
+
+            <x-ui.card :class="$isPublished && ! $page ? 'ring-1 ring-brand-500/30 bg-brand-50/40' : ''">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex items-start gap-3">
+                        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl {{ $isPublished ? 'bg-emerald-50 text-emerald-600' : 'bg-neutral-100 text-neutral-500' }}">
+                            <x-dynamic-component :component="'heroicon-o-'.($isPublished ? 'check-badge' : 'clock')" class="h-5 w-5" />
+                        </span>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h2 class="text-sm font-semibold text-neutral-900">{{ __('Sales page') }}</h2>
+                                <x-ui.badge :color="$isPublished ? 'success' : 'gray'" dot>{{ ucfirst($product->status->value) }}</x-ui.badge>
+                            </div>
+                            <p class="mt-1 text-sm text-neutral-500">
+                                @if (! $isPublished)
+                                    {{ __('Publish this product to make it sellable and generate a shareable sales page.') }}
+                                @elseif (! $page)
+                                    {{ __('Your product is live — generate its sales page to start taking orders.') }}
+                                @elseif ($pageLive)
+                                    {{ __('Your sales page is live and ready to share.') }}
+                                @else
+                                    {{ __('Draft sales page — finish it in the builder, then publish.') }}
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex shrink-0 flex-wrap items-center gap-2">
+                        @if (! $isPublished)
+                            <form method="POST" action="{{ route('shop.products.publish', $product->id) }}">
+                                @csrf
+                                <x-ui.button type="submit" icon="rocket-launch">{{ __('Publish product') }}</x-ui.button>
+                            </form>
+                        @elseif (! $page)
+                            <form method="POST" action="{{ route('shop.sales-pages.store') }}">
+                                @csrf
+                                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                <input type="hidden" name="name" value="{{ $product->name }}">
+                                <x-ui.button type="submit" icon="sparkles">{{ __('Generate sales page') }}</x-ui.button>
+                            </form>
+                        @else
+                            @if ($pageLive)
+                                <x-ui.button href="{{ route('funnel.sales', ['slug' => $page->slug]) }}" target="_blank" variant="secondary" icon="arrow-top-right-on-square">{{ __('View page') }}</x-ui.button>
+                            @endif
+                            <x-ui.button href="{{ route('shop.sales-page.edit', ['slug' => $page->slug]) }}" icon="pencil-square">{{ __('Open builder') }}</x-ui.button>
+                        @endif
+                    </div>
+                </div>
+            </x-ui.card>
         @endif
 
         <form method="POST" action="{{ $editing ? route('shop.products.update', $product->id) : route('shop.products.store') }}" class="space-y-6"
@@ -228,5 +294,40 @@
                 <x-ui.button type="submit" icon="check">{{ $editing ? __('Save changes') : __('Create product') }}</x-ui.button>
             </div>
         </form>
+
+        @if ($editing)
+            <div class="mt-8 rounded-2xl border border-red-100 bg-red-50/40 p-5" x-data>
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h3 class="text-sm font-semibold text-neutral-900">{{ __('Delete product') }}</h3>
+                        <p class="mt-0.5 text-sm text-neutral-500">
+                            @if ($canDelete ?? false)
+                                {{ __('Permanently remove this product. This can’t be undone.') }}
+                            @else
+                                {{ __('This product has orders and can’t be deleted — archive it instead.') }}
+                            @endif
+                        </p>
+                    </div>
+                    @if ($canDelete ?? false)
+                        <x-ui.button type="button" variant="danger" icon="trash" x-on:click="$dispatch('open-modal', 'shop-product-delete')">{{ __('Delete') }}</x-ui.button>
+                    @else
+                        <x-ui.button type="button" variant="secondary" icon="lock-closed" disabled>{{ __('Delete') }}</x-ui.button>
+                    @endif
+                </div>
+            </div>
+
+            @if ($canDelete ?? false)
+                <x-ui.modal name="shop-product-delete" :title="__('Delete product')" maxWidth="sm">
+                    <p class="text-sm text-neutral-600">{{ __('Delete') }} <span class="font-medium text-neutral-900">{{ $product->name }}</span>? {{ __('This can’t be undone.') }}</p>
+                    <div class="mt-5 flex justify-end gap-2">
+                        <x-ui.button type="button" variant="secondary" x-on:click="$dispatch('close-modal', 'shop-product-delete')">{{ __('Cancel') }}</x-ui.button>
+                        <form method="POST" action="{{ route('shop.products.delete', $product->id) }}">
+                            @csrf @method('DELETE')
+                            <x-ui.button type="submit" variant="danger" icon="trash">{{ __('Delete product') }}</x-ui.button>
+                        </form>
+                    </div>
+                </x-ui.modal>
+            @endif
+        @endif
     </div>
 </x-layouts.app>

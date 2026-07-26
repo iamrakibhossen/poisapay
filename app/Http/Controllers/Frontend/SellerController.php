@@ -286,14 +286,16 @@ class SellerController extends Controller
         ];
 
         $products = $seller
-            ? $seller->products()->with(['priceAsset', 'salesPages'])->latest()->get()->map(fn ($p) => [
+            ? $seller->products()->withCount('orderItems')->with(['priceAsset', 'salesPages'])->latest()->get()->map(fn ($p) => [
                 'id' => $p->id,
                 'name' => $p->name,
                 'type' => $p->type->label(),
                 'price' => $p->priceAsset ? $p->priceAsset->money($p->price_amount)->format(2) : '—',
                 'status' => ucfirst($p->status->value),
                 'statusColor' => $statusColor[$p->status->value] ?? 'gray',
-                'sales' => 0, // real sales counts land with the orders vertical
+                'sales' => $p->order_items_count,
+                // A product can only be deleted while no order references it.
+                'canDelete' => $p->order_items_count === 0,
                 'slug' => optional($p->salesPages->firstWhere('status', SalesPageStatus::Published))->slug,
             ])->all()
             : [];
@@ -954,18 +956,16 @@ class SellerController extends Controller
                 'slug' => $pg->slug,
                 'status' => ucfirst($pg->status->value),
                 'color' => $color[$pg->status->value] ?? 'gray',
+                'published' => $pg->status === SalesPageStatus::Published,
                 'domain' => $pg->domain?->host,
-                'views' => '—', // real page views arrive with the analytics vertical
-                'conv' => '—',
+                'updated' => $pg->updated_at?->diffForHumans(),
             ])->all()
             : [];
 
-        // Products the seller can attach a page to (id => name).
-        $products = $seller
-            ? $seller->products()->orderBy('name')->pluck('name', 'id')->all()
-            : [];
+        // Whether the seller has any product to generate a page from (drives CTAs).
+        $hasProducts = (bool) ($seller?->products()->exists());
 
-        return view('frontend.seller.sales-pages-index', compact('pages', 'products'));
+        return view('frontend.seller.sales-pages-index', compact('pages', 'hasProducts'));
     }
 
     /** Create a page for one of the seller's products, then jump to the builder. */
@@ -978,7 +978,7 @@ class SellerController extends Controller
 
         $seller = $sellers->forUser($request->user());
         if (! ($seller?->canSell() ?? false)) {
-            return redirect()->route('shop');
+            return back()->withInput()->withErrors(['sales_page' => __('Your seller account must be approved before you can create a sales page.')]);
         }
 
         try {
@@ -1198,6 +1198,21 @@ class SellerController extends Controller
             ->with('success', $goLive ? __('Your page is live.') : __('Page unpublished.'));
     }
 
+    /** Soft-delete a sales page the seller owns. */
+    public function deleteSalesPage(Request $request, SellerService $sellers, string $slug): RedirectResponse
+    {
+        $page = $this->ownedPage($sellers, $request, $slug);
+        if (! $page instanceof SalesPage) {
+            return $page;
+        }
+
+        $name = $page->name;
+        $page->delete();
+
+        return redirect()->route('shop.sales-pages')
+            ->with('success', __('“:name” deleted.', ['name' => $name]));
+    }
+
     /** Resolve a page the current user owns, or a redirect away. */
     private function ownedPage(SellerService $sellers, Request $request, string $slug): SalesPage|RedirectResponse
     {
@@ -1393,14 +1408,59 @@ class SellerController extends Controller
             return redirect()->route('shop');
         }
 
-        $product = $seller->products()->with(['priceAsset', 'variants'])->findOrFail($id);
+        $product = $seller->products()->with(['priceAsset', 'variants', 'salesPages'])->findOrFail($id);
 
         return view('frontend.seller.product-create', [
             'types' => self::PRODUCT_TYPES,
             'assets' => $this->pricingAssets(),
             'product' => $product,
+            'canDelete' => ! $product->orderItems()->exists(),
             'variantSeed' => $this->variantSeed($product),
+            'salesPage' => $product->salesPages->firstWhere('status', SalesPageStatus::Published)
+                ?? $product->salesPages->first(),
         ]);
+    }
+
+    /** Publish an owned product so it can be sold and given a sales page. */
+    public function publishProduct(Request $request, SellerService $sellers, SetProductStatus $action, string $id): RedirectResponse
+    {
+        $seller = $sellers->forUser($request->user());
+        if (! ($seller?->canSell() ?? false)) {
+            return redirect()->route('shop');
+        }
+        $product = $seller->products()->findOrFail($id);
+
+        try {
+            $action->execute($product, ProductStatus::Published);
+        } catch (ShopException $e) {
+            return back()->withErrors(['product' => $e->getMessage()]);
+        }
+
+        return redirect()->route('shop.products.edit', $product->id)
+            ->with('success', __('“:name” is published. Now generate its sales page.', ['name' => $product->name]));
+    }
+
+    /**
+     * Delete an owned product — only while no order references it. A product with
+     * orders must be archived instead, so order history keeps its reference.
+     */
+    public function deleteProduct(Request $request, SellerService $sellers, string $id): RedirectResponse
+    {
+        $seller = $sellers->forUser($request->user());
+        if (! ($seller?->canSell() ?? false)) {
+            return redirect()->route('shop');
+        }
+        $product = $seller->products()->findOrFail($id);
+
+        if ($product->orderItems()->exists()) {
+            return back()->with('error', __('“:name” has orders and can’t be deleted — archive it instead.', ['name' => $product->name]));
+        }
+
+        $name = $product->name;
+        $product->delete();
+
+        return redirect()->route('shop.products')
+            ->with('success', __('“:name” deleted.', ['name' => $name]));
     }
 
     /** Persist edits to an owned product. Slug + status are untouched here. */

@@ -74,6 +74,11 @@ class Product extends Model
         return $this->hasMany(SalesPage::class);
     }
 
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
     public function price(): Money
     {
         return $this->priceAsset->money((string) $this->price_amount);

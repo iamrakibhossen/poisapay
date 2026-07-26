@@ -43,11 +43,14 @@ it('forbids an operator without the impersonate permission', function () {
         ->assertForbidden();
 });
 
-it('refuses to nest a second impersonation', function () {
-    $other = User::factory()->create();
+it('switches to the new target when already impersonating', function () {
+    $other = User::factory()->create(['name' => 'Second Target']);
 
     actingAs($this->admin, 'admin')->post(route('admin.impersonate', $this->target->id));
 
-    // Already impersonating -> conflict.
-    post(route('admin.impersonate', $other->id))->assertStatus(409);
+    // Already impersonating -> switch to the new target instead of erroring.
+    post(route('admin.impersonate', $other->id))->assertRedirect(route('dashboard'));
+
+    expect(auth('web')->id())->toBe($other->id)
+        ->and(session('impersonator_id'))->toBe($this->admin->id);
 });

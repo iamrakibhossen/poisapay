@@ -6,6 +6,7 @@ namespace App\Shop\Http\Controllers\Admin;
 
 use App\Domain\Audit\ActivityLogger;
 use App\Http\Controllers\Controller;
+use App\Shop\Actions\Seller\SetSellerStatus;
 use App\Shop\Enums\SellerStatus;
 use App\Shop\Models\Seller;
 use Illuminate\Http\RedirectResponse;
@@ -79,6 +80,27 @@ class SellerAdminController extends Controller
         ]);
 
         return back()->with('success', __('Seller plan updated.'));
+    }
+
+    /** Approve / reject / suspend / reactivate a seller application. */
+    public function updateStatus(Request $request, Seller $seller, SetSellerStatus $action): RedirectResponse
+    {
+        $this->authorizeManage();
+
+        $data = $request->validate([
+            'action' => ['required', 'in:approve,reject,suspend,reactivate'],
+            'reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $to = match ($data['action']) {
+            'approve', 'reactivate' => SellerStatus::Approved,
+            'reject' => SellerStatus::Rejected,
+            'suspend' => SellerStatus::Suspended,
+        };
+
+        $action->execute($seller, $to, auth('admin')->user(), $data['reason'] ?? null);
+
+        return back()->with('success', __('Seller :status.', ['status' => $to->label()]));
     }
 
     private function authorizeView(): void

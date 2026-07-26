@@ -448,7 +448,7 @@
             <div class="reveal text-center">
                 <p class="text-sm font-semibold uppercase tracking-[0.18em]" style="color:var(--brand)">{{ __('FAQ') }}</p>
                 <h2 class="mt-3 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">{{ __('Questions,') }} <span class="grad-text">{{ __('answered.') }}</span></h2>
-                <p class="mt-4 text-slate-600">{{ __('For more, see our') }} <a href="{{ route('faqs.public') }}" class="font-medium underline-offset-2 hover:underline" style="color:var(--brand)">{{ __('full FAQ') }}</a>.</p>
+                <p class="mt-4 text-slate-600">{{ __('For more, see our') }} <a href="{{ route('help-center') }}" class="font-medium underline-offset-2 hover:underline" style="color:var(--brand)">{{ __('full FAQ') }}</a>.</p>
             </div>
 
             <div class="reveal mt-10 space-y-3" x-data="{ open: null }">

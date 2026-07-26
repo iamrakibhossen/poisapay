@@ -7,7 +7,7 @@
         ->exists(), false, false);
 
     // Only approved sellers see "Sell" — everyone else reaches onboarding from the
-    // marketing site (/products/sell), not the app nav.
+    // marketing site (/products/shop), not the app nav.
     $isSeller = auth()->check() && rescue(
         fn () => app(\App\Shop\Services\SellerService::class)->forUser(auth()->user())?->canSell() ?? false,
         false, false,

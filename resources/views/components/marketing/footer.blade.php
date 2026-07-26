@@ -8,7 +8,7 @@
             [__('Virtual Card'), route('products.show', 'virtual-card')],
             [__('Wallet'), route('products.show', 'wallet')],
             [__('Exchange'), route('products.show', 'exchange')],
-            [__('Merchant Pay'), route('merchants')],
+            [__('Merchant Pay'), route('products.show', 'merchant-pay')],
         ],
         __('Company') => [
             [__('About Us'), $page('about-us')],
@@ -17,7 +17,7 @@
             [__('Contact'), $page('contact')],
         ],
         __('Resources') => [
-            [__('Help Center'), route('faqs.public')],
+            [__('Help Center'), route('help-center')],
             [__('Live Prices'), route('marketing.prices')],
             [__('System Status'), route('status')],
             [__('API Documentation'), $page('api')],

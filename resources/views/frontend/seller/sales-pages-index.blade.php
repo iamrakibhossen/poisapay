@@ -1,12 +1,21 @@
 <x-layouts.app :title="__('Sales pages')">
-    <div class="mt-6 space-y-5" x-data="{ creating: {{ $errors->any() ? 'true' : 'false' }} }">
-        <div class="flex flex-wrap items-center justify-between gap-4">
+    @php
+        $total = count($pages);
+        $live = collect($pages)->where('published', true)->count();
+        $drafts = $total - $live;
+    @endphp
+
+    <div class="mt-6 space-y-6">
+        {{-- Header --}}
+        <div class="flex flex-wrap items-start justify-between gap-4">
             <div>
                 <h1 class="text-2xl font-semibold tracking-tight text-neutral-900">{{ __('Sales pages') }}</h1>
-                <p class="mt-1 text-sm text-neutral-500">{{ __('Create a page for a product, then customize it. A product can have several pages.') }}</p>
+                <p class="mt-1 text-sm text-neutral-500">{{ __('Each page sells one product. Generate a page from a product, customize it, then publish and share.') }}</p>
             </div>
-            @if (count($products))
-                <x-ui.button x-on:click="creating = ! creating" icon="plus">{{ __('New sales page') }}</x-ui.button>
+            @if ($hasProducts)
+                <x-ui.button href="{{ route('shop.products') }}" icon="plus">{{ __('New page from a product') }}</x-ui.button>
+            @else
+                <x-ui.button href="{{ route('shop.products.create') }}" icon="plus">{{ __('Create a product') }}</x-ui.button>
             @endif
         </div>
 
@@ -14,80 +23,106 @@
             <x-ui.alert type="success">{{ session('success') }}</x-ui.alert>
         @endif
 
-        {{-- Create: pick a product first, then go customize --}}
-        @if (count($products))
-            <div x-show="creating" x-cloak>
-                <form method="POST" action="{{ route('shop.sales-pages.store') }}">
-                    @csrf
-                    <x-ui.card>
-                        <p class="mb-1 text-sm font-semibold text-neutral-900">{{ __('New sales page') }}</p>
-                        <p class="mb-4 text-xs text-neutral-500">{{ __('Every sales page sells one product. Pick the product, name the page, then customize it.') }}</p>
-                        <div class="grid gap-4 sm:grid-cols-2">
-                            <div>
-                                <label class="mb-1 block text-xs font-medium text-neutral-500">{{ __('Product') }}</label>
-                                <select name="product_id" required class="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
-                                    <option value="">{{ __('Choose a product…') }}</option>
-                                    @foreach ($products as $id => $pname)
-                                        <option value="{{ $id }}" @selected(old('product_id') === (string) $id)>{{ $pname }}</option>
-                                    @endforeach
-                                </select>
-                                @error('product_id')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
-                                <a href="{{ route('shop.products.create') }}" class="mt-1.5 inline-block text-[11px] font-medium text-brand-600 hover:text-brand-700">{{ __('+ Create a new product') }}</a>
-                            </div>
-                            <x-ui.input :label="__('Page name')" name="name" :value="old('name')" :error="$errors->first('name')" placeholder="e.g. Black Friday campaign" required />
-                        </div>
-                        @error('sales_page')<p class="mt-3 text-xs text-rose-600">{{ $message }}</p>@enderror
-                        <div class="mt-4">
-                            <x-ui.button type="submit" icon="paint-brush">{{ __('Create & customize') }}</x-ui.button>
-                        </div>
-                    </x-ui.card>
-                </form>
-            </div>
-        @endif
-
-        {{-- Existing pages --}}
-        @if (count($pages))
-            <div class="grid gap-3 sm:grid-cols-2">
-                @foreach ($pages as $pg)
-                    <div class="pp-card flex flex-col p-4">
-                        <div class="flex items-start justify-between gap-3">
-                            <div class="min-w-0">
-                                <p class="truncate text-sm font-semibold text-neutral-900">{{ $pg['name'] }}</p>
-                                <p class="truncate text-xs text-neutral-500">{{ $pg['product'] }}</p>
-                            </div>
-                            <x-ui.badge :color="$pg['color']" dot>{{ $pg['status'] }}</x-ui.badge>
-                        </div>
-
-                        <p class="mt-2 flex items-center gap-1 truncate font-mono text-[11px] text-neutral-400">
-                            <x-heroicon-o-link class="h-3 w-3 shrink-0" />
-                            {{ $pg['domain'] ? $pg['domain'] : 'poisahub.com/p/'.$pg['slug'] }}
-                        </p>
-
-                        <div class="mt-3 flex items-center gap-4 border-t border-neutral-100 pt-3 text-xs text-neutral-500">
-                            <span>{{ __('Views') }} <span class="font-semibold text-neutral-700">{{ $pg['views'] }}</span></span>
-                            <span>{{ __('Conv.') }} <span class="font-semibold text-neutral-700">{{ $pg['conv'] }}</span></span>
-                        </div>
-
-                        <div class="mt-3 flex items-center gap-2">
-                            <x-ui.button href="{{ route('shop.sales-page.edit', ['slug' => $pg['slug']]) }}" size="sm" icon="paint-brush">{{ __('Customize') }}</x-ui.button>
-                            <a href="{{ route('funnel.sales', ['slug' => $pg['slug']]) }}" target="_blank" class="rounded-lg border border-neutral-200 p-2 text-neutral-400 transition hover:bg-neutral-50 hover:text-neutral-600" title="{{ __('View') }}"><x-heroicon-o-arrow-top-right-on-square class="h-4 w-4" /></a>
-                            <button type="button" class="rounded-lg border border-neutral-200 p-2 text-neutral-400 transition hover:bg-neutral-50 hover:text-neutral-600" title="{{ __('Duplicate') }}"><x-heroicon-o-document-duplicate class="h-4 w-4" /></button>
+        @if ($total)
+            {{-- Stats --}}
+            <div class="grid grid-cols-3 gap-3">
+                @foreach ([[__('Total pages'), $total, 'document-text', 'text-neutral-900'], [__('Live'), $live, 'globe-alt', 'text-emerald-600'], [__('Drafts'), $drafts, 'pencil-square', 'text-amber-600']] as [$label, $value, $icon, $tint])
+                    <div class="pp-card flex items-center gap-3 p-4">
+                        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-neutral-50 {{ $tint }}"><x-dynamic-component :component="'heroicon-o-'.$icon" class="h-5 w-5" /></span>
+                        <div>
+                            <p class="text-xl font-bold tracking-tight text-neutral-900">{{ $value }}</p>
+                            <p class="text-xs text-neutral-500">{{ $label }}</p>
                         </div>
                     </div>
                 @endforeach
             </div>
+
+            {{-- Nudge: unpublished drafts are not making money yet --}}
+            @if ($drafts)
+                <div class="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-amber-800">
+                    <x-heroicon-o-megaphone class="h-5 w-5 shrink-0" />
+                    <span>{{ trans_choice('You have :count draft that isn’t live yet — publish it to start selling.|You have :count drafts that aren’t live yet — publish them to start selling.', $drafts, ['count' => $drafts]) }}</span>
+                </div>
+            @endif
+
+            {{-- Pages --}}
+            <div class="grid gap-3 sm:grid-cols-2">
+                @foreach ($pages as $pg)
+                    @php $url = $pg['domain'] ? 'https://'.$pg['domain'] : route('funnel.sales', ['slug' => $pg['slug']]); @endphp
+                    <div class="pp-card flex flex-col p-5 @if (! $pg['published']) ring-1 ring-amber-200 @endif">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <p class="truncate text-sm font-semibold text-neutral-900">{{ $pg['name'] }}</p>
+                                <p class="mt-0.5 flex items-center gap-1 truncate text-xs text-neutral-500">
+                                    <x-heroicon-o-cube class="h-3.5 w-3.5 shrink-0" /> {{ $pg['product'] }}
+                                </p>
+                            </div>
+                            <x-ui.badge :color="$pg['color']" dot>{{ $pg['published'] ? __('Live') : __('Draft') }}</x-ui.badge>
+                        </div>
+
+                        {{-- Share link (live) or publish prompt (draft) --}}
+                        @if ($pg['published'])
+                            <div x-data="{ copied: false }" class="mt-4 flex items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50/70 px-3 py-2">
+                                <x-heroicon-o-link class="h-3.5 w-3.5 shrink-0 text-neutral-400" />
+                                <span class="truncate font-mono text-[11px] text-neutral-600">{{ preg_replace('#^https?://#', '', $url) }}</span>
+                                <button type="button"
+                                    x-on:click="navigator.clipboard.writeText('{{ $url }}'); copied = true; setTimeout(() => copied = false, 1500)"
+                                    class="ml-auto shrink-0 rounded-md px-2 py-1 text-[11px] font-semibold text-brand-600 transition hover:bg-brand-50"
+                                    x-text="copied ? '{{ __('Copied!') }}' : '{{ __('Copy') }}'">{{ __('Copy') }}</button>
+                            </div>
+                        @else
+                            <p class="mt-4 flex items-center gap-1.5 rounded-lg border border-dashed border-amber-200 bg-amber-50/50 px-3 py-2 text-[11px] font-medium text-amber-700">
+                                <x-heroicon-o-eye-slash class="h-3.5 w-3.5 shrink-0" /> {{ __('Not live yet — finish and publish to share.') }}
+                            </p>
+                        @endif
+
+                        <p class="mt-3 text-[11px] text-neutral-400">{{ __('Edited :time', ['time' => $pg['updated'] ?? '—']) }}</p>
+
+                        {{-- Actions --}}
+                        <div class="mt-4 flex items-center gap-2 border-t border-neutral-100 pt-4">
+                            @if ($pg['published'])
+                                <x-ui.button href="{{ route('shop.sales-page.edit', ['slug' => $pg['slug']]) }}" size="sm" variant="secondary" icon="paint-brush">{{ __('Edit') }}</x-ui.button>
+                                <a href="{{ $url }}" target="_blank" class="rounded-lg border border-neutral-200 p-2 text-neutral-400 transition hover:bg-neutral-50 hover:text-neutral-600" title="{{ __('View') }}"><x-heroicon-o-arrow-top-right-on-square class="h-4 w-4" /></a>
+                            @else
+                                <x-ui.button href="{{ route('shop.sales-page.edit', ['slug' => $pg['slug']]) }}" size="sm" icon="rocket-launch">{{ __('Finish & publish') }}</x-ui.button>
+                            @endif
+
+                            <form method="POST" action="{{ route('shop.sales-page.duplicate', ['slug' => $pg['slug']]) }}">
+                                @csrf
+                                <button type="submit" class="rounded-lg border border-neutral-200 p-2 text-neutral-400 transition hover:bg-neutral-50 hover:text-neutral-600" title="{{ __('Duplicate') }}"><x-heroicon-o-document-duplicate class="h-4 w-4" /></button>
+                            </form>
+                            <button type="button" x-on:click="$dispatch('open-modal', 'delete-page-{{ $loop->index }}')" class="ml-auto rounded-lg border border-neutral-200 p-2 text-neutral-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600" title="{{ __('Delete') }}"><x-heroicon-o-trash class="h-4 w-4" /></button>
+                        </div>
+                    </div>
+
+                    <x-ui.modal name="delete-page-{{ $loop->index }}" :title="__('Delete sales page')" :subtitle="$pg['name']" maxWidth="sm">
+                        <p class="text-sm leading-relaxed text-neutral-600">
+                            {{ __('This removes the sales page and its public link stops working. The product it sells is not affected — you can generate a new page for it any time.') }}
+                        </p>
+                        <div class="mt-6 flex items-center justify-end gap-2">
+                            <x-ui.button type="button" variant="secondary" x-on:click="open = false">{{ __('Cancel') }}</x-ui.button>
+                            <form method="POST" action="{{ route('shop.sales-page.delete', ['slug' => $pg['slug']]) }}">
+                                @csrf
+                                @method('DELETE')
+                                <x-ui.button type="submit" variant="danger" icon="trash">{{ __('Delete page') }}</x-ui.button>
+                            </form>
+                        </div>
+                    </x-ui.modal>
+                @endforeach
+            </div>
         @else
+            {{-- Empty state — funnel to where pages are generated --}}
             <div class="pp-card">
-                @if (count($products))
-                    <x-ui.empty-state icon="document-text" :title="__('No sales pages yet')" :description="__('Pick a product and build its sales page.')">
+                @if ($hasProducts)
+                    <x-ui.empty-state icon="document-text" :title="__('Generate your first sales page')" :description="__('Open a product, publish it, then hit “Generate sales page” — you’ll get a ready-to-edit page in seconds.')">
                         <x-slot:action>
-                            <x-ui.button x-on:click="creating = true" icon="plus" size="sm">{{ __('New sales page') }}</x-ui.button>
+                            <x-ui.button href="{{ route('shop.products') }}" icon="arrow-right">{{ __('Go to products') }}</x-ui.button>
                         </x-slot:action>
                     </x-ui.empty-state>
                 @else
-                    <x-ui.empty-state icon="document-text" :title="__('Create a product first')" :description="__('A sales page always sells one product. Create a product, then build its page.')">
+                    <x-ui.empty-state icon="cube" :title="__('Create a product first')" :description="__('A sales page always sells one product. Create a product, publish it, then generate its page.')">
                         <x-slot:action>
-                            <x-ui.button href="{{ route('shop.products.create') }}" icon="plus" size="sm">{{ __('Create product') }}</x-ui.button>
+                            <x-ui.button href="{{ route('shop.products.create') }}" icon="plus">{{ __('Create product') }}</x-ui.button>
                         </x-slot:action>
                     </x-ui.empty-state>
                 @endif

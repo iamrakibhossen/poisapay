@@ -178,36 +178,216 @@ HTML,
             );
         }
 
+        // Curated homepage set (show_on_homepage) plus the per-page FAQs surfaced on
+        // each marketing product page — one source of truth for the Help Center.
         $faqs = [
+            // ── Getting started (homepage) ──
             [
                 'question' => 'How do I make a deposit?',
                 'answer' => 'Go to the Deposit screen, choose the asset and network you want to fund, and send crypto to the address shown. Once the network confirms your transaction, the balance is credited to your wallet automatically.',
                 'group' => 'Deposits',
                 'sort_order' => 10,
+                'show_on_homepage' => true,
             ],
             [
                 'question' => 'How long do withdrawals take?',
                 'answer' => 'Withdrawal requests are reviewed and broadcast to the blockchain shortly after you confirm them. On-chain settlement depends on network congestion, but most withdrawals complete within a few minutes.',
                 'group' => 'Withdrawals',
                 'sort_order' => 20,
+                'show_on_homepage' => true,
             ],
             [
                 'question' => 'Why do I need to verify my identity (KYC)?',
                 'answer' => 'Identity verification protects you and the platform from fraud and helps us meet anti-money-laundering rules. Some features, such as virtual cards and higher limits, are unlocked only after your verification is approved.',
                 'group' => 'Verification',
                 'sort_order' => 30,
-            ],
-            [
-                'question' => 'How do virtual cards work?',
-                'answer' => 'Once your account is fully verified, you can issue a virtual card that draws from your balance. Use it for online payments anywhere the card network is accepted, and freeze or replace it instantly from the Cards screen.',
-                'group' => 'Cards',
-                'sort_order' => 40,
+                'show_on_homepage' => true,
             ],
             [
                 'question' => 'What fees does PoisaPay charge?',
                 'answer' => 'Peer-to-peer transfers between PoisaPay users are free. Deposits, withdrawals, and exchanges may carry a small network or spread fee, which is always shown transparently before you confirm the transaction.',
                 'group' => 'Fees',
-                'sort_order' => 50,
+                'sort_order' => 40,
+                'show_on_homepage' => true,
+            ],
+
+            // ── Wallet ──
+            [
+                'question' => 'What does "one balance per coin" mean?',
+                'answer' => 'If you hold USDT on several networks, PoisaPay shows and spends it as a single pooled balance. The network only matters at the moment you deposit or withdraw on-chain.',
+                'group' => 'Wallet',
+                'sort_order' => 100,
+            ],
+            [
+                'question' => 'Which coins and networks are supported?',
+                'answer' => 'Stablecoins USDT and USDC plus native assets, across eight networks — Tron, Ethereum, BNB Smart Chain, Polygon, Arbitrum, Optimism, Base and Avalanche — alongside fiat balances.',
+                'group' => 'Wallet',
+                'sort_order' => 105,
+            ],
+            [
+                'question' => 'Are internal transfers really free?',
+                'answer' => 'Yes. Sending to another PoisaPay user is instant and fee-free because it settles on our internal ledger rather than on-chain.',
+                'group' => 'Wallet',
+                'sort_order' => 110,
+            ],
+            [
+                'question' => 'What are the deposit and withdrawal fees?',
+                'answer' => 'Deposits are free. Withdrawals carry a small percentage platform fee, shown before you confirm — PoisaPay absorbs the network gas cost.',
+                'group' => 'Wallet',
+                'sort_order' => 115,
+            ],
+            [
+                'question' => 'How are my assets kept safe?',
+                'answer' => 'Balances are held custodially, with the majority of crypto in offline cold storage and continuous reconciliation against on-chain holdings. Every balance is derived from an immutable double-entry ledger.',
+                'group' => 'Wallet',
+                'sort_order' => 120,
+            ],
+            [
+                'question' => 'Can I see my balance in my own currency?',
+                'answer' => 'Yes — choose a base currency and every asset is valued live in it, so you always know what your wallet is worth at a glance.',
+                'group' => 'Wallet',
+                'sort_order' => 125,
+            ],
+
+            // ── Cards ──
+            [
+                'question' => 'How do virtual cards work?',
+                'answer' => 'Once your account is fully verified, you can issue a virtual card that draws from your balance. Use it for online payments anywhere the card network is accepted, and freeze or replace it instantly from the Cards screen.',
+                'group' => 'Cards',
+                'sort_order' => 200,
+                'show_on_homepage' => true,
+            ],
+            [
+                'question' => 'Is the card virtual or physical?',
+                'answer' => 'You get a virtual card you can use online and add to your mobile wallet to tap to pay in-store immediately. A physical card can also be issued if enabled on your account.',
+                'group' => 'Cards',
+                'sort_order' => 205,
+            ],
+            [
+                'question' => 'Which balance does the card spend from?',
+                'answer' => 'It draws from your PoisaPay stablecoin balance and converts your asset to the merchant\'s currency at the point of sale, so you can spend crypto without pre-converting it.',
+                'group' => 'Cards',
+                'sort_order' => 210,
+            ],
+            [
+                'question' => 'What does the card cost?',
+                'answer' => 'There is no monthly or annual fee. A flat 1% is applied per transaction, and any one-time issuance price (if your operator sets one) is shown before you create the card.',
+                'group' => 'Cards',
+                'sort_order' => 215,
+            ],
+            [
+                'question' => 'Can I freeze the card or set limits?',
+                'answer' => 'Yes. Freeze and unfreeze instantly, set daily and per-transaction limits, restrict spending by country and block merchant categories — all from your dashboard, any time.',
+                'group' => 'Cards',
+                'sort_order' => 220,
+            ],
+            [
+                'question' => 'Can I have more than one card?',
+                'answer' => 'Yes — issue multiple virtual cards with their own limits and controls, for example one for subscriptions and one for day-to-day spending.',
+                'group' => 'Cards',
+                'sort_order' => 225,
+            ],
+
+            // ── Exchange ──
+            [
+                'question' => 'How is the exchange rate set?',
+                'answer' => 'Rates come from live market data with a small, transparent spread that is always shown before you confirm. Some pairs carry their own spread, and it is always disclosed in the quote.',
+                'group' => 'Exchange',
+                'sort_order' => 300,
+            ],
+            [
+                'question' => 'Will the exchange rate change after I see it?',
+                'answer' => 'No. Each quote locks a fixed rate for a few seconds. As long as you confirm within that window, the amount you receive is exactly what was shown.',
+                'group' => 'Exchange',
+                'sort_order' => 305,
+            ],
+            [
+                'question' => 'How fast are swaps?',
+                'answer' => 'Instant. They settle to your PoisaPay balance the moment you confirm, on our internal ledger — there is no on-chain wait.',
+                'group' => 'Exchange',
+                'sort_order' => 310,
+            ],
+            [
+                'question' => 'Can I swap between crypto and fiat?',
+                'answer' => 'Yes, in either direction — stablecoin to fiat, fiat to crypto, or crypto to crypto — all from your wallet.',
+                'group' => 'Exchange',
+                'sort_order' => 315,
+            ],
+            [
+                'question' => 'Are there limits on a swap?',
+                'answer' => 'Some pairs have a minimum and maximum amount per swap, and larger conversions may require a completed KYC level. Any limit is shown when you build the quote.',
+                'group' => 'Exchange',
+                'sort_order' => 320,
+            ],
+
+            // ── Merchant Pay ──
+            [
+                'question' => 'What does it cost to accept payments?',
+                'answer' => 'A flat 1% processing fee per payment. There is no setup cost, no monthly fee and no per-coin surcharge — the fee is shown on every invoice.',
+                'group' => 'Merchant Pay',
+                'sort_order' => 400,
+            ],
+            [
+                'question' => 'How fast do I get paid as a merchant?',
+                'answer' => 'Instantly. When a customer pays, the net amount settles straight to your PoisaPay wallet on our internal ledger — there is no multi-day payout or bank delay.',
+                'group' => 'Merchant Pay',
+                'sort_order' => 405,
+            ],
+            [
+                'question' => 'Which coins can customers pay with?',
+                'answer' => 'Stablecoins USDT and USDC plus major assets like BTC and ETH. The customer pays in whatever they hold and you receive your settlement asset.',
+                'group' => 'Merchant Pay',
+                'sort_order' => 410,
+            ],
+            [
+                'question' => 'Are there chargebacks on crypto payments?',
+                'answer' => 'No. Once a crypto payment settles it is final, so you are protected from the fraud reversals common with card payments.',
+                'group' => 'Merchant Pay',
+                'sort_order' => 415,
+            ],
+            [
+                'question' => 'Can I refund a customer or automate checkout?',
+                'answer' => 'Yes. Refund a paid invoice or cancel an unpaid one from your dashboard, and every paid invoice emits an invoice.paid webhook so you can automate fulfilment and reconciliation through the API.',
+                'group' => 'Merchant Pay',
+                'sort_order' => 420,
+            ],
+
+            // ── Selling on Shop ──
+            [
+                'question' => 'What does it cost to sell on Shop?',
+                'answer' => 'Nothing to start — the Free plan has no monthly fee, one sales page and 8% commission per sale. Pro is $10/month for up to 3 products at 5% commission, and Business is $20/month for up to 10 products at 3% commission. There are no separate payment-processing fees.',
+                'group' => 'Selling on Shop',
+                'sort_order' => 500,
+            ],
+            [
+                'question' => 'What can I sell?',
+                'answer' => 'Seven product types: digital downloads, license keys, memberships, subscriptions, services, physical goods and bundles. Physical products support shipping and address capture at checkout.',
+                'group' => 'Selling on Shop',
+                'sort_order' => 505,
+            ],
+            [
+                'question' => 'How and when do I get paid for sales?',
+                'answer' => 'Payments settle straight to your PoisaPay balance — no external gateway. Earnings can be held for the buyer\'s refund window and then released automatically to your spendable balance, so refunds never leave you in the negative.',
+                'group' => 'Selling on Shop',
+                'sort_order' => 510,
+            ],
+            [
+                'question' => 'How do buyers pay at checkout?',
+                'answer' => 'Every checkout supports three rails: a PoisaPay wallet balance, a card, or crypto. Buyers pick whichever they have — you receive your settlement asset either way.',
+                'group' => 'Selling on Shop',
+                'sort_order' => 515,
+            ],
+            [
+                'question' => 'Do I need to code to build a sales page?',
+                'answer' => 'No. The page builder is fully visual — drag blocks, edit inline, preview and publish. Saved revisions let you roll back any change, and you can connect a custom domain for a branded storefront.',
+                'group' => 'Selling on Shop',
+                'sort_order' => 520,
+            ],
+            [
+                'question' => 'How are refunds handled on Shop?',
+                'answer' => 'You can approve refunds from your dashboard. A refund reverses the original ledger entries, revokes access to digital products and returns the buyer\'s money — fully audited end to end.',
+                'group' => 'Selling on Shop',
+                'sort_order' => 525,
             ],
         ];
 
@@ -218,7 +398,7 @@ HTML,
                     'answer' => $faq['answer'],
                     'group' => $faq['group'],
                     'sort_order' => $faq['sort_order'],
-                    'show_on_homepage' => true,
+                    'show_on_homepage' => $faq['show_on_homepage'] ?? false,
                     'status' => 'published',
                 ],
             );

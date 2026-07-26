@@ -19,6 +19,7 @@ Route::controller(SellerController::class)->group(function () {
     Route::post('/shop/apply', 'submitApplication')->name('shop.apply.submit');
     Route::get('/shop/sales-pages', 'salesPages')->name('shop.sales-pages');
     Route::post('/shop/sales-pages', 'storeSalesPage')->name('shop.sales-pages.store');
+    Route::delete('/shop/sales-pages/{slug}', 'deleteSalesPage')->name('shop.sales-page.delete');
     // Visual block-tree builder (rich Alpine editor + JSON endpoints).
     Route::get('/shop/sales-pages/{slug}/edit', [PageBuilderController::class, 'edit'])->name('shop.sales-page.edit');
     Route::patch('/shop/sales-pages/{slug}/document', [PageBuilderController::class, 'save'])->name('shop.sales-page.document');
@@ -33,6 +34,8 @@ Route::controller(SellerController::class)->group(function () {
     Route::post('/shop/products', 'storeProduct')->name('shop.products.store');
     Route::get('/shop/products/{id}/edit', 'editProduct')->name('shop.products.edit');
     Route::put('/shop/products/{id}', 'updateProduct')->name('shop.products.update');
+    Route::delete('/shop/products/{id}', 'deleteProduct')->name('shop.products.delete');
+    Route::post('/shop/products/{id}/publish', 'publishProduct')->name('shop.products.publish');
     Route::get('/shop/inbox', 'inbox')->name('shop.inbox');
     Route::get('/shop/orders', 'orders')->name('shop.orders');
     Route::get('/shop/orders/{id}', 'order')->name('shop.order');

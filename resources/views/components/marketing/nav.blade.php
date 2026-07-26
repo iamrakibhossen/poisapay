@@ -3,12 +3,12 @@
     $home = route('home');
     $onProduct = fn (string $slug) => request()->routeIs('products.show') && request()->route('product') === $slug;
     $navLinks = [
+        ['href' => route('products.show', 'shop'), 'label' => __('Start selling'), 'active' => $onProduct('shop')],
         ['href' => route('products.show', 'virtual-card'), 'label' => __('Virtual Cards'), 'active' => $onProduct('virtual-card')],
         ['href' => route('products.show', 'wallet'), 'label' => __('Wallet'), 'active' => $onProduct('wallet')],
-        ['href' => route('products.show', 'sell'), 'label' => __('Sell'), 'active' => $onProduct('sell')],
         ['href' => route('products.show', 'exchange'), 'label' => __('Exchange'), 'active' => $onProduct('exchange')],
-        ['href' => route('merchants'), 'label' => __('Merchants'), 'active' => request()->routeIs('merchants')],
-        ['href' => route('faqs.public'), 'label' => __('Help Center'), 'active' => request()->routeIs('faqs.public')],
+        ['href' => route('products.show', 'merchant-pay'), 'label' => __('Merchant Pay'), 'active' => $onProduct('merchant-pay')],
+        ['href' => route('help-center'), 'label' => __('Help Center'), 'active' => request()->routeIs('help-center')],
     ];
 @endphp
 <header

@@ -1,4 +1,4 @@
-<x-layouts.marketing :title="__('FAQs')" :description="__('Answers to common questions about using PoisaPay — deposits, withdrawals, cards, security and more.')">
+<x-layouts.marketing :title="__('Help Center')" :description="__('Answers to common questions about using PoisaPay — deposits, withdrawals, cards, security and more.')">
     @php
         // Flattened lowercased text of every FAQ, for the client-side search "no results" check.
         $allText = collect($groups)->flatMap(fn ($faqs) => $faqs->map(fn ($f) => \Illuminate\Support\Str::lower($f->question.' '.$f->answer)))->values();
@@ -24,6 +24,30 @@
                     class="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
                     <x-heroicon-o-x-mark class="h-4 w-4" />
                 </button>
+            </div>
+        </div>
+
+        {{-- Popular topics — quick entry points into the product pages --}}
+        <div x-show="!q.trim()" x-cloak class="mt-10">
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                @foreach ([
+                    ['wallet', 'wallet', __('Wallet & balances'), __('Deposits, transfers and one balance per coin.')],
+                    ['virtual-card', 'credit-card', __('Cards'), __('Issue, fund, freeze and set spending limits.')],
+                    ['exchange', 'arrows-right-left', __('Exchange'), __('Swap rates, spreads and instant settlement.')],
+                    ['merchant-pay', 'building-storefront', __('Merchant Pay'), __('Accept crypto, fees and instant payouts.')],
+                    ['shop', 'shopping-bag', __('Selling on Shop'), __('Plans, commission, payouts and refunds.')],
+                ] as $t)
+                    <a href="{{ route('products.show', $t[0]) }}"
+                        class="group flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-blue-500/40 hover:shadow-md">
+                        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-white shadow-sm" style="background:linear-gradient(135deg,var(--brand),var(--brand-600))">
+                            <x-dynamic-component :component="'heroicon-o-'.$t[1]" class="h-5 w-5" />
+                        </span>
+                        <div class="min-w-0">
+                            <p class="flex items-center gap-1 text-sm font-semibold text-slate-900">{{ $t[2] }}<x-heroicon-o-arrow-right class="h-3.5 w-3.5 -translate-x-1 opacity-0 transition group-hover:translate-x-0 group-hover:opacity-100" style="color:var(--brand)" /></p>
+                            <p class="mt-0.5 text-xs leading-relaxed text-slate-500">{{ $t[3] }}</p>
+                        </div>
+                    </a>
+                @endforeach
             </div>
         </div>
 
@@ -108,13 +132,23 @@
 
         {{-- Contact CTA --}}
         <div class="glass-card mt-16 flex flex-col items-center gap-5 p-8 text-center sm:flex-row sm:justify-between sm:text-left">
-            <div>
-                <p class="text-lg font-bold text-slate-900">{{ __('Still have questions?') }}</p>
-                <p class="mt-1 text-sm text-slate-500">{{ __('Our support team is here to help, around the clock.') }}</p>
+            <div class="flex items-center gap-4">
+                <span class="hidden h-12 w-12 shrink-0 place-items-center rounded-2xl text-white shadow-sm sm:grid" style="background:linear-gradient(135deg,var(--brand),var(--brand-600))">
+                    <x-heroicon-o-chat-bubble-left-right class="h-6 w-6" />
+                </span>
+                <div>
+                    <p class="text-lg font-bold text-slate-900">{{ __('Still have questions?') }}</p>
+                    <p class="mt-1 text-sm text-slate-500">{{ __('Our support team is here to help, around the clock. Most messages get a reply within hours.') }}</p>
+                </div>
             </div>
-            <a href="{{ route('home') }}" class="pp-btn pp-btn-primary pp-btn-lg shrink-0">
-                {{ __('Contact support') }} <x-heroicon-o-arrow-right class="h-5 w-5" />
-            </a>
+            <div class="flex shrink-0 flex-col gap-2.5 sm:flex-row">
+                <a href="{{ route('page.show', 'contact') }}" class="pp-btn pp-btn-primary pp-btn-lg">
+                    {{ __('Contact support') }} <x-heroicon-o-arrow-right class="h-5 w-5" />
+                </a>
+                @guest
+                    <a href="{{ route('register') }}" class="pp-btn pp-btn-ghost pp-btn-lg">{{ __('Create account') }}</a>
+                @endguest
+            </div>
         </div>
     </div>
 </x-layouts.marketing>

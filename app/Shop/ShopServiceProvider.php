@@ -7,7 +7,9 @@ namespace App\Shop;
 use App\Shop\Builder\BlockLibrary;
 use App\Shop\Builder\BlockRegistry;
 use App\Shop\Contracts\AuditableEvent;
+use App\Shop\Events\SellerApplied;
 use App\Shop\Listeners\AuditShopEvent;
+use App\Shop\Listeners\NotifyOperatorsOfSellerApplication;
 use App\Shop\Models\Product;
 use App\Shop\Models\RefundRequest;
 use App\Shop\Models\SalesPage;
@@ -47,6 +49,9 @@ class ShopServiceProvider extends ServiceProvider
     {
         // Audit everything: every AuditableEvent is recorded via the core Audit module.
         Event::listen(AuditableEvent::class, AuditShopEvent::class);
+
+        // Alert operators when a seller applies so the application can be reviewed.
+        Event::listen(SellerApplied::class, NotifyOperatorsOfSellerApplication::class);
 
         foreach ($this->policies as $model => $policy) {
             Gate::policy($model, $policy);
