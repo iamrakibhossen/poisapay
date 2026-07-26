@@ -12,14 +12,15 @@ use Illuminate\Support\Facades\Route;
  * pages + form-POST mutations that redirect back.
  */
 
-// Merchant console (page + mutations).
+// Merchant Pay console (page + mutations). URL is /merchant-pay; route NAMES stay
+// `merchant*` so existing route('merchant') references keep resolving.
 Route::controller(MerchantController::class)->group(function () {
-    Route::get('/merchant', 'index')->name('merchant');
-    Route::post('/merchant/register', 'register')->name('merchant.register');
-    Route::put('/merchant/profile', 'saveProfile')->name('merchant.profile');
-    Route::post('/merchant/invoices', 'createInvoice')->name('merchant.invoice.create');
-    Route::post('/merchant/invoices/{id}/cancel', 'cancelInvoice')->name('merchant.invoice.cancel');
-    Route::post('/merchant/invoices/{id}/refund', 'refundInvoice')->name('merchant.invoice.refund');
+    Route::get('/merchant-pay', 'index')->name('merchant');
+    Route::post('/merchant-pay/register', 'register')->name('merchant.register');
+    Route::put('/merchant-pay/profile', 'saveProfile')->name('merchant.profile');
+    Route::post('/merchant-pay/invoices', 'createInvoice')->name('merchant.invoice.create');
+    Route::post('/merchant-pay/invoices/{id}/cancel', 'cancelInvoice')->name('merchant.invoice.cancel');
+    Route::post('/merchant-pay/invoices/{id}/refund', 'refundInvoice')->name('merchant.invoice.refund');
 });
 
 // Invoice payment (public-facing pay page + execution).

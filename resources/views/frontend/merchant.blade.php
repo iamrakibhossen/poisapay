@@ -1,4 +1,4 @@
-<x-layouts.app :title="__('Merchant')">
+<x-layouts.app :title="__('Merchant Pay')">
     <div x-data="{
             showEditProfile: {{ $isMerchant && $errors->hasAny(['businessName', 'category', 'website', 'supportEmail', 'settlementAssetId']) ? 'true' : 'false' }},
             confirmingCancel: null,
@@ -12,58 +12,101 @@
         }" class="space-y-6">
         {{-- ============================= ONBOARDING ============================= --}}
         @unless ($isMerchant)
-            <x-ui.page-header :title="__('Merchant')" :subtitle="__('Accept crypto payments with shareable, QR-ready invoices.')" />
+            <x-ui.page-header :title="__('Merchant Pay')" :subtitle="__('Accept crypto payments with shareable, QR-ready invoices — settled straight to your wallet.')" />
+
+            {{-- Value hero (always shown so people understand the product before verifying) --}}
+            <div class="pp-card relative overflow-hidden bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 p-6 text-white shadow-[var(--shadow-card)] sm:p-8">
+                <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 88% 12%, white 1px, transparent 1px); background-size: 26px 26px;"></div>
+                <div class="relative grid gap-6 lg:grid-cols-3 lg:items-center">
+                    <div class="lg:col-span-2">
+                        <span class="inline-grid h-11 w-11 place-items-center rounded-xl bg-white/15">
+                            <x-heroicon-o-building-storefront class="h-6 w-6" />
+                        </span>
+                        <h2 class="mt-4 text-2xl font-bold tracking-tight">{{ __('Turn your account into a payment gateway') }}</h2>
+                        <p class="mt-2 max-w-xl text-sm text-white/80">
+                            {{ __('Bill customers in crypto with a link or QR code. When they pay, funds settle to your chosen asset instantly — no gateway, no chargebacks, no monthly fees.') }}
+                        </p>
+                        <ul class="mt-5 grid gap-2 text-sm sm:grid-cols-2">
+                            <li class="flex items-center gap-2"><x-heroicon-o-qr-code class="h-4 w-4 shrink-0" /> {{ __('Shareable, QR-ready invoices') }}</li>
+                            <li class="flex items-center gap-2"><x-heroicon-o-bolt class="h-4 w-4 shrink-0" /> {{ __('Instant crypto settlement') }}</li>
+                            <li class="flex items-center gap-2"><x-heroicon-o-arrow-uturn-left class="h-4 w-4 shrink-0" /> {{ __('One-click full refunds') }}</li>
+                            <li class="flex items-center gap-2"><x-heroicon-o-shield-check class="h-4 w-4 shrink-0" /> {{ __('No chargebacks, ledger-backed') }}</li>
+                        </ul>
+                    </div>
+                    <div class="rounded-2xl bg-white/10 p-5 ring-1 ring-white/15">
+                        <p class="text-xs font-medium uppercase tracking-wide text-white/70">{{ __('Pricing') }}</p>
+                        <p class="mt-1 text-3xl font-bold tracking-tight">{{ $feePct }}</p>
+                        <p class="text-sm text-white/80">{{ __('per successful payment') }}</p>
+                        <div class="mt-4 space-y-1.5 text-xs text-white/70">
+                            <p class="flex items-center gap-1.5"><x-heroicon-o-check class="h-3.5 w-3.5" /> {{ __('No setup or monthly fee') }}</p>
+                            <p class="flex items-center gap-1.5"><x-heroicon-o-check class="h-3.5 w-3.5" /> {{ __('Fee only on money received') }}</p>
+                            <p class="flex items-center gap-1.5"><x-heroicon-o-check class="h-3.5 w-3.5" /> {{ __('Settlement in the asset you pick') }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- How it works --}}
+            <div>
+                <h3 class="mb-3 px-1 text-sm font-semibold text-neutral-900">{{ __('How Merchant Pay works') }}</h3>
+                <div class="grid gap-4 sm:grid-cols-3">
+                    @foreach ([
+                        ['document-plus', __('1. Create an invoice'), __('Enter an amount and asset. We generate a unique payment request with a reference.')],
+                        ['qr-code', __('2. Share the QR or link'), __('Send the payment link or show the QR at the counter. Customers pay from any PoisaPay balance.')],
+                        ['banknotes', __('3. Get paid instantly'), __('Funds settle to your wallet in your chosen asset, minus the flat fee. Refund in one click if needed.')],
+                    ] as [$icon, $title, $desc])
+                        <div class="pp-card p-5">
+                            <span class="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand-600">
+                                <x-dynamic-component :component="'heroicon-o-'.$icon" class="h-5 w-5" />
+                            </span>
+                            <p class="mt-3 text-sm font-semibold text-neutral-900">{{ $title }}</p>
+                            <p class="mt-1 text-sm text-neutral-500">{{ $desc }}</p>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
             @unless ($featureEnabled)
-                <x-ui.alert type="warning" :title="__('Merchant accounts unavailable')">
-                    {{ __('Merchant onboarding is temporarily disabled. Please check back soon.') }}
+                <x-ui.alert type="warning" :title="__('Merchant Pay is temporarily unavailable')">
+                    {{ __('Merchant onboarding is paused right now. Please check back soon.') }}
                 </x-ui.alert>
             @endunless
 
+            {{-- Requirements + gating --}}
             @if ($featureEnabled && ! $isFullKyc)
-                <x-ui.alert type="warning" :title="__('Full verification required')">
-                    {{ __('Merchant accounts are only available to fully verified accounts. Complete identity verification to start accepting payments.') }}
-                </x-ui.alert>
-                <x-ui.card>
-                    <x-ui.empty-state icon="building-storefront" :title="__('Become a merchant')"
-                        :description="__('Once you\'re fully verified, you can create a merchant profile and start invoicing customers instantly.')">
-                        <x-slot:action>
-                            <a href="{{ route('settings.index', ['tab' => 'verification']) }}" class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-600">
-                                <x-heroicon-o-identification class="h-4 w-4" /> {{ __('Complete verification') }}
-                            </a>
-                        </x-slot:action>
-                    </x-ui.empty-state>
+                <x-ui.card :title="__('What you’ll need')" :subtitle="__('A quick checklist before you can start invoicing.')">
+                    <ul class="space-y-3 text-sm">
+                        <li class="flex items-start gap-3">
+                            <span class="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-600"><x-heroicon-s-check class="h-3 w-3" /></span>
+                            <span class="text-neutral-700">{{ __('A PoisaPay account (you’re all set here).') }}</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-amber-100 text-amber-600"><x-heroicon-s-exclamation-triangle class="h-3 w-3" /></span>
+                            <span class="text-neutral-700">{{ __('Full identity verification — required to accept payments and settle funds.') }}</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-500"><x-heroicon-s-check class="h-3 w-3" /></span>
+                            <span class="text-neutral-700">{{ __('Your business name and a settlement asset (chosen during registration).') }}</span>
+                        </li>
+                    </ul>
+                    <div class="mt-5">
+                        <a href="{{ route('settings.index', ['tab' => 'verification']) }}" class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-600">
+                            <x-heroicon-o-identification class="h-4 w-4" /> {{ __('Complete verification') }}
+                        </a>
+                    </div>
                 </x-ui.card>
             @endif
 
-            {{-- Hero + registration form --}}
+            {{-- Registration form + what-you-get panel --}}
             @if ($canRegister)
                 <div class="grid gap-6 lg:grid-cols-5">
-                    <div class="lg:col-span-2">
-                        <div class="pp-card relative overflow-hidden bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 p-6 text-white shadow-[var(--shadow-card)]">
-                            <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 85% 10%, white 1px, transparent 1px); background-size: 26px 26px;"></div>
-                            <div class="relative">
-                                <span class="inline-grid h-11 w-11 place-items-center rounded-xl bg-white/15">
-                                    <x-heroicon-o-building-storefront class="h-6 w-6" />
-                                </span>
-                                <h2 class="mt-4 text-xl font-bold">{{ __('Become a merchant') }}</h2>
-                                <p class="mt-2 text-sm text-white/80">
-                                    {{ __('Turn your PoisaPay account into a payment gateway. Issue crypto invoices, share QR codes, and settle to your chosen asset.') }}
-                                </p>
-                                <ul class="mt-4 space-y-2 text-sm">
-                                    <li class="flex items-center gap-2"><x-heroicon-o-check-circle class="h-4 w-4" /> {{ __('Shareable, QR-ready invoices') }}</li>
-                                    <li class="flex items-center gap-2"><x-heroicon-o-check-circle class="h-4 w-4" /> {{ __('Instant crypto settlement') }}</li>
-                                    <li class="flex items-center gap-2"><x-heroicon-o-check-circle class="h-4 w-4" /> {{ __('One-click refunds') }}</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="lg:col-span-3">
-                        <x-ui.card :title="__('Register your business')" :subtitle="__('Tell us a little about what you sell.')">
+                        <x-ui.card :title="__('Register your business')" :subtitle="__('Tell us a little about what you sell — you can change any of this later.')">
                             <form method="POST" action="{{ route('merchant.register') }}" class="space-y-5">
                                 @csrf
                                 <x-ui.input :label="__('Business name')" name="businessName" icon="building-storefront"
-                                    :value="old('businessName')" :placeholder="__('Acme Coffee Co.')" :error="$errors->first('businessName')" />
+                                    :value="old('businessName')" :placeholder="__('Acme Coffee Co.')" :error="$errors->first('businessName')"
+                                    :hint="__('Shown to customers on the payment page and receipts.')" />
 
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <x-ui.input :label="__('Category (optional)')" name="category" icon="tag"
@@ -86,7 +129,23 @@
                                 </div>
 
                                 <x-ui.button type="submit" class="w-full" icon="building-storefront">{{ __('Create merchant profile') }}</x-ui.button>
+                                <p class="text-center text-xs text-neutral-400">{{ __('Your profile is reviewed before invoicing unlocks — usually quick.') }}</p>
                             </form>
+                        </x-ui.card>
+                    </div>
+
+                    <div class="lg:col-span-2">
+                        <x-ui.card :title="__('What you get')">
+                            <ul class="space-y-3 text-sm">
+                                <li class="flex items-start gap-3"><x-heroicon-o-check-circle class="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" /><span class="text-neutral-700">{{ __('Unlimited invoices with QR codes and shareable links.') }}</span></li>
+                                <li class="flex items-start gap-3"><x-heroicon-o-check-circle class="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" /><span class="text-neutral-700">{{ __('Instant settlement to your chosen asset.') }}</span></li>
+                                <li class="flex items-start gap-3"><x-heroicon-o-check-circle class="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" /><span class="text-neutral-700">{{ __('One-click full refunds from your balance.') }}</span></li>
+                                <li class="flex items-start gap-3"><x-heroicon-o-check-circle class="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" /><span class="text-neutral-700">{{ __('A revenue & fees dashboard, updated in real time.') }}</span></li>
+                            </ul>
+                            <div class="mt-5 rounded-xl bg-neutral-50 p-4 ring-1 ring-neutral-100">
+                                <p class="flex items-center justify-between text-sm"><span class="text-neutral-500">{{ __('Processing fee') }}</span><span class="tabular font-semibold text-neutral-900">{{ $feePct }}</span></p>
+                                <p class="mt-1 text-xs text-neutral-400">{{ __('Charged only on payments you receive. No setup or monthly cost.') }}</p>
+                            </div>
                         </x-ui.card>
                     </div>
                 </div>
@@ -401,7 +460,7 @@
                     </div>
                     <div class="mt-6 flex justify-end gap-2">
                         <x-ui.button type="button" variant="secondary" x-on:click="confirmingCancel = null">{{ __('Keep invoice') }}</x-ui.button>
-                        <form method="POST" x-bind:action="confirmingCancel ? '{{ url('/merchant/invoices') }}/' + confirmingCancel.id + '/cancel' : ''">
+                        <form method="POST" x-bind:action="confirmingCancel ? '{{ url('/merchant-pay/invoices') }}/' + confirmingCancel.id + '/cancel' : ''">
                             @csrf
                             <x-ui.button type="submit" variant="danger" icon="x-circle">{{ __('Cancel invoice') }}</x-ui.button>
                         </form>
@@ -424,7 +483,7 @@
                     </div>
                     <div class="mt-6 flex justify-end gap-2">
                         <x-ui.button type="button" variant="secondary" x-on:click="confirmingRefund = null">{{ __('Keep payment') }}</x-ui.button>
-                        <form method="POST" x-bind:action="confirmingRefund ? '{{ url('/merchant/invoices') }}/' + confirmingRefund.id + '/refund' : ''">
+                        <form method="POST" x-bind:action="confirmingRefund ? '{{ url('/merchant-pay/invoices') }}/' + confirmingRefund.id + '/refund' : ''">
                             @csrf
                             <x-ui.button type="submit" icon="arrow-uturn-left">{{ __('Refund in full') }}</x-ui.button>
                         </form>

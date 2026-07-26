@@ -37,7 +37,7 @@
             'heading' => __('Products'),
             'items' => array_values(array_filter([
                 ['route' => 'cards', 'label' => __('Cards'), 'icon' => 'credit-card'],
-                ['route' => 'merchant', 'label' => __('Merchant'), 'icon' => 'building-storefront'],
+                ['route' => 'merchant', 'label' => __('Merchant Pay'), 'icon' => 'building-storefront'],
                 feature('p2p_enabled', false) ? ['route' => 'p2p', 'label' => 'P2P', 'icon' => 'user-group'] : null,
                 $hasPurchases ? ['route' => 'purchases', 'label' => __('My Purchases'), 'icon' => 'shopping-bag'] : null,
                 ['route' => 'rewards', 'label' => __('Rewards'), 'icon' => 'gift'],

@@ -46,6 +46,7 @@ class MerchantController extends Controller
             ->values();
 
         $allowRefunds = (bool) getSetting('merchant_allow_refunds', true);
+        $defaultFeePct = rtrim(rtrim(number_format(((int) getSetting('merchant_fee_bps', 100)) / 100, 2), '0'), '.').'%';
 
         if (! $user->isMerchant()) {
             return view('frontend.merchant', [
@@ -55,6 +56,7 @@ class MerchantController extends Controller
                 'canRegister' => $user->tier() === KycTier::Full && feature('merchant_enabled'),
                 'assets' => $assets,
                 'allowRefunds' => $allowRefunds,
+                'feePct' => $defaultFeePct,
                 'merchant' => null,
                 'invoices' => collect(),
                 'stats' => null,
