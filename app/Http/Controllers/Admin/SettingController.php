@@ -153,10 +153,11 @@ class SettingController extends Controller
                     'shop_commission_bps_business' => 'required|integer|min:0|max:10000',
                     'shop_refund_window_days' => 'required|integer|min:0|max:365',
                     'shop_earnings_hold' => 'boolean',
+                    'shop_custom_domains' => 'boolean',
                     'shop_download_limit' => 'required|integer|min:1|max:100',
                     'shop_download_ttl_days' => 'required|integer|min:1|max:365',
                 ],
-                'booleans' => ['shop_enabled', 'shop_earnings_hold'],
+                'booleans' => ['shop_enabled', 'shop_earnings_hold', 'shop_custom_domains'],
             ],
             'p2p' => [
                 'group' => 'p2p',

@@ -26,7 +26,7 @@ class Product extends Model
     protected $table = 'shop_products';
 
     protected $fillable = [
-        'seller_id', 'type', 'name', 'slug', 'summary', 'description', 'status',
+        'seller_id', 'type', 'name', 'slug', 'summary', 'description', 'image', 'status',
         'price_amount', 'price_asset_id', 'compare_price_amount', 'has_variants',
         'requires_shipping', 'attributes', 'meta', 'published_at',
     ];

@@ -3,4 +3,4 @@
     $align = ['left' => 'text-left', 'center' => 'text-center', 'right' => 'text-right'][$props['align'] ?? 'center'] ?? 'text-center';
     $size = ['h1' => 'text-3xl sm:text-5xl font-extrabold', 'h2' => 'text-2xl sm:text-3xl font-bold', 'h3' => 'text-xl font-bold'][$tag];
 @endphp
-<{{ $tag }} id="{{ $node->id }}" class="{{ $align }} {{ $size }} tracking-tight text-neutral-900">{{ $props['text'] ?? '' }}</{{ $tag }}>
+<{{ $tag }} id="{{ $node->id }}" data-edit="text" class="{{ $align }} {{ $size }} tracking-tight text-neutral-900">{{ $props['text'] ?? '' }}</{{ $tag }}>

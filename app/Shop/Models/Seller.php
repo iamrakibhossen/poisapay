@@ -21,7 +21,7 @@ use Illuminate\Support\Carbon;
  * @property string $id
  * @property string $user_id
  * @property string|null $brand_name
- * @property string|null $logo_path
+ * @property string|null $logo
  * @property array<int, string>|null $categories
  * @property SellerStatus $status
  * @property int|null $commission_bps
@@ -43,7 +43,7 @@ class Seller extends Model
     public const PLANS = ['free', 'pro', 'business'];
 
     protected $fillable = [
-        'user_id', 'brand_name', 'logo_path', 'bio', 'website', 'country',
+        'user_id', 'brand_name', 'logo', 'bio', 'website', 'country',
         'categories', 'status', 'commission_bps', 'settlement_asset_id',
         'kyc_reference', 'plan', 'reviewed_by', 'reviewed_at', 'approved_at',
     ];
@@ -147,6 +147,6 @@ class Seller extends Model
     /** Public URL of the store logo, or null when none is set. */
     public function logoUrl(): ?string
     {
-        return AssetUtil::url($this->logo_path);
+        return AssetUtil::url($this->logo);
     }
 }

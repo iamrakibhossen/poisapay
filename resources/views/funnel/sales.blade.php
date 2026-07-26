@@ -18,22 +18,24 @@
         {{-- The single real checkout form; every buy button on the page references it. --}}
         <form id="buy" method="POST" action="{{ route('funnel.checkout', ['slug' => $slug]) }}" class="hidden">@csrf</form>
 
-        {{-- Store top bar (chrome — not a block) --}}
-        <header class="sticky top-0 z-30 border-b border-neutral-100 bg-white/85 backdrop-blur-md">
-            <div class="mx-auto flex max-w-4xl items-center justify-between px-5 py-3">
-                <span class="flex items-center gap-2 text-sm font-bold">
-                    @if (! empty($seller['logo']))
-                        <img src="{{ $seller['logo'] }}" alt="{{ $seller['name'] }}" class="h-7 w-7 rounded-lg object-cover" />
-                    @else
-                        <span class="grid h-7 w-7 place-items-center rounded-lg text-[11px] font-bold text-white" style="background: var(--pp-accent)">{{ mb_strtoupper(mb_substr($seller['name'], 0, 1)) }}</span>
-                    @endif
-                    {{ $seller['name'] }}
-                </span>
-                <button type="submit" form="buy" class="px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:opacity-90" style="background: var(--pp-accent); border-radius: var(--pp-btn-radius)">
-                    {{ __('Buy now') }} · {{ $product['price'] }}
-                </button>
-            </div>
-        </header>
+        {{-- Store top bar (chrome — hidden when the built page has its own header block) --}}
+        @unless ($hasHeader ?? false)
+            <header class="sticky top-0 z-30 border-b border-neutral-100 bg-white/85 backdrop-blur-md">
+                <div class="mx-auto flex max-w-4xl items-center justify-between px-5 py-3">
+                    <span class="flex items-center gap-2 text-sm font-bold">
+                        @if (! empty($seller['logo']))
+                            <img src="{{ $seller['logo'] }}" alt="{{ $seller['name'] }}" class="h-7 w-7 rounded-lg object-cover" />
+                        @else
+                            <span class="grid h-7 w-7 place-items-center rounded-lg text-[11px] font-bold text-white" style="background: var(--pp-accent)">{{ mb_strtoupper(mb_substr($seller['name'], 0, 1)) }}</span>
+                        @endif
+                        {{ $seller['name'] }}
+                    </span>
+                    <button type="submit" form="buy" class="px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:opacity-90" style="background: var(--pp-accent); border-radius: var(--pp-btn-radius)">
+                        {{ __('Buy now') }} · {{ $product['price'] }}
+                    </button>
+                </div>
+            </header>
+        @endunless
 
         {{-- Buyer-picked variation (product feature — kept as chrome above the built page). --}}
         @if (! empty($variantOptions ?? []))
@@ -62,14 +64,17 @@
         {{-- ============ The seller's built page (rendered block tree) ============ --}}
         <main>{!! $bodyHtml !!}</main>
 
-        <footer class="border-t border-neutral-100 py-8 text-center">
-            <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[11px] text-neutral-400">
-                <span class="inline-flex items-center gap-1"><x-heroicon-o-lock-closed class="h-3.5 w-3.5" /> {{ __('Secure checkout') }}</span>
-                <span class="inline-flex items-center gap-1"><x-heroicon-o-shield-check class="h-3.5 w-3.5" /> {{ __('Buyer protection') }}</span>
-                <span class="inline-flex items-center gap-1"><x-heroicon-o-arrow-uturn-left class="h-3.5 w-3.5" /> {{ __('14-day refund') }}</span>
-            </div>
-            <p class="mt-3 text-[11px] text-neutral-400">{{ __('Powered by PoisaHub') }}</p>
-        </footer>
+        {{-- Trust/footer chrome — hidden when the built page has its own footer block. --}}
+        @unless ($hasFooter ?? false)
+            <footer class="border-t border-neutral-100 py-8 text-center">
+                <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[11px] text-neutral-400">
+                    <span class="inline-flex items-center gap-1"><x-heroicon-o-lock-closed class="h-3.5 w-3.5" /> {{ __('Secure checkout') }}</span>
+                    <span class="inline-flex items-center gap-1"><x-heroicon-o-shield-check class="h-3.5 w-3.5" /> {{ __('Buyer protection') }}</span>
+                    <span class="inline-flex items-center gap-1"><x-heroicon-o-arrow-uturn-left class="h-3.5 w-3.5" /> {{ __('14-day refund') }}</span>
+                </div>
+                <p class="mt-3 text-[11px] text-neutral-400">{{ __('Powered by PoisaHub') }}</p>
+            </footer>
+        @endunless
 
         {{-- Sticky mobile buy bar (chrome) --}}
         <div class="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white/95 px-4 py-3 backdrop-blur-md lg:hidden">

@@ -1,0 +1,91 @@
+@props([
+    'id' => 'cv',
+    'compact' => false,   /* tighter header, hides subtext + footer note */
+    'showLive' => true,
+])
+@php
+    // Live crypto→fiat reference rates in the viewer's base currency (signed-in
+    // user's choice, else USD); cached ~60s, falls back to indicative values when
+    // the feed is down. Refreshed client-side via the rates route.
+    $displayCoins = ['USDT', 'USDC', 'ETH', 'BTC', 'BNB', 'TON'];
+    $base = \App\Support\BaseCurrency::displayCode();
+    $symbol = \App\Support\BaseCurrency::symbol($base);
+    $rates = app(\App\Domain\Exchange\CoinGeckoRateProvider::class)->ratesWithFallback($base, $displayCoins);
+    $coins = collect($displayCoins)->map(fn ($s) => [$s, $rates[$s]])->all();
+
+    // Initial figures for the default 1,000 units of the first coin (JS recomputes on load).
+    $first = $displayCoins[0];
+    $r0 = (float) ($rates[$first] ?? 0);
+    $gross0 = 1000 * $r0;
+    $charge0 = $gross0 * 0.005;
+    $fmt2 = fn ($n) => number_format((float) $n, 2);
+@endphp
+<div class="lp-converter lp-card relative w-full p-6" data-spread="0.005" data-rates-url="{{ route('marketing.rates') }}" data-fiat-symbol="{{ $symbol }}" style="box-shadow:var(--shadow-pop)">
+    <div aria-hidden="true" class="absolute inset-0 -z-10 blur-3xl" style="background:radial-gradient(circle at 70% 30%,rgba(37,99,235,.14),transparent 65%)"></div>
+
+    <div class="flex items-center justify-between">
+        <div>
+            <p class="text-sm font-bold text-slate-900">{{ __('Convert crypto to :currency', ['currency' => $base]) }}</p>
+            @unless ($compact)<p class="mt-0.5 text-xs text-slate-500">{{ __('Live reference rate · settles in seconds') }}</p>@endunless
+        </div>
+        @if ($showLive)
+            <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium" style="background:rgba(16,185,129,.12);color:var(--up)">
+                <span class="h-1.5 w-1.5 rounded-full lp-pulse" style="background:var(--up)"></span> {{ __('Live') }}
+            </span>
+        @endif
+    </div>
+
+    {{-- You swap --}}
+    <div class="mt-5 rounded-2xl border border-slate-200 bg-white transition focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-500/25">
+        <div class="flex items-center justify-between gap-3 px-4 py-3">
+            <div class="min-w-0 flex-1">
+                <label for="{{ $id }}-amount" class="block text-xs text-slate-400">{{ __('You swap') }}</label>
+                <input id="{{ $id }}-amount" type="text" inputmode="decimal" value="1,000"
+                    class="cv-amount w-full border-0 bg-transparent p-0 text-2xl font-bold lp-tabular text-slate-900 focus:outline-none focus:ring-0" />
+            </div>
+            <div class="relative flex-none">
+                <select aria-label="{{ __('Swap from coin') }}"
+                    class="cv-from appearance-none bg-none rounded-xl border border-slate-200 bg-slate-50 py-2 pl-3 pr-8 text-sm font-semibold text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-0">
+                    @foreach ($coins as $c)<option value="{{ $c[1] }}" data-sym="{{ $c[0] }}">{{ $c[0] }}</option>@endforeach
+                </select>
+                <x-heroicon-o-chevron-down class="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            </div>
+        </div>
+    </div>
+
+    {{-- Charge + reference-rate connector --}}
+    <div class="relative py-1 pl-2">
+        <div aria-hidden="true" class="absolute left-[0.9rem] top-2 bottom-2 w-px bg-slate-200"></div>
+        <ul class="space-y-1.5 py-1.5 text-xs text-slate-500">
+            <li class="flex items-center gap-2">
+                <span class="z-10 grid h-4 w-4 place-items-center rounded-full bg-slate-100"><x-heroicon-o-receipt-percent class="h-2.5 w-2.5 text-slate-500" /></span>
+                {{ __('Exchange charge (0.5%)') }} <span class="cv-charge ml-auto font-semibold text-slate-700 lp-tabular">{{ $fmt2($charge0) }} {{ $symbol }}</span>
+            </li>
+            <li class="flex items-center gap-2">
+                <span class="z-10 grid h-4 w-4 place-items-center rounded-full bg-slate-100"><x-heroicon-o-arrows-right-left class="h-2.5 w-2.5 text-slate-500" /></span>
+                <span class="cv-rate font-semibold text-slate-700">1 {{ $first }} = {{ $fmt2($r0) }} {{ $symbol }}</span> {{ __('reference rate') }}
+            </li>
+        </ul>
+    </div>
+
+    {{-- You receive --}}
+    <div class="rounded-2xl border border-slate-200 bg-slate-50/70">
+        <div class="flex items-center justify-between gap-3 px-4 py-3">
+            <div class="min-w-0 flex-1">
+                <p class="text-xs text-slate-400">{{ __('You receive') }}</p>
+                <p class="cv-result truncate text-2xl font-bold lp-tabular text-slate-900">{{ $fmt2($gross0 - $charge0) }}</p>
+            </div>
+            <span class="inline-flex flex-none items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900">
+                <span class="grid h-5 w-5 place-items-center rounded-full text-xs font-bold text-white" style="background:linear-gradient(120deg,var(--brand),var(--brand-600))">{{ $symbol }}</span> {{ $base }}
+            </span>
+        </div>
+    </div>
+
+    <a href="{{ route('register') }}" class="lp-btn lp-btn-primary lp-btn-lg mt-5 w-full">{{ __('Start swapping') }} <x-heroicon-o-arrow-right class="h-5 w-5" /></a>
+    @unless ($compact)
+        <p class="mt-3 flex items-center justify-center gap-1.5 text-xs text-slate-400">
+            <x-heroicon-s-lock-closed class="h-3.5 w-3.5" /> {{ __('Custodial · reference rate, not a quote') }}
+        </p>
+    @endunless
+</div>
+{{-- Behaviour (init + 60s rate refresh) lives in resources/landing/js/landing-converter.js. --}}

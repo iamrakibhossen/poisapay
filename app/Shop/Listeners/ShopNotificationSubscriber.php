@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Shop\Enums\OrderStatus;
 use App\Shop\Enums\ProductStatus;
 use App\Shop\Enums\SellerStatus;
+use App\Shop\Events\DomainVerificationFailed;
+use App\Shop\Events\DomainVerified;
 use App\Shop\Events\OrderPlaced;
 use App\Shop\Events\OrderStatusChanged;
 use App\Shop\Events\ProductStatusChanged;
@@ -18,6 +20,7 @@ use App\Shop\Events\RefundRequested;
 use App\Shop\Events\ReviewSubmitted;
 use App\Shop\Events\SellerApplied;
 use App\Shop\Events\SellerStatusChanged;
+use App\Shop\Events\SslFailed;
 use App\Shop\Models\Order;
 use App\Shop\Models\RefundRequest;
 
@@ -45,7 +48,40 @@ class ShopNotificationSubscriber
             RefundRequested::class => 'onRefundRequested',
             RefundApproved::class => 'onRefundApproved',
             RefundRejected::class => 'onRefundRejected',
+            DomainVerified::class => 'onDomainVerified',
+            DomainVerificationFailed::class => 'onDomainVerificationFailed',
+            SslFailed::class => 'onSslFailed',
         ];
+    }
+
+    public function onDomainVerified(DomainVerified $event): void
+    {
+        $seller = $event->domain->loadMissing('seller.user')->seller;
+        $this->to($seller?->user, 'shop.domain.verified', ['host' => $event->domain->host], route('shop.domains'), 'verified:'.$event->domain->id);
+    }
+
+    public function onDomainVerificationFailed(DomainVerificationFailed $event): void
+    {
+        // Only bother the merchant once auto-retries are exhausted, not per attempt.
+        if (! $event->exhausted) {
+            return;
+        }
+
+        $seller = $event->domain->loadMissing('seller.user')->seller;
+        $this->to($seller?->user, 'shop.domain.failed', [
+            'host' => $event->domain->host,
+            'error' => $event->domain->last_error ?? '',
+        ], route('shop.domains'), 'failed:'.$event->domain->id);
+    }
+
+    public function onSslFailed(SslFailed $event): void
+    {
+        if (! $event->exhausted) {
+            return;
+        }
+
+        $seller = $event->domain->loadMissing('seller.user')->seller;
+        $this->to($seller?->user, 'shop.domain.ssl_failed', ['host' => $event->domain->host], route('shop.domains'), 'ssl_failed:'.$event->domain->id);
     }
 
     public function onOrderPlaced(OrderPlaced $event): void

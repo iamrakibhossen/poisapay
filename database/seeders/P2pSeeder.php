@@ -17,6 +17,7 @@ use App\Enums\P2pPriceType;
 use App\Models\Asset;
 use App\Models\P2pAd;
 use App\Models\P2pMerchantProfile;
+use App\Models\P2pPaymentMethod;
 use App\Models\User;
 use App\Support\Money;
 use Illuminate\Database\Seeder;
@@ -44,6 +45,12 @@ class P2pSeeder extends Seeder
         $ledger = app(LedgerService::class);
         $resolver = app(AccountResolver::class);
         $resolver->ensureSystemAccounts($usdt->id);
+
+        // Fiat-rail catalog (key => id), seeded by the P2P migration. Ads must carry
+        // ≥1 payment method (the marketplace shows them and filters by them), so every
+        // seeded ad gets a deterministic BDT-first set — matching CreateAdAction, which
+        // syncs `payment_method_ids` onto the ad.
+        $methodIds = P2pPaymentMethod::pluck('id', 'key');
 
         // Generous USDT float per merchant so every sell ad is backed (a sell ad
         // requires the poster to hold the advertised inventory).
@@ -103,7 +110,7 @@ class P2pSeeder extends Seeder
 
             foreach ($m['ads'] as $ad) {
                 $floating = $ad['price_type'] === P2pPriceType::Floating;
-                P2pAd::create([
+                $model = P2pAd::create([
                     'user_id' => $user->id,
                     'side' => $ad['side'],
                     'asset_id' => $usdt->id,
@@ -119,6 +126,15 @@ class P2pSeeder extends Seeder
                     'status' => P2pAdStatus::Active,
                     'priority' => $m['level'],
                 ]);
+
+                // Attach the ad's fiat rails (skip any key absent from the catalog).
+                $ids = array_values(array_filter(array_map(
+                    fn (string $key) => $methodIds[$key] ?? null,
+                    $ad['methods'],
+                )));
+                if ($ids !== []) {
+                    $model->paymentMethods()->sync($ids);
+                }
             }
         }
     }
@@ -180,6 +196,16 @@ class P2pSeeder extends Seeder
         $totalsUsdt = ['200', '350', '500', '800', '1200', '1800', '2500'];   // all ≥ 100
         $windows = [15, 30, 45, 60];
         $margins = [40, -30, 80, -50, 60];
+        // BDT-first fiat-rail combinations (keys match the migration's catalog).
+        $methodSets = [
+            ['bkash', 'nagad'],
+            ['bkash', 'bank'],
+            ['nagad', 'rocket'],
+            ['bkash', 'nagad', 'rocket'],
+            ['bkash', 'upay'],
+            ['nagad', 'bank'],
+            ['bkash', 'nagad', 'bank'],
+        ];
 
         $ads = [];
         for ($k = 0; $k < $count; $k++) {
@@ -194,6 +220,7 @@ class P2pSeeder extends Seeder
                 'max_order' => $maxOrders[$t % count($maxOrders)],
                 'total' => Money::ofDecimal($totalsUsdt[$t % count($totalsUsdt)], 6, 'USDT')->baseString(),
                 'window' => $windows[$t % count($windows)],
+                'methods' => $methodSets[$t % count($methodSets)],
             ];
         }
 

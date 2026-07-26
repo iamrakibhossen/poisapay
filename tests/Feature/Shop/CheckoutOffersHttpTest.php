@@ -102,3 +102,45 @@ it('lets the seller configure offers from the builder', function () {
         ->and((int) $page->bump_price_amount)->toBe(4_000000)
         ->and((int) $page->upsell_price_amount)->toBe(15_000000);
 });
+
+it('only offers same-currency products in the builder offer dropdowns', function () {
+    $usdc = testAsset('USDC', 6, 'tron');
+    $foreign = Product::create([
+        'seller_id' => $this->seller->id, 'type' => ProductType::Digital, 'name' => 'Foreign coin bump',
+        'slug' => 'foreign', 'status' => ProductStatus::Published, 'price_amount' => 9_000000, 'price_asset_id' => $usdc->id,
+    ]);
+
+    $content = $this->actingAs($this->sellerUser)
+        ->get(route('shop.sales-page.edit', ['slug' => 'main']))->assertOk()->getContent();
+
+    // The front-product select lists every product (all currencies); the two offer
+    // selects list only same-currency, non-front products. So a same-currency bump
+    // appears 3× (front + 2 offers) while the foreign product appears only 1× (front).
+    expect(substr_count($content, '>Bump</option>'))->toBe(3)
+        ->and(substr_count($content, '>Foreign coin bump</option>'))->toBe(1);
+});
+
+it('keeps the existing bump and warns when a different-currency product is submitted', function () {
+    $usdc = testAsset('USDC', 6, 'tron');
+    $foreign = Product::create([
+        'seller_id' => $this->seller->id, 'type' => ProductType::Digital, 'name' => 'Foreign',
+        'slug' => 'foreign', 'status' => ProductStatus::Published, 'price_amount' => 9_000000, 'price_asset_id' => $usdc->id,
+    ]);
+
+    $this->actingAs($this->sellerUser)
+        ->post(route('shop.sales-page.update', ['slug' => 'main']), [
+            'name' => 'Main', 'bump_product_id' => $foreign->id, 'bump_price' => '9',
+        ])
+        ->assertSessionHas('warning');
+
+    // The previously-configured bump survives the bad submission (no silent wipe).
+    expect($this->page->fresh()->bump_product_id)->toBe($this->bumpP->id);
+});
+
+it('clears the bump when the seller selects none', function () {
+    $this->actingAs($this->sellerUser)
+        ->post(route('shop.sales-page.update', ['slug' => 'main']), ['name' => 'Main', 'bump_product_id' => ''])
+        ->assertSessionMissing('warning');
+
+    expect($this->page->fresh()->bump_product_id)->toBeNull();
+});

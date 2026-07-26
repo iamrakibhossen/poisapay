@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Frontend\DomainController;
 use App\Http\Controllers\Frontend\SellerController;
 use App\Shop\Http\Controllers\PageBuilderController;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +28,8 @@ Route::controller(SellerController::class)->group(function () {
     Route::post('/shop/sales-pages/{slug}/settings', [PageBuilderController::class, 'settings'])->name('shop.sales-page.update');
     Route::post('/shop/sales-pages/{slug}/publish', [PageBuilderController::class, 'publish'])->name('shop.sales-page.publish');
     Route::post('/shop/sales-pages/{slug}/duplicate', [PageBuilderController::class, 'duplicate'])->name('shop.sales-page.duplicate');
+    Route::post('/shop/sales-pages/{slug}/template', [PageBuilderController::class, 'applyTemplate'])->name('shop.sales-page.template');
+    Route::get('/shop/templates/{template}/preview', [PageBuilderController::class, 'templatePreview'])->name('shop.template.preview');
     Route::post('/shop/sales-pages/{slug}/revisions/{revision}/restore', [PageBuilderController::class, 'restore'])->name('shop.sales-page.restore');
     Route::get('/shop/funnels', 'funnels')->name('shop.funnels');
     Route::get('/shop/products', 'products')->name('shop.products');
@@ -53,5 +56,12 @@ Route::controller(SellerController::class)->group(function () {
     Route::delete('/shop/coupons/{id}', 'destroyCoupon')->name('shop.coupons.destroy');
     Route::get('/shop/analytics', 'analytics')->name('shop.analytics');
     Route::get('/shop/earnings', 'earnings')->name('shop.earnings');
-    Route::get('/shop/domains', 'domains')->name('shop.domains');
+});
+
+// Custom domains — own controller (real connect/verify/remove flow, one per page).
+Route::controller(DomainController::class)->group(function () {
+    Route::get('/shop/domains', 'index')->name('shop.domains');
+    Route::post('/shop/domains', 'store')->name('shop.domains.store');
+    Route::post('/shop/domains/{domain}/verify', 'verify')->name('shop.domains.verify');
+    Route::delete('/shop/domains/{domain}', 'destroy')->name('shop.domains.destroy');
 });

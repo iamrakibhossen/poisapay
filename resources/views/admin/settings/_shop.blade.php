@@ -33,6 +33,10 @@
             <x-admin.input.boolean name="shop_earnings_hold" :value="old('shop_earnings_hold', getSetting('shop_earnings_hold', false))" />
         </x-admin.input.group>
 
+        <x-admin.input.group id="shop_custom_domains" :label="__('Custom Domains')" class="w-full" :hints="__('On = merchants can connect their own domain to a sales page (DNS verify + auto SSL).')">
+            <x-admin.input.boolean name="shop_custom_domains" :value="old('shop_custom_domains', getSetting('shop_custom_domains', false))" />
+        </x-admin.input.group>
+
         <x-admin.input.group id="shop_download_limit" :label="__('Download Limit (per file)')" required class="w-full" :hints="__('Max times a buyer can download each digital file.')">
             <x-admin.input type="number" min="1" max="100" name="shop_download_limit" :value="old('shop_download_limit', getSetting('shop_download_limit', 5))" required />
         </x-admin.input.group>

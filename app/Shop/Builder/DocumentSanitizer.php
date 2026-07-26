@@ -81,8 +81,27 @@ final class DocumentSanitizer
             'style' => $this->style($this->arr($raw['style'] ?? [])),
             'visibility' => $this->visibility($this->arr($raw['visibility'] ?? [])),
             'children' => $children,
-            'meta' => $this->arr($raw['meta'] ?? []),
+            'meta' => $this->meta($this->arr($raw['meta'] ?? [])),
         ];
+    }
+
+    /**
+     * Cap the free-text meta fields (custom class / anchor / layer name) so a hostile
+     * or runaway document can't bloat the jsonb. Values are further scrubbed for CSS/
+     * attribute safety at render time by the Renderer + StyleCompiler.
+     *
+     * @param  array<string, mixed>  $meta
+     * @return array<string, mixed>
+     */
+    private function meta(array $meta): array
+    {
+        foreach (['className' => 120, 'anchor' => 60, 'name' => 80] as $key => $max) {
+            if (isset($meta[$key])) {
+                $meta[$key] = is_string($meta[$key]) ? substr($meta[$key], 0, $max) : '';
+            }
+        }
+
+        return $meta;
     }
 
     /**

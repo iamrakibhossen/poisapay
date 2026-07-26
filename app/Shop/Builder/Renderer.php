@@ -61,6 +61,51 @@ final class Renderer
             }
         }
 
-        return $block->render($node, $ctx, $childrenHtml);
+        return $this->chrome($block->render($node, $ctx, $childrenHtml), $node);
+    }
+
+    /**
+     * Inject the node's custom class name + anchor onto its own root element (the tag
+     * bearing `id="{$node->id}"`). Centralised here so every block gains the two
+     * settings without touching 28 partials; a no-op unless one is set.
+     */
+    private function chrome(string $html, BuilderNode $node): string
+    {
+        $class = $this->safeClass($node->meta['className'] ?? null);
+        $anchor = $this->safeAnchor($node->meta['anchor'] ?? null);
+        $anim = $node->style['base']['anim'] ?? null;
+        $hasAnim = is_string($anim) && in_array($anim, StyleCompiler::ANIMATIONS, true);
+        if ($class === '' && $anchor === '' && ! $hasAnim) {
+            return $html;
+        }
+
+        $pattern = '/<[a-zA-Z][a-zA-Z0-9]*\b[^>]*\bid="'.preg_quote($node->id, '/').'"[^>]*>/';
+
+        return preg_replace_callback($pattern, function (array $m) use ($class, $anchor, $hasAnim): string {
+            $tag = $m[0];
+            if ($class !== '') {
+                $tag = preg_match('/\sclass="[^"]*"/', $tag)
+                    ? preg_replace('/(\sclass=")([^"]*)(")/', '$1$2 '.$class.'$3', $tag, 1)
+                    : preg_replace('/^(<[a-zA-Z0-9]+)/', '$1 class="'.$class.'"', $tag, 1);
+            }
+            if ($anchor !== '') {
+                $tag = preg_replace('/^(<[a-zA-Z0-9]+)/', '$1 data-anchor="'.$anchor.'"', $tag, 1);
+            }
+            if ($hasAnim) {
+                $tag = preg_replace('/^(<[a-zA-Z0-9]+)/', '$1 data-anim=""', $tag, 1);
+            }
+
+            return $tag;
+        }, $html, 1) ?? $html;
+    }
+
+    private function safeClass(mixed $v): string
+    {
+        return is_string($v) ? trim(preg_replace('/[^a-zA-Z0-9 _-]/', '', $v) ?? '') : '';
+    }
+
+    private function safeAnchor(mixed $v): string
+    {
+        return is_string($v) ? trim(preg_replace('/[^a-z0-9-]/', '', strtolower($v)) ?? '', '-') : '';
     }
 }

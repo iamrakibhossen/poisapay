@@ -38,6 +38,9 @@
     @vite(['resources/css/app.css', 'resources/js/frontend.js'])
     @include('partials.brand-colors')
     <style>[x-cloak]{display:none!important}</style>
+    {{-- Arm entrance animations before first paint (JS-gated) so revealed blocks
+         don't flash visible→hidden. frontend.js then reveals them on scroll. --}}
+    <script>document.documentElement.classList.add('pp-anim')</script>
 </head>
 {{-- Standalone conversion page: theme-minimal (premium blue/slate), no app nav. --}}
 <body class="theme-minimal min-h-full bg-white font-sans text-neutral-900 antialiased">

@@ -33,6 +33,7 @@ class CreateProduct
                 'slug' => $this->catalog->uniqueSlug($seller, $data->name),
                 'summary' => $data->summary,
                 'description' => $data->description,
+                'image' => $data->image,
                 'status' => ProductStatus::Draft,
                 'price_amount' => $data->priceAmount,
                 'price_asset_id' => $data->priceAssetId,

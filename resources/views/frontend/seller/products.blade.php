@@ -2,6 +2,7 @@
     <div class="mt-6 space-y-5" x-data="{ del: { url: '', name: '' } }">
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
+                <a href="{{ route('shop') }}" class="mb-2 inline-flex items-center gap-1.5 text-sm font-medium text-neutral-500 transition hover:text-neutral-900"><x-heroicon-o-chevron-left class="h-4 w-4" /> {{ __('Shop') }}</a>
                 <h1 class="text-2xl font-semibold tracking-tight text-neutral-900">{{ __('Products') }}</h1>
                 <p class="mt-1 text-sm text-neutral-500">{{ __('Each product gets its own sales page you can share in ads.') }}</p>
             </div>

@@ -21,6 +21,7 @@ return new class extends Migration
             $table->foreignUuid('user_id')->unique()->constrained('users')->cascadeOnDelete();
             // Public store name; falls back to the core User's name when null.
             $table->string('brand_name', 120)->nullable();
+            $table->string('logo', 255)->nullable();               // store logo image path (resolved via Asset::url)
             $table->text('bio')->nullable();
             $table->string('website', 190)->nullable();
             $table->char('country', 2)->nullable();
@@ -71,6 +72,7 @@ return new class extends Migration
             $table->string('slug', 200);
             $table->string('summary', 300)->nullable();
             $table->text('description')->nullable();
+            $table->string('image', 500)->nullable();             // cover image path (resolved via Asset::url)
             $table->string('status', 16)->default('draft');       // ProductStatus
             $table->bigInteger('price_amount')->default(0);        // minor units
             $table->foreignId('price_asset_id')->constrained('assets');

@@ -10,6 +10,7 @@ use App\Shop\Builder\BuilderDocument;
 use App\Shop\Builder\DocumentSanitizer;
 use App\Shop\Builder\RenderContext;
 use App\Shop\Builder\Renderer;
+use App\Shop\Builder\Templates\TemplateLibrary;
 use App\Shop\Enums\ProductStatus;
 use App\Shop\Enums\SalesPageStatus;
 use App\Shop\Models\PageRevision;
@@ -61,7 +62,14 @@ class PageBuilderController extends Controller
             'document' => $page->draftDocument()->toArray(),
             'schemas' => $this->registry->schemas(),
             'palette' => $this->registry->palette(),
+            'templates' => TemplateLibrary::meta(),
             'products' => Product::where('seller_id', $page->seller_id)->orderBy('name')->pluck('name', 'id')->all(),
+            // Offer products must share the front product's currency and can't be the
+            // front product itself — otherwise applyOffers() would reject them on save.
+            'offerProducts' => Product::where('seller_id', $page->seller_id)
+                ->when($page->product?->price_asset_id, fn ($q, $assetId) => $q->where('price_asset_id', $assetId))
+                ->whereKeyNot($page->product_id)
+                ->orderBy('name')->pluck('name', 'id')->all(),
             'productId' => $page->product_id,
             'revisions' => $page->revisions()->limit(20)->get(['id', 'version', 'label', 'created_at']),
             'publicUrl' => route('funnel.sales', ['slug' => $page->slug]),
@@ -78,6 +86,7 @@ class PageBuilderController extends Controller
                 'publish' => route('shop.sales-page.publish', ['slug' => $page->slug]),
                 'duplicate' => route('shop.sales-page.duplicate', ['slug' => $page->slug]),
                 'settings' => route('shop.sales-page.update', ['slug' => $page->slug]),
+                'template' => route('shop.sales-page.template', ['slug' => $page->slug]),
             ],
         ]);
     }
@@ -101,6 +110,7 @@ class PageBuilderController extends Controller
             'upsell_product_id' => (string) $page->upsell_product_id,
             'upsell_price' => $toDec($page->upsell_price_amount),
             'upsell_headline' => $page->upsell_headline ?? '',
+            'upsell_description' => $page->upsell_description ?? '',
             'currency' => $asset?->symbol ?? '',
         ];
     }
@@ -239,10 +249,19 @@ class PageBuilderController extends Controller
         $page->save();
 
         $this->applySeo($page->fresh(), $request);
-        $this->applyOffers($page->fresh(), $request);
+        $rejected = $this->applyOffers($page->fresh(), $request);
 
-        return redirect()->route('shop.sales-page.edit', ['slug' => $page->slug])
+        $redirect = redirect()->route('shop.sales-page.edit', ['slug' => $page->slug])
             ->with('success', __('Settings saved.'));
+
+        if ($rejected !== []) {
+            $redirect->with('warning', __(
+                'The :offers wasn’t applied — an offer product must use the same currency as this page and can’t be the page’s own product.',
+                ['offers' => implode(' & ', $rejected)]
+            ));
+        }
+
+        return $redirect;
     }
 
     /** Persist per-page SEO/social overrides into the `seo` jsonb. */
@@ -259,38 +278,64 @@ class PageBuilderController extends Controller
     /**
      * Persist the order-bump + upsell offers. Prices are entered in the main
      * product's currency (decimal) → stored as minor units. Offer products must
-     * belong to the seller and share the main product's currency.
+     * belong to the seller and share the main product's currency. A blank select
+     * clears the offer; a non-blank but ineligible pick is *rejected* (the stored
+     * offer is left untouched) so a bad choice never silently wipes a good offer.
+     *
+     * @return array<int, string> human labels of the offers that were rejected
      */
-    private function applyOffers(SalesPage $page, Request $request): void
+    private function applyOffers(SalesPage $page, Request $request): array
     {
         $asset = $page->product?->priceAsset;
         $decimals = $asset?->decimals ?? 2;
         $toMinor = fn ($v) => ($v === null || $v === '') ? null
             : (int) Money::ofDecimal((string) $v, $decimals, $asset?->symbol ?? '')->baseString();
 
-        $resolve = function (?string $id) use ($page, $asset): ?string {
-            if (! $id) {
-                return null;
+        // ['id' => ?string, 'rejected' => bool] — id null means "clear this offer".
+        $resolve = function (?string $id) use ($page, $asset): array {
+            if ($id === null || $id === '') {
+                return ['id' => null, 'rejected' => false];
             }
             $p = Product::where('seller_id', $page->seller_id)->whereKey($id)->first();
+            $ok = $p && (int) $p->price_asset_id === (int) $asset?->id && $p->getKey() !== $page->product_id;
 
-            return ($p && (int) $p->price_asset_id === (int) $asset?->id && $p->getKey() !== $page->product_id)
-                ? $p->getKey() : null;
+            return ['id' => $ok ? $p->getKey() : null, 'rejected' => ! $ok];
         };
 
-        $bumpId = $resolve($request->input('bump_product_id'));
-        $upsellId = $resolve($request->input('upsell_product_id'));
+        $rejected = [];
+        $update = [];
 
-        $page->update([
-            'bump_product_id' => $bumpId,
-            'bump_price_amount' => $bumpId ? $toMinor($request->input('bump_price')) : null,
-            'bump_headline' => $bumpId ? $request->input('bump_headline') : null,
-            'bump_description' => $bumpId ? $request->input('bump_description') : null,
-            'upsell_product_id' => $upsellId,
-            'upsell_price_amount' => $upsellId ? $toMinor($request->input('upsell_price')) : null,
-            'upsell_headline' => $upsellId ? $request->input('upsell_headline') : null,
-            'upsell_description' => $upsellId ? $request->input('upsell_description') : null,
-        ]);
+        $bump = $resolve($request->input('bump_product_id'));
+        if ($bump['rejected']) {
+            $rejected[] = __('order bump');
+        } else {
+            $id = $bump['id'];
+            $update += [
+                'bump_product_id' => $id,
+                'bump_price_amount' => $id ? $toMinor($request->input('bump_price')) : null,
+                'bump_headline' => $id ? $request->input('bump_headline') : null,
+                'bump_description' => $id ? $request->input('bump_description') : null,
+            ];
+        }
+
+        $upsell = $resolve($request->input('upsell_product_id'));
+        if ($upsell['rejected']) {
+            $rejected[] = __('1-click upsell');
+        } else {
+            $id = $upsell['id'];
+            $update += [
+                'upsell_product_id' => $id,
+                'upsell_price_amount' => $id ? $toMinor($request->input('upsell_price')) : null,
+                'upsell_headline' => $id ? $request->input('upsell_headline') : null,
+                'upsell_description' => $id ? $request->input('upsell_description') : null,
+            ];
+        }
+
+        if ($update !== []) {
+            $page->update($update);
+        }
+
+        return $rejected;
     }
 
     /** Clone the page (draft + design) under a new slug. */
@@ -325,6 +370,57 @@ class PageBuilderController extends Controller
 
         return redirect()->route('shop.sales-page.edit', ['slug' => $page->slug])
             ->with('success', __('Version restored to your draft.'));
+    }
+
+    /**
+     * Apply a premium starter template — replaces the working draft with the
+     * template's document (sanitised). The client swaps its in-memory doc from the
+     * response. Publishing is still an explicit, separate step.
+     */
+    public function applyTemplate(Request $request, string $slug): JsonResponse
+    {
+        $page = $this->ownedPage($request, $slug);
+        if (! $page instanceof SalesPage) {
+            abort(404);
+        }
+
+        $validated = $request->validate(['template' => ['required', 'string', 'max:40']]);
+        $document = TemplateLibrary::document($validated['template']);
+        abort_if($document === null, 404);
+
+        $clean = $this->sanitizer->clean($document);
+        $page->update(['draft' => $clean, 'version' => $page->version + 1]);
+
+        return response()->json(['document' => $clean, 'savedAt' => now()->toIso8601String()]);
+    }
+
+    /**
+     * A live, self-contained render of a starter template — shown as a scaled-down
+     * "screenshot" iframe in the editor's template gallery. Demo product/seller data,
+     * buy buttons inert (editing mode).
+     */
+    public function templatePreview(Request $request, string $template): View
+    {
+        $seller = $this->sellers->forUser($request->user());
+        abort_unless($seller instanceof Seller && $seller->canSell(), 403);
+
+        $document = TemplateLibrary::document($template);
+        abort_if($document === null, 404);
+
+        $doc = BuilderDocument::fromArray($this->sanitizer->clean($document));
+        $name = $seller->displayName() ?: 'Your store';
+        $ctx = new RenderContext(
+            'preview',
+            ['name' => 'Your product', 'summary' => 'A short, punchy line about what you sell.', 'price' => '$49', 'comparePrice' => '$99', 'type' => 'digital'],
+            ['name' => $name, 'initials' => mb_strtoupper(mb_substr($name, 0, 1)), 'logo' => $seller->logoUrl()],
+            editing: true,
+        );
+        $rendered = $this->renderer->render($doc, $ctx);
+
+        return view('frontend.seller.template-preview', [
+            'html' => $rendered['html'],
+            'css' => $rendered['css'],
+        ]);
     }
 
     /** Resolve a page the current user owns, or a redirect to the list. */

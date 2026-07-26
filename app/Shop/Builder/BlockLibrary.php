@@ -46,6 +46,7 @@ final class BlockLibrary
             ]),
             new ConfigBlock('header', 'Header / Nav', 'bars-3', BlockCategory::Layout, schema: [
                 'content' => [
+                    Field::select('preset', 'Layout', ['left' => 'Brand left', 'center' => 'Brand centered', 'minimal' => 'Minimal'], 'left'),
                     Field::text('brand', 'Brand name', ''), // blank → the store name
                     Field::toggle('showLogo', 'Show logo mark', true),
                     Field::repeater('links', 'Menu links', [Field::text('label', 'Label', ''), Field::link('href', 'URL', '#')], [
@@ -54,8 +55,21 @@ final class BlockLibrary
                         ['label' => 'FAQ', 'href' => '#faq'],
                     ]),
                     Field::text('cta', 'Button label', 'Buy now'),
+                    Field::text('secondaryLabel', 'Secondary link', ''),
+                    Field::link('secondaryHref', 'Secondary URL', '#'),
                     Field::toggle('sticky', 'Stick to top', true),
+                    Field::toggle('transparent', 'Transparent (overlay hero)', false),
                     Field::number('height', 'Height (px)', 64, 44, 120),
+                ],
+            ]),
+            new ConfigBlock('footer', 'Footer', 'building-storefront', BlockCategory::Layout, schema: [
+                'content' => [
+                    Field::text('brandName', 'Brand name', ''), // blank → the store name
+                    Field::textarea('tagline', 'Tagline', 'Everything you need, in one place.'),
+                    Field::repeater('links', 'Links', [Field::text('label', 'Label', ''), Field::link('url', 'URL', '#')], []),
+                    Field::repeater('socialLinks', 'Social links', [Field::text('label', 'Label', ''), Field::link('url', 'URL', '#')], []),
+                    Field::text('copyright', 'Copyright', ''), // blank → © year brand
+                    Field::toggle('darkMode', 'Dark footer', false),
                 ],
             ]),
 
@@ -130,6 +144,95 @@ final class BlockLibrary
                 ],
             ]),
 
+            new ConfigBlock('icon-list', 'Checklist', 'check-circle', BlockCategory::Content, schema: [
+                'content' => [
+                    Field::text('heading', 'Heading', 'What you can do'),
+                    Field::repeater('items', 'Items', [Field::text('text', 'Text', '')], [
+                        ['text' => 'Launch in minutes'], ['text' => 'No code required'], ['text' => 'Cancel anytime'], ['text' => 'Priority support'],
+                    ]),
+                ],
+            ]),
+            new ConfigBlock('feature-tabs', 'Feature tabs', 'rectangle-group', BlockCategory::Content, schema: [
+                'content' => [
+                    Field::text('heading', 'Heading', 'Explore the features'),
+                    Field::repeater('items', 'Tabs', [Field::text('title', 'Tab title', ''), Field::textarea('body', 'Body', ''), Field::image('image', 'Image URL', '')], [
+                        ['title' => 'Dashboard', 'body' => 'A clean overview of everything that matters.'],
+                        ['title' => 'Automation', 'body' => 'Set it once and let it run on autopilot.'],
+                    ]),
+                ],
+            ]),
+            new ConfigBlock('accordion', 'Accordion', 'queue-list', BlockCategory::Content, schema: [
+                'content' => [
+                    Field::text('heading', 'Heading', 'Details'),
+                    Field::repeater('items', 'Rows', [Field::text('title', 'Title', ''), Field::textarea('body', 'Body', '')], [
+                        ['title' => 'What’s included', 'body' => 'Everything you need to get started today.'],
+                        ['title' => 'How delivery works', 'body' => 'Instant access right after checkout.'],
+                    ]),
+                ],
+            ]),
+            new ConfigBlock('comparison', 'Comparison table', 'table-cells', BlockCategory::Content, schema: [
+                'content' => [
+                    Field::text('heading', 'Heading', 'How we compare'),
+                    Field::text('usLabel', 'Your column', 'Us'),
+                    Field::text('themLabel', 'Their column', 'Others'),
+                    Field::repeater('items', 'Rows', [Field::text('label', 'Feature', ''), Field::toggle('us', 'You have it', true), Field::toggle('them', 'They have it', false)], [
+                        ['label' => 'Instant delivery', 'us' => true, 'them' => false],
+                        ['label' => 'Lifetime updates', 'us' => true, 'them' => false],
+                        ['label' => 'Money-back guarantee', 'us' => true, 'them' => true],
+                    ]),
+                ],
+            ]),
+            new ConfigBlock('before-after', 'Before / After', 'arrows-right-left', BlockCategory::Content, schema: [
+                'content' => [
+                    Field::text('heading', 'Heading', 'The transformation'),
+                    Field::text('beforeLabel', 'Before label', 'Before'),
+                    Field::text('afterLabel', 'After label', 'After'),
+                    Field::textarea('before', 'Before (one per line)', "Endless manual work\nMissed deadlines\nConstant guesswork"),
+                    Field::textarea('after', 'After (one per line)', "Automated in minutes\nAlways on time\nData-driven decisions"),
+                ],
+            ]),
+            new ConfigBlock('timeline', 'Timeline', 'flag', BlockCategory::Content, schema: [
+                'content' => [
+                    Field::text('heading', 'Heading', 'The roadmap'),
+                    Field::repeater('items', 'Milestones', [Field::text('date', 'Date / label', ''), Field::text('title', 'Title', ''), Field::textarea('desc', 'Description', '')], [
+                        ['date' => 'Step 1', 'title' => 'Sign up', 'desc' => 'Create your account in seconds.'],
+                        ['date' => 'Step 2', 'title' => 'Set it up', 'desc' => 'Follow the guided onboarding.'],
+                        ['date' => 'Step 3', 'title' => 'Grow', 'desc' => 'Watch the results roll in.'],
+                    ]),
+                ],
+            ]),
+            new ConfigBlock('progress', 'Progress bars', 'chart-bar-square', BlockCategory::Content, schema: [
+                'content' => [
+                    Field::text('heading', 'Heading', 'By the numbers'),
+                    Field::repeater('items', 'Bars', [Field::text('label', 'Label', ''), Field::number('value', 'Percent', 80, 0, 100)], [
+                        ['label' => 'Customer satisfaction', 'value' => 98],
+                        ['label' => 'Time saved', 'value' => 85],
+                        ['label' => 'Faster launch', 'value' => 70],
+                    ]),
+                ],
+            ]),
+            new ConfigBlock('team', 'Team', 'users', BlockCategory::Content, schema: [
+                'content' => [
+                    Field::text('heading', 'Heading', 'Meet the team'),
+                    Field::text('sub', 'Subheading', ''),
+                    Field::repeater('items', 'People', [Field::text('name', 'Name', ''), Field::text('role', 'Role', ''), Field::image('photo', 'Photo URL', '')], [
+                        ['name' => 'Alex Rivera', 'role' => 'Founder & CEO'],
+                        ['name' => 'Sam Chen', 'role' => 'Head of Product'],
+                        ['name' => 'Jordan Lee', 'role' => 'Lead Engineer'],
+                    ]),
+                ],
+            ]),
+            new ConfigBlock('story', 'Story / Mission', 'book-open', BlockCategory::Content, schema: [
+                'content' => [
+                    Field::text('eyebrow', 'Eyebrow', 'Our story'),
+                    Field::text('heading', 'Heading', 'Built by people who needed it too'),
+                    Field::textarea('body', 'Body', "We started this because we were frustrated with the alternatives.\n\nToday, thousands of people rely on it every single day."),
+                    Field::image('image', 'Image URL', ''),
+                    Field::select('imageSide', 'Image side', ['left' => 'Left', 'right' => 'Right'], 'left'),
+                    Field::text('signature', 'Signature', ''),
+                ],
+            ]),
+
             // ─── Media ─────────────────────────────────────────────────────────
             new ConfigBlock('image', 'Image', 'photo', BlockCategory::Media, schema: [
                 'content' => [
@@ -150,6 +253,24 @@ final class BlockLibrary
                     Field::text('heading', 'Heading', 'Trusted by teams at'),
                     Field::repeater('items', 'Logos', [Field::text('name', 'Name', '')], [
                         ['name' => 'Acme Inc'], ['name' => 'Globex'], ['name' => 'Umbrella'], ['name' => 'Initech'],
+                    ]),
+                ],
+            ]),
+
+            new ConfigBlock('gallery', 'Gallery', 'rectangle-stack', BlockCategory::Media, schema: [
+                'content' => [
+                    Field::text('heading', 'Heading', ''),
+                    Field::number('cols', 'Columns', 3, 2, 5),
+                    Field::repeater('items', 'Images', [Field::image('src', 'Image URL', ''), Field::text('alt', 'Alt text', '')], [
+                        ['src' => ''], ['src' => ''], ['src' => ''],
+                    ]),
+                ],
+            ]),
+            new ConfigBlock('slider', 'Carousel', 'film', BlockCategory::Media, schema: [
+                'content' => [
+                    Field::text('heading', 'Heading', ''),
+                    Field::repeater('items', 'Slides', [Field::image('src', 'Image URL', ''), Field::text('caption', 'Caption', '')], [
+                        ['src' => '', 'caption' => 'Slide one'], ['src' => '', 'caption' => 'Slide two'],
                     ]),
                 ],
             ]),
@@ -187,11 +308,45 @@ final class BlockLibrary
                 ],
             ]),
 
+            new ConfigBlock('quote', 'Quote spotlight', 'chat-bubble-bottom-center-text', BlockCategory::SocialProof, schema: [
+                'content' => [
+                    Field::textarea('quote', 'Quote', 'This is hands-down the best purchase I’ve made this year.'),
+                    Field::text('name', 'Name', 'Morgan T.'),
+                    Field::text('role', 'Role', 'Small business owner'),
+                    Field::image('photo', 'Photo URL', ''),
+                ],
+            ]),
+            new ConfigBlock('video-testimonials', 'Video testimonials', 'video-camera', BlockCategory::SocialProof, schema: [
+                'content' => [
+                    Field::text('heading', 'Heading', 'Hear it from customers'),
+                    Field::repeater('items', 'Videos', [Field::link('url', 'Embed URL', ''), Field::text('name', 'Name', ''), Field::text('role', 'Role', '')], [
+                        ['url' => '', 'name' => 'Jamie', 'role' => 'Verified buyer'],
+                        ['url' => '', 'name' => 'Priya', 'role' => 'Verified buyer'],
+                    ]),
+                ],
+            ]),
+            new ConfigBlock('case-studies', 'Case studies', 'trophy', BlockCategory::SocialProof, schema: [
+                'content' => [
+                    Field::text('heading', 'Heading', 'Real results'),
+                    Field::repeater('items', 'Studies', [Field::text('metric', 'Metric', ''), Field::text('title', 'Title', ''), Field::textarea('body', 'Body', ''), Field::text('name', 'Attribution', '')], [
+                        ['metric' => '+312%', 'title' => 'Revenue in 90 days', 'body' => 'How one seller tripled sales after switching.', 'name' => 'Acme Store'],
+                        ['metric' => '18 hrs', 'title' => 'Saved every week', 'body' => 'Automation replaced hours of manual work.', 'name' => 'Globex'],
+                    ]),
+                ],
+            ]),
+
             // ─── Urgency ───────────────────────────────────────────────────────
             new ConfigBlock('countdown', 'Countdown', 'clock', BlockCategory::Urgency, schema: [
                 'content' => [
                     Field::text('label', 'Label', 'Offer ends in'),
                     Field::number('hours', 'Hours from now', 24, 1, 720),
+                ],
+            ]),
+            new ConfigBlock('announcement-bar', 'Announcement bar', 'megaphone', BlockCategory::Urgency, schema: [
+                'content' => [
+                    Field::text('text', 'Text', '🎉 Launch week — save 30% with code LAUNCH'),
+                    Field::text('cta', 'Link label', 'Shop now'),
+                    Field::link('href', 'Link URL', '#'),
                 ],
             ]),
 
@@ -229,6 +384,78 @@ final class BlockLibrary
                 'content' => [
                     Field::text('heading', 'Heading', 'Get it today'),
                     Field::text('btn', 'Button label', ''),
+                ],
+            ]),
+            new ConfigBlock('pricing', 'Pricing', 'currency-dollar', BlockCategory::Commerce, schema: [
+                'content' => [
+                    Field::text('heading', 'Heading', 'Simple, honest pricing'),
+                    Field::text('sub', 'Subheading', 'Pick the plan that fits. Upgrade anytime.'),
+                    Field::repeater('items', 'Plans', [
+                        Field::text('name', 'Name', ''),
+                        Field::text('price', 'Price', ''),
+                        Field::text('period', 'Period', ''),
+                        Field::text('desc', 'Description', ''),
+                        Field::textarea('features', 'Features (one per line)', ''),
+                        Field::text('cta', 'Button label', 'Choose plan'),
+                        Field::text('badge', 'Badge', ''),
+                        Field::toggle('featured', 'Highlight this plan', false),
+                    ], [
+                        ['name' => 'Starter', 'price' => '$19', 'period' => '/mo', 'desc' => 'For getting started', 'features' => "1 project\nEmail support\nBasic analytics", 'cta' => 'Start now'],
+                        ['name' => 'Pro', 'price' => '$49', 'period' => '/mo', 'desc' => 'For growing teams', 'features' => "Unlimited projects\nPriority support\nAdvanced analytics\nCustom domain", 'cta' => 'Go Pro', 'badge' => 'Most popular', 'featured' => true],
+                        ['name' => 'Scale', 'price' => '$99', 'period' => '/mo', 'desc' => 'For high volume', 'features' => "Everything in Pro\nDedicated manager\nSLA & onboarding", 'cta' => 'Contact us'],
+                    ]),
+                ],
+            ]),
+            new ConfigBlock('product-grid', 'Product grid', 'squares-plus', BlockCategory::Commerce, schema: [
+                'content' => [
+                    Field::text('heading', 'Heading', 'Shop the collection'),
+                    Field::text('sub', 'Subheading', ''),
+                    Field::number('cols', 'Columns', 3, 2, 4),
+                    Field::number('limit', 'Max products', 6, 1, 24),
+                    Field::toggle('showPrice', 'Show price', true),
+                    Field::toggle('showSummary', 'Show summary', true),
+                    Field::text('cta', 'Card button', 'View'),
+                ],
+            ]),
+            new ConfigBlock('offer-banner', 'Offer banner', 'tag', BlockCategory::Commerce, schema: [
+                'content' => [
+                    Field::text('eyebrow', 'Eyebrow', 'Today only'),
+                    Field::text('heading', 'Heading', 'Save 30% for a limited time'),
+                    Field::text('sub', 'Subheading', 'This deal disappears at midnight — grab it now.'),
+                    Field::text('btn', 'Button label', 'Claim offer'),
+                ],
+            ]),
+            new ConfigBlock('cta-banner', 'CTA banner', 'rocket-launch', BlockCategory::Commerce, schema: [
+                'content' => [
+                    Field::text('heading', 'Heading', 'Ready to get started?'),
+                    Field::text('sub', 'Subheading', 'Join thousands already using it today.'),
+                    Field::text('btn', 'Button label', 'Get started'),
+                ],
+            ]),
+            new ConfigBlock('sticky-cta', 'Sticky CTA bar', 'bolt', BlockCategory::Commerce, schema: [
+                'content' => [
+                    Field::text('text', 'Text', ''),
+                    Field::text('btn', 'Button label', 'Buy now'),
+                ],
+            ]),
+
+            // ─── Forms ─────────────────────────────────────────────────────────
+            new ConfigBlock('lead-capture', 'Lead capture', 'envelope', BlockCategory::Form, schema: [
+                'content' => [
+                    Field::text('heading', 'Heading', 'Get the free guide'),
+                    Field::text('sub', 'Subheading', 'Drop your email and we’ll send it over.'),
+                    Field::text('placeholder', 'Placeholder', 'you@email.com'),
+                    Field::text('btn', 'Button label', 'Send it to me'),
+                    Field::link('action', 'Form action URL', ''),
+                    Field::text('note', 'Small print', 'No spam. Unsubscribe anytime.'),
+                ],
+            ]),
+            new ConfigBlock('contact', 'Contact form', 'inbox-arrow-down', BlockCategory::Form, schema: [
+                'content' => [
+                    Field::text('heading', 'Heading', 'Get in touch'),
+                    Field::text('sub', 'Subheading', 'We usually reply within a few hours.'),
+                    Field::text('btn', 'Button label', 'Send message'),
+                    Field::link('action', 'Form action URL', ''),
                 ],
             ]),
         ];

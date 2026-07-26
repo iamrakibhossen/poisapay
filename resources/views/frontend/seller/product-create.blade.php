@@ -86,7 +86,7 @@
             </x-ui.card>
         @endif
 
-        <form method="POST" action="{{ $editing ? route('shop.products.update', $product->id) : route('shop.products.store') }}" class="space-y-6"
+        <form method="POST" enctype="multipart/form-data" action="{{ $editing ? route('shop.products.update', $product->id) : route('shop.products.store') }}" class="space-y-6"
             x-data="{ type: @js(old('type', $typeValue)), price: @js(old('price', $priceValue)) }">
             @csrf
             @if ($editing) @method('PUT') @endif
@@ -124,6 +124,20 @@
                 <div class="mt-4">
                     <x-ui.textarea :label="__('Description')" name="description" rows="4"
                         :hint="__('This appears on your sales page.')" :error="$errors->first('description')">{{ old('description', $editing ? $product->description : '') }}</x-ui.textarea>
+                </div>
+                <div class="mt-4" x-data="{ preview: @js($editing ? \App\Utilities\Asset::url($product->image) : null) }">
+                    <label class="mb-1 block text-sm font-medium text-neutral-700">{{ __('Cover image') }}</label>
+                    <div class="flex items-center gap-4">
+                        <div class="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50 text-neutral-300">
+                            <template x-if="preview"><img :src="preview" alt="" class="h-full w-full object-cover" /></template>
+                            <template x-if="!preview"><x-heroicon-o-photo class="h-6 w-6" /></template>
+                        </div>
+                        <input type="file" name="image" accept="image/png,image/jpeg,image/webp"
+                            @change="const f = $event.target.files[0]; preview = f ? URL.createObjectURL(f) : preview"
+                            class="text-xs text-neutral-500 file:mr-3 file:rounded-lg file:border-0 file:bg-neutral-900 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-white hover:file:bg-neutral-800" />
+                    </div>
+                    <p class="mt-1.5 text-xs text-neutral-400">{{ __('PNG, JPG or WEBP up to 2 MB. Shown on product cards + the product-grid section.') }}</p>
+                    @error('image')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
                 </div>
             </x-ui.card>
 

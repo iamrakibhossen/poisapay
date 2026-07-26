@@ -126,9 +126,9 @@ class SettingsController extends Controller
 
         // Profile picture: a new upload replaces the old file; ticking "remove" clears it.
         if ($request->hasFile('avatar')) {
-            $user->image = AssetUtil::store($request, 'avatar', $user->image, 'avatars/'.$user->id);
+            $user->image = AssetUtil::store($request, 'avatar', $user->image);
         } elseif ($request->boolean('remove_avatar') && $user->image) {
-            AssetUtil::removeFile($user->image, 'public');
+            AssetUtil::removeFile($user->image);
             $user->image = null;
         }
 

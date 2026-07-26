@@ -35,8 +35,6 @@ use App\Http\Controllers\Admin\LedgerController;
 use App\Http\Controllers\Admin\LiquidityController;
 use App\Http\Controllers\Admin\LogViewerController;
 use App\Http\Controllers\Admin\MerchantsController;
-use App\Shop\Http\Controllers\Admin\RefundAdminController;
-use App\Shop\Http\Controllers\Admin\SellerAdminController;
 use App\Http\Controllers\Admin\MessagingController;
 use App\Http\Controllers\Admin\P2pController;
 use App\Http\Controllers\Admin\P2pPaymentMethodController;
@@ -65,6 +63,9 @@ use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Admin\WebhookLogsController;
 use App\Http\Controllers\Admin\WithdrawalsController;
 use App\Http\Controllers\ImpersonationController;
+use App\Shop\Http\Controllers\Admin\DomainAdminController;
+use App\Shop\Http\Controllers\Admin\RefundAdminController;
+use App\Shop\Http\Controllers\Admin\SellerAdminController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -347,6 +348,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/sellers', 'index')->name('sellers');
             Route::post('/sellers/{seller}/plan', 'updatePlan')->name('sellers.plan');
             Route::post('/sellers/{seller}/status', 'updateStatus')->name('sellers.status');
+        });
+        // ── Custom domains (merchant sales-page domains) ──
+        Route::controller(DomainAdminController::class)->group(function () {
+            Route::get('/shop-domains', 'index')->name('shop-domains');
+            Route::post('/shop-domains/{domain}/disable', 'disable')->name('shop-domains.disable');
+            Route::post('/shop-domains/{domain}/enable', 'enable')->name('shop-domains.enable');
+            Route::post('/shop-domains/{domain}/reverify', 'reverify')->name('shop-domains.reverify');
         });
         // ── Refund review (escalated buyer refund requests) ──
         Route::controller(RefundAdminController::class)->group(function () {

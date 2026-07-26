@@ -214,7 +214,7 @@ class SellerController extends Controller
         ]);
 
         // Replace any previous file (validation guarantees a real upload).
-        $seller->update(['logo_path' => AssetUtil::store($request, 'logo', $seller->logo_path)]);
+        $seller->update(['logo' => AssetUtil::store($request, 'logo', $seller->logo)]);
 
         return redirect()->route('shop')->with('success', __('Store logo updated.'));
     }
@@ -223,9 +223,9 @@ class SellerController extends Controller
     public function deleteLogo(Request $request, SellerService $sellers): RedirectResponse
     {
         $seller = $sellers->forUser($request->user());
-        if ($seller?->logo_path) {
-            AssetUtil::removeFile($seller->logo_path);
-            $seller->update(['logo_path' => null]);
+        if ($seller?->logo) {
+            AssetUtil::removeFile($seller->logo);
+            $seller->update(['logo' => null]);
         }
 
         return redirect()->route('shop')->with('success', __('Store logo removed.'));

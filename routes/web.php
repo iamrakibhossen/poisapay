@@ -9,13 +9,13 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\FaqController;
 use App\Http\Controllers\Frontend\AssetShowController;
 use App\Http\Controllers\Frontend\DashboardController;
 use App\Http\Controllers\Frontend\DepositController;
 use App\Http\Controllers\Frontend\ExchangeController;
 use App\Http\Controllers\Frontend\KycController;
 use App\Http\Controllers\Frontend\NotificationController;
+use App\Http\Controllers\Frontend\PurchasesController;
 use App\Http\Controllers\Frontend\RewardsController;
 use App\Http\Controllers\Frontend\SecurityController;
 use App\Http\Controllers\Frontend\SendController;
@@ -24,13 +24,9 @@ use App\Http\Controllers\Frontend\SupportController;
 use App\Http\Controllers\Frontend\TransactionController;
 use App\Http\Controllers\Frontend\WalletController;
 use App\Http\Controllers\Frontend\WithdrawController;
+use App\Http\Controllers\Funnel\PublicSalesController;
 use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\LocaleController;
-use App\Http\Controllers\Marketing\PricesController;
-use App\Http\Controllers\Marketing\ProductController;
-use App\Http\Controllers\Marketing\RatesController;
-use App\Http\Controllers\Marketing\StatusController;
-use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -38,15 +34,12 @@ use Illuminate\Support\Facades\Route;
 | Public (guest-accessible) routes
 |--------------------------------------------------------------------------
 */
-Route::view('/', 'marketing.home')->name('home');
-// Merchant Pay marketing lives as a product page; keep /merchants as a named redirect.
-Route::get('/merchants', fn () => redirect()->route('products.show', 'merchant-pay'))->name('merchants');
-Route::get('/help-center', FaqController::class)->name('help-center');
-Route::redirect('/faqs', '/help-center');   // legacy path
-Route::get('/pages/{slug}', [PageController::class, 'show'])->name('page.show');
+// Public marketing / landing pages (home `/`, /help-center, /pages/{slug}, /prices,
+// /rates, /status, /products/{product}, /merchants) are owned by the isolated Landing
+// module — see routes/landing.php. Route names are unchanged, so every route() resolves.
 
 // Funnel platform — public product sales pages (standalone, conversion-first).
-Route::controller(\App\Http\Controllers\Funnel\PublicSalesController::class)->group(function () {
+Route::controller(PublicSalesController::class)->group(function () {
     Route::get('/p/{slug}', 'show')->name('funnel.sales');
     // "Buy" hands off to /buy (account gate → checkout). The checkout page itself
     // lives at /checkout. Route names are kept stable so every route() resolves.
@@ -58,10 +51,6 @@ Route::controller(\App\Http\Controllers\Funnel\PublicSalesController::class)->gr
     Route::get('/p/{slug}/thank-you', 'thankYou')->name('funnel.thankyou');
     Route::post('/p/{slug}/upsell', 'upsellAccept')->name('funnel.upsell');
 });
-Route::get('/prices', PricesController::class)->name('marketing.prices'); // live crypto→BDT prices page (HTML)
-Route::get('/rates', RatesController::class)->name('marketing.rates');  // live crypto→BDT reference rates (JSON feed for the prices page)
-Route::get('/status', StatusController::class)->name('status');         // live system status (footer)
-Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show'); // product marketing pages
 Route::post('/locale', [LocaleController::class, 'update'])->name('locale.switch');
 
 /*
@@ -197,15 +186,15 @@ Route::middleware('auth')->group(function () {
     require __DIR__.'/frontend/seller.php';
 
     // Customer portal — purchases, downloads, courses, license keys.
-    Route::get('/purchases', [\App\Http\Controllers\Frontend\PurchasesController::class, 'index'])->name('purchases');
-    Route::get('/purchases/order/{order}', [\App\Http\Controllers\Frontend\PurchasesController::class, 'show'])->name('purchases.show');
-    Route::get('/purchases/{item}/download', [\App\Http\Controllers\Frontend\PurchasesController::class, 'download'])->name('purchases.download');
-    Route::get('/purchases/{order}/messages', [\App\Http\Controllers\Frontend\PurchasesController::class, 'messages'])->name('purchases.messages');
-    Route::post('/purchases/{order}/messages', [\App\Http\Controllers\Frontend\PurchasesController::class, 'sendMessage'])->name('purchases.messages.send');
-    Route::post('/purchases/{order}/review', [\App\Http\Controllers\Frontend\PurchasesController::class, 'submitReview'])->name('purchases.review');
-    Route::post('/purchases/{order}/refund', [\App\Http\Controllers\Frontend\PurchasesController::class, 'requestRefund'])->name('purchases.refund');
-    Route::post('/purchases/refund/{refundRequest}/cancel', [\App\Http\Controllers\Frontend\PurchasesController::class, 'cancelRefund'])->name('purchases.refund.cancel');
-    Route::post('/purchases/refund/{refundRequest}/escalate', [\App\Http\Controllers\Frontend\PurchasesController::class, 'escalateRefund'])->name('purchases.refund.escalate');
+    Route::get('/purchases', [PurchasesController::class, 'index'])->name('purchases');
+    Route::get('/purchases/order/{order}', [PurchasesController::class, 'show'])->name('purchases.show');
+    Route::get('/purchases/{item}/download', [PurchasesController::class, 'download'])->name('purchases.download');
+    Route::get('/purchases/{order}/messages', [PurchasesController::class, 'messages'])->name('purchases.messages');
+    Route::post('/purchases/{order}/messages', [PurchasesController::class, 'sendMessage'])->name('purchases.messages.send');
+    Route::post('/purchases/{order}/review', [PurchasesController::class, 'submitReview'])->name('purchases.review');
+    Route::post('/purchases/{order}/refund', [PurchasesController::class, 'requestRefund'])->name('purchases.refund');
+    Route::post('/purchases/refund/{refundRequest}/cancel', [PurchasesController::class, 'cancelRefund'])->name('purchases.refund.cancel');
+    Route::post('/purchases/refund/{refundRequest}/escalate', [PurchasesController::class, 'escalateRefund'])->name('purchases.refund.escalate');
 });
 
 // Operator console lives in its own route file (DollarHub-style separation).

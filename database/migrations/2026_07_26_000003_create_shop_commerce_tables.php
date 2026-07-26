@@ -52,6 +52,7 @@ return new class extends Migration
             $table->foreignUuid('seller_id')->constrained('shop_sellers');
             $table->foreignUuid('buyer_user_id')->constrained('users');   // buyers are core users
             $table->foreignUuid('sales_page_id')->nullable()->constrained('shop_sales_pages')->nullOnDelete();
+            $table->uuid('parent_order_id')->nullable(); // 1-click upsell → the order it followed (self-FK added after create)
             $table->foreignUuid('funnel_id')->nullable()->constrained('shop_funnels')->nullOnDelete();
             $table->foreignUuid('coupon_id')->nullable()->constrained('shop_coupons')->nullOnDelete();
             $table->string('status', 24)->default('pending');     // OrderStatus (state machine)
@@ -62,6 +63,10 @@ return new class extends Migration
             $table->bigInteger('total_amount')->default(0);
             $table->bigInteger('commission_amount')->default(0);
             $table->bigInteger('seller_net_amount')->default(0);
+            $table->boolean('earnings_held')->default(false);     // held during the refund window
+            $table->timestamp('earnings_released_at')->nullable();
+            $table->timestamp('refunded_at')->nullable();
+            $table->bigInteger('refunded_amount')->nullable();    // minor units returned to buyer
             $table->foreignId('asset_id')->constrained('assets');
             $table->string('payment_method', 24)->default('poisapay');
             $table->uuid('ledger_entry_id')->nullable();          // FK-by-reference to core Ledger (source of truth)
@@ -86,12 +91,17 @@ return new class extends Migration
             $table->index('coupon_id');
             $table->index('funnel_id');
             $table->index('sales_page_id');
+            $table->index('parent_order_id');
             $table->index('ledger_entry_id');
             $table->foreign('ledger_entry_id')->references('id')->on('journal_entries')->nullOnDelete();
 
         });
+        // Self-referencing FK — added after the table (+ its PK) exists.
+        Schema::table('shop_orders', fn (Blueprint $table) => $table->foreign('parent_order_id')->references('id')->on('shop_orders')->nullOnDelete());
         // Vesting sweep reads only unvested paid orders — keep that index tiny (partial).
         DB::statement("CREATE INDEX shop_orders_vesting ON shop_orders (refund_window_ends_at) WHERE status = 'paid' AND refund_window_ends_at IS NOT NULL");
+        // Earnings release scan: held earnings past their window, not yet released.
+        DB::statement('CREATE INDEX shop_orders_earnings_release ON shop_orders (refund_window_ends_at) WHERE earnings_held AND earnings_released_at IS NULL');
         // Seller inbox: only orders that have a conversation (partial keeps it tiny).
         DB::statement('CREATE INDEX shop_orders_inbox ON shop_orders (seller_id, last_message_at DESC) WHERE last_message_at IS NOT NULL');
 

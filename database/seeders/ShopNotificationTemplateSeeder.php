@@ -34,6 +34,9 @@ class ShopNotificationTemplateSeeder extends Seeder
             ['shop.seller.rejected', 'Application declined', 'product', ['in_app', 'email'], 'Application declined', 'Your shop application was not approved: {{reason}}.'],
             ['shop.seller.suspended', 'Shop suspended', 'security', ['in_app', 'email'], 'Shop suspended', 'Your shop has been suspended. Please contact support.'],
             ['shop.balance.low', 'Low balance', 'money', ['in_app', 'email'], 'Low balance', 'Your available balance is low: {{amount}}.'],
+            ['shop.domain.verified', 'Domain verified', 'product', ['in_app', 'email'], 'Domain verified', 'Your custom domain {{host}} is verified and now serving your sales page.'],
+            ['shop.domain.failed', 'Domain verification failed', 'product', ['in_app', 'email'], 'Domain verification failed', 'We could not verify {{host}}: {{error}} Check your DNS records and try again.'],
+            ['shop.domain.ssl_failed', 'Domain SSL failed', 'product', ['in_app', 'email'], 'Domain SSL failed', 'We could not issue an SSL certificate for {{host}}. Please contact support.'],
         ];
 
         foreach ($templates as [$key, $name, $category, $channels, $subject, $body]) {

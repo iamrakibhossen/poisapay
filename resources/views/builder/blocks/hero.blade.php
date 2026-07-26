@@ -11,12 +11,12 @@
                 <span class="text-amber-500">★★★★★</span> 4.9 · {{ __('loved by 200+ buyers') }}
             </span>
         @endif
-        <h1 class="mx-auto mt-5 max-w-2xl text-3xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl">{{ $headline }}</h1>
+        <h1 data-edit="headline" class="mx-auto mt-5 max-w-2xl text-3xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl">{{ $headline }}</h1>
         @if (! empty($props['tagline']))
-            <p class="mx-auto mt-4 max-w-xl text-lg font-medium" style="color: var(--pp-accent)">{{ $props['tagline'] }}</p>
+            <p data-edit="tagline" class="mx-auto mt-4 max-w-xl text-lg font-medium" style="color: var(--pp-accent)">{{ $props['tagline'] }}</p>
         @endif
         @if (! empty($props['desc']))
-            <p class="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-neutral-600">{{ $props['desc'] }}</p>
+            <p data-edit="desc" class="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-neutral-600">{{ $props['desc'] }}</p>
         @endif
 
         <div class="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">

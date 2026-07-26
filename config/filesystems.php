@@ -15,6 +15,10 @@ return [
 
     'default' => env('FILESYSTEM_DISK', 'local'),
 
+    // Disk for user-visible media (avatars, store logos, product covers). Set
+    // MEDIA_DISK=s3 to serve media from S3 — resolved via App\Enums\StorageDisk::media().
+    'media' => env('MEDIA_DISK', 'public'),
+
     /*
     |--------------------------------------------------------------------------
     | Filesystem Disks

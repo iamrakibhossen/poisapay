@@ -264,3 +264,41 @@ Alpine.data('cardReveal', (config) => ({
 
 window.Alpine = Alpine;
 Alpine.start();
+
+/*
+ * Builder entrance animations — a progressive-enhancement scroll reveal.
+ * StyleCompiler emits the hidden state under `html.pp-anim` and the reveal under
+ * `.pp-in`; the Renderer marks animated blocks with `data-anim`. We add `pp-anim`
+ * only when JS is present (so no-JS = fully visible), skip inside the builder
+ * canvas (blocks are shown in their final state while editing), and honour
+ * prefers-reduced-motion.
+ */
+function initEntranceReveals() {
+    if (document.querySelector('.pp-canvas')) return; // builder: no scroll reveal
+    const els = document.querySelectorAll('[data-anim]');
+    if (!els.length || !('IntersectionObserver' in window)) return;
+
+    document.documentElement.classList.add('pp-anim');
+
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        els.forEach((el) => el.classList.add('pp-in'));
+        return;
+    }
+
+    const io = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('pp-in');
+                io.unobserve(entry.target);
+            }
+        });
+    }, { rootMargin: '0px 0px -8% 0px' });
+
+    els.forEach((el) => io.observe(el));
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initEntranceReveals);
+} else {
+    initEntranceReveals();
+}

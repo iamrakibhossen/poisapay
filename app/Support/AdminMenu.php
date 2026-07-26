@@ -72,6 +72,7 @@ class AdminMenu
             ['heading' => __('Commerce'), 'items' => [
                 ['label' => __('Merchants'), 'icon' => 'heroicon-o-building-storefront', 'route' => 'admin.merchants', 'perm' => 'view-merchants'],
                 ['label' => __('Sellers'), 'icon' => 'heroicon-o-rocket-launch', 'route' => 'admin.sellers', 'perm' => 'view-sellers'],
+                ['label' => __('Domains'), 'icon' => 'heroicon-o-globe-alt', 'route' => 'admin.shop-domains', 'perm' => 'view-sellers'],
                 ['label' => __('Refunds'), 'icon' => 'heroicon-o-arrow-uturn-left', 'route' => 'admin.shop-refunds', 'perm' => 'view-sellers', 'badge' => 'shop_refunds_escalated'],
                 ['label' => __('P2P'), 'icon' => 'heroicon-o-user-group', 'children' => [
                     ['label' => __('Orders'), 'route' => 'admin.p2p', 'perm' => 'view-p2p'],

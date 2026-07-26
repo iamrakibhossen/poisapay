@@ -23,6 +23,7 @@ class UpdateProduct
                 'name' => $data->name,
                 'summary' => $data->summary,
                 'description' => $data->description,
+                'image' => $data->image,
                 'price_amount' => $data->priceAmount,
                 'price_asset_id' => $data->priceAssetId,
                 'compare_price_amount' => $data->comparePriceAmount,

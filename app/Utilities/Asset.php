@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Utilities;
 
+use App\Enums\StorageDisk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
@@ -19,39 +20,36 @@ final class Asset
     }
 
     /**
-     * The single entry point for public media uploads. Stores the request's file
-     * for `$name` under a date-bucketed unique path and returns the stored path;
-     * deletes and replaces `$old` when a new file is present, and returns `$old`
-     * unchanged when the request carries no file (so edits keep the current image).
+     * Start a fluent media operation on a specific disk, e.g.
+     * `Asset::disk('local')->store($request, 'image')`. The bare static helpers
+     * ({@see store()}, {@see url()}, {@see removeFile()}) use the configured media
+     * disk ({@see StorageDisk::media()}) instead — so no per-call disk argument.
      */
-    public static function store(Request $request, string $name, ?string $old = null, string $directory = 'images', ?string $disk = 'public'): ?string
+    public static function disk(string|StorageDisk $disk): AssetDisk
     {
-        if (! $request->hasFile($name)) {
-            return $old;
-        }
+        $resolved = $disk instanceof StorageDisk
+            ? $disk
+            : (StorageDisk::tryFrom($disk) ?? StorageDisk::media());
 
-        self::removeFile($old, $disk);
-        $file = $request->file($name);
-        $path = self::generateUploadPath($file->getClientOriginalName(), $directory);
-        Storage::disk($disk ?? config('filesystems.default'))->put($path, $file->getContent());
-
-        return $path;
+        return new AssetDisk($resolved);
     }
 
-    /**
-     * Public URL for a stored asset. Absolute URLs and root-relative paths pass
-     * through unchanged; everything else resolves against the given disk.
-     */
-    public static function url(?string $path, ?string $disk = 'public'): ?string
+    /** Store an upload on the media disk. See {@see AssetDisk::store()}. */
+    public static function store(Request $request, string $name, ?string $old = null, bool $thumbnail = false): ?string
     {
-        if (blank($path)) {
-            return null;
-        }
-        if (str_starts_with($path, 'http') || str_starts_with($path, '/')) {
-            return $path;
-        }
+        return self::disk(StorageDisk::media())->store($request, $name, $old, $thumbnail);
+    }
 
-        return Storage::disk($disk ?? 'public')->url($path);
+    /** Public URL for a stored asset on the media disk. */
+    public static function url(?string $path): ?string
+    {
+        return self::disk(StorageDisk::media())->url($path);
+    }
+
+    /** Delete a stored file on the media disk. */
+    public static function removeFile(?string $path): bool
+    {
+        return self::disk(StorageDisk::media())->removeFile($path);
     }
 
     public static function generateUploadPath(string $fileName, string $directory = 'images'): string
@@ -66,26 +64,6 @@ final class Asset
         ));
 
         return "uploads/{$directory}/{$datePath}/{$unique}{$fileName}";
-    }
-
-    public static function removeFile(?string $path, ?string $disk = null): bool
-    {
-        if (! $path) {
-            return false;
-        }
-
-        $disk = Storage::disk($disk ?? config('filesystems.default'));
-
-        if (! $disk->exists($path)) {
-            return false;
-        }
-
-        $deleted = @$disk->delete($path);
-
-        Cache::forget('asset:exists:'.md5($path));
-        Cache::forget('asset:thumb:'.md5($path));
-
-        return $deleted;
     }
 
     public static function fileExtension(?string $path): ?string

@@ -39,6 +39,7 @@ return new class extends Migration
             $table->string('label', 64)->nullable();
             $table->text('account');                    // encrypted ciphertext (model layer)
             $table->boolean('is_active')->default(true);
+            $table->boolean('is_default')->default(false);       // preferred payout method
             $table->timestamps();
 
             $table->index(['user_id', 'is_active']);
@@ -52,6 +53,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
             $table->boolean('is_online')->default(false);
+            $table->timestamp('last_seen_at')->nullable();         // presence: last activity
             $table->boolean('vacation_mode')->default(false);
             $table->unsignedTinyInteger('level')->default(0);
             $table->jsonb('badges')->nullable();
@@ -62,6 +64,7 @@ return new class extends Migration
             $table->unsignedInteger('avg_pay_seconds')->nullable();
             $table->decimal('total_volume', 78, 0)->default(0);   // crypto base units
             $table->decimal('rating', 3, 2)->default(0);
+            $table->timestamp('featured_until')->nullable();       // paid "featured merchant" window
             $table->timestamps();
 
             $table->unique('user_id', 'uq_p2p_merchant_user');
@@ -90,7 +93,9 @@ return new class extends Migration
             $table->jsonb('trade_hours')->nullable();
             $table->string('status', 12)->default('active');
             $table->integer('priority')->default(0);
+            $table->boolean('is_express')->default(false);        // express (instant) ad
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index(['side', 'status', 'asset_id'], 'ix_p2p_ads_book');
             $table->index(['user_id', 'status']);
@@ -132,10 +137,14 @@ return new class extends Migration
             $table->timestamp('cancelled_at')->nullable();
             $table->string('cancel_reason', 64)->nullable();
             $table->jsonb('meta')->nullable();
+            $table->string('taker_ip', 45)->nullable();           // device signals for fraud checks
+            $table->string('taker_fingerprint', 64)->nullable();
             $table->timestamps();
 
             $table->unique('ref', 'uq_p2p_order_ref');
             $table->index(['status', 'expires_at'], 'ix_p2p_orders_expiry');
+            $table->index('taker_fingerprint', 'ix_p2p_orders_fingerprint');
+            $table->index(['ad_id', 'created_at'], 'ix_p2p_orders_ad_day'); // per-ad daily volume
             $table->index('buyer_id');
             $table->index('seller_id');
             $table->index('ad_id');
