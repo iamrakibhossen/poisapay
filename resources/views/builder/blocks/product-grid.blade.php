@@ -20,6 +20,28 @@
 
             @if (empty($items))
                 <p class="mt-8 rounded-2xl border border-dashed border-neutral-200 py-10 text-center text-sm text-neutral-400">{{ __('Your published products will appear here.') }}</p>
+            @elseif (count($items) === 1)
+                {{-- Single product → a full-width feature card instead of a lonely grid cell. --}}
+                @php $p = $items[0]; @endphp
+                <article class="group mt-9 grid overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm sm:grid-cols-2">
+                    <div class="aspect-[4/3] w-full overflow-hidden bg-neutral-50 sm:aspect-auto">
+                        @if (! empty($p['image']))
+                            <img src="{{ $p['image'] }}" alt="{{ $p['name'] ?? '' }}" class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]" loading="lazy" />
+                        @else
+                            <div class="grid h-full min-h-[16rem] place-items-center text-neutral-300"><x-heroicon-o-photo class="h-12 w-12" /></div>
+                        @endif
+                    </div>
+                    <div class="flex flex-col justify-center p-8 sm:p-10">
+                        <h3 class="text-xl font-bold tracking-tight text-neutral-900 sm:text-2xl">{{ $p['name'] ?? '' }}</h3>
+                        @if ($showSummary && ! empty($p['summary']))<p class="mt-2 text-sm leading-relaxed text-neutral-500">{{ $p['summary'] }}</p>@endif
+                        <div class="mt-6 flex flex-wrap items-center gap-4">
+                            @if ($showPrice && ! empty($p['price']))
+                                <span class="text-2xl font-bold text-neutral-900">{{ $p['price'] }}@if (! empty($p['comparePrice']))<span class="ms-1.5 text-sm font-medium text-neutral-400 line-through">{{ $p['comparePrice'] }}</span>@endif</span>
+                            @endif
+                            <a href="{{ $ctx->editing ? '#' : ($p['url'] ?? '#') }}" class="px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90" style="background: var(--pp-accent); border-radius: var(--pp-btn-radius)">{{ $cta }}</a>
+                        </div>
+                    </div>
+                </article>
             @else
                 <div class="pp-pg mt-9">
                     @foreach ($items as $p)
