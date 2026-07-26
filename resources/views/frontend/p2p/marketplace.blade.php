@@ -232,7 +232,7 @@
                     {{-- Trade --}}
                     <button type="button"
                         class="mt-auto block w-full rounded-lg px-5 py-2.5 text-center text-sm font-semibold text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 {{ $buyActive ? 'bg-green-600 hover:bg-green-700 focus-visible:ring-green-400' : 'bg-red-600 hover:bg-red-500 focus-visible:ring-red-400' }}"
-                        x-on:click="choose({ id: '{{ $ad->id }}', price: '{{ $ad->fixed_price ?? 0 }}', min: '{{ $ad->min_order }}', max: '{{ $ad->max_order }}', sym: '{{ $ad->asset->symbol }}', fiat: '{{ $ad->fiat_currency }}', who: '{{ addslashes($ad->user->name) }}', side: '{{ $want }}', methods: {{ Illuminate\Support\Js::from($ad->paymentMethods->map(fn ($m) => ['id' => $m->id, 'name' => $m->name])->values()) }} })">
+                        x-on:click="choose({ id: '{{ $ad->id }}', price: '{{ $ad->fixed_price ?? 0 }}', min: '{{ $ad->min_order }}', max: '{{ $ad->max_order }}', avail: '{{ $ad->availableMoney()->toDecimal() }}', sym: '{{ $ad->asset->symbol }}', fiat: '{{ $ad->fiat_currency }}', who: '{{ addslashes($ad->user->name) }}', side: '{{ $want }}', trades: {{ (int) ($p->trade_count ?? 0) }}, completion: '{{ $completion }}', online: {{ $online ? 'true' : 'false' }}, verified: {{ $verified ? 'true' : 'false' }}, window: {{ (int) $ad->payment_window_min }}, methods: {{ Illuminate\Support\Js::from($ad->paymentMethods->map(fn ($m) => ['id' => $m->id, 'name' => $m->name])->values()) }} })">
                         {{ $buyActive ? __('Buy') : __('Sell') }} USDT
                     </button>
                 </div>
@@ -278,44 +278,59 @@
 
         {{-- Order modal (shared, populated by Alpine) --}}
         <x-ui.modal name="p2p-order" :title="__('Place order')" maxWidth="sm">
-            <form method="POST" action="{{ route('p2p.orders.store') }}" class="space-y-5" x-data="{ amount: '' }">
+            <form method="POST" action="{{ route('p2p.orders.store') }}" class="space-y-4"
+                x-data="{
+                    amount: '',
+                    get fiatTotal() { return this.amount && this.ad ? Number(this.amount) * Number(this.ad.price) : 0; },
+                    get valid() { return this.amount > 0; },
+                    setPct(p) { if (this.ad) this.amount = (Number(this.ad.avail) * p).toFixed(2).replace(/\.?0+$/, ''); },
+                }">
                 @csrf
                 <input type="hidden" name="ad_id" :value="ad?.id">
 
+                {{-- Advertiser trust header --}}
                 <div class="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-                    <span class="grid h-9 w-9 place-items-center rounded-full text-sm font-semibold text-white"
+                    <span class="relative grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-bold text-white"
                           :class="ad?.side === 'buy' ? 'bg-green-600' : 'bg-red-600'"
-                          x-text="(ad?.who || '?').slice(0,1).toUpperCase()"></span>
+                          x-text="(ad?.who || '?').slice(0,1).toUpperCase()">
+                        <span x-show="ad?.online" x-cloak class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-green-500"></span>
+                    </span>
                     <div class="min-w-0 text-sm">
-                        <p class="truncate font-semibold text-neutral-900" x-text="ad?.who"></p>
-                        <p class="text-neutral-500">
-                            <span class="tabular font-medium text-neutral-900" x-text="Number(ad?.price).toLocaleString()"></span>
-                            <span x-text="ad?.fiat"></span> / <span x-text="ad?.sym"></span>
+                        <p class="flex items-center gap-1 truncate font-semibold text-neutral-900">
+                            <span class="truncate" x-text="ad?.who"></span>
+                            <template x-if="ad?.verified"><x-heroicon-s-check-badge class="h-4 w-4 shrink-0 text-brand-500" /></template>
                         </p>
+                        <p class="text-xs text-neutral-500"><span x-text="ad?.trades ?? 0"></span> {{ __('trades') }} · <span x-text="ad?.completion ?? 0"></span>% {{ __('completion') }}</p>
                     </div>
-                    <span class="ml-auto rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                          :class="ad?.side === 'buy' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
-                          x-text="ad?.side === 'buy' ? 'BUY' : 'SELL'"></span>
+                    <div class="ml-auto text-right">
+                        <p class="tabular text-base font-bold text-neutral-900" x-text="Number(ad?.price).toLocaleString()"></p>
+                        <p class="text-[11px] text-neutral-400"><span x-text="ad?.fiat"></span> / <span x-text="ad?.sym"></span></p>
+                    </div>
                 </div>
 
+                {{-- Amount + quick fill --}}
                 <div>
-                    <label class="pp-label">{{ __('Amount') }} (<span x-text="ad?.sym"></span>)</label>
+                    <div class="mb-1 flex items-center justify-between">
+                        <label class="pp-label !mb-0">{{ __('Amount') }} (<span x-text="ad?.sym"></span>)</label>
+                        <span class="text-[11px] text-neutral-400">{{ __('Limit') }} <span class="tabular" x-text="Number(ad?.min).toLocaleString()"></span>–<span class="tabular" x-text="Number(ad?.max).toLocaleString()"></span></span>
+                    </div>
                     <div class="relative">
-                        <input type="text" name="amount" inputmode="decimal" x-model="amount" placeholder="0.00" class="pp-input pr-16" required>
+                        <input type="text" name="amount" inputmode="decimal" x-model="amount" placeholder="0.00" class="pp-input pr-16 text-lg font-semibold" required>
                         <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-neutral-400" x-text="ad?.sym"></span>
                     </div>
-                    <p class="mt-2 flex items-center justify-between text-xs text-neutral-500">
-                        <span x-show="amount && ad">≈ <span class="font-semibold tabular text-neutral-700" x-text="(Number(amount) * Number(ad?.price)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})"></span> <span x-text="ad?.fiat"></span></span>
-                        <span class="text-neutral-400">{{ __('Limit') }} <span class="tabular" x-text="Number(ad?.min).toLocaleString()"></span>–<span class="tabular" x-text="Number(ad?.max).toLocaleString()"></span></span>
-                    </p>
+                    <div class="mt-2 flex gap-1.5">
+                        <template x-for="p in [0.25, 0.5, 0.75, 1]" :key="p">
+                            <button type="button" @click="setPct(p)" class="flex-1 rounded-md border border-neutral-200 py-1 text-xs font-medium text-neutral-500 transition hover:border-brand-300 hover:text-brand-600" x-text="p === 1 ? '{{ __('Max') }}' : (p * 100) + '%'"></button>
+                        </template>
+                    </div>
                 </div>
 
-                {{-- Payment method (required before placing an order) — one row each --}}
+                {{-- Payment method (required) — one row each --}}
                 <div>
                     <label class="pp-label">{{ __('Payment method') }}</label>
                     <div class="space-y-2">
                         <template x-for="m in (ad?.methods || [])" :key="m.id">
-                            <label class="flex cursor-pointer items-center gap-3 rounded-lg bg-neutral-50 px-3 py-2.5 transition hover:bg-neutral-100 has-[:checked]:bg-brand-50">
+                            <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 transition hover:border-neutral-300 has-[:checked]:border-brand-400 has-[:checked]:bg-brand-50">
                                 <input type="radio" name="payment_method_id" :value="m.id" required class="h-4 w-4 shrink-0 border-neutral-300 text-brand-600 focus:ring-brand-500" />
                                 <span class="truncate text-sm font-medium text-neutral-700" x-text="m.name"></span>
                             </label>
@@ -324,11 +339,17 @@
                     <p x-show="ad && (!ad.methods || !ad.methods.length)" x-cloak class="mt-1 text-xs text-amber-600">{{ __('This advertiser hasn’t listed a payment method.') }}</p>
                 </div>
 
-                <x-ui.button type="submit" class="w-full" :variant="$buyActive ? 'success' : 'danger'">
-                    {{ $buyActive ? __('Buy') : __('Sell') }} &amp; {{ __('lock escrow') }}
+                {{-- Live total --}}
+                <div class="flex items-center justify-between rounded-xl bg-neutral-50 px-3 py-2.5 text-sm">
+                    <span class="text-neutral-500" x-text="ad?.side === 'buy' ? '{{ __('You pay') }}' : '{{ __('You receive') }}'"></span>
+                    <span class="tabular text-base font-bold text-neutral-900"><span x-text="fiatTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})"></span> <span class="text-xs font-medium text-neutral-400" x-text="ad?.fiat"></span></span>
+                </div>
+
+                <x-ui.button type="submit" class="w-full" x-bind:disabled="!valid" :variant="$buyActive ? 'success' : 'danger'">
+                    <span x-text="(ad?.side === 'buy' ? '{{ __('Buy') }}' : '{{ __('Sell') }}') + (amount ? ' ' + amount + ' ' + (ad?.sym || '') : '')"></span> · {{ __('lock escrow') }}
                 </x-ui.button>
-                <p class="flex items-center justify-center gap-1.5 text-center text-xs text-neutral-400">
-                    <x-heroicon-s-lock-closed class="h-3.5 w-3.5" /> {{ __('USDT is escrowed instantly. Pay off-platform, then confirm.') }}
+                <p class="flex items-center justify-center gap-1.5 text-center text-[11px] text-neutral-400">
+                    <x-heroicon-s-lock-closed class="h-3.5 w-3.5 text-emerald-500" /> {{ __('Escrow-protected. Pay within') }} <span x-text="ad?.window ?? 15"></span> {{ __('min, then confirm.') }}
                 </p>
             </form>
         </x-ui.modal>
