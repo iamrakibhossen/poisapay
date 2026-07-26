@@ -7,6 +7,7 @@ namespace App\Shop\Services;
 use App\Enums\LedgerAccountType;
 use App\Enums\LedgerSide;
 use App\Models\Asset;
+use App\Models\User;
 use App\Support\Money;
 use Brick\Math\BigInteger;
 use Carbon\CarbonImmutable;
@@ -35,6 +36,11 @@ class ShopRevenueService
     private const PURCHASE = 'shop.purchase';
 
     private const REFUND = 'shop.refund';
+
+    private const RELEASE = 'shop.earnings_release';
+
+    /** Every ledger entry type that moves a seller's Shop money. */
+    private const SELLER_ENTRIES = [self::PURCHASE, self::REFUND, self::RELEASE];
 
     /** The user balance buckets a Shop settlement can land in (spendable / held). */
     private const USER_BUCKETS = [LedgerAccountType::UserAvailable, LedgerAccountType::UserLocked];
@@ -120,9 +126,49 @@ class ShopRevenueService
         })->all();
     }
 
+    /**
+     * A seller's Shop earnings, scoped to their OWN ledger accounts and to Shop
+     * entry types only — so it isolates marketplace income from the rest of their
+     * wallet, nets out refund clawbacks, and honours the hold→release split:
+     *
+     *   - held     = net of the seller's user:locked from Shop movements (money
+     *                still inside the buyer's refund window);
+     *   - available= net of the seller's user:available from Shop movements (paid
+     *                out instantly, or released after the window);
+     *   - lifetime = held + available (what the seller has kept, net of refunds).
+     *
+     * @return array{available: Money, held: Money, lifetime: Money}
+     */
+    public function sellerEarnings(User $seller, Asset $asset): array
+    {
+        $available = $this->net([LedgerAccountType::UserAvailable], self::SELLER_ENTRIES, $asset->id, $seller->getKey());
+        $held = $this->net([LedgerAccountType::UserLocked], self::SELLER_ENTRIES, $asset->id, $seller->getKey());
+
+        return [
+            'available' => $this->money($asset, $available),
+            'held' => $this->money($asset, $held),
+            'lifetime' => $this->money($asset, $available->plus($held)),
+        ];
+    }
+
     private function money(Asset $asset, BigInteger $base): Money
     {
         return Money::ofBase((string) $base, $asset->decimals, $asset->symbol);
+    }
+
+    /**
+     * Net movement (credits − debits) across the given entry/account types for an
+     * asset, optionally scoped to one account owner.
+     *
+     * @param  array<int, LedgerAccountType>  $accountTypes
+     * @param  array<int, string>  $entryTypes
+     */
+    private function net(array $accountTypes, array $entryTypes, int $assetId, ?string $userId = null): BigInteger
+    {
+        $credit = $this->sum($entryTypes, $accountTypes, LedgerSide::Credit, $assetId, null, null, $userId);
+        $debit = $this->sum($entryTypes, $accountTypes, LedgerSide::Debit, $assetId, null, null, $userId);
+
+        return $credit->minus($debit);
     }
 
     /**
@@ -131,9 +177,12 @@ class ShopRevenueService
      * @param  array<int, string>  $entryTypes
      * @param  array<int, LedgerAccountType>  $accountTypes
      */
-    private function sum(array $entryTypes, array $accountTypes, LedgerSide $side, int $assetId, ?CarbonImmutable $since, ?CarbonImmutable $until): BigInteger
+    private function sum(array $entryTypes, array $accountTypes, LedgerSide $side, int $assetId, ?CarbonImmutable $since, ?CarbonImmutable $until, ?string $userId = null): BigInteger
     {
         $q = $this->linesQuery($entryTypes, $accountTypes, $side, $assetId);
+        if ($userId !== null) {
+            $q->where('a.user_id', $userId);
+        }
         if ($since) {
             $q->where('e.created_at', '>=', $since);
         }

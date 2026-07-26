@@ -82,6 +82,31 @@ it('surfaces shop commission in the platform revenue wallet', function () use ($
     expect(app(RevenueService::class)->balance($this->asset)->baseString())->toBe('0');
 });
 
+it('derives a seller earnings split from the ledger, net of refunds', function () use ($buy) {
+    $order = $buy();
+
+    $earnings = $this->revenue->sellerEarnings($this->sellerUser, $this->asset);
+    expect($earnings['available']->baseString())->toBe('9000000') // hold flag off → spendable now
+        ->and($earnings['held']->baseString())->toBe('0')
+        ->and($earnings['lifetime']->baseString())->toBe('9000000');
+
+    app(RefundOrder::class)->execute($order, 5_000000, null, '', 'rev-seller-refund');
+
+    // 50% refund claws back half the seller's net (4.5 USDT) → 4.5 remains.
+    $after = $this->revenue->sellerEarnings($this->sellerUser, $this->asset);
+    expect($after['lifetime']->baseString())->toBe('4500000');
+});
+
+it('counts held earnings as pending while the hold flag is on', function () use ($buy) {
+    updateSetting('shop_earnings_hold', true);
+    $buy();
+
+    $earnings = $this->revenue->sellerEarnings($this->sellerUser, $this->asset);
+    expect($earnings['held']->baseString())->toBe('9000000')
+        ->and($earnings['available']->baseString())->toBe('0')
+        ->and($earnings['lifetime']->baseString())->toBe('9000000');
+});
+
 it('respects the date window', function () use ($buy) {
     $buy();
 

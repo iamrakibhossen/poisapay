@@ -38,6 +38,7 @@ use App\Shop\Models\SalesPage;
 use App\Shop\Models\Seller;
 use App\Shop\Services\AnalyticsService;
 use App\Shop\Services\SellerService;
+use App\Shop\Services\ShopRevenueService;
 use App\Support\Money;
 use Brick\Math\BigInteger;
 use Illuminate\Http\RedirectResponse;
@@ -301,20 +302,6 @@ class SellerController extends Controller
             : [];
 
         return view('frontend.seller.products', ['products' => $products]);
-    }
-
-    /** Custom domains — one per sales page. FRONTEND-FIRST: connect flow + DNS + verify. */
-    public function domains(Request $request): View
-    {
-        return view('frontend.seller.domains', [
-            'target' => 'cname.poisahub.com',
-            // Sales pages that don't yet have a domain (selectable when connecting one).
-            'availablePages' => ['LaunchKit — Black Friday', 'PoisaHub Dev Tee'],
-            'domains' => [
-                ['host' => 'shop.launchkit.dev', 'page' => 'LaunchKit — Main', 'slug' => 'launchkit', 'status' => 'Verified', 'color' => 'success', 'ssl' => true],
-                ['host' => 'get.premiumkit.com', 'page' => 'Premium UI Kit', 'slug' => 'premium-ui-kit', 'status' => 'Pending DNS', 'color' => 'warning', 'ssl' => false],
-            ],
-        ]);
     }
 
     /** Seller's real orders (paid+), newest first, with headline stats. */
@@ -883,10 +870,11 @@ class SellerController extends Controller
     }
 
     /**
-     * Real seller earnings, computed from their orders. Net (price minus platform
-     * commission) is credited to the seller's PoisaPay wallet at purchase; here we
-     * split the lifetime total into what has cleared the refund window (Available)
-     * vs. what is still inside it (Pending), and build a recent-earnings feed.
+     * Real seller earnings, DERIVED FROM THE LEDGER (not the denormalized order
+     * columns, which are refund-blind snapshots). The seller's own Shop ledger
+     * movements give the authoritative split: Available = spendable now, Pending =
+     * still held during the buyer's refund window. Refund clawbacks are already
+     * netted out by construction. A recent-earnings feed accompanies the totals.
      *
      * @return array{0: array<string, mixed>, 1: list<array<string, mixed>>}
      */
@@ -894,6 +882,20 @@ class SellerController extends Controller
     {
         $asset = $seller->settlementAsset
             ?? Asset::where('is_active', true)->where('decimals', '<=', 8)->orderBy('id')->first();
+
+        $balances = ['available' => '0.00', 'pending' => '0.00', 'revenue' => '0.00', 'sales' => 0];
+        if ($asset && $seller->user) {
+            $earnings = app(ShopRevenueService::class)->sellerEarnings($seller->user, $asset);
+            $balances = [
+                'available' => $earnings['available']->format(2),
+                'pending' => $earnings['held']->format(2),
+                'revenue' => $earnings['lifetime']->format(2),
+                'sales' => $seller->orders()
+                    ->when($asset, fn ($q) => $q->where('asset_id', $asset->id))
+                    ->whereNotIn('status', [OrderStatus::Pending->value, OrderStatus::Cancelled->value, OrderStatus::Refunded->value])
+                    ->count(),
+            ];
+        }
 
         // Earning orders — everything paid that isn't cancelled or fully refunded.
         $orders = $seller->orders()
@@ -904,21 +906,7 @@ class SellerController extends Controller
             ->get(['id', 'number', 'status', 'seller_net_amount', 'asset_id', 'earnings_held', 'earnings_released_at', 'paid_at', 'created_at']);
 
         $fmt = fn (int $base) => $asset ? $asset->money((string) $base)->format(2) : number_format($base / 100, 2);
-
-        // Available = spendable now (released, or credited instantly while the hold
-        // flag is off). Pending = still held during the buyer's refund window.
         $isHeld = fn (Order $o) => $o->earnings_held && $o->earnings_released_at === null;
-        $sum = fn ($rows) => (int) $rows->sum(fn (Order $o) => (int) $o->seller_net_amount);
-
-        $pending = $sum($orders->filter($isHeld));
-        $available = $sum($orders->reject($isHeld));
-
-        $balances = [
-            'available' => $fmt($available),
-            'pending' => $fmt($pending),
-            'revenue' => $fmt($available + $pending),
-            'sales' => $orders->count(),
-        ];
 
         $recent = $orders->take(10)->map(fn (Order $o) => [
             'number' => $o->number,
