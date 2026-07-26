@@ -4,6 +4,8 @@
     :canonical="$meta['canonical']"
     :robots="$meta['robots']"
     :ogImage="$meta['ogImage']"
+    :tracking="$tracking"
+    :trackingEvents="$trackingEvents"
     ogType="product">
     <x-slot:head>
         @foreach ($schema as $ld)
@@ -18,7 +20,7 @@
         {{-- The single real checkout form; every buy button references it. Posts to the
              CENTRAL checkout on the platform host — even from a custom domain — so
              payment always happens on one trusted host. CSRF-exempt handoff. --}}
-        <form id="buy" method="POST" action="{{ rtrim(config('app.url'), '/') }}/checkout" class="hidden">
+        <form id="buy" method="POST" action="{{ rtrim(config('app.url'), '/') }}/checkout" class="hidden" data-pp-track="cta_click">
             <input type="hidden" name="slug" value="{{ $slug }}">
             {{-- On a custom domain the storefront's clean URL is the root (it serves the
                  same page); on the platform host it's /p/{slug}. --}}

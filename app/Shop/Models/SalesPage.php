@@ -4,15 +4,19 @@ declare(strict_types=1);
 
 namespace App\Shop\Models;
 
+use App\Shop\Builder\BuilderDocument;
+use App\Shop\Builder\SchemaMigrator;
 use App\Shop\Enums\SalesPageStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property SalesPageStatus $status
+ * @property array<string, mixed> $tracking
  */
 class SalesPage extends Model
 {
@@ -93,22 +97,22 @@ class SalesPage extends Model
         return $this->status->isLive();
     }
 
-    public function revisions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function revisions(): HasMany
     {
         return $this->hasMany(PageRevision::class)->latest('version');
     }
 
     /** The working document shown in the builder (draft, falling back to the live doc). */
-    public function draftDocument(): \App\Shop\Builder\BuilderDocument
+    public function draftDocument(): BuilderDocument
     {
-        return (new \App\Shop\Builder\SchemaMigrator())
+        return (new SchemaMigrator)
             ->toDocument($this->draft ?? $this->sections, $this->theme ?? []);
     }
 
     /** The published document rendered to buyers. */
-    public function publishedDocument(): \App\Shop\Builder\BuilderDocument
+    public function publishedDocument(): BuilderDocument
     {
-        return (new \App\Shop\Builder\SchemaMigrator())
+        return (new SchemaMigrator)
             ->toDocument($this->sections, $this->theme ?? []);
     }
 }

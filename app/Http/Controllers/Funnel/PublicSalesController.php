@@ -24,6 +24,9 @@ use App\Shop\Services\CouponService;
 use App\Shop\Services\Domain\DomainResolver;
 use App\Shop\Services\PricingService;
 use App\Shop\Support\PlatformHost;
+use App\Shop\Tracking\TrackingEvent;
+use App\Shop\Tracking\TrackingEventType;
+use App\Shop\Tracking\TrackingManager;
 use App\Utilities\Asset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -55,7 +58,10 @@ class PublicSalesController extends Controller
         $page = $this->publishedPage($slug);
         $this->analytics->track($page, AnalyticsService::PAGE_VIEW, $request, dedupeOncePerSession: true);
 
-        return view('funnel.sales', $this->pageViewModel($page));
+        return view('funnel.sales', $this->pageViewModel($page) + $this->tracking($page, [
+            TrackingEvent::of(TrackingEventType::PageView),
+            TrackingEvent::of(TrackingEventType::ViewContent, $this->trackingProduct($page->product)),
+        ]));
     }
 
     /** Buy → the single-page checkout. Variation + shipping are captured there. */
@@ -313,7 +319,10 @@ class PublicSalesController extends Controller
             'balanceRaw' => (int) $balance->baseString(),
             'assetDecimals' => (int) $asset->decimals,
             'assetSymbol' => $asset->symbol,
-        ]);
+        ] + $this->tracking($page, [
+            TrackingEvent::of(TrackingEventType::PageView),
+            TrackingEvent::of(TrackingEventType::InitiateCheckout, $this->trackingProduct($product, $totalAmount)),
+        ]));
     }
 
     /** Funnel order placement (POST /p/{slug}/checkout) — delegates to the shared path. */
@@ -538,6 +547,13 @@ class PublicSalesController extends Controller
             $request->session()->keep('order_id'); // survive a refresh / the upsell POST
         }
 
+        $events = [TrackingEvent::of(TrackingEventType::PageView)];
+        if ($order) {
+            $events[] = TrackingEvent::of(TrackingEventType::Purchase,
+                $this->trackingProduct($page->product, (int) $order->total_amount) + ['order_id' => (string) $order->getKey()],
+            );
+        }
+
         return view('funnel.thank-you', [
             'slug' => $page->slug,
             'page' => $page,
@@ -546,7 +562,7 @@ class PublicSalesController extends Controller
             'order' => $order,
             'total' => $order ? $page->product->priceAsset->money((string) $order->total_amount)->format(2) : null,
             'upsell' => $order ? $this->upsellOffer($page, $order) : null,
-        ]);
+        ] + $this->tracking($page, $events));
     }
 
     /**
@@ -667,6 +683,45 @@ class PublicSalesController extends Controller
      *
      * @return array<string, mixed>
      */
+    /**
+     * Per-page pixel config + the load-time events to fire, merged into a view model
+     * and forwarded to the sales layout (see {@see TrackingManager}).
+     *
+     * @param  list<TrackingEvent>  $events
+     * @return array{tracking: array<string, mixed>, trackingEvents: list<TrackingEvent>}
+     */
+    private function tracking(SalesPage $page, array $events): array
+    {
+        return [
+            'tracking' => $page->tracking,
+            'trackingEvents' => $events,
+        ];
+    }
+
+    /**
+     * Canonical (provider-agnostic) product payload for a tracking event. Each
+     * adapter reshapes these keys into its own required format.
+     *
+     * @return array<string, mixed>
+     */
+    private function trackingProduct(?Product $product, ?int $valueMinor = null, int $quantity = 1): array
+    {
+        if (! $product) {
+            return [];
+        }
+
+        $asset = $product->priceAsset;
+
+        return array_filter([
+            'product_id' => (string) $product->getKey(),
+            'product_name' => $product->name,
+            'currency' => $asset->currency_code ?: $asset->symbol,
+            'value' => $asset->money((string) ($valueMinor ?? $product->price_amount))->toDecimal(),
+            'quantity' => $quantity,
+        ], static fn ($v) => $v !== null && $v !== '');
+    }
+
+    /** @return array<string, mixed> */
     private function pageViewModel(SalesPage $page): array
     {
         $product = $page->product;

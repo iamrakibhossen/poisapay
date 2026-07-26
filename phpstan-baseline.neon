@@ -3235,6 +3235,12 @@ parameters:
 			path: app/Http/Controllers/Funnel/PublicSalesController.php
 
 		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$currency_code\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Funnel/PublicSalesController.php
+
+		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$description\.$#'
 			identifier: property.notFound
 			count: 3
@@ -3301,6 +3307,12 @@ parameters:
 			path: app/Http/Controllers/Funnel/PublicSalesController.php
 
 		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Funnel/PublicSalesController.php
+
+		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$type\.$#'
 			identifier: property.notFound
 			count: 1
@@ -3322,6 +3334,12 @@ parameters:
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:logoUrl\(\)\.$#'
 			identifier: method.notFound
 			count: 3
+			path: app/Http/Controllers/Funnel/PublicSalesController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:money\(\)\.$#'
+			identifier: method.notFound
+			count: 1
 			path: app/Http/Controllers/Funnel/PublicSalesController.php
 
 		-
@@ -3382,6 +3400,12 @@ parameters:
 			message: '#^Parameter \#1 \$product of method App\\Http\\Controllers\\Funnel\\PublicSalesController\:\:resolveVariant\(\) expects App\\Shop\\Models\\Product, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
 			identifier: argument.type
 			count: 1
+			path: app/Http/Controllers/Funnel/PublicSalesController.php
+
+		-
+			message: '#^Parameter \#1 \$product of method App\\Http\\Controllers\\Funnel\\PublicSalesController\:\:trackingProduct\(\) expects App\\Shop\\Models\\Product\|null, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 3
 			path: app/Http/Controllers/Funnel/PublicSalesController.php
 
 		-
@@ -4808,12 +4832,6 @@ parameters:
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$price_amount\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Shop/Builder/RenderContext.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$slug\.$#'
 			identifier: property.notFound
 			count: 1
 			path: app/Shop/Builder/RenderContext.php

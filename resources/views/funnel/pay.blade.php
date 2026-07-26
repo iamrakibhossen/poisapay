@@ -1,4 +1,4 @@
-<x-layouts.sales :title="__('Checkout')" robots="noindex,nofollow">
+<x-layouts.sales :title="__('Checkout')" robots="noindex,nofollow" :tracking="$tracking" :trackingEvents="$trackingEvents">
     <div class="min-h-screen bg-neutral-50 pb-24 sm:pb-0">
         {{-- Secure hosted bar --}}
         <header class="sticky top-0 z-20 border-b border-neutral-200 bg-white/90 backdrop-blur">
@@ -168,7 +168,7 @@
                         <button type="button" x-show="! showCoupon" x-on:click="showCoupon = true" class="inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:text-brand-700">
                             <x-heroicon-o-tag class="h-3.5 w-3.5" /> {{ __('Have a discount code?') }}
                         </button>
-                        <form x-show="showCoupon" x-cloak method="GET" action="{{ $couponUrl }}" class="flex items-center gap-2">
+                        <form x-show="showCoupon" x-cloak method="GET" action="{{ $couponUrl }}" class="flex items-center gap-2" data-pp-track="coupon_applied">
                             <input name="coupon" value="{{ $couponCode }}" placeholder="{{ __('Discount code') }}"
                                 class="flex-1 rounded-lg border {{ $couponInvalid ? 'border-rose-300' : 'border-neutral-200' }} px-3 py-2 text-sm uppercase focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
                             <button type="submit" class="rounded-lg bg-neutral-900 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-neutral-700">{{ __('Apply') }}</button>
@@ -182,7 +182,7 @@
                     <label class="mt-4 block cursor-pointer rounded-2xl border-2 p-4 transition"
                         :class="bump ? 'border-brand-500 bg-brand-50/50 shadow-sm' : 'border-dashed border-neutral-300 hover:border-neutral-400'">
                         <div class="flex items-start gap-3">
-                            <input type="checkbox" x-model="bump" class="mt-0.5 h-4 w-4 shrink-0 rounded border-neutral-300 text-brand-600 focus:ring-brand-500" />
+                            <input type="checkbox" x-model="bump" x-on:change="$event.target.checked && window.ppTrack && window.ppTrack('order_bump_added', {})" class="mt-0.5 h-4 w-4 shrink-0 rounded border-neutral-300 text-brand-600 focus:ring-brand-500" />
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-center justify-between gap-2">
                                     <span class="text-sm font-semibold text-neutral-900">{{ $bump['headline'] }}</span>

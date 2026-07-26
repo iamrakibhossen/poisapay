@@ -5,7 +5,11 @@
     'robots' => 'index,follow',
     'ogImage' => null,
     'ogType' => 'website',
+    'tracking' => [],        // per-sales-page pixel config (shop_sales_pages.tracking)
+    'trackingEvents' => [],  // list<App\Shop\Tracking\TrackingEvent> fired on load
 ])
+
+@php($__tracker = app(\App\Shop\Tracking\TrackingManager::class))
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
@@ -35,6 +39,9 @@
     {{-- Page-specific head (JSON-LD, etc.) --}}
     {{ $head ?? '' }}
 
+    {{-- Per-sales-page tracking pixels + consent-gated event runtime. '' when none. --}}
+    {!! $__tracker->head($tracking, $trackingEvents) !!}
+
     @vite(['resources/css/app.css', 'resources/js/frontend.js'])
     @include('partials.brand-colors')
     <style>[x-cloak]{display:none!important}</style>
@@ -44,6 +51,7 @@
 </head>
 {{-- Standalone conversion page: theme-minimal (premium blue/slate), no app nav. --}}
 <body class="theme-minimal min-h-full bg-white font-sans text-neutral-900 antialiased">
+    {!! $__tracker->body($tracking) !!}
     {{ $slot }}
 </body>
 </html>

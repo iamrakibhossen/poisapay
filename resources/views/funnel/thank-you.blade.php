@@ -1,4 +1,4 @@
-<x-layouts.sales :title="__('Thank you!')">
+<x-layouts.sales :title="__('Thank you!')" :tracking="$tracking" :trackingEvents="$trackingEvents">
     <div class="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center px-4 py-16 text-center">
         <span class="grid h-16 w-16 place-items-center rounded-full bg-emerald-100 text-emerald-600">
             <x-heroicon-o-check-circle class="h-9 w-9" />
@@ -22,7 +22,7 @@
                         <span class="text-2xl font-extrabold text-neutral-900">{{ $upsell['price'] }}</span>
                         @if ($upsell['compare'])<span class="text-sm text-neutral-400 line-through">{{ $upsell['compare'] }}</span>@endif
                     </div>
-                    <form method="POST" action="{{ route('funnel.upsell', ['slug' => $slug]) }}" x-data="{ loading: false }" x-on:submit="loading = true" class="mt-4">
+                    <form method="POST" action="{{ route('funnel.upsell', ['slug' => $slug]) }}" x-data="{ loading: false }" x-on:submit="loading = true" class="mt-4" data-pp-track="upsell_accepted">
                         @csrf
                         <input type="hidden" name="order_id" value="{{ $order->id }}" />
                         <button type="submit" x-bind:disabled="loading"
