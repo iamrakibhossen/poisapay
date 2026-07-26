@@ -20,7 +20,11 @@ use RuntimeException;
  */
 class P2pOrderService
 {
-    /** Apply a guarded status transition and record it on the timeline. */
+    /**
+     * Apply a guarded status transition and record it on the timeline.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
     public function transition(
         P2pOrder $order,
         P2pOrderStatus $to,

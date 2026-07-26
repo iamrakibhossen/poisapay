@@ -46,7 +46,7 @@ class P2pPricingService
         $fiat = Asset::where('symbol', $ad->fiat_currency)->first();
         $asset = $ad->asset;
 
-        if (! $fiat || ! $asset) {
+        if (! $fiat) {
             return null;
         }
 

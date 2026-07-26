@@ -34,6 +34,7 @@ class P2pOrderStatusChanged implements ShouldBroadcast
         return 'p2p.status';
     }
 
+    /** @return array<string, mixed> */
     public function broadcastWith(): array
     {
         return ['order_id' => $this->orderId, 'status' => $this->status];

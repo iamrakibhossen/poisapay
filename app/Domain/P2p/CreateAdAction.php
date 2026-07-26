@@ -30,6 +30,7 @@ class CreateAdAction
 {
     public function __construct(private readonly LedgerService $ledger) {}
 
+    /** @param  array<string, mixed>  $input */
     public function execute(User $user, array $input): P2pAd
     {
         if (! feature('p2p_enabled', false)) {

@@ -31,10 +31,6 @@ class ResolveDisputeAction
     /** @param  'buyer'|'seller'  $winner */
     public function execute(P2pDispute $dispute, Admin $admin, string $winner, ?string $note = null): P2pOrder
     {
-        if (! in_array($winner, ['buyer', 'seller'], true)) {
-            throw new RuntimeException('Winner must be "buyer" or "seller".');
-        }
-
         $order = DB::transaction(function () use ($dispute, $admin, $winner, $note): P2pOrder {
             $dispute = P2pDispute::where('id', $dispute->id)->lockForUpdate()->firstOrFail();
             if (! $dispute->status->isOpen()) {
@@ -91,7 +87,7 @@ class ResolveDisputeAction
         $url = route('p2p.order', $order);
 
         foreach ([$order->buyer, $order->seller] as $party) {
-            $party?->notify(new LedgerEventNotification(__('P2P dispute resolved'), $body, 'p2p.dispute.resolved', $url));
+            $party->notify(new LedgerEventNotification(__('P2P dispute resolved'), $body, 'p2p.dispute.resolved', $url));
         }
     }
 }

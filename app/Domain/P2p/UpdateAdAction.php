@@ -27,6 +27,7 @@ use RuntimeException;
  */
 class UpdateAdAction
 {
+    /** @param  array<string, mixed>  $input */
     public function execute(User $user, P2pAd $ad, array $input): P2pAd
     {
         if (! feature('p2p_enabled', false)) {

@@ -22,7 +22,7 @@ class P2pDisputePolicy
 
         $order = $dispute->order;
 
-        return $order && in_array($actor->getAuthIdentifier(), [$order->buyer_id, $order->seller_id], true);
+        return in_array($actor->getAuthIdentifier(), [$order->buyer_id, $order->seller_id], true);
     }
 
     public function resolve(Authenticatable $actor): bool

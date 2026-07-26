@@ -33,6 +33,7 @@ use App\Models\P2pUserPaymentMethod;
 use App\Models\User;
 use App\Support\Money;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -103,7 +104,7 @@ class P2pController extends Controller
             ->where('p2p_ads.status', P2pAdStatus::Active->value)
             ->where('p2p_ads.user_id', '!=', $uid)
             ->where('p2p_ads.available_amount', '>', '0')
-            ->where(fn ($w) => $w->whereNull('pr.vacation_mode')->orWhere('pr.vacation_mode', false))
+            ->where(fn ($w) => $w->whereNull('pr.vacation_mode')->orWhere(DB::raw('pr.vacation_mode'), false))
             // Hide ads from anyone blocked in either direction.
             ->whereNotExists(fn ($sub) => $sub->selectRaw('1')->from('p2p_blocks')->where(fn ($w) => $w
                 ->where(fn ($x) => $x->where('user_id', $uid)->whereColumn('blocked_id', 'p2p_ads.user_id'))
@@ -124,12 +125,12 @@ class P2pController extends Controller
             $query->where('p2p_ads.min_order', '<=', $f['amount'])->where('p2p_ads.max_order', '>=', $f['amount']);
         }
         if ($f['verified']) {
-            $query->where('pr.level', '>=', 2);
+            $query->where(DB::raw('pr.level'), '>=', 2);
         }
         if ($f['online']) {
-            $query->where('pr.is_online', true);
+            $query->where(DB::raw('pr.is_online'), true);
         }
-        if ($f['express'] ?? false) {
+        if ($f['express']) {
             $query->where('p2p_ads.is_express', true);
         }
 
@@ -282,6 +283,7 @@ class P2pController extends Controller
      * editing, the ad's existing methods are unioned in so nothing is dropped.
      *
      * @param  array<int, string>  $includeIds
+     * @return Collection<int, P2pPaymentMethod>
      */
     private function userPaymentMethods(User $user, array $includeIds = [])
     {
@@ -627,7 +629,7 @@ class P2pController extends Controller
         $account = [];
         foreach ($schema as $f) {
             $val = trim((string) ($data['account'][$f['key']] ?? ''));
-            if (($f['required'] ?? false) && $val === '') {
+            if ($f['required'] && $val === '') {
                 return back()->withInput()->withErrors(["account.{$f['key']}" => $f['label'].' is required.']);
             }
             if ($val !== '') {
@@ -837,7 +839,7 @@ class P2pController extends Controller
     {
         $this->assertParty($request, $order);
         $order->loadMissing('dispute');
-        abort_unless($order->dispute, 404);
+        abort_unless($order->dispute !== null, 404);
 
         $data = $request->validate([
             'note' => ['nullable', 'string', 'max:500'],
@@ -857,8 +859,7 @@ class P2pController extends Controller
 
     public function disputeEvidence(Request $request, P2pDisputeEvidence $evidence): StreamedResponse
     {
-        $order = $evidence->dispute?->order;
-        abort_unless($order, 404);
+        $order = $evidence->dispute->order;
         $this->assertParty($request, $order);
 
         abort_unless(Storage::disk('local')->exists($evidence->path), 404);

@@ -8,10 +8,32 @@ use App\Domain\P2p\MerchantStatsService;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * P2P reputation & trading stats for a user (completion rate, avg release/pay
  * time, volume, online/vacation). Maintained by {@see MerchantStatsService}.
+ *
+ * @property string $id
+ * @property string $user_id
+ * @property bool $is_online
+ * @property Carbon|null $last_seen_at
+ * @property bool $vacation_mode
+ * @property int $level
+ * @property array<int|string, mixed>|null $badges
+ * @property int $trade_count
+ * @property int $completed_count
+ * @property int $completion_rate_bps
+ * @property int|null $avg_release_seconds
+ * @property int|null $avg_pay_seconds
+ * @property string $total_volume
+ * @property string $rating
+ * @property int $review_count
+ * @property int $positive_count
+ * @property Carbon|null $featured_until
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read User $user
  */
 class P2pMerchantProfile extends Model
 {
@@ -43,6 +65,7 @@ class P2pMerchantProfile extends Model
         return $this->featured_until !== null && $this->featured_until->isFuture();
     }
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

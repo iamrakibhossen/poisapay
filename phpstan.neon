@@ -9,20 +9,8 @@ parameters:
     # Legacy debt is captured in phpstan-baseline.neon so CI stays green while
     # preventing NEW violations. Regenerate after large refactors:
     #   vendor/bin/phpstan analyse --generate-baseline
+    # NOTE: the P2P module is now fully analysed (P1.7, 2026-07-26) — its models
+    # were annotated (@property + relation generics) and its residual errors fixed,
+    # so it is no longer excluded here.
     reportUnmatchedIgnoredErrors: false
     checkModelProperties: true
-    excludePaths:
-        # P2P module: larastan no longer crashes on it (verified 2026-07-26), but
-        # it carries ~168 isolated level-6 errors — almost entirely missing model
-        # @property annotations (cast enum/date fields read as `string`), no runtime
-        # bugs. Paydown in progress (annotating the P2P models). Re-include once the
-        # count is near-zero AND the branch's non-P2P analyse drift is resolved.
-        - app/Domain/P2p
-        - app/Models/P2p*
-        - app/Events/P2p*
-        - app/Enums/P2p*
-        - app/Jobs/P2p*
-        - app/Http/Controllers/*/P2p*
-        - app/Policies/P2p*
-        - app/Listeners/P2p*
-        - app/Notifications/P2p*

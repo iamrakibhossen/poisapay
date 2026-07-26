@@ -8,10 +8,23 @@ use App\Enums\P2pMessageType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * A message in an order chat thread. `sender_id` is polymorphic (user or admin,
  * null for system messages), so it is intentionally not a constrained FK.
+ *
+ * @property string $id
+ * @property string $order_id
+ * @property string $sender_type
+ * @property string|null $sender_id
+ * @property P2pMessageType $type
+ * @property string|null $body
+ * @property string|null $attachment_path
+ * @property Carbon|null $read_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read P2pOrder $order
  */
 class P2pOrderMessage extends Model
 {
@@ -31,6 +44,7 @@ class P2pOrderMessage extends Model
         ];
     }
 
+    /** @return BelongsTo<P2pOrder, $this> */
     public function order(): BelongsTo
     {
         return $this->belongsTo(P2pOrder::class, 'order_id');

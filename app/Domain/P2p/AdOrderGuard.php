@@ -149,7 +149,10 @@ class AdOrderGuard
         }
     }
 
-    /** @return array{0: string, 1: array<int, array{days: array<int,int>, start: string, end: string}>} */
+    /**
+     * @param  array<array-key, mixed>  $config
+     * @return array{0: string, 1: array<int, array{days: array<int,int>, start: string, end: string}>}
+     */
     private function normaliseTradeHours(array $config): array
     {
         $tz = $config['tz'] ?? config('app.timezone', 'UTC');

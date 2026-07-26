@@ -33,6 +33,7 @@ class P2pMessageSent implements ShouldBroadcast
         return 'p2p.message';
     }
 
+    /** @return array<string, mixed> */
     public function broadcastWith(): array
     {
         $message = P2pOrderMessage::query()->whereKey($this->messageId)->first();
