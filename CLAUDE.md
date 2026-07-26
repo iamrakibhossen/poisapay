@@ -430,6 +430,17 @@ nothing in it touches (or is touched by) Shop/Wallet/P2P/Dashboard/Admin/Checkou
 
 - Binance-style USDT marketplace, flag-gated **`p2p_enabled`** (`config/p2p.php`).
 - **Escrow = card-hold pattern on the ledger** (funds held, not moved out of ledger).
+- **Auto-matching** (`P2pMatchingService`, flag `p2p_auto_match` default off): given side +
+  amount + payment method, ranks eligible maker ads by **price-time priority** (best price →
+  reputation → oldest) and opens an escrow order against the best, falling through to the next
+  if a guard rejects it. **Reuses `CreateOrderAction` as the only money gate — no new value
+  path**; escrow still settles via the normal pay→confirm→release (off-platform fiat can't
+  auto-settle, so a literal continuous order-book isn't possible — the engine automates
+  discovery/selection/order-creation, not the human payment step). `autoMatch` controller +
+  `POST /p2p/match` + "Quick trade" panel on the marketplace.
+- **Payment method is required before placing any order** (manual + auto), validated
+  server-side and picked via **radio chips** (single-select); the manual order modal now
+  carries each ad's accepted methods (previously it had none).
 - Phases 1–7 done; enterprise-hardening P0.1–P0.3 + P1.1–P1.6 done: ad-guard enforcement,
   reviews, auto-pause, marketplace sorts/filters, live broadcast (Reverb), ad
   duplicate/soft-delete/auto-reply, favourites + blocks, default payout, dispute
