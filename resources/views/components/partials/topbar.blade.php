@@ -7,9 +7,7 @@
             <x-heroicon-o-bars-3 class="h-6 w-6" />
         </button>
         <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5">
-            <span class="grid h-9 w-9 place-items-center rounded-xl bg-brand-500 text-white shadow-sm">
-                <x-heroicon-s-bolt class="h-5 w-5" />
-            </span>
+            <img src="{{ asset('images/logo.svg') }}" alt="PoisaPay" class="h-9 w-9 shrink-0" />
             <span class="text-lg font-bold tracking-tight text-neutral-900">PoisaPay</span>
         </a>
     </div>

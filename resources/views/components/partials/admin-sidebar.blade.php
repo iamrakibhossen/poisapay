@@ -33,9 +33,7 @@
             {{-- Logo --}}
             <div class="mb-2 flex h-16 items-center justify-center">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2.5 text-lg font-bold uppercase tracking-wider">
-                    <span class="grid h-8 w-8 place-items-center rounded-lg bg-brand-500 text-ink-900">
-                        <x-heroicon-s-bolt class="h-5 w-5" />
-                    </span>
+                    <img src="{{ asset('images/logo.svg') }}" alt="PoisaPay" class="h-8 w-8 shrink-0" />
                     <span class="text-white">PoisaPay</span>
                 </a>
             </div>
