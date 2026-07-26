@@ -38,6 +38,9 @@ Schedule::command('p2p:sweep-presence')->everyFiveMinutes()->withoutOverlapping(
 Schedule::command('poisapay:shop-release-earnings')->hourly()->withoutOverlapping();
 Schedule::command('shop:low-balance-alerts')->dailyAt('08:00')->withoutOverlapping();
 
+// Shop: reconcile orders against the ledger + balances; alerts on any drift.
+Schedule::command('shop:reconcile')->hourly()->withoutOverlapping();
+
 // Sell: escalate refund requests the seller ignored past their response SLA.
 Schedule::command('poisapay:shop-escalate-refunds')->hourly()->withoutOverlapping();
 
