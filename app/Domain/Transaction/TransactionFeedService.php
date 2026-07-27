@@ -378,7 +378,7 @@ class TransactionFeedService
                 $this->kv('Amount', $w->money()->format()),
                 $this->kv('Fee', $w->feeMoney()->isPositive() ? $w->feeMoney()->format() : null),
                 $this->kv('On-chain tx', $w->onchain_tx_id, true),
-                $this->kv('Risk', $w->risk_level ? ucfirst((string) $w->risk_level).' ('.$w->risk_score.')' : null),
+                $this->kv('Risk', $w->risk_level ? ucfirst($w->risk_level->value).' ('.$w->risk_score.')' : null),
                 $this->kv('Failure reason', $w->failure_reason),
                 $this->kv('Reference', $w->idempotency_key, true),
                 $this->kv('Requested', $w->created_at?->format('M j, Y · g:i A')),
