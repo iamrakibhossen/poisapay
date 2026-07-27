@@ -16,7 +16,7 @@ class GasWallet extends Model
     use HasUuids;
 
     protected $fillable = [
-        'chain_id', 'address', 'balance', 'min_threshold', 'critical_threshold', 'is_active',
+        'chain_id', 'address', 'balance', 'min_threshold', 'critical_threshold', 'healthy_threshold', 'is_active',
     ];
 
     protected function casts(): array
@@ -37,7 +37,7 @@ class GasWallet extends Model
         return Money::ofBase((string) $this->balance, 18, $this->chain?->native_symbol ?? '');
     }
 
-    /** Warning threshold (top-up-soon alert level) — the historical `min_threshold`. */
+    /** Warning threshold (top-up-soon marker) — the historical `min_threshold`. */
     public function warningThreshold(): BigInteger
     {
         return BigInteger::of((string) $this->min_threshold);
@@ -53,8 +53,23 @@ class GasWallet extends Model
     }
 
     /**
-     * Two-tier health: Critical (below the critical threshold, when one is set),
-     * else Warning (below the warning threshold), else Healthy.
+     * Healthy threshold: at/above this the wallet is Healthy (silent). 0 (default /
+     * legacy rows) means "no explicit healthy target" — the warning threshold is
+     * then used as the healthy line, preserving the prior two-tier behaviour.
+     */
+    public function healthyThreshold(): BigInteger
+    {
+        $healthy = BigInteger::of((string) ($this->healthy_threshold ?? '0'));
+
+        return $healthy->isGreaterThan(BigInteger::zero()) ? $healthy : $this->warningThreshold();
+    }
+
+    /**
+     * Three-tier health from the balance and thresholds
+     * (critical <= warning <= healthy):
+     *   - Critical : below the critical threshold — blocks withdrawals.
+     *   - Warning  : below the healthy threshold but not critical — alert only.
+     *   - Healthy  : at/above the healthy threshold — silent.
      */
     public function health(): GasWalletHealth
     {
@@ -65,7 +80,7 @@ class GasWallet extends Model
             return GasWalletHealth::Critical;
         }
 
-        if ($balance->isLessThan($this->warningThreshold())) {
+        if ($balance->isLessThan($this->healthyThreshold())) {
             return GasWalletHealth::Warning;
         }
 

@@ -12,6 +12,7 @@ use App\Enums\LedgerAccountType;
 use App\Models\Asset;
 use App\Models\Chain;
 use App\Models\GasWallet;
+use Brick\Math\BigInteger;
 
 /**
  * EVM hot-wallet + gas management and on-chain reconciliation (Wave 2). Syncs the
@@ -44,15 +45,20 @@ class HotWalletManager
 
         $health = $wallet->health();
         if ($health->isAlertable()) {
-            $critical = $health === GasWalletHealth::Critical;
-            notifyAdmins(
-                $critical ? "Critical: {$chainType->value} gas wallet depleted" : "Low gas wallet ({$chainType->value})",
-                $critical
-                    ? "The {$chainType->value} gas wallet is CRITICALLY LOW (balance {$wallet->balance} wei) and can no longer reliably pay network gas — withdrawals on this chain are paused until it is topped up."
-                    : "The {$chainType->value} gas wallet is below its warning threshold (balance {$wallet->balance} wei). Top it up to keep sweeps/withdrawals flowing.",
-                null,
-                'security',
-            );
+            if ($health === GasWalletHealth::Critical) {
+                $title = "Critical: {$chainType->value} gas wallet depleted";
+                $body = "The {$chainType->value} gas wallet is CRITICALLY LOW (balance {$wallet->balance} wei) and can no longer reliably pay network gas — withdrawals on this chain are paused until it is topped up.";
+            } else {
+                // Warning: below the healthy target. Escalate the wording once it slips
+                // past the warning marker (min_threshold) toward critical.
+                $urgent = BigInteger::of((string) $wallet->balance)->isLessThan($wallet->warningThreshold());
+                $title = "Low gas wallet ({$chainType->value})".($urgent ? ' — top up urgently' : '');
+                $body = "The {$chainType->value} gas wallet is below its healthy level (balance {$wallet->balance} wei"
+                    .($urgent ? ', past the warning threshold and approaching critical' : '')
+                    .'). Top it up to restore the healthy buffer and keep sweeps/withdrawals flowing.';
+            }
+
+            notifyAdmins($title, $body, null, 'security');
         }
 
         return $wallet;
