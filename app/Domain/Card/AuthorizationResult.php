@@ -25,6 +25,23 @@ final readonly class AuthorizationResult
         return new self(false, $reason);
     }
 
+    /**
+     * User-facing decline text. The machine `reason` code is what the network gets;
+     * this is what a cardholder sees. A depleted wallet (no funding source, or the
+     * chosen one can't cover the charge) reads simply as "Insufficient balance."
+     */
+    public function message(): ?string
+    {
+        return match ($this->reason) {
+            null => null,
+            'insufficient_funds', 'no_funding_asset' => 'Insufficient balance.',
+            'card_not_active' => 'This card is not active.',
+            'account_frozen' => 'This account is frozen.',
+            'per_tx_limit_exceeded', 'daily_limit_exceeded' => 'This transaction exceeds your card limit.',
+            default => 'Transaction declined.',
+        };
+    }
+
     public function toResponse(): array
     {
         return array_filter([

@@ -8,6 +8,7 @@ use App\Domain\Audit\ActivityLogger;
 use App\Domain\Ledger\LedgerService;
 use App\Enums\ConversionContext;
 use App\Events\SwapExecuted;
+use App\Models\Asset;
 use App\Models\Conversion;
 use App\Models\FxQuote;
 use App\Models\User;
@@ -32,12 +33,15 @@ class ExecuteSwapAction
 
     public function execute(User $user, FxQuote $quote, ?string $idempotencyKey = null): Conversion
     {
+        /** @var Asset $from */
         $from = $quote->fromAsset;
+        /** @var Asset $to */
         $to = $quote->toAsset;
-        $fromAmount = $from->money($quote->from_amount);
+        $fromAmount = $from->money((string) $quote->from_amount);
 
         // Swap-context policy (ramp/card settlement price without these gates).
         if ($quote->context === ConversionContext::Swap) {
+            $this->policy->assertCryptoPair($from, $to);
             $this->policy->assertEligible($user);
             $this->policy->assertWithinDailyLimit($user, $from, $fromAmount);
         }
@@ -74,7 +78,7 @@ class ExecuteSwapAction
             'from' => $from->symbol,
             'to' => $to->symbol,
             'from_amount' => $fromAmount->toDecimal(),
-            'to_amount' => $to->money($quote->to_amount)->toDecimal(),
+            'to_amount' => $to->money((string) $quote->to_amount)->toDecimal(),
             'market_rate' => $quote->market_rate,
             'locked_rate' => $quote->rate,
             'spread_bps' => $quote->spread_bps,

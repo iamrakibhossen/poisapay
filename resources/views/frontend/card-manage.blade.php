@@ -298,12 +298,18 @@
                     @if (! count($auths))
                         <x-ui.empty-state icon="banknotes" :title="__('No activity yet')" :description="__('Authorizations will appear here as the card is used.')" />
                     @else
-                        <x-ui.table :headers="[__('Merchant'), __('MCC'), __('Amount'), __('Status'), __('Date'), '']">
+                        <x-ui.table :headers="[__('Merchant'), __('MCC'), __('Amount'), __('Funding source'), __('Status'), __('Date'), '']">
                             @foreach ($auths as $a)
                                 <tr class="border-b border-gray-200 hover:bg-gray-100">
                                     <td class="px-3 py-3 font-medium text-gray-900">{{ $a['merchant'] }}</td>
                                     <td class="px-3 py-3 font-mono text-xs text-gray-600">{{ $a['mcc'] }}</td>
                                     <td class="px-3 py-3 tabular text-sm text-gray-900">{{ $a['amount'] }}</td>
+                                    <td class="px-3 py-3 text-sm text-gray-700">
+                                        {{ $a['fundingSource'] }}
+                                        @if ($a['exchangeRate'])
+                                            <span class="block text-xs text-gray-400">{{ $a['exchangeRate'] }}</span>
+                                        @endif
+                                    </td>
                                     <td class="px-3 py-3">
                                         <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide {{ $badge($a['statusColor']) }}">{{ $a['statusLabel'] }}</span>
                                     </td>

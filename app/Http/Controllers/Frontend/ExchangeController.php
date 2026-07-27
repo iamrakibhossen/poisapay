@@ -10,6 +10,7 @@ use App\Domain\Exchange\ExchangeService;
 use App\Domain\Exchange\ExecuteSwapAction;
 use App\Domain\Exchange\SwapPolicy;
 use App\Domain\Ledger\LedgerService;
+use App\Enums\AssetKind;
 use App\Enums\ConversionContext;
 use App\Http\Controllers\Controller;
 use App\Models\Asset;
@@ -237,6 +238,7 @@ class ExchangeController extends Controller
         // Fail fast on eligibility/limits before pricing (authoritative re-check
         // happens again on confirm inside ExecuteSwapAction).
         try {
+            $policy->assertCryptoPair($from, $to);
             $policy->assertEligible($request->user());
             $policy->assertWithinDailyLimit($request->user(), $from, $amount);
             $quote = $exchange->quote($request->user(), $from, $to, $amount, ConversionContext::Swap);
@@ -371,10 +373,17 @@ class ExchangeController extends Controller
         )->format(2);
     }
 
-    /** @return Collection<int, Asset> */
+    /**
+     * @return Collection<int, Asset> Active CRYPTO assets only — the Exchange is a
+     *                                crypto-only swap engine, so fiat never appears
+     *                                in the From/To selectors or balance strip.
+     */
     private function allAssets(): Collection
     {
-        return Asset::with('chain')->where('is_active', true)->orderBy('sort')->orderBy('symbol')->get();
+        return Asset::with('chain')
+            ->where('is_active', true)
+            ->where('kind', AssetKind::Crypto->value)
+            ->orderBy('sort')->orderBy('symbol')->get();
     }
 
     /** @return Collection<int, int> Selectable FROM asset ids. */

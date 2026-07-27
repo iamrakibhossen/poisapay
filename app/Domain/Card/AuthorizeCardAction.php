@@ -9,13 +9,13 @@ use App\Domain\Ledger\AccountResolver;
 use App\Domain\Ledger\DTO\EntryData;
 use App\Domain\Ledger\DTO\PostingLine;
 use App\Domain\Ledger\LedgerService;
+use App\Enums\AssetKind;
 use App\Enums\CardAuthStatus;
 use App\Enums\CardStatus;
 use App\Enums\LedgerAccountType;
 use App\Models\Asset;
 use App\Models\Card;
 use App\Models\CardAuthorization;
-use App\Models\User;
 use App\Support\Money;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
@@ -24,9 +24,10 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Real-time card authorisation (TDD §F3.3) — the latency-critical crown jewel.
- * On the network AUTH webhook we resolve the card, pick a funding asset by the
- * user's spending priority, JIT-quote crypto->fiat, and place a HOLD (a ledger
- * lock user:available -> user:card_hold) — all under the p99 < ~2s NFR (§F7).
+ * On the network AUTH webhook we resolve the card, pick a funding source by the
+ * card funding priority (the merchant's own fiat first, then the configured crypto
+ * fallback JIT-converted to fiat), and place a HOLD (a ledger lock user:available
+ * -> user:card_hold) — all under the p99 < ~2s NFR (§F7).
  *
  * Idempotent by network_auth_id so a re-sent auth never double-holds (§F3.5).
  */
@@ -94,7 +95,8 @@ class AuthorizeCardAction
             });
         }
 
-        // Step 3: pick funding asset by spending priority; JIT-quote to settlement fiat.
+        // Step 3: pick funding source by the card funding priority (same fiat first,
+        // then the configured crypto fallback); JIT-quote to the settlement fiat.
         $funding = $this->pickFundingAsset($card, $request);
         if (! $funding) {
             return AuthorizationResult::decline('no_funding_asset');
@@ -174,10 +176,10 @@ class AuthorizeCardAction
     }
 
     /**
-     * Walk the user's spending priority and pick the first coin whose available
+     * Walk the card funding priority and pick the first source whose available
      * balance covers the settlement amount, JIT-quoting each candidate to the
-     * settlement currency. Falls back to a sensible default order (stablecoins
-     * first) when the user hasn't set a priority.
+     * settlement currency. The merchant's own fiat currency is tried first (spent
+     * directly), then the configured crypto fallback (auto-converted).
      *
      * @return array{0: Asset, 1: Money}|null
      */
@@ -186,10 +188,10 @@ class AuthorizeCardAction
         $user = $card->user;
         $firstQuotable = null;
 
-        foreach ($this->candidateAssets($user) as $asset) {
+        foreach ($this->candidateAssets($request) as $asset) {
             $holdAmount = $this->holdAmountFor($asset, $request);
             if (! $holdAmount || ! $holdAmount->isPositive()) {
-                continue; // no rate / can't quote this coin
+                continue; // no rate / can't quote this source
             }
             $firstQuotable ??= [$asset, $holdAmount];
 
@@ -199,31 +201,47 @@ class AuthorizeCardAction
             }
         }
 
-        // No coin covers the amount: return the top quotable coin anyway, so the
+        // No source covers the amount: return the top quotable one anyway, so the
         // locked balance re-check declines as `insufficient_funds` rather than
-        // `no_funding_asset` (which means the user holds nothing fundable at all).
+        // `no_funding_asset` (which means nothing is fundable at all).
         return $firstQuotable;
     }
 
     /**
-     * Funding candidates in preference order: the user's saved spending priority
-     * first, then a default (stablecoins first) so an unconfigured account still
-     * spends sensibly. One entry per coin (pooled balances are per coin).
+     * Funding candidates in the business-rule order: the merchant's own fiat
+     * currency first (spent 1:1, no conversion), then the configured crypto
+     * fallback list (`config('card.funding.priority')`, only USDT enabled today),
+     * auto-converted to the settlement fiat. Users can never trigger this crypto→
+     * fiat conversion manually — it exists solely for card authorisation/settlement.
      *
      * @return Collection<int, Asset>
      */
-    private function candidateAssets(User $user): Collection
+    private function candidateAssets(CardAuthorizationRequest $request): Collection
     {
-        $priority = $user->spendingPriority()->with('asset')->orderBy('position')->get()
-            ->map(fn ($p) => $p->asset)->filter();
+        $currency = strtoupper($request->currency);
+        $candidates = collect();
 
-        $fallback = Asset::where('is_active', true)->get()
-            ->groupBy('currency_id')
-            ->map(fn ($group) => $group->sortBy('id')->first())
-            ->sortByDesc('is_stablecoin')
-            ->values();
+        // 1. Same fiat currency as the merchant charge.
+        $sameFiat = Asset::where('is_active', true)
+            ->where('kind', AssetKind::Fiat->value)
+            ->where(fn ($q) => $q->where('symbol', $currency)->orWhere('currency_code', $currency))
+            ->orderBy('id')->first();
+        if ($sameFiat) {
+            $candidates->push($sameFiat);
+        }
 
-        return $priority->concat($fallback)->filter()->unique('currency_id')->values();
+        // 2. Configured crypto fallback, in order (canonical per coin).
+        foreach ((array) config('card.funding.priority', ['USDT']) as $symbol) {
+            $asset = Asset::where('is_active', true)
+                ->where('kind', AssetKind::Crypto->value)
+                ->where('symbol', strtoupper((string) $symbol))
+                ->orderBy('id')->first();
+            if ($asset) {
+                $candidates->push($asset);
+            }
+        }
+
+        return $candidates->filter()->unique('id')->values();
     }
 
     /**

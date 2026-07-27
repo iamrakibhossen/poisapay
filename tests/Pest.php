@@ -42,6 +42,24 @@ function testAsset(string $symbol = 'USDT', int $decimals = 6, string $chainKey 
     return $asset;
 }
 
+/** Provision a FIAT asset (USD/EUR/GBP …) for tests and warm its system accounts. */
+function fiatAsset(string $symbol = 'USD', int $decimals = 2): Asset
+{
+    $currency = Currency::firstOrCreate(
+        ['symbol' => $symbol],
+        ['name' => $symbol, 'kind' => 'fiat', 'is_stablecoin' => false, 'is_active' => true],
+    );
+
+    $asset = Asset::firstOrCreate(
+        ['symbol' => $symbol, 'chain_id' => null, 'contract_address' => null],
+        ['currency_id' => $currency->id, 'name' => $symbol, 'kind' => 'fiat', 'currency_code' => $symbol, 'decimals' => $decimals],
+    );
+
+    app(AccountResolver::class)->ensureSystemAccounts($asset->id);
+
+    return $asset;
+}
+
 /** Credit a user's available balance directly (test convenience: treasury -> user). */
 function creditUser(User $user, Asset $asset, string $baseAmount): void
 {

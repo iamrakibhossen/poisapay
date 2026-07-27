@@ -72,7 +72,7 @@ class CardManageController extends Controller
         $analytics = $statements->analytics($model, 6);
         $analyticsMax = $analytics->max('spent_minor') ?: 1;
 
-        $auths = $model->authorizations()->latest()->limit(20)->get();
+        $auths = $model->authorizations()->latest()->limit(20)->get()->load('fundingAsset');
 
         $disputedIds = CardDispute::whereIn('authorization_id', $auths->pluck('id'))
             ->whereIn('status', ['open', 'represented'])
@@ -121,6 +121,8 @@ class CardManageController extends Controller
                 'merchant' => $a->merchant ?? '—',
                 'mcc' => $a->mcc ?? '—',
                 'amount' => $a->currency_code.' '.number_format((int) $a->amount / 100, 2),
+                'fundingSource' => $a->fundingSourceLabel(),
+                'exchangeRate' => $a->exchangeRateLabel(),
                 'status' => $a->status->value,
                 'statusLabel' => $a->status->label(),
                 'statusColor' => $a->status->color(),

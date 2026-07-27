@@ -68,8 +68,10 @@ Within a module: `Actions/` (dominant unit of business logic), `Services/`, `DTO
 ### Key money-path collaborators
 - `app/Domain/Ledger`: `LedgerService`, `AccountResolver` (pools user accounts by
   canonical asset), `ReverseEntryAction`, `WithdrawProfitAction`, `LedgerReportService`.
-- `ExchangeService::execute` is **shared** by Swap / Ramp / CardSettle — user-facing
-  policy lives in `SwapPolicy` + `ExecuteSwapAction` wrappers, not in the shared engine.
+- `ExchangeService` is the pricing/execution engine for user swaps; user-facing policy lives
+  in `SwapPolicy` + `ExecuteSwapAction` wrappers, not in the engine. It supports crypto↔fiat
+  for the `CardSettle`/ramp contexts but is **crypto-only for `Swap`** (see [Exchange Rules](#exchange-rules-crypto-only-swap-engine)).
+  Card settlement does its own FX inline in `SettleCardAuthAction` (see [Card Spending / Funding Rules](#card-spending--funding-rules)).
 
 ### Where to look first
 - Ledger / money semantics: `app/Domain/Ledger`, `app/Domain/Wallet`, the `Money` VO.
@@ -221,6 +223,50 @@ Shop/         commerce bounded context (App\Shop, ShopServiceProvider)
   addition to the inline `quoteId` error. This is the pattern for any redirect+flash
   money-path form: catch business exceptions, re-flash the state that keeps the panel
   rendered, never let a handled exception render nothing.
+
+---
+
+## Exchange Rules (crypto-only swap engine)
+
+- The user-facing Exchange is **crypto → crypto only** (RedotPay model). Fiat ↔ crypto and
+  fiat ↔ fiat are **rejected for user-initiated swaps** with the exact message
+  **`Only cryptocurrency-to-cryptocurrency exchanges are supported.`**
+- Enforced in one place and re-checked on the money path: `SwapPolicy::assertCryptoPair(from, to)`
+  (throws if either `isFiat()`), the engine guard in `ExchangeService::quote()` **scoped to
+  `ConversionContext::Swap`** (before any rate fetch), and `ExecuteSwapAction` (authoritative
+  re-check on confirm) + `ExchangeController::quote` + API `SwapController::quote`.
+- **UI:** `ExchangeController::allAssets()` filters `kind = crypto`, so the From/To selectors
+  and balance strip never show fiat (coins/`fromAssetIds` derive from it).
+- **Boundary — do not break:** the crypto↔fiat path in `ExchangeService` is deliberately kept
+  alive for **`ConversionContext::CardSettle`** (and ramp). The Swap guard is context-scoped;
+  do **not** make the engine unconditionally crypto-only. Fiat balances (USD/EUR/GBP) exist for
+  card spending/refunds, internal balance, and settlement — never a manual exchange.
+- Tests: `tests/Feature/ExchangeCryptoOnlyTest.php`. `SwapEngineTest` swaps crypto **USDC**
+  (2-dp stablecoin, StubRateProvider $1) — never fiat. Shared `fiatAsset()` helper in `Pest.php`.
+
+## Card Spending / Funding Rules
+
+- **Funding priority is config-driven** (`config/card.php → funding.priority`, env
+  `CARD_FUNDING_PRIORITY`, default `['USDT']`). The merchant's **own fiat currency is always
+  tried first** (spent 1:1, no conversion); the configured **crypto fallback** (only USDT
+  enabled today; future USDC/BTC/ETH/BNB) is auto-converted to the settlement fiat. Selection
+  lives in `AuthorizeCardAction::candidateAssets()` — this **replaced** the old
+  `UserSpendingPriority`-driven, all-coins selection.
+- **This crypto→fiat conversion is card-only** — users can never trigger it manually (the
+  Exchange forbids it). It happens during authorisation (JIT-quote → hold in the funding asset)
+  and settlement.
+- **Settlement (`SettleCardAuthAction`):** crypto-funded charges convert to the merchant fiat
+  via a dealer-inventory FX bridge — `dealer:inventory[fiat]` may go **net-short** (a house FX
+  position; the ledger `post()` has no non-negative guard) — crediting `card_program:settlement`
+  **in the fiat asset**; the card fee accrues in the funding crypto. Same-fiat (or crypto with
+  no matching fiat asset, e.g. USDT/USD with no USD fiat row) settles **in place** (legacy
+  crypto-parking) — this backward-compat branch keeps `CardInboundTest` green.
+- **Decline:** insufficient across all sources → network `reason` stays `insufficient_funds`
+  (unchanged for webhook tests), but the **user-facing** `AuthorizationResult::message()` is
+  **`Insufficient balance.`**
+- **History:** `CardAuthorization::fundingSourceLabel()` ("GBP Wallet" | "34.18 USDT") +
+  `exchangeRateLabel()` ("1 USDT = 0.7312 GBP") — surfaced in `card-manage` + admin
+  `card-transactions`. Tests: `tests/Feature/CardUsdtFundingTest.php`.
 
 ---
 

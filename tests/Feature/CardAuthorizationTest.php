@@ -9,7 +9,6 @@ use App\Enums\CardStatus;
 use App\Models\Card;
 use App\Models\CardAuthorization;
 use App\Models\User;
-use App\Models\UserSpendingPriority;
 
 beforeEach(function () {
     $this->usdt = testAsset('USDT', 6, 'tron');
@@ -90,45 +89,37 @@ it('declines when funds are insufficient', function () {
         ->and($result->reason)->toBe('insufficient_funds');
 });
 
-it('funds from the highest spending-priority coin that covers the amount', function () {
-    $eth = testAsset('ETH', 18, 'ethereum');
-    testAsset('USD', 2, 'ethereum');   // fiat asset so non-stablecoins JIT-quote to USD
-    UserSpendingPriority::insert([
-        ['user_id' => $this->user->id, 'position' => 1, 'asset_id' => $eth->id],
-        ['user_id' => $this->user->id, 'position' => 2, 'asset_id' => $this->usdt->id],
-    ]);
-    creditUser($this->user, $eth, '1000000000000000000'); // 1 ETH (~$3,200)
-    creditUser($this->user, $this->usdt, '100000000');     // 100 USDT
+it('funds directly from the merchant fiat wallet when it covers the charge', function () {
+    $gbp = fiatAsset('GBP');
+    creditUser($this->user, $gbp, '3000');             // £30.00
+    creditUser($this->user, $this->usdt, '100000000'); // 100 USDT also on hand
 
-    // $32 settlement — ETH is #1 and covers it, so the hold is taken in ETH.
+    // £25 charge — the GBP wallet covers it, so it funds directly in GBP (no conversion).
     $result = app(AuthorizeCardAction::class)->authorize(new CardAuthorizationRequest(
-        cardRef: $this->card->issuer_card_ref, networkAuthId: 'auth_pri', amountMinor: '3200', currency: 'USD', merchant: 'X',
+        cardRef: $this->card->issuer_card_ref, networkAuthId: 'auth_gbp', amountMinor: '2500', currency: 'GBP', merchant: 'Tesco',
     ));
 
-    $auth = CardAuthorization::where('network_auth_id', 'auth_pri')->first();
+    $auth = CardAuthorization::where('network_auth_id', 'auth_gbp')->first();
     expect($result->approved)->toBeTrue()
-        ->and($auth->funding_asset_id)->toBe($eth->id)
-        // $32 / $3,200 = 0.01 ETH held (18dp).
-        ->and($auth->held_amount)->toBe('10000000000000000');
+        ->and($auth->funding_asset_id)->toBe($gbp->id)
+        ->and($auth->held_amount)->toBe('2500')          // £25.00 held 1:1
+        ->and($auth->fundedByConversion())->toBeFalse();
 });
 
-it('skips an underfunded priority coin and funds from the next that covers', function () {
-    $eth = testAsset('ETH', 18, 'ethereum');
-    testAsset('USD', 2, 'ethereum');
-    UserSpendingPriority::insert([
-        ['user_id' => $this->user->id, 'position' => 1, 'asset_id' => $eth->id],
-        ['user_id' => $this->user->id, 'position' => 2, 'asset_id' => $this->usdt->id],
-    ]);
-    creditUser($this->user, $eth, '1000000000000000');  // 0.001 ETH (~$3.20) — too little for $50
-    creditUser($this->user, $this->usdt, '100000000');  // 100 USDT
+it('auto-funds from USDT when the merchant fiat balance is unavailable', function () {
+    fiatAsset('GBP');                                  // GBP exists, but the user holds none
+    creditUser($this->user, $this->usdt, '100000000'); // 100 USDT
 
     $result = app(AuthorizeCardAction::class)->authorize(new CardAuthorizationRequest(
-        cardRef: $this->card->issuer_card_ref, networkAuthId: 'auth_pri2', amountMinor: '5000', currency: 'USD', merchant: 'X',
+        cardRef: $this->card->issuer_card_ref, networkAuthId: 'auth_gbp2', amountMinor: '2500', currency: 'GBP', merchant: 'Tesco',
     ));
 
-    $auth = CardAuthorization::where('network_auth_id', 'auth_pri2')->first();
+    $auth = CardAuthorization::where('network_auth_id', 'auth_gbp2')->first();
     expect($result->approved)->toBeTrue()
-        ->and($auth->funding_asset_id)->toBe($this->usdt->id); // fell through to USDT
+        ->and($auth->funding_asset_id)->toBe($this->usdt->id) // fell through to the USDT fallback
+        // £25 × 1.28 USDT/GBP = 32 USDT held (6dp), rounded up.
+        ->and($auth->held_amount)->toBe('32000000')
+        ->and($auth->fundedByConversion())->toBeTrue();
 });
 
 it('declines a frozen card', function () {

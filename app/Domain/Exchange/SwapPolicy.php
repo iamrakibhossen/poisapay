@@ -24,6 +24,18 @@ class SwapPolicy
 {
     public function __construct(private readonly UsdValuation $usd) {}
 
+    /**
+     * The user-facing Exchange is a crypto-only swap engine: reject any pair that
+     * touches a fiat asset. Fiat balances move only via card spending/refunds,
+     * internal transfers and settlement — never through a user-initiated swap.
+     */
+    public function assertCryptoPair(Asset $from, Asset $to): void
+    {
+        if ($from->isFiat() || $to->isFiat()) {
+            throw new RuntimeException('Only cryptocurrency-to-cryptocurrency exchanges are supported.');
+        }
+    }
+
     /** Feature flag + active account + minimum KYC tier. */
     public function assertEligible(User $user): void
     {

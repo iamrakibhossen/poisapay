@@ -44,6 +44,7 @@ class SwapController extends ApiController
 
         try {
             $amount = Money::ofDecimal($data['amount'], $from->decimals, $from->symbol);
+            $policy->assertCryptoPair($from, $to);
             $policy->assertEligible($request->user());
             $policy->assertWithinDailyLimit($request->user(), $from, $amount);
             $quote = $exchange->quote($request->user(), $from, $to, $amount, ConversionContext::Swap);

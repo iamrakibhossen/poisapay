@@ -29,6 +29,7 @@ class StubRateProvider implements RateProvider
         'USD' => '1.00',
         'BDT' => '0.0091',   // ~110 BDT per USD
         'EUR' => '1.08',
+        'GBP' => '1.28',
     ];
 
     public function rate(Asset $from, Asset $to): BigDecimal

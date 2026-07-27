@@ -72,6 +72,19 @@ return [
         'jit_timeout_ms' => (int) env('CARD_JIT_TIMEOUT_MS', 1500),
     ],
 
+    // Card spending funding sources, tried in order. The merchant's OWN fiat
+    // currency is always tried first (spent directly, no conversion) — this list
+    // is the crypto fallback, auto-converted to the settlement fiat during
+    // authorisation + settlement (never a user-initiated exchange). Add a symbol
+    // only once its rate + liquidity are trusted; today only USDT is enabled.
+    // Future: ['USDT', 'USDC', 'BTC', 'ETH', 'BNB'].
+    'funding' => [
+        'priority' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('CARD_FUNDING_PRIORITY', 'USDT'))
+        ))),
+    ],
+
     // One-time issuance price per card type, charged from the user's stablecoin
     // balance and booked to fee:card. Priced in `currency` (2dp); 0 = free.
     'pricing' => [

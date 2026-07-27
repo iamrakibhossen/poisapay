@@ -30,7 +30,10 @@
                         @if ($t->mcc)<p class="text-xs text-neutral-400">MCC {{ $t->mcc }}</p>@endif
                     </td>
                     <td class="px-4 py-3"><span class="tabular text-sm font-semibold text-neutral-900">{{ number_format((int) $t->amount / 100, 2) }} {{ $t->currency_code }}</span></td>
-                    <td class="px-4 py-3 text-sm text-neutral-500">{{ $t->fundingAsset?->symbol ?? '—' }}</td>
+                    <td class="px-4 py-3 text-sm text-neutral-500">
+                        {{ $t->fundingSourceLabel() }}
+                        @if ($t->exchangeRateLabel())<span class="block text-xs text-neutral-400">{{ $t->exchangeRateLabel() }}</span>@endif
+                    </td>
                     <td class="px-4 py-3"><x-ui.badge :color="$t->status->color()" dot>{{ $t->status->label() }}</x-ui.badge></td>
                     <td class="px-4 py-3 text-sm text-neutral-500">{{ $t->created_at->diffForHumans() }}</td>
                 </tr>

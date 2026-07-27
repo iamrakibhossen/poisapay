@@ -25,10 +25,12 @@ use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 /**
- * Quote-driven exchange engine (TDD §F2): crypto↔crypto, crypto↔fiat and the
- * JIT conversion cards depend on. Quotes are short-lived; execution re-validates
- * expiry, locks the from-amount, posts a balanced conversion and accrues spread
- * to fx:spread_income.
+ * Quote-driven exchange engine (TDD §F2). User-initiated {@see ConversionContext::Swap}
+ * is crypto-only (fiat pairs are rejected here — see the guard in {@see quote()});
+ * the crypto↔fiat path survives solely for the JIT conversion cards depend on
+ * ({@see ConversionContext::CardSettle}) and ramp. Quotes are short-lived; execution
+ * re-validates expiry, locks the from-amount, posts a balanced conversion and accrues
+ * spread to fx:spread_income.
  */
 class ExchangeService
 {
@@ -41,6 +43,13 @@ class ExchangeService
     /** Produce a short-lived quote (seconds) with an explicit spread. */
     public function quote(User $user, Asset $from, Asset $to, Money $fromAmount, ConversionContext $context = ConversionContext::Swap): FxQuote
     {
+        // The user-initiated Exchange is crypto-only — never price a fiat leg for a
+        // swap. Rates are fetched below only after this passes. Card settlement and
+        // ramp intentionally bypass this so they can convert crypto↔fiat.
+        if ($context === ConversionContext::Swap && ($from->isFiat() || $to->isFiat())) {
+            throw new RuntimeException('Only cryptocurrency-to-cryptocurrency exchanges are supported.');
+        }
+
         // Trading-pair policy (Phase 5): honour per-pair spread + optional restriction.
         $pair = TradingPair::for($from->id, $to->id);
         if ($pair && ! $pair->is_active) {

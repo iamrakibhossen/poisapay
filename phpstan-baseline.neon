@@ -421,12 +421,6 @@ parameters:
 			path: app/Domain/Card/AuthorizationResult.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$asset\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Domain/Card/AuthorizeCardAction.php
-
-		-
 			message: '#^Call to function is_array\(\) with string\|null will always evaluate to false\.$#'
 			identifier: function.impossibleType
 			count: 2
@@ -441,12 +435,6 @@ parameters:
 		-
 			message: '#^Method App\\Domain\\Card\\AuthorizeCardAction\:\:pickFundingAsset\(\) is unused\.$#'
 			identifier: method.unused
-			count: 1
-			path: app/Domain/Card/AuthorizeCardAction.php
-
-		-
-			message: '#^Parameter \#1 \$user of method App\\Domain\\Card\\AuthorizeCardAction\:\:candidateAssets\(\) expects App\\Models\\User, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
-			identifier: argument.type
 			count: 1
 			path: app/Domain/Card/AuthorizeCardAction.php
 
@@ -483,12 +471,6 @@ parameters:
 		-
 			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\CardStatus\:\:Active will always evaluate to true\.$#'
 			identifier: notIdentical.alwaysTrue
-			count: 1
-			path: app/Domain/Card/AuthorizeCardAction.php
-
-		-
-			message: '#^Unable to resolve the template type TMapValue in call to method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\)$#'
-			identifier: argument.templateType
 			count: 1
 			path: app/Domain/Card/AuthorizeCardAction.php
 
@@ -667,19 +649,25 @@ parameters:
 			path: app/Domain/Card/ReverseCardAuthAction.php
 
 		-
-			message: '#^Property App\\Domain\\Card\\SettleCardAuthAction\:\:\$accounts is never read, only written\.$#'
-			identifier: property.onlyWritten
+			message: '#^Method App\\Domain\\Card\\SettleCardAuthAction\:\:settleInPlace\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: app/Domain/Card/SettleCardAuthAction.php
+
+		-
+			message: '#^Method App\\Domain\\Card\\SettleCardAuthAction\:\:settleWithFxConversion\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: app/Domain/Card/SettleCardAuthAction.php
+
+		-
+			message: '#^Method App\\Domain\\Card\\SettleCardAuthAction\:\:settlementFiat\(\) is unused\.$#'
+			identifier: method.unused
 			count: 1
 			path: app/Domain/Card/SettleCardAuthAction.php
 
 		-
 			message: '#^Property App\\Domain\\Card\\SettleCardAuthAction\:\:\$cashback is never read, only written\.$#'
-			identifier: property.onlyWritten
-			count: 1
-			path: app/Domain/Card/SettleCardAuthAction.php
-
-		-
-			message: '#^Property App\\Domain\\Card\\SettleCardAuthAction\:\:\$ledger is never read, only written\.$#'
 			identifier: property.onlyWritten
 			count: 1
 			path: app/Domain/Card/SettleCardAuthAction.php
@@ -827,36 +815,6 @@ parameters:
 			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Domain/Exchange/ExchangeService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
-			identifier: property.notFound
-			count: 4
-			path: app/Domain/Exchange/ExecuteSwapAction.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$symbol\.$#'
-			identifier: property.notFound
-			count: 8
-			path: app/Domain/Exchange/ExecuteSwapAction.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:money\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: app/Domain/Exchange/ExecuteSwapAction.php
-
-		-
-			message: '#^Parameter \#1 \$from of method App\\Domain\\Exchange\\SwapPolicy\:\:notionalUsd\(\) expects App\\Models\\Asset, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Domain/Exchange/ExecuteSwapAction.php
-
-		-
-			message: '#^Parameter \#2 \$from of method App\\Domain\\Exchange\\SwapPolicy\:\:assertWithinDailyLimit\(\) expects App\\Models\\Asset, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Domain/Exchange/ExecuteSwapAction.php
 
 		-
 			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\ConversionContext\:\:Swap will always evaluate to false\.$#'
@@ -1903,7 +1861,7 @@ parameters:
 			path: app/Http/Controllers/Frontend/CardManageController.php
 
 		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: string, merchant\: string, mcc\: string, amount\: non\-falsy\-string, status\: mixed, statusLabel\: mixed, statusColor\: mixed, date\: non\-falsy\-string\|null, disputable\: bool, disputed\: bool\}, Closure\(App\\Models\\CardAuthorization\)\: array\{id\: string, merchant\: string, mcc\: string, amount\: non\-falsy\-string, status\: mixed, statusLabel\: mixed, statusColor\: mixed, date\: non\-falsy\-string\|null, disputable\: bool, disputed\: bool\} given\.$#'
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: string, merchant\: string, mcc\: string, amount\: non\-falsy\-string, fundingSource\: string, exchangeRate\: string\|null, status\: mixed, statusLabel\: mixed, statusColor\: mixed, date\: non\-falsy\-string\|null, disputable\: bool, disputed\: bool\}, Closure\(App\\Models\\CardAuthorization\)\: array\{id\: string, merchant\: string, mcc\: string, amount\: non\-falsy\-string, fundingSource\: string, exchangeRate\: string\|null, status\: mixed, statusLabel\: mixed, statusColor\: mixed, date\: non\-falsy\-string\|null, disputable\: bool, disputed\: bool\} given\.$#'
 			identifier: argument.type
 			count: 1
 			path: app/Http/Controllers/Frontend/CardManageController.php
