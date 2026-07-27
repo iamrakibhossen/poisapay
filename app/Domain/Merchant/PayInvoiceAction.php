@@ -10,9 +10,13 @@ use App\Domain\Ledger\AccountResolver;
 use App\Domain\Ledger\DTO\EntryData;
 use App\Domain\Ledger\DTO\PostingLine;
 use App\Domain\Ledger\LedgerService;
+use App\Domain\Spending\DTO\SpendRequest;
+use App\Domain\Spending\Enums\SpendPurpose;
+use App\Domain\Spending\SpendingEngine;
 use App\Enums\LedgerAccountType;
 use App\Enums\MerchantStatus;
 use App\Events\InvoicePaid;
+use App\Models\Asset;
 use App\Models\Merchant;
 use App\Models\MerchantInvoice;
 use App\Models\User;
@@ -32,6 +36,7 @@ class PayInvoiceAction
     public function __construct(
         private readonly LedgerService $ledger,
         private readonly AccountResolver $accounts,
+        private readonly SpendingEngine $spending,
     ) {}
 
     public function execute(User $payer, MerchantInvoice $invoice): MerchantInvoice
@@ -40,7 +45,6 @@ class PayInvoiceAction
 
         return DB::transaction(function () use ($payer, $invoice): MerchantInvoice {
             $invoice = MerchantInvoice::whereKey($invoice->id)->lockForUpdate()->firstOrFail();
-            $invoice->loadMissing('asset');
 
             if ($invoice->status === 'paid') {
                 return $invoice; // idempotent
@@ -58,7 +62,7 @@ class PayInvoiceAction
                 throw new RuntimeException('This merchant is not currently able to accept payments.');
             }
 
-            $asset = $invoice->asset;
+            $asset = Asset::findOrFail($invoice->asset_id);
             $amount = Money::ofBase($invoice->amount, $asset->decimals, $asset->symbol);
 
             // Processing fee (bps of gross), floored, and only when a fee is configured.
@@ -70,31 +74,46 @@ class PayInvoiceAction
             );
             $net = $amount->minus($fee);
 
-            $payerAcct = $this->accounts->forUser($payer, LedgerAccountType::UserAvailable, $invoice->asset_id);
             $merchantAcct = $this->accounts->forUser($invoice->merchant_id, LedgerAccountType::UserAvailable, $invoice->asset_id);
             $feeAcct = $this->accounts->system(LedgerAccountType::FeeIncome, $invoice->asset_id);
 
-            $balanceRow = DB::table('account_balances')->where('account_id', $payerAcct->id)->lockForUpdate()->first();
-            $current = Money::ofBase($balanceRow->balance ?? '0', $asset->decimals, $asset->symbol);
-            if ($current->isLessThan($amount)) {
-                throw new RuntimeException('Insufficient balance to pay this invoice.');
-            }
-
-            $lines = [
-                PostingLine::debit($payerAcct->id, $invoice->asset_id, $amount),
-                PostingLine::credit($merchantAcct->id, $invoice->asset_id, $net),
-            ];
+            $destination = [PostingLine::credit($merchantAcct->id, $invoice->asset_id, $net)];
             if ($fee->isPositive()) {
-                $lines[] = PostingLine::credit($feeAcct->id, $invoice->asset_id, $fee);
+                $destination[] = PostingLine::credit($feeAcct->id, $invoice->asset_id, $fee);
             }
 
-            $entry = $this->ledger->post(new EntryData(
-                type: 'merchant.invoice.pay',
-                idempotencyKey: "invoice:pay:{$invoice->id}",
-                lines: $lines,
-                memo: "Invoice {$invoice->reference}",
-                metadata: ['invoice_id' => $invoice->id, 'payer_id' => $payer->id, 'fee_bps' => $feeBps],
-            ));
+            // The Spending Engine is the single source of truth for spends: it lets a
+            // payer settle any invoice from any mix of balances (auto-converting to the
+            // invoice currency). Gated default-OFF; the legacy same-asset path is kept
+            // until the engine is verified in prod.
+            if (feature('spending_engine_enabled', false)) {
+                $entry = $this->spending->spend(new SpendRequest(
+                    user: $payer,
+                    settlementAsset: $asset,
+                    amount: $amount,
+                    purpose: SpendPurpose::Invoice,
+                    destination: $destination,
+                    idempotencyKey: "invoice:pay:{$invoice->id}",
+                    memo: "Invoice {$invoice->reference}",
+                    metadata: ['invoice_id' => $invoice->id, 'payer_id' => $payer->id, 'fee_bps' => $feeBps],
+                ))->entry;
+            } else {
+                $payerAcct = $this->accounts->forUser($payer, LedgerAccountType::UserAvailable, $invoice->asset_id);
+
+                $balanceRow = DB::table('account_balances')->where('account_id', $payerAcct->id)->lockForUpdate()->first();
+                $current = Money::ofBase($balanceRow->balance ?? '0', $asset->decimals, $asset->symbol);
+                if ($current->isLessThan($amount)) {
+                    throw new RuntimeException('Insufficient balance to pay this invoice.');
+                }
+
+                $entry = $this->ledger->post(new EntryData(
+                    type: 'merchant.invoice.pay',
+                    idempotencyKey: "invoice:pay:{$invoice->id}",
+                    lines: array_merge([PostingLine::debit($payerAcct->id, $invoice->asset_id, $amount)], $destination),
+                    memo: "Invoice {$invoice->reference}",
+                    metadata: ['invoice_id' => $invoice->id, 'payer_id' => $payer->id, 'fee_bps' => $feeBps],
+                ));
+            }
 
             $invoice->update([
                 'status' => 'paid',

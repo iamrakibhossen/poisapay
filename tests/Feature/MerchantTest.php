@@ -54,3 +54,18 @@ it('rejects payment with insufficient balance', function () {
 
     app(PayInvoiceAction::class)->execute($this->payer, $invoice);
 })->throws(RuntimeException::class);
+
+it('pays a USDT invoice from an ETH balance when the Spending Engine is on', function () {
+    updateSetting('spending_engine_enabled', true);
+    $eth = testAsset('ETH', 18, 'ethereum');
+    seedInventory($this->asset, '100000000000'); // house USDT liquidity
+    creditUser($this->payer, $eth, '1000000000000000000'); // 1 ETH, no USDT
+
+    $invoice = app(CreateInvoiceAction::class)->execute($this->merchant, $this->asset, Money::ofBase('5000000', 6, 'USDT'), 'ORDER-ENG');
+    app(PayInvoiceAction::class)->execute($this->payer, $invoice);
+
+    // Merchant nets 4.95 USDT and the ETH was auto-converted to fund it.
+    expect($this->ledger->availableBalance($this->merchant, $this->asset->id)->baseString())->toBe('4950000')
+        ->and($invoice->fresh()->status)->toBe('paid')
+        ->and($this->ledger->availableBalance($this->payer, $eth->id)->isLessThan($eth->money('1000000000000000000')))->toBeTrue();
+});

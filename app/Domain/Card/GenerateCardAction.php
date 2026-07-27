@@ -9,6 +9,9 @@ use App\Domain\Ledger\AccountResolver;
 use App\Domain\Ledger\DTO\EntryData;
 use App\Domain\Ledger\DTO\PostingLine;
 use App\Domain\Ledger\LedgerService;
+use App\Domain\Spending\DTO\SpendRequest;
+use App\Domain\Spending\Enums\SpendPurpose;
+use App\Domain\Spending\SpendingEngine;
 use App\Enums\CardType;
 use App\Enums\LedgerAccountType;
 use App\Models\Asset;
@@ -32,6 +35,7 @@ class GenerateCardAction
         private readonly CardService $cards,
         private readonly LedgerService $ledger,
         private readonly AccountResolver $accounts,
+        private readonly SpendingEngine $spending,
     ) {}
 
     public function execute(User $user, CardProvider $provider, CardType $type): Card
@@ -45,8 +49,12 @@ class GenerateCardAction
 
         [$asset, $fee] = $this->feeInFundingAsset($priceMinor);
 
-        // Fail fast before touching the provider if the balance can't cover it.
-        if ($this->ledger->availableBalance($user, $asset->id)->isLessThan($fee)) {
+        // Fail fast before touching the provider if the balance can't cover it. With
+        // the Spending Engine on the fee can be sourced from any balance (auto-
+        // converted), so this funding-asset-only pre-check is skipped — the engine
+        // validates during the charge and the catch below rolls back the card.
+        if (! feature('spending_engine_enabled', false)
+            && $this->ledger->availableBalance($user, $asset->id)->isLessThan($fee)) {
             throw new RuntimeException(
                 __('You need at least :amount to buy this card.', ['amount' => $asset->symbol.' '.$fee->format()])
             );
@@ -69,7 +77,30 @@ class GenerateCardAction
     /** Debit user:available -> credit fee:card, re-checking the balance under a row lock. */
     private function charge(User $user, Card $card, Asset $asset, Money $fee): void
     {
-        DB::transaction(function () use ($user, $card, $asset, $fee): void {
+        $memo = "Card issuance ({$card->type->value})";
+        $metadata = ['card_id' => $card->id, 'price_minor' => CardPricing::priceMinor($card->type)];
+
+        // Single source of truth for spends: source the fee from the user's spending
+        // priority (any balance, auto-converted to the funding asset). fee:card still
+        // accrues in the funding asset, so revenue accounting is unchanged.
+        if (feature('spending_engine_enabled', false)) {
+            $feeCard = $this->accounts->system(LedgerAccountType::FeeCard, $asset->id);
+
+            $this->spending->spend(new SpendRequest(
+                user: $user,
+                settlementAsset: $asset,
+                amount: $fee,
+                purpose: SpendPurpose::CardPurchase,
+                destination: [PostingLine::credit($feeCard->id, $asset->id, $fee)],
+                idempotencyKey: "card:issue:fee:{$card->id}",
+                memo: $memo,
+                metadata: $metadata,
+            ));
+
+            return;
+        }
+
+        DB::transaction(function () use ($user, $card, $asset, $fee, $memo, $metadata): void {
             $available = $this->accounts->forUser($user->id, LedgerAccountType::UserAvailable, $asset->id);
             $feeCard = $this->accounts->system(LedgerAccountType::FeeCard, $asset->id);
 
@@ -88,8 +119,8 @@ class GenerateCardAction
                     PostingLine::debit($available->id, $asset->id, $fee->baseString()),
                     PostingLine::credit($feeCard->id, $asset->id, $fee->baseString()),
                 ],
-                memo: "Card issuance ({$card->type->value})",
-                metadata: ['card_id' => $card->id, 'price_minor' => CardPricing::priceMinor($card->type)],
+                memo: $memo,
+                metadata: $metadata,
             ));
         });
     }

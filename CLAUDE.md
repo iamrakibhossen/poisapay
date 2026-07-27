@@ -267,6 +267,61 @@ Shop/         commerce bounded context (App\Shop, ShopServiceProvider)
 - **History:** `CardAuthorization::fundingSourceLabel()` ("GBP Wallet" | "34.18 USDT") +
   `exchangeRateLabel()` ("1 USDT = 0.7312 GBP") — surfaced in `card-manage` + admin
   `card-transactions`. Tests: `tests/Feature/CardUsdtFundingTest.php`.
+- Card auth still uses its own embedded `candidateAssets()`/`holdAmountFor()` (two-phase
+  hold-in-funding-asset design + p99 latency NFR). Migrating it onto the Spending Engine
+  (below) is a follow-up — the engine is the single source of truth for **new** spend flows.
+
+---
+
+## Global Spending Priority Engine (`app/Domain/Spending`)
+
+The **single source of truth for spending a user's balance** — every spend feature (card,
+merchant, shop, payment link, QR, subscription, bill, invoice, internal checkout, future ones)
+must call `SpendingEngine::spend(SpendRequest)` and **never inspect balances or select assets
+itself**. Gated default-OFF behind flag **`spending_engine_enabled`**.
+
+- **Priority resolution** (`SpendingPriorityResolver`): a user's own `user_spending_priority`
+  wins and is honoured **verbatim**; otherwise the **configurable system default**
+  (`config/spending.php → default_priority`, env `SPENDING_PRIORITY`, default
+  `USD,USDT,USDC,FDUSD,BTC,ETH,BNB,SOL,TRX,XRP`) is used — **settlement asset first** (spent
+  1:1, no conversion/spread) then the list, then **every remaining active asset** as a last
+  resort so a spend never fails while funds exist. Results are **canonical per coin** (pooling).
+- **Selection** (`SpendAssetSelector`): walks the priority list, consuming each balance
+  **partially** until the amount is covered. Same-coin legs are spent 1:1; other coins are
+  sized for auto-conversion using the **same effective (post-spread) rate the exchange engine
+  applies** (mirrors `ExchangeService`: pair spread else `exchange_spread_bps`, **fee = 0**),
+  rounded UP so delivered settlement always covers the target. Pure sizing — no money moves.
+- **Liquidity gate** (`LiquidityValidator`): **before any conversion**, asserts
+  `dealer:inventory[settlement] ≥ total conversion output`; else throws
+  `InsufficientLiquidityException("Insufficient platform liquidity for automatic conversion.")`.
+  Never approve a spend that cannot settle. (The exchange engine re-checks per-leg under lock.)
+- **Execution** (`SpendingEngine::spend`, one `DB::transaction`): resolve → plan → liquidity →
+  for each convertible leg `ExchangeService::quote/execute` under **`ConversionContext::Spend`**
+  (a NEW context — the crypto-only guard is scoped to `Swap`, so Spend may cross crypto↔fiat
+  like CardSettle/Ramp; **users can never trigger it manually**), which debits the leg asset,
+  credits the user's settlement balance, books spread → `fx:spread_income`, records a
+  `Conversion`. Then posts **ONE balanced settlement entry**: debit the user's settlement
+  balance for the full amount → the **caller-declared `destination`** (credit `PostingLine`s in
+  the settlement asset that MUST sum to the amount — payee, fee, commission, …). Atomic,
+  **idempotent** (settlement entry keyed by `SpendRequest::idempotencyKey`; conversion legs by
+  `{key}:convert:{assetId}`), audited (`spend.{purpose}`), emits **`FundsSpent`**.
+- **Insufficient across all sources** → `InsufficientBalanceException("Insufficient balance.")`
+  (extends `RuntimeException`, so redirect+flash money-path controllers surface it).
+- `SpendPurpose` enum maps each purpose → ledger `type`. The `destination`-lines design lets the
+  engine own the **sourcing** side while each module declares where money **lands** (keeps
+  multi-party splits atomic in one entry).
+- **Wired (behind the flag, legacy path kept for flag-OFF):** `PayInvoiceAction` (merchant
+  payment — pay any invoice from any balance mix) and `GenerateCardAction` (**card purchase
+  fee** — the issuance fee is sourced from the user's spending priority + auto-converted; it
+  still accrues to `fee:card` **in the funding asset**, so revenue accounting is unchanged, and
+  the entry `type` stays `card.issue.fee` so `TransactionFeedService` still finds it. Its
+  funding-asset-only pre-check is skipped when the flag is on — the engine validates and the
+  existing card-rollback deletes the card on failure). **Not yet wired** (follow-up, same
+  pattern): shop checkout, transfer, card auth/settle, P2P, withdrawal/ramp, and future
+  payment-link/QR/subscription/bill flows. `SpendPurpose::CardPurchase` maps to the
+  `card.issue.fee` ledger type. Toggle in the admin **Feature-Flags console** (Payments group).
+  Tests: `tests/Feature/SpendingEngineTest.php`, engine-on invoice case in `MerchantTest`,
+  engine-on card-purchase case in `CardGeneratorTest`.
 
 ---
 
@@ -612,6 +667,7 @@ adds bottom tab bar + global search + dark mode + ≤3-tap withdraw + guest chec
 | PHP-side i18n strings unextracted | Extract to catalogs after Blade pass. |
 | Dual permission configs (`permission.php` vs `permissions.php`) | Document/consolidate to avoid confusion. |
 | Shop custom-domain SSL uses the **`simulated`** driver (no real cert) | Wire the `acme`/edge integration + the `cname_target` edge (TLS termination, Host forwarding) before enabling `shop_custom_domains` in prod. |
+| Spending Engine wired into `PayInvoiceAction` + `GenerateCardAction` (card fee), flag-gated | Migrate the remaining spend flows onto `SpendingEngine::spend` (same `destination`-lines pattern): shop checkout, transfer, card auth/settle, P2P escrow, withdrawal/ramp, and future payment-link/QR/subscription/bill. Then flip `spending_engine_enabled` after verifying. |
 
 When you find duplicate code, inconsistent naming, outdated architecture, missing docs,
 tech debt, or perf/security concerns: **fix if safe**, otherwise **record here** with a
@@ -656,6 +712,7 @@ recommended action.
 - Finish deploy pipeline to staging/prod; wire CI → deploy.
 - Extract PHP-side i18n strings.
 - Progress the frontend redesign (hi-fi → code) and PWA work.
+- Route every spend flow through the Global Spending Engine and enable `spending_engine_enabled`.
 
 ---
 

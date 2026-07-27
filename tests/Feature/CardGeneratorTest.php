@@ -3,9 +3,12 @@
 declare(strict_types=1);
 
 use App\Domain\Card\GenerateCardAction;
+use App\Domain\Ledger\AccountResolver;
+use App\Domain\Ledger\LedgerService;
 use App\Enums\CardNetwork;
 use App\Enums\CardStatus;
 use App\Enums\CardType;
+use App\Enums\LedgerAccountType;
 use App\Models\CardProvider;
 use App\Models\User;
 
@@ -44,3 +47,28 @@ it('refuses an inactive provider', function () {
 
     app(GenerateCardAction::class)->execute($user, $provider, CardType::Virtual);
 })->throws(RuntimeException::class);
+
+it('buys a card by paying the USDT fee from an ETH balance via the Spending Engine', function () {
+    updateSetting('spending_engine_enabled', true);
+    updateSetting('card_price_virtual', 10); // $10 fee -> 10 USDT
+
+    $usdt = testAsset('USDT', 6, 'tron');
+    $eth = testAsset('ETH', 18, 'ethereum');
+    seedInventory($usdt, '100000000000');               // house USDT liquidity
+    creditUser($user = User::factory()->create(), $eth, '1000000000000000000'); // 1 ETH, no USDT
+
+    $provider = CardProvider::create([
+        'name' => 'Fee Issuer', 'slug' => 'fee-issuer', 'network' => 'visa', 'bin' => '453201',
+        'supports_virtual' => true, 'supports_physical' => false, 'settlement_currency' => 'USD', 'is_active' => true,
+    ]);
+
+    $card = app(GenerateCardAction::class)->execute($user, $provider, CardType::Virtual);
+
+    $ledger = app(LedgerService::class);
+    $feeCard = app(AccountResolver::class)->system(LedgerAccountType::FeeCard, $usdt->id)->fresh('balance')->money();
+
+    // The $10 fee accrued to fee:card in USDT, funded by an ETH auto-conversion.
+    expect($card->status)->toBe(CardStatus::Inactive)
+        ->and($feeCard->baseString())->toBe('10000000') // 10 USDT
+        ->and($ledger->availableBalance($user, $eth->id)->isLessThan($eth->money('1000000000000000000')))->toBeTrue();
+});

@@ -28,6 +28,12 @@ class FeatureFlagController extends Controller
             'merchant_enabled' => true, 'rewards_enabled' => true, 'referral_enabled' => true,
             'shop_enabled' => false,
         ],
+        // Global Spending Priority Engine (app/Domain/Spending). Default-OFF: routes
+        // spends through the engine (any-balance funding + auto-conversion). Wired
+        // into merchant invoice payments today; other flows migrate onto it.
+        'Payments' => [
+            'spending_engine_enabled' => false,
+        ],
         'Security' => [
             'security_withdrawal_whitelist' => false, 'security_address_cooldown' => true,
             'security_suspicious_login' => true, 'security_ip_reputation' => true,
