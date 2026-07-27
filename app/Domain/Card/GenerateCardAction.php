@@ -12,6 +12,7 @@ use App\Domain\Ledger\LedgerService;
 use App\Domain\Spending\DTO\SpendRequest;
 use App\Domain\Spending\Enums\SpendPurpose;
 use App\Domain\Spending\SpendingEngine;
+use App\Enums\AssetKind;
 use App\Enums\CardType;
 use App\Enums\LedgerAccountType;
 use App\Models\Asset;
@@ -126,19 +127,28 @@ class GenerateCardAction
     }
 
     /**
-     * Convert a settlement-currency price (minor, 2dp) into the stablecoin funding
-     * asset's base units — a value-of-USD proxy, matching card authorisation.
+     * The asset the fee settles in, and the fee amount. The card is priced in a
+     * fiat currency (USD), so settle in THAT fiat asset when it exists — a user
+     * holding USD then pays 1:1 with no conversion. Only when no matching fiat
+     * asset is seeded do we fall back to the configured stablecoin proxy (USDT).
+     * The Spending Engine still lets a user without the settlement asset fund it
+     * from any balance (auto-converted), so this never blocks a purchase.
      *
      * @return array{0: Asset, 1: Money}
      */
     private function feeInFundingAsset(int $priceMinor): array
     {
-        $asset = Asset::where('symbol', CardPricing::fundingAsset())->where('is_active', true)->first();
+        $currency = CardPricing::currency();
+        $asset = Asset::where('is_active', true)->where('kind', AssetKind::Fiat->value)
+            ->where(fn ($q) => $q->where('symbol', $currency)->orWhere('currency_code', $currency))
+            ->orderBy('id')->first()
+            ?? Asset::where('symbol', CardPricing::fundingAsset())->where('is_active', true)->orderBy('id')->first();
+
         if (! $asset) {
             throw new RuntimeException(__('Card purchases are temporarily unavailable.'));
         }
 
-        // 2dp fiat minor -> asset base units (e.g. USDT 6dp: scale up by 4).
+        // Price minor (2dp) -> asset base units (fiat 2dp: 1:1; USDT 6dp: scale by 4).
         $base = (string) ($priceMinor * 10 ** ($asset->decimals - 2));
 
         return [$asset, Money::ofBase($base, $asset->decimals, $asset->symbol)];

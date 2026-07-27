@@ -72,3 +72,26 @@ it('buys a card by paying the USDT fee from an ETH balance via the Spending Engi
         ->and($feeCard->baseString())->toBe('10000000') // 10 USDT
         ->and($ledger->availableBalance($user, $eth->id)->isLessThan($eth->money('1000000000000000000')))->toBeTrue();
 });
+
+it('charges the card fee in USD from a USD balance with no conversion', function () {
+    updateSetting('spending_engine_enabled', true);
+    updateSetting('card_price_virtual', 2); // $2 fee
+
+    $usd = fiatAsset('USD', 2);
+    creditUser($user = User::factory()->create(), $usd, '10000'); // $100.00, no USDT
+
+    $provider = CardProvider::create([
+        'name' => 'USD Issuer', 'slug' => 'usd-issuer', 'network' => 'visa', 'bin' => '453201',
+        'supports_virtual' => true, 'supports_physical' => false, 'settlement_currency' => 'USD', 'is_active' => true,
+    ]);
+
+    app(GenerateCardAction::class)->execute($user, $provider, CardType::Virtual);
+
+    $ledger = app(LedgerService::class);
+    $feeCard = app(AccountResolver::class)->system(LedgerAccountType::FeeCard, $usd->id)->fresh('balance')->money();
+
+    // Priced in USD, held in USD → settles 1:1 in USD, no conversion, no USDT liquidity needed.
+    expect($ledger->availableBalance($user, $usd->id)->baseString())->toBe('9800') // $98.00 left
+        ->and($feeCard->baseString())->toBe('200') // $2.00 fee
+        ->and(\App\Models\Conversion::count())->toBe(0);
+});
