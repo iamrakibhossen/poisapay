@@ -137,7 +137,7 @@ per-asset solvency gate.
 | Control | Where |
 |---|---|
 | Per-asset balance | DB trigger `assert_entry_balanced()` |
-| Custody = chain | `poisapay:reconcile` → `CustodyReconciler` (chain vs `treasury:hot`) |
+| Custody = chain | `paishapay:reconcile` → `CustodyReconciler` (chain vs `treasury:hot`) |
 | Proof-of-reserve: `CustodyAssets ≥ CustomerLiabilities` per asset | `LedgerReportService::solvency()` |
 | Dealer liquidity: `TradingInventory(T) ≥ toAmount` before swap | `ExchangeService::execute()` |
 | Immutable audit | append-only lines; corrections via `reverses_entry_id` |

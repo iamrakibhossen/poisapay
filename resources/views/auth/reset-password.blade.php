@@ -1,6 +1,6 @@
 <x-layouts.guest :title="__('Reset password')">
     <h2 class="text-2xl font-bold tracking-tight text-neutral-900">{{ __('Choose a new password') }}</h2>
-    <p class="mt-1.5 text-sm text-neutral-500">{{ __('Set a new password for your PoishaPay account.') }}</p>
+    <p class="mt-1.5 text-sm text-neutral-500">{{ __('Set a new password for your PaishaPay account.') }}</p>
 
     <form method="POST" action="{{ route('password.update') }}" class="mt-8 space-y-4">
         @csrf

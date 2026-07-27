@@ -12,7 +12,7 @@
                 {{ __('Questions,') }} <span class="lp-grad">{{ __('answered.') }}</span>
             </h1>
             <p class="mx-auto mt-4 max-w-xl text-slate-600">
-                {{ __('Everything you need to know about deposits, withdrawals, cards and security on PoishaPay.') }}
+                {{ __('Everything you need to know about deposits, withdrawals, cards and security on PaishaPay.') }}
             </p>
 
             {{-- Search --}}

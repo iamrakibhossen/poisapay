@@ -12,7 +12,7 @@ use Illuminate\Console\Command;
 
 class ChainTickCommand extends Command
 {
-    protected $signature = 'poisapay:chain-tick {--confs=6 : Confirmations to add per tick}';
+    protected $signature = 'paishapay:chain-tick {--confs=6 : Confirmations to add per tick}';
 
     protected $description = 'Advance simulated confirmations, credit deposits, and settle approved withdrawals';
 

@@ -50,7 +50,7 @@ it('prunes stale login history and acknowledged security events', function () {
     $oldEvent = SecurityEvent::create(['user_id' => $user->id, 'type' => 'new_device', 'severity' => 'info', 'acknowledged_at' => now()->subDays(200)]);
     $oldEvent->forceFill(['created_at' => now()->subDays(200)])->save();
 
-    Artisan::call('poisapay:retention', ['--days' => 90]);
+    Artisan::call('paishapay:retention', ['--days' => 90]);
 
     expect(LoginHistory::whereKey($oldLogin->id)->exists())->toBeFalse()
         ->and(LoginHistory::whereKey($freshLogin->id)->exists())->toBeTrue()

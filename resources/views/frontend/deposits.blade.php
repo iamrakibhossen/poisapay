@@ -1,6 +1,6 @@
 <x-layouts.app :title="__('Deposit history')">
     <div class="space-y-5">
-        <x-ui.page-header :title="__('Deposit history')" :subtitle="__('Every deposit into your PoishaPay account.')">
+        <x-ui.page-header :title="__('Deposit history')" :subtitle="__('Every deposit into your PaishaPay account.')">
             <x-slot:actions>
                 <x-ui.button href="{{ route('deposit.index') }}" icon="plus" size="sm">{{ __('New deposit') }}</x-ui.button>
             </x-slot:actions>

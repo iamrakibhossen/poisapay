@@ -9,7 +9,7 @@ use Illuminate\Console\Command;
 
 class ChainHealthCommand extends Command
 {
-    protected $signature = 'poisapay:chain-health';
+    protected $signature = 'paishapay:chain-health';
 
     protected $description = 'Probe RPC endpoints and refresh node/block health (simulated)';
 

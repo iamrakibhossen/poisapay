@@ -171,7 +171,7 @@ class SendController extends Controller
 
         $recipient = $this->resolveRecipient($validated['recipient']);
         if (! $recipient) {
-            throw ValidationException::withMessages(['recipient' => 'No PoishaPay user found with that ID, email or phone.']);
+            throw ValidationException::withMessages(['recipient' => 'No PaishaPay user found with that ID, email or phone.']);
         }
 
         if ($recipient->is($request->user())) {

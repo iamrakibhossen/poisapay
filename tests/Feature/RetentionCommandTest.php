@@ -27,7 +27,7 @@ it('prunes settled webhook records past the window but keeps pending ones', func
     // Recent + terminal → kept.
     CardWebhook::create(['driver' => 'stripe', 'provider_event_id' => 'evt_recent', 'event_type' => 'x', 'status' => 'processed']);
 
-    $this->artisan('poisapay:retention')->assertSuccessful();
+    $this->artisan('paishapay:retention')->assertSuccessful();
 
     expect(WebhookDelivery::where('status', 'delivered')->count())->toBe(0)
         ->and(WebhookDelivery::where('status', 'pending')->count())->toBe(1)

@@ -22,7 +22,7 @@ ancestor `e06f5fe` with the custody line but then split:
 
 On staging, `app/Domain/Reconciliation/CustodyReconciler.php`, `TronSweepAction.php`,
 `RequestColdRefillAction.php`, `ReconcileCommand.php` **do not exist**;
-`poisapay:reconcile / sweep / rebalance / resolve-failed-withdrawals` are **absent** from
+`paishapay:reconcile / sweep / rebalance / resolve-failed-withdrawals` are **absent** from
 `artisan list`; and the scheduler runs only `EvmCustodyTickJob` — **reconciliation is not
 running on staging.** The two branches must be reconciled (a merge decision, not a reset —
 a naive deploy would drop one line of work). This is an ops/owner decision and is the #1
@@ -159,16 +159,16 @@ Flip flags **one asset at a time, smallest amounts first.** Flags live in settin
 ### Phase 0 (prerequisite) — Deploy the custody code
 - **Prereq:** resolve the staging/custody branch divergence (§0) and deploy `main @ 3e56466`
   (or later) to the target environment; run `php artisan migrate`; `config:cache`; restart
-  Horizon; confirm `php artisan list | grep poisapay:` shows `reconcile/sweep/rebalance/
+  Horizon; confirm `php artisan list | grep paishapay:` shows `reconcile/sweep/rebalance/
   resolve-failed-withdrawals`.
-- **Expected:** custody commands present; `schedule:list` shows `poisapay:reconcile` (5 min),
+- **Expected:** custody commands present; `schedule:list` shows `paishapay:reconcile` (5 min),
   `resolve-failed-withdrawals` (5 min), `EvmCustodyTickJob` (1 min).
 - **Rollback:** redeploy the previous release; custody flags already OFF means no on-chain effect.
 - **Kill-switch:** n/a (nothing enabled yet).
 
 ### Phase 1 — Enable reconciliation only
 - **Prereq:** Phase 0 done; scheduler cron running.
-- **Commands:** `php artisan poisapay:reconcile` (manual first run), then rely on the 5-min schedule.
+- **Commands:** `php artisan paishapay:reconcile` (manual first run), then rely on the 5-min schedule.
 - **Expected:** per-asset `ReconciliationRun` rows with `is_solvent=true`, `drift=0`; no drift/
   insolvency alerts. All money flags remain OFF.
 - **Rollback / kill-switch:** reconciliation is read-only — nothing to roll back; stop the
@@ -195,7 +195,7 @@ Flip flags **one asset at a time, smallest amounts first.** Flags live in settin
 
 ### Phase 4 — Enable the sweep engine
 - **Prereq:** Phase 3; reconciliation clean; gas available.
-- **Commands:** set `onchain_sweep_enabled=true`; `php artisan poisapay:sweep` for one small
+- **Commands:** set `onchain_sweep_enabled=true`; `php artisan paishapay:sweep` for one small
   confirmed deposit.
 - **Expected:** sweep broadcasts (ledger untouched) → settles after confirmation → `treasury:hot`
   credited → reconciler stays `drift=0`.
@@ -221,7 +221,7 @@ Flip flags **one asset at a time, smallest amounts first.** Flags live in settin
 
 ### Phase 7 — Enable hot→cold watermarks
 - **Prereq:** cold address verified (Phase 2); `custody.watermark.high/low.<SYM>` set.
-- **Commands:** set watermarks; `hot_cold_move_enabled=true`; `php artisan poisapay:rebalance`.
+- **Commands:** set watermarks; `hot_cold_move_enabled=true`; `php artisan paishapay:rebalance`.
 - **Expected:** excess over the high-watermark moves to cold; settles to `treasury:cold` after
   confirmation; reconciler zero-drift; over/under watermark alerts fire correctly.
 - **Rollback / kill-switch:** `hot_cold_move_enabled=false` — no new moves; in-flight settle.
@@ -230,7 +230,7 @@ Flip flags **one asset at a time, smallest amounts first.** Flags live in settin
 - **Prereq:** Phase 7; offline/MPC signing + approval process staffed (infra).
 - **Commands:** set `hot_cold_refill_enabled=true`.
 - **Expected:** under-watermark raises a `cold_refill_requests` row + admin alert; operator
-  approves, offline-signs, records `tx_hash`; `poisapay:rebalance` settles cold→hot after
+  approves, offline-signs, records `tx_hash`; `paishapay:rebalance` settles cold→hot after
   confirmation. **Watch:** a revert flips the request back to `approved` (no auto-alert — §9).
 - **Rollback / kill-switch:** `hot_cold_refill_enabled=false` — no new requests; requests are
   inert until an operator acts.

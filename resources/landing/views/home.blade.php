@@ -14,7 +14,7 @@
         ['icon' => 'globe-alt', 'title' => __('Multi-chain'), 'body' => __('Ethereum, BNB Chain and Tron in one place.')],
         ['icon' => 'lock-closed', 'title' => __('Secure wallet'), 'body' => __('Custodial cold storage with 2FA on every action.')],
         ['icon' => 'building-storefront', 'title' => __('Merchant pay'), 'body' => __('Accept payments and settle instantly.')],
-        ['icon' => 'paper-airplane', 'title' => __('Fast transfers'), 'body' => __('Free P2P by PoishaPay ID, email or phone.')],
+        ['icon' => 'paper-airplane', 'title' => __('Fast transfers'), 'body' => __('Free P2P by PaishaPay ID, email or phone.')],
         ['icon' => 'qr-code', 'title' => __('QR pay'), 'body' => __('Scan to pay or get paid in a tap.')],
     ];
 
@@ -36,7 +36,7 @@
     ];
 
     $faqs = [
-        ['q' => __('Is PoishaPay available in Bangladesh?'), 'a' => __('Yes — PoishaPay is built for Bangladesh, with native Taka support alongside crypto and instant local P2P transfers.')],
+        ['q' => __('Is PaishaPay available in Bangladesh?'), 'a' => __('Yes — PaishaPay is built for Bangladesh, with native Taka support alongside crypto and instant local P2P transfers.')],
         ['q' => __('Do I need to complete KYC?'), 'a' => __('Basic features work right away. Full verification unlocks higher limits, the virtual card and fiat cash-out, and keeps your account compliant.')],
         ['q' => __('Which networks are supported?'), 'a' => __('Ethereum, BNB Smart Chain and Tron today, with Tron-first custody for fast, low-cost transfers. More chains are on the roadmap.')],
         ['q' => __('How fast can I get a virtual card?'), 'a' => __('Once verified, a card is issued in seconds and can be added to Apple Pay or Google Pay right away.')],
@@ -206,7 +206,7 @@
                 @php $walletPoints = [
                     ['title' => __('5+ assets, one balance'), 'body' => __('Crypto and Taka together, always in sync.')],
                     ['title' => __('Instant swaps, 24/7'),    'body' => __('Convert between assets at live rates in a tap.')],
-                    ['title' => __('Zero-fee P2P'),           'body' => __('Send to any PoishaPay user with no charge.')],
+                    ['title' => __('Zero-fee P2P'),           'body' => __('Send to any PaishaPay user with no charge.')],
                     ['title' => __('Real-time tracking'),     'body' => __('Allocation and returns update as markets move.')],
                 ]; @endphp
                 <ul class="mt-8 space-y-4">
@@ -313,7 +313,7 @@
     <section id="features" class="relative px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
         <div class="mx-auto max-w-7xl">
             <div class="lp-reveal mx-auto max-w-2xl text-center">
-                <p class="text-sm font-semibold uppercase tracking-[0.18em]" style="color:var(--brand)">{{ __('Why PoishaPay') }}</p>
+                <p class="text-sm font-semibold uppercase tracking-[0.18em]" style="color:var(--brand)">{{ __('Why PaishaPay') }}</p>
                 <h2 class="mt-3 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">{{ __('Everything you need to') }} <span class="lp-grad">{{ __('move money.') }}</span></h2>
                 <p class="mt-4 text-lg text-slate-600">{{ __('One account for crypto, Taka, transfers, exchange, cards and merchant payments.') }}</p>
             </div>
@@ -346,7 +346,7 @@
                     <x-heroicon-s-shield-check class="h-4 w-4" /> {{ __('Security') }}
                 </span>
                 <h2 class="mt-5 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">{{ __('Protection at') }} <span class="lp-grad">{{ __('every layer.') }}</span></h2>
-                <p class="mt-4 text-lg text-slate-600">{{ __('PoishaPay is custodial and compliance-first — cold storage, encryption and continuous monitoring on every balance.') }}</p>
+                <p class="mt-4 text-lg text-slate-600">{{ __('PaishaPay is custodial and compliance-first — cold storage, encryption and continuous monitoring on every balance.') }}</p>
             </div>
 
             {{-- Trust stats --}}

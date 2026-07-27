@@ -101,7 +101,7 @@ notifications, CMS, theme. Reuse these for **every** new module.
 
 ```
 Card/         provider-agnostic card issuing (App\Card)
-Console/      artisan commands (poisapay:*)
+Console/      artisan commands (paishapay:*)
 Domain/       financial core — 28 bounded contexts (see Architecture)
 Enums/        cross-cutting native enums
 Events/ Listeners/ Jobs/ Notifications/ Policies/ Providers/
@@ -154,7 +154,7 @@ Shop/         commerce bounded context (App\Shop, ShopServiceProvider)
 - Domain behaviour emits `Events/` consumed by `Listeners/`; keep listeners thin.
 - Money-moving jobs must be **idempotent** (safe to retry) and **audited**.
 - Scheduled work (e.g. hourly earnings release, analytics rollup) runs via artisan
-  commands (`poisapay:*`) on the scheduler.
+  commands (`paishapay:*`) on the scheduler.
 
 ---
 
@@ -208,7 +208,7 @@ Shop/         commerce bounded context (App\Shop, ShopServiceProvider)
   a currency only works if its fiat asset exists in `RegistrySeeder`.
 - Swaps trade against house `TradingInventory` (starts at 0, no seeder). Empty inventory →
   "Insufficient X liquidity" and Confirm silently fails. Fund via
-  `php artisan poisapay:inject-inventory {assetId} {amount}` (or `DealerInventorySeeder`).
+  `php artisan paishapay:inject-inventory {assetId} {amount}` (or `DealerInventorySeeder`).
 
 ---
 
@@ -385,7 +385,7 @@ Shop/         commerce bounded context (App\Shop, ShopServiceProvider)
 - ✅ **Phase 1** — namespace/dir `App\Sell` → `App\Shop`, provider → `ShopServiceProvider`.
 - ⏳ **Pending** — DB tables `sell_*` → `shop_*`, routes/URLs (`sell.*`, `/sell`), semantic
   **Seller → Merchant** rename, cache keys `sell:*`, flags/settings `sell_*`, commands
-  `poisapay:sell-*`, ledger account `sell:commission_income`.
+  `paishapay:sell-*`, ledger account `sell:commission_income`.
 
 Until later phases land you will still see `sell_*` tables, `sell.*` routes, and
 `Seller`/`seller_id` naming.
@@ -530,7 +530,7 @@ adds bottom tab bar + global search + dark mode + ≤3-tap withdraw + guest chec
 
 - Consumer surface is Blade-only — no JSON API for third-party consumer integrations yet.
 - Chain layer is **simulated** by default; real custody is flag-gated (`custody_simulated`,
-  `custody_*`). Anvil E2E (`php artisan poisapay:anvil-e2e`) exercises real local EVM.
+  `custody_*`). Anvil E2E (`php artisan paishapay:anvil-e2e`) exercises real local EVM.
 - Shop rename is mid-flight — `sell_*` names persist across DB/routes/flags.
 - i18n covers Blade UI text only; PHP-side strings not yet extracted.
 

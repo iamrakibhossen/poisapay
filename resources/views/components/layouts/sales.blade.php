@@ -1,5 +1,5 @@
 @props([
-    'title' => 'PoishaHub',
+    'title' => 'PaishaHub',
     'description' => null,
     'canonical' => null,
     'robots' => 'index,follow',

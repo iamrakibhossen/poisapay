@@ -1,6 +1,6 @@
 {
-    "name": "PoishaPay",
-    "short_name": "PoishaPay",
+    "name": "PaishaPay",
+    "short_name": "PaishaPay",
     "description": "Multi-chain wallet, virtual cards, exchange, P2P and merchant payments.",
     "start_url": "/",
     "scope": "/",

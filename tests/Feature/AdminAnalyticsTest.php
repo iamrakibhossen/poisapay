@@ -108,7 +108,7 @@ it('redirects guests to the operator login', function () {
 it('materialises daily rollups and flushes the cache', function () {
     User::factory()->count(4)->create();
 
-    Artisan::call('poisapay:analytics-rollup', ['--days' => 1]);
+    Artisan::call('paishapay:analytics-rollup', ['--days' => 1]);
 
     $newUsers = AnalyticsDailyMetric::where('metric', 'new_users')->where('day', today()->toDateString())->value('value');
     expect((float) $newUsers)->toBeGreaterThanOrEqual(4.0);

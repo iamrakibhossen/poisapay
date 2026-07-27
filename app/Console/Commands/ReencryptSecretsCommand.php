@@ -16,7 +16,7 @@ use Illuminate\Console\Command;
  */
 class ReencryptSecretsCommand extends Command
 {
-    protected $signature = 'poisapay:reencrypt {--chunk=500}';
+    protected $signature = 'paishapay:reencrypt {--chunk=500}';
 
     protected $description = 'Re-encrypt at-rest secrets under the current APP_KEY (run after key rotation)';
 

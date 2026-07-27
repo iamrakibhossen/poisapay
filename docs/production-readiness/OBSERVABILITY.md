@@ -4,9 +4,9 @@
 
 | Item | Where |
 |---|---|
-| Nightly DB backup + retention | `poisapay:backup` (pg_dump+gzip, `--keep` days) + `BackupService` prune; scheduled 02:30 |
-| Data retention | `poisapay:retention` (`--days`, default 90) prunes login history + acknowledged security events; scheduled weekly |
-| Audit-chain heartbeat | `poisapay:audit-verify` scheduled 03:00 (exit 1 on tamper) |
+| Nightly DB backup + retention | `paishapay:backup` (pg_dump+gzip, `--keep` days) + `BackupService` prune; scheduled 02:30 |
+| Data retention | `paishapay:retention` (`--days`, default 90) prunes login history + acknowledged security events; scheduled weekly |
+| Audit-chain heartbeat | `paishapay:audit-verify` scheduled 03:00 (exit 1 on tamper) |
 | Insolvency alerting | `ReconciliationService` → durable `security_events` (type `insolvency`, critical) + `notifyAdmins` + `Log::critical` |
 | Health checks | Laravel `/up` (wired to Docker/K8s probes) + admin blockchain-health page |
 | OpenAPI + docs | `resources/openapi.yaml` served at `GET /api/openapi.json`; Swagger UI at `GET /api/docs` |
@@ -17,7 +17,7 @@
 
 **Backup (automated, nightly):**
 ```bash
-php artisan poisapay:backup --keep=14      # → storage/app/backups/poisapay-YYYYMMDD-HHMMSS.sql.gz
+php artisan paishapay:backup --keep=14      # → storage/app/backups/poisapay-YYYYMMDD-HHMMSS.sql.gz
 ```
 Ship dumps off-box in production (S3 lifecycle / rsync to a second region). The command
 prunes local dumps older than `--keep` days.
@@ -27,7 +27,7 @@ prunes local dumps older than `--keep` days.
 createdb poisapay_restore
 gunzip -c storage/app/backups/poisapay-<ts>.sql.gz | psql -d poisapay_restore
 php artisan migrate:status --database=... # sanity check schema head
-php artisan poisapay:audit-verify          # prove the audit chain survived
+php artisan paishapay:audit-verify          # prove the audit chain survived
 ```
 
 **DR targets (set per environment):** RPO ≤ 24h (nightly) — tighten with WAL archiving /

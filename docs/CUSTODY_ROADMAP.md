@@ -23,21 +23,21 @@ RedotPay-grade custody). Read this first when resuming.
 | `2d4af55` | Wire RBF/DLQ into `EvmCustodyTickJob` (flag-gated) |
 | `b5d2bfe` | TRON hot→cold on-chain execution (opt-in) |
 | `4e5bfd3` | EVM hot→cold on-chain execution (parity) |
-| `0da8ef8` | `poisapay:rebalance` command (hot→cold trigger, TRON + EVM) |
+| `0da8ef8` | `paishapay:rebalance` command (hot→cold trigger, TRON + EVM) |
 | `b55fd13` | Cold→hot refill workflow (request + settle, offline-signed) |
 | `e16f83b` | End-to-end custody validation (sweep → settle → reconcile) |
 
 ### Design invariants now enforced
 - **Ledger follows the chain, never leads it** — sweep/settle post `treasury:pending → treasury:hot` ONLY after on-chain confirmation.
-- **Reconciliation is the safety net** — `poisapay:reconcile` (every 5 min) checks ledger solvency (treasury ≥ liability), on-chain hot backing (chain vs `treasury:hot`), and hot watermarks. Alerts + `insolvency` SecurityEvent on breach.
+- **Reconciliation is the safety net** — `paishapay:reconcile` (every 5 min) checks ledger solvency (treasury ≥ liability), on-chain hot backing (chain vs `treasury:hot`), and hot watermarks. Alerts + `insolvency` SecurityEvent on breach.
 - **Deliberate safety preserved** — post-broadcast withdrawal failures (carry an `onchain_tx`) STAY locked for reconciliation; only definitively-never-broadcast ones auto-release. A test asserts this — do not "fix" it into a blanket refund (double-pay risk).
 
 ### Feature flags — ALL DEFAULT OFF (settings `features` group)
 | Flag | Gates | Enable when |
 |---|---|---|
-| `onchain_sweep_enabled` | real sweeps (`poisapay:sweep`, not scheduled) | hot wallet + gas ready, reconciler watched |
+| `onchain_sweep_enabled` | real sweeps (`paishapay:sweep`, not scheduled) | hot wallet + gas ready, reconciler watched |
 | `gas_sponsoring_enabled` | native-gas top-ups to deposit addrs from hot wallet | hot wallet funded with native coin |
-| `withdrawal_auto_release_failed` | `poisapay:resolve-failed-withdrawals` reserve release | after validating the failed-withdrawal set |
+| `withdrawal_auto_release_failed` | `paishapay:resolve-failed-withdrawals` reserve release | after validating the failed-withdrawal set |
 Watermarks: settings `custody.watermark.high.<SYMBOL>` / `.low.<SYMBOL>` (base units; `0` disables).
 
 ### Known pre-existing failures (NOT from this effort)
@@ -55,11 +55,11 @@ Watermarks: settings `custody.watermark.high.<SYMBOL>` / `.low.<SYMBOL>` (base u
 - **TODO (nice-to-have):** TRON RBF equivalent (rebroadcast the same ref-block tx) — lower priority; TRON txs rarely stick.
 
 ### 2. Hot → Cold on-chain execution — ✅ DONE (TRON + EVM)
-- **Shipped** (`b5d2bfe`, `4e5bfd3`, `0da8ef8`): `TronHotColdMoveAction`/`EvmHotColdMoveAction` broadcast a hot→cold transfer (hot key → cold-watch xpub's derived address; EVM scales decimals + shared `NonceManager`); `Settle{Tron,Evm}HotColdMovesAction` post `treasury:hot → treasury:cold` (debit cold / credit hot) ONLY after confirmation. `treasury_moves` table (idempotent, one in-flight move per asset). Excess = `treasury:hot` − `custody.watermark.high.<SYMBOL>`. `poisapay:rebalance` command triggers it (opt-in, not scheduled). Behind `hot_cold_move_enabled` (default OFF).
+- **Shipped** (`b5d2bfe`, `4e5bfd3`, `0da8ef8`): `TronHotColdMoveAction`/`EvmHotColdMoveAction` broadcast a hot→cold transfer (hot key → cold-watch xpub's derived address; EVM scales decimals + shared `NonceManager`); `Settle{Tron,Evm}HotColdMovesAction` post `treasury:hot → treasury:cold` (debit cold / credit hot) ONLY after confirmation. `treasury_moves` table (idempotent, one in-flight move per asset). Excess = `treasury:hot` − `custody.watermark.high.<SYMBOL>`. `paishapay:rebalance` command triggers it (opt-in, not scheduled). Behind `hot_cold_move_enabled` (default OFF).
 - **⚠️ Before enabling in prod:** VERIFY the derived cold address matches the offline wallet (`AddressDeriver::derive(chain, coldXpub, 0)` vs the cold device) — a wrong cold address is irrecoverable.
 
 ### 3. Cold → Hot refill workflow — ✅ DONE (code core; signing is external by design)
-- **Shipped** (`b55fd13`): `cold_refill_requests` table + `RequestColdRefillAction` (raises a `requested` row + alert when treasury:hot < low-watermark; amount tops hot up to high-watermark; idempotent one-per-asset) + `SettleColdRefillAction` (posts `treasury:cold → treasury:hot` after the operator's offline-signed tx confirms; routes TRON/EVM; reverted → back to `approved`). Wired into `poisapay:rebalance`. Behind `hot_cold_refill_enabled` (default OFF).
+- **Shipped** (`b55fd13`): `cold_refill_requests` table + `RequestColdRefillAction` (raises a `requested` row + alert when treasury:hot < low-watermark; amount tops hot up to high-watermark; idempotent one-per-asset) + `SettleColdRefillAction` (posts `treasury:cold → treasury:hot` after the operator's offline-signed tx confirms; routes TRON/EVM; reverted → back to `approved`). Wired into `paishapay:rebalance`. Behind `hot_cold_refill_enabled` (default OFF).
 - **Remaining = NON-CODE (by design):** the offline/MPC/air-gapped signing of the cold→hot tx, and an admin approval UI to move `requested → approved → broadcast` + record the tx hash. Both are ops/infra, not custody logic.
 
 ### 4. E2E integration + reconciliation validation — ✅ DONE (test); readiness review below
@@ -74,9 +74,9 @@ All money paths are OFF by default. To go live, per chain/asset, smallest amount
 1. **Reconciliation is already live** (scheduled) — watch it clean for the asset before anything else.
 2. **Verify the hot & cold addresses** on-chain match the offline/hardware wallets (`AddressDeriver::derive`). A wrong address is irrecoverable.
 3. **Fund the hot wallet** with native gas (TRX/ETH) → enable `gas_sponsoring_enabled` → watch a `gas_sponsorships` row fund + confirm.
-4. **Enable `onchain_sweep_enabled`** → run `poisapay:sweep` for one small deposit → confirm the sweep settles and the reconciler stays zero-drift.
+4. **Enable `onchain_sweep_enabled`** → run `paishapay:sweep` for one small deposit → confirm the sweep settles and the reconciler stays zero-drift.
 5. **Enable `withdrawal_batching_enabled`** (RBF/DLQ) once withdrawals broadcast cleanly.
-6. **Set `custody.watermark.high/low.<SYMBOL>`**, seed cold, enable `hot_cold_move_enabled` → run `poisapay:rebalance` → confirm the move settles to `treasury:cold`.
+6. **Set `custody.watermark.high/low.<SYMBOL>`**, seed cold, enable `hot_cold_move_enabled` → run `paishapay:rebalance` → confirm the move settles to `treasury:cold`.
 7. **Enable `hot_cold_refill_enabled`** → confirm an under-watermark raises a request + alert; wire the offline-signing/approval ops process.
 - **Kill-switch:** flip any flag OFF to halt that path instantly; the reconciler keeps watching. A drift/insolvency alert should trigger an immediate freeze + investigation.
 

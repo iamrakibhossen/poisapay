@@ -32,7 +32,7 @@ What is missing is almost everything **between "correct business logic" and "saf
 | ERC20 USDT | ⚠ | EVM address derivation (EIP-55) correct, but **no live EVM deposit watcher** — simulated |
 | TRC20 USDT | ✅ | `Chain/Tron/ScanTronDepositsAction` (real TronGrid) + `Withdrawal/Tron/TronWithdrawalSigner` |
 | Future chains | ✅ | New chain = new `AddressDeriver` impl + enum case; callers unchanged |
-| Deposit monitoring | ✅ | `ScanTronDepositsAction`; `ChainTickJob`; scheduled `poisapay:chain-tick` every minute |
+| Deposit monitoring | ✅ | `ScanTronDepositsAction`; `ChainTickJob`; scheduled `paishapay:chain-tick` every minute |
 | Deposit confirmation | ✅ | `min_confirmations` per chain/asset; `AdvanceTronDepositsAction` credits when deep |
 | Withdrawal queue | ✅ | `Withdrawal` status machine (Pending→Review→Approved→Signing→Broadcast→Completed) |
 | Hot wallet | ✅ | `SignerKeyProvider` path `m/44'/coin'/0'/1/0`; `EnvSeedSignerKeyProvider` |

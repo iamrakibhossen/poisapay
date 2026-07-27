@@ -1,4 +1,4 @@
-@props(['title' => 'PoishaPay', 'description' => null, 'mainClass' => 'flex-1 pt-16', 'seo' => null])
+@props(['title' => 'PaishaPay', 'description' => null, 'mainClass' => 'flex-1 pt-16', 'seo' => null])
 
 {{-- Isolated Landing master layout. Loads ONLY the landing bundle (its own
      Tailwind + .lp-* design system + Alpine) — never app.css / frontend.js — so
@@ -12,7 +12,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- All SEO/meta/icons/JSON-LD come from the reusable component (one source). --}}
-    <x-seo.meta :seo="$seo ?? \App\Support\Seo\SeoData::make($title !== 'PoishaPay' ? $title : null, $description)" />
+    <x-seo.meta :seo="$seo ?? \App\Support\Seo\SeoData::make($title !== 'PaishaPay' ? $title : null, $description)" />
 
     @vite(['resources/landing/css/landing.css', 'resources/landing/js/landing.js'])
     @stack('head')

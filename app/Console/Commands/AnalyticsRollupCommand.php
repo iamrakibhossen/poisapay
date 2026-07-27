@@ -15,7 +15,7 @@ use Illuminate\Console\Command;
  */
 class AnalyticsRollupCommand extends Command
 {
-    protected $signature = 'poisapay:analytics-rollup {--days=90 : Days of history to (re)aggregate}';
+    protected $signature = 'paishapay:analytics-rollup {--days=90 : Days of history to (re)aggregate}';
 
     protected $description = 'Materialise daily analytics summary tables and flush the analytics cache';
 

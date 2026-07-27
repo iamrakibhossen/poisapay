@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Process;
  */
 class BackupDatabaseCommand extends Command
 {
-    protected $signature = 'poisapay:backup {--keep=14}';
+    protected $signature = 'paishapay:backup {--keep=14}';
 
     protected $description = 'Back up the PostgreSQL database (pg_dump + gzip) and prune old backups';
 

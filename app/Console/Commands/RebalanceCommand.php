@@ -15,7 +15,7 @@ use Illuminate\Console\Command;
 
 class RebalanceCommand extends Command
 {
-    protected $signature = 'poisapay:rebalance';
+    protected $signature = 'paishapay:rebalance';
 
     protected $description = 'Rebalance hot↔cold: move excess to cold (over high-watermark) and request refills from cold (under low-watermark), TRON + EVM. Each direction opt-in via its own flag.';
 

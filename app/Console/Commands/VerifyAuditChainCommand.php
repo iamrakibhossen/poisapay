@@ -13,7 +13,7 @@ use Illuminate\Console\Command;
  */
 class VerifyAuditChainCommand extends Command
 {
-    protected $signature = 'poisapay:audit-verify';
+    protected $signature = 'paishapay:audit-verify';
 
     protected $description = 'Verify the integrity of the tamper-evident audit log hash chain';
 

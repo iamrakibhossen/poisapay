@@ -36,7 +36,7 @@ class SimulationController extends Controller
     {
         $this->authorizeSim();
 
-        Artisan::call('poisapay:chain-tick');
+        Artisan::call('paishapay:chain-tick');
         $output = trim(Artisan::output());
 
         return back()->with('success', $output !== '' ? $output : 'Chain tick complete.');

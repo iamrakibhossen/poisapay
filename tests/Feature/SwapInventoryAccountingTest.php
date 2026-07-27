@@ -112,11 +112,11 @@ it('rejects a cross-asset-unbalanced journal entry at the DB trigger', function 
     expect($post)->toThrow(QueryException::class, 'imbalance');
 });
 
-it('injects house dealer inventory via poisapay:inject-inventory and enables swaps', function () {
+it('injects house dealer inventory via paishapay:inject-inventory and enables swaps', function () {
     creditUser($this->user, $this->usdt, '10000000'); // 10 USDT
 
     // No TRX inventory yet. Inject house liquidity: DR treasury:hot / CR dealer:inventory.
-    $this->artisan('poisapay:inject-inventory', ['asset' => $this->trx->id, 'amount' => '1000000'])
+    $this->artisan('paishapay:inject-inventory', ['asset' => $this->trx->id, 'amount' => '1000000'])
         ->assertSuccessful();
 
     expect(bccomp(sysBal(T::TreasuryHot, $this->trx->id), '0'))->toBe(1)      // custody up (equity contribution)

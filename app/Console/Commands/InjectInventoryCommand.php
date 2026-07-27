@@ -34,7 +34,7 @@ use Illuminate\Console\Command;
  */
 class InjectInventoryCommand extends Command
 {
-    protected $signature = 'poisapay:inject-inventory {asset : Asset ID} {amount : Decimal amount, e.g. 100000} {--ref= : Idempotency reference}';
+    protected $signature = 'paishapay:inject-inventory {asset : Asset ID} {amount : Decimal amount, e.g. 100000} {--ref= : Idempotency reference}';
 
     protected $description = 'Record a house dealer-inventory injection (DR treasury:hot / CR dealer:inventory)';
 

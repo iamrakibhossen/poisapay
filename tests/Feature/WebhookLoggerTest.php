@@ -43,7 +43,7 @@ it('cleans webhook logs older than the window in batches', function () {
     $l->forceFill(['created_at' => $old, 'updated_at' => $old])->saveQuietly();
     WebhookLog::create(['provider' => 'x', 'method' => 'POST', 'url' => 'u', 'hash' => 'h2', 'status' => 200, 'resolved' => true]); // recent
 
-    Artisan::call('poisapay:webhooks-clean', ['--days' => 7]);
+    Artisan::call('paishapay:webhooks-clean', ['--days' => 7]);
     expect(WebhookLog::count())->toBe(1);
 });
 

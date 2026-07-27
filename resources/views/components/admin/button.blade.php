@@ -9,7 +9,7 @@
     } elseif ($color == 'light' || $color == 'white') {
         $classes .= ' bg-gray-50 text-gray-900 hover:bg-gray-100 active:bg-gray-300 border-gray-300 focus-visible:ring-gray-400';
     } else {
-        // Default / primary: PoishaPay brand gold on dark ink text.
+        // Default / primary: PaishaPay brand gold on dark ink text.
         $classes .= ' bg-brand-500 text-ink-900 hover:bg-brand-400 active:bg-brand-600 border-transparent focus-visible:ring-brand-400';
     }
 @endphp

@@ -13,7 +13,7 @@ use Illuminate\Console\Command;
 
 class SimulateDepositCommand extends Command
 {
-    protected $signature = 'poisapay:simulate-deposit {email} {asset} {amount}';
+    protected $signature = 'paishapay:simulate-deposit {email} {asset} {amount}';
 
     protected $description = 'Simulate an inbound on-chain deposit for a user (detection only; credited by chain-tick)';
 
@@ -32,7 +32,7 @@ class SimulateDepositCommand extends Command
         $amount = Money::ofDecimal($this->argument('amount'), $asset->decimals, $asset->symbol);
         $deposit = $simulate->execute($address, $asset, $amount);
 
-        $this->info("Detected {$amount->format()} to {$address->address} (deposit {$deposit->id}). Run poisapay:chain-tick to confirm & credit.");
+        $this->info("Detected {$amount->format()} to {$address->address} (deposit {$deposit->id}). Run paishapay:chain-tick to confirm & credit.");
 
         return self::SUCCESS;
     }

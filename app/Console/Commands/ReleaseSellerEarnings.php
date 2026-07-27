@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\DB;
  */
 class ReleaseSellerEarnings extends Command
 {
-    protected $signature = 'poisapay:shop-release-earnings {--limit=500 : Max orders to process per run}';
+    protected $signature = 'paishapay:shop-release-earnings {--limit=500 : Max orders to process per run}';
 
     protected $description = 'Release held seller earnings to spendable after the refund window.';
 

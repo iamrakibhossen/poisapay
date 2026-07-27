@@ -89,12 +89,12 @@ final class SeoData
 
     public function resolvedTitle(): string
     {
-        $site = (string) config('seo.site_name', 'PoishaPay');
+        $site = (string) config('seo.site_name', 'PaishaPay');
         if ($this->title === null || $this->title === '') {
             return (string) config('seo.default_title', $site);
         }
 
-        // Avoid "PoishaPay · PoishaPay" — only suffix when the brand isn't present.
+        // Avoid "PaishaPay · PaishaPay" — only suffix when the brand isn't present.
         return str_contains($this->title, $site) ? $this->title : "{$this->title} · {$site}";
     }
 

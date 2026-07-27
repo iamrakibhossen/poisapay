@@ -32,7 +32,7 @@ class DomainVerifier
 
         $error = match (true) {
             ! $ownershipOk => 'Ownership TXT record not found or incorrect. Add the TXT record shown, then verify again.',
-            ! $routingOk => 'Domain is not pointing to PoishaPay yet. Add the CNAME record shown, then verify again.',
+            ! $routingOk => 'Domain is not pointing to PaishaPay yet. Add the CNAME record shown, then verify again.',
             default => null,
         };
 

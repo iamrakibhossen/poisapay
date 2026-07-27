@@ -9,24 +9,24 @@ declare(strict_types=1);
  */
 return [
     // Brand / publisher identity.
-    'site_name' => env('APP_NAME', 'PoishaPay'),
+    'site_name' => env('APP_NAME', 'PaishaPay'),
     'tagline' => 'Borderless payments powered by digital assets',
-    'default_title' => 'PoishaPay — Wallet, Cards, Exchange & P2P',
-    'default_description' => 'PoishaPay is a multi-chain wallet for Bangladesh: hold USD and crypto, '
+    'default_title' => 'PaishaPay — Wallet, Cards, Exchange & P2P',
+    'default_description' => 'PaishaPay is a multi-chain wallet for Bangladesh: hold USD and crypto, '
         .'issue virtual cards, exchange currencies, trade P2P and accept merchant payments — securely, in one app.',
-    'keywords' => ['PoishaPay', 'crypto wallet', 'virtual card', 'USDT', 'P2P exchange', 'Bangladesh', 'stablecoin', 'merchant payments'],
+    'keywords' => ['PaishaPay', 'crypto wallet', 'virtual card', 'USDT', 'P2P exchange', 'Bangladesh', 'stablecoin', 'merchant payments'],
 
     // Default social share image (1200×630 recommended). Served from /public.
     'default_image' => 'images/og-default.png',
 
     'locale' => 'en_US',
     'theme_color' => '#2053DD',      // matches the brand logo mark
-    'twitter_handle' => env('SEO_TWITTER_HANDLE', '@poishapay'),
+    'twitter_handle' => env('SEO_TWITTER_HANDLE', '@paishapay'),
 
     // schema.org Organization — used for the sitewide Organization + WebSite JSON-LD.
     'organization' => [
-        'name' => 'PoishaPay',
-        'legal_name' => 'PoishaPay',
+        'name' => 'PaishaPay',
+        'legal_name' => 'PaishaPay',
         'logo' => 'images/logo.svg',
         'email' => 'support@poisapay.com',
         // Public social profiles (schema.org sameAs). Fill with real URLs when live.

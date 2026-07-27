@@ -11,7 +11,7 @@ use Illuminate\Console\Command;
 
 class ReconcileCommand extends Command
 {
-    protected $signature = 'poisapay:reconcile';
+    protected $signature = 'paishapay:reconcile';
 
     protected $description = 'Reconcile custody: ledger solvency (treasury ≥ liability) + on-chain hot backing vs treasury:hot; alert on drift';
 

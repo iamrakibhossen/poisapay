@@ -16,7 +16,7 @@ class AdminSeeder extends Seeder
         $superAdmin = Admin::updateOrCreate(
             ['email' => 'admin@poisapay.test'],
             [
-                'name' => 'PoishaPay Operator',
+                'name' => 'PaishaPay Operator',
                 'username' => 'operator',
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),

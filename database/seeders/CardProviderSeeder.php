@@ -13,7 +13,7 @@ class CardProviderSeeder extends Seeder
     {
         $providers = [
             [
-                'name' => 'PoishaPay Demo Issuer', 'slug' => 'poisapay-demo', 'network' => 'visa',
+                'name' => 'PaishaPay Demo Issuer', 'slug' => 'poisapay-demo', 'network' => 'visa',
                 'bin' => '453201', 'supports_virtual' => true, 'supports_physical' => true,
                 'settlement_currency' => 'USD', 'api_base' => 'https://sandbox.poisapay.test/issuer',
                 'is_demo' => true, 'is_active' => true, 'sort' => 1,

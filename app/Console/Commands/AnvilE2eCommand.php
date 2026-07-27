@@ -37,7 +37,7 @@ use Illuminate\Support\Facades\Process;
  */
 class AnvilE2eCommand extends Command
 {
-    protected $signature = 'poisapay:anvil-e2e
+    protected $signature = 'paishapay:anvil-e2e
         {--token= : Mock ERC-20 contract address (omit to auto-deploy resources/anvil/MockUSDT)}
         {--rpc=http://127.0.0.1:8545 : Anvil JSON-RPC URL}
         {--deposit=25 : Deposit amount in USDT display units}

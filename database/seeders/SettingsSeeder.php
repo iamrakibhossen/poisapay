@@ -14,7 +14,7 @@ class SettingsSeeder extends Seeder
     {
         $defaults = [
             'general' => [
-                'site_name' => 'PoishaPay',
+                'site_name' => 'PaishaPay',
                 'site_slogan' => 'The multi-chain wallet for Bangladesh',
                 'base_currency' => 'BDT',
                 'maintenance_mode' => false,

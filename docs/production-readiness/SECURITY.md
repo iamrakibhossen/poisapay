@@ -18,9 +18,9 @@ Toggle any module live from the admin Security dashboard (`/admin/security`).
 | 7 | Risk scoring | `RiskEngine` (withdrawals) + login risk composed in the enrich job | — |
 | 8 | Velocity limits | `VelocityGuard` → forces manual review past the rolling-24h cap | `security_velocity_limits` (on) |
 | 9 | Withdrawal approval workflow | risk **or** velocity **or** whitelist → `WithdrawalStatus::Review` (existing admin queue) | — |
-| 10 | Immutable audit logs | `AuditChain` hash-chains `audit_logs`; `poisapay:audit-verify` | `security_audit_hash_chain` (on) |
+| 10 | Immutable audit logs | `AuditChain` hash-chains `audit_logs`; `paishapay:audit-verify` | `security_audit_hash_chain` (on) |
 | 11 | Session security | `/security` → "sign out other sessions"; `SESSION_ENCRYPT=true` in prod | — |
-| 12 | Secret rotation | `APP_PREVIOUS_KEYS` + `poisapay:reencrypt`; anti-phishing code | — |
+| 12 | Secret rotation | `APP_PREVIOUS_KEYS` + `paishapay:reencrypt`; anti-phishing code | — |
 | 13 | Encryption review | `withdrawals.payout_details` → `encrypted:array` at rest | — |
 | 14 | API rate limiting | named limiters (`api`, `sensitive`, `auth`) in `AppServiceProvider`; per-user/IP | — |
 | 15 | Security monitoring dashboard | `/admin/security` — KPIs, events, flag toggles, IP denylist, chain verify | — |
@@ -50,14 +50,14 @@ Each `audit_logs` row is sealed on insert with a monotonic `sequence`, the prior
 `hash`, and a SHA-256 over its immutable payload. Editing/deleting an earlier row breaks
 the linkage. Verify anytime:
 ```bash
-php artisan poisapay:audit-verify        # exit 1 if broken (CI/cron-friendly)
+php artisan paishapay:audit-verify        # exit 1 if broken (CI/cron-friendly)
 ```
 Also surfaced in the admin Security dashboard ("Verify now").
 
 ## Secret rotation runbook
 1. `php artisan key:generate --show` → set as new `APP_KEY`; move the old key to `APP_PREVIOUS_KEYS`.
 2. Deploy (old data still decrypts via the previous key).
-3. `php artisan poisapay:reencrypt` → rewrites encrypted columns under the new key.
+3. `php artisan paishapay:reencrypt` → rewrites encrypted columns under the new key.
 4. Remove the old key from `APP_PREVIOUS_KEYS`.
 
 ## Endpoints

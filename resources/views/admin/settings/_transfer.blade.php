@@ -1,4 +1,4 @@
-<x-admin.form-layout :title="__('Transfer')" :description="__('Peer-to-peer transfers between PoishaPay users.')" class="!my-0">
+<x-admin.form-layout :title="__('Transfer')" :description="__('Peer-to-peer transfers between PaishaPay users.')" class="!my-0">
     <form class="space-y-5" method="POST" action="{{ route('admin.settings.update', 'transfer') }}">
         @csrf
         @method('PUT')

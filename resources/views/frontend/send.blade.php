@@ -7,7 +7,7 @@
                 </span>
                 <div>
                     <h1 class="text-2xl font-semibold tracking-tight text-neutral-900">{{ __('Send Money') }}</h1>
-                    <p class="mt-1 text-sm text-neutral-500">{{ __('Instant, zero-fee transfers to any PoishaPay user.') }}</p>
+                    <p class="mt-1 text-sm text-neutral-500">{{ __('Instant, zero-fee transfers to any PaishaPay user.') }}</p>
                 </div>
             </div>
             @if ($recentCount > 0)
@@ -56,7 +56,7 @@
                         <div class="relative">
                             <x-heroicon-o-user class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
                             <input id="recipient" name="recipient" x-model="recipient" type="text" autocomplete="off"
-                                placeholder="{{ __('PoishaPay ID, email or phone') }}"
+                                placeholder="{{ __('PaishaPay ID, email or phone') }}"
                                 class="pp-input w-full !pl-10 pr-10 {{ $errors->first('recipient') ? '!border-red-400' : '' }}" />
                             <button type="button" x-show="recipient.length" x-cloak x-on:click="recipient = ''"
                                 class="absolute inset-y-0 right-2 flex items-center text-neutral-300 hover:text-neutral-500" title="{{ __('Clear') }}">
@@ -64,7 +64,7 @@
                             </button>
                         </div>
                         @error('recipient')<p class="mt-1.5 text-xs font-medium text-red-500">{{ $message }}</p>@enderror
-                        <p class="mt-1.5 text-xs text-neutral-400">{{ __("Enter the recipient's PoishaPay ID, email address or phone number.") }}</p>
+                        <p class="mt-1.5 text-xs text-neutral-400">{{ __("Enter the recipient's PaishaPay ID, email address or phone number.") }}</p>
                     </div>
 
                     {{-- Amount — hero field with in-field Max chip + asset pill --}}

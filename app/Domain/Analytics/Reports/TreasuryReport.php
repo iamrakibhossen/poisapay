@@ -117,7 +117,7 @@ class TreasuryReport extends Report
         }
         if ($available <= 0 && $liabilities > 0) {
             $e['alerts'][] = ['level' => 'warn', 'title' => 'No dealer liquidity',
-                'message' => 'Available liquidity is $0 — swaps will be rejected until inventory is injected (poisapay:inject-inventory).'];
+                'message' => 'Available liquidity is $0 — swaps will be rejected until inventory is injected (paishapay:inject-inventory).'];
         }
 
         $e['notes'][] = 'TradingInventory is an equity account (house dealer position), not custody. On-chain custody (hot/cold/pending) only ever moves on real chain/bank events, so it reconciles 1:1 to the wallets.';

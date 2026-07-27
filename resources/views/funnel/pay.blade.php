@@ -5,7 +5,7 @@
             <div class="mx-auto flex max-w-lg items-center justify-between px-4 py-3">
                 <div class="flex items-center gap-2">
                     <span class="grid h-7 w-7 place-items-center rounded-lg bg-brand-500 text-white"><x-heroicon-s-bolt class="h-4 w-4" /></span>
-                    <span class="text-sm font-bold text-neutral-900">PoishaPay</span>
+                    <span class="text-sm font-bold text-neutral-900">PaishaPay</span>
                     <span class="text-neutral-300">·</span>
                     <span class="text-xs text-neutral-500">{{ __('Checkout') }}</span>
                 </div>
@@ -242,7 +242,7 @@
                             <div class="flex items-center gap-3">
                                 <span class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-brand-500 text-white"><x-heroicon-o-wallet class="h-5 w-5" /></span>
                                 <div class="flex-1">
-                                    <p class="text-sm font-semibold text-neutral-900">{{ __('PoishaPay Wallet') }}</p>
+                                    <p class="text-sm font-semibold text-neutral-900">{{ __('PaishaPay Wallet') }}</p>
                                     <p class="tabular text-xs text-neutral-500">{{ __('Balance') }}: {{ $balance }}</p>
                                 </div>
                                 <x-heroicon-s-check-circle class="h-5 w-5 text-brand-600" x-show="sufficient" />
@@ -267,7 +267,7 @@
                                 <x-heroicon-s-shield-check class="h-5 w-5 shrink-0 text-emerald-600" />
                                 <p class="text-sm font-semibold text-emerald-800">{{ __(':days-day money-back guarantee', ['days' => $refundDays]) }}</p>
                             </div>
-                            <p class="mt-1 text-xs leading-relaxed text-emerald-700/90">{{ __('Covered by PoishaPay buyer protection. Not happy? Request a full refund within :days days.', ['days' => $refundDays]) }}</p>
+                            <p class="mt-1 text-xs leading-relaxed text-emerald-700/90">{{ __('Covered by PaishaPay buyer protection. Not happy? Request a full refund within :days days.', ['days' => $refundDays]) }}</p>
                         </div>
                     @endif
 

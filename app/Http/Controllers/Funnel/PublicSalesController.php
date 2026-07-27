@@ -40,9 +40,9 @@ use Illuminate\View\View;
  * Public product sales page — /p/{slug}. Standalone, no app nav, conversion-first.
  *
  * Renders the seller's *published* page from its persisted builder config, and
- * runs the real money path: the buyer pays with their PoishaPay wallet and the
+ * runs the real money path: the buyer pays with their PaishaPay wallet and the
  * Ledger moves the money (see {@see PlaceOrder}). No guest checkout — a signed-in
- * PoishaPay account (and wallet balance) is required to pay.
+ * PaishaPay account (and wallet balance) is required to pay.
  */
 class PublicSalesController extends Controller
 {
@@ -198,7 +198,7 @@ class PublicSalesController extends Controller
     }
 
     /**
-     * PoishaPay-hosted payment page — the buyer confirms with their wallet balance.
+     * PaishaPay-hosted payment page — the buyer confirms with their wallet balance.
      * The form endpoints are injected so the SAME page renders identically for the
      * funnel (/p/{slug}/checkout) and the central checkout (/checkout/{product}).
      *
@@ -410,7 +410,7 @@ class PublicSalesController extends Controller
      * Central checkout entry (platform host). A storefront's Buy form posts here —
      * possibly cross-origin from a custom domain — carrying only the page id (a
      * selection, never a price). We hand off to the SAME funnel on THIS platform
-     * host, so payment always happens centrally with one PoishaPay session and one
+     * host, so payment always happens centrally with one PaishaPay session and one
      * trusted domain. CSRF-exempt by design (cross-origin handoff); the actual
      * order placement downstream is same-origin + CSRF-protected + price is
      * re-resolved server-side, so a tampered post can't change what's charged.

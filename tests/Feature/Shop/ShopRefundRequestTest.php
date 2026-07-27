@@ -150,7 +150,7 @@ it('auto-escalates a request the seller ignores past the SLA and notifies operat
     $req = app(RequestRefund::class)->execute($order, $this->buyer, 'full', null, '');
 
     $this->travel(4)->days();
-    $this->artisan('poisapay:shop-escalate-refunds')->assertSuccessful();
+    $this->artisan('paishapay:shop-escalate-refunds')->assertSuccessful();
 
     expect($req->fresh()->status)->toBe(RefundRequestStatus::Escalated);
     Notification::assertSentTo($admin, OperatorNotification::class);

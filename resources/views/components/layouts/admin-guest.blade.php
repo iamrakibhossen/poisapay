@@ -11,7 +11,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title }} · PoishaPay Admin</title>
+    <title>{{ $title }} · PaishaPay Admin</title>
     @vite(['resources/css/app.css', 'resources/js/admin.js'])
     <style>[x-cloak]{display:none!important}</style>
 </head>
@@ -20,8 +20,8 @@
     <div class="pointer-events-none absolute inset-0 opacity-[0.06]" style="background-image: radial-gradient(circle at 30% 20%, #FFC107 1px, transparent 1px); background-size: 40px 40px;"></div>
     <div class="relative w-full max-w-sm">
         <div class="mb-8 flex flex-col items-center text-center">
-            <img src="{{ asset('images/logo.svg') }}" alt="PoishaPay" class="h-12 w-12 shrink-0" />
-            <h1 class="mt-4 text-lg font-bold text-neutral-900">PoishaPay</h1>
+            <img src="{{ asset('images/logo.svg') }}" alt="PaishaPay" class="h-12 w-12 shrink-0" />
+            <h1 class="mt-4 text-lg font-bold text-neutral-900">PaishaPay</h1>
             <p class="text-xs font-medium uppercase tracking-widest text-amber-700">{{ __('Operator Console') }}</p>
         </div>
         <div class="pp-card p-6">

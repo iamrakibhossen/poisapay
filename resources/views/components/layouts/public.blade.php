@@ -1,4 +1,4 @@
-@props(['title' => 'PoishaPay'])
+@props(['title' => 'PaishaPay'])
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
@@ -9,7 +9,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title }} · PoishaPay</title>
+    <title>{{ $title }} · PaishaPay</title>
     @vite(['resources/css/app.css', 'resources/js/frontend.js'])
     @include('partials.brand-colors')
     <style>[x-cloak]{display:none!important}</style>
@@ -20,8 +20,8 @@
     <header class="sticky top-0 z-40 border-b border-neutral-200/70 bg-neutral-50/80 backdrop-blur">
         <nav class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3.5 sm:px-6">
             <a href="{{ route('home') }}" class="flex items-center gap-2.5">
-                <img src="{{ asset('images/logo.svg') }}" alt="PoishaPay" class="h-9 w-9 shrink-0" />
-                <span class="text-lg font-bold text-neutral-900">PoishaPay</span>
+                <img src="{{ asset('images/logo.svg') }}" alt="PaishaPay" class="h-9 w-9 shrink-0" />
+                <span class="text-lg font-bold text-neutral-900">PaishaPay</span>
             </a>
             <div class="flex items-center gap-4 text-sm">
                 <a href="{{ route('help-center') }}" class="font-medium text-neutral-600 hover:text-neutral-900">{{ __('FAQs') }}</a>
@@ -41,7 +41,7 @@
 
     <footer class="border-t border-neutral-200 py-8">
         <div class="mx-auto max-w-5xl px-4 text-center text-xs text-neutral-500 sm:px-6">
-            &copy; {{ date('Y') }} PoishaPay. {{ __('Custodial · KYC/AML gated.') }}
+            &copy; {{ date('Y') }} PaishaPay. {{ __('Custodial · KYC/AML gated.') }}
         </div>
     </footer>
 </div>

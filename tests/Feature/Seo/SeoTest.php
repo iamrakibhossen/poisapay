@@ -14,7 +14,7 @@ it('renders a complete, single set of meta tags on the home page', function () {
         ->and(substr_count($html, 'name="description"'))->toBe(1);
 
     expect($html)
-        ->toContain('<title>PoishaPay · Spend crypto like cash, with a premium virtual card</title>')
+        ->toContain('<title>PaishaPay · Spend crypto like cash, with a premium virtual card</title>')
         ->toContain('property="og:title"')
         ->toContain('property="og:image"')
         ->toContain('name="twitter:card" content="summary_large_image"')
@@ -44,25 +44,25 @@ it('adds Product + Breadcrumb structured data to product pages', function () {
 
 it('adds FAQ structured data to the help center', function () {
     Faq::query()->create([
-        'question' => 'Is PoishaPay safe?', 'answer' => 'Yes, bank-grade custody.',
+        'question' => 'Is PaishaPay safe?', 'answer' => 'Yes, bank-grade custody.',
         'group' => 'General', 'sort_order' => 1, 'status' => 'published',
     ]);
 
     $html = $this->get('/help-center')->assertOk()->getContent();
-    expect($html)->toContain('"@type":"FAQPage"')->toContain('Is PoishaPay safe?');
+    expect($html)->toContain('"@type":"FAQPage"')->toContain('Is PaishaPay safe?');
 });
 
 it('gives CMS legal pages a canonical + breadcrumb', function () {
     Page::query()->updateOrCreate(['slug' => 'terms'], [
         'title' => 'Terms of Service', 'content' => '<p>Terms.</p>', 'status' => 'published',
-        'meta_description' => 'Terms of Service for PoishaPay.',
+        'meta_description' => 'Terms of Service for PaishaPay.',
     ]);
 
     $html = $this->get('/pages/terms')->assertOk()->getContent();
     expect($html)
         ->toContain(url('/pages/terms'))
         ->toContain('"@type":"BreadcrumbList"')
-        ->toContain('<title>Terms of Service · PoishaPay</title>');
+        ->toContain('<title>Terms of Service · PaishaPay</title>');
 });
 
 it('serves a sitemap index and child sitemaps', function () {
@@ -100,7 +100,7 @@ it('noindexes the auth (guest) pages', function () {
 
 it('exposes a valid web manifest', function () {
     $manifest = json_decode((string) file_get_contents(public_path('site.webmanifest')), true);
-    expect($manifest['name'])->toBe('PoishaPay')
+    expect($manifest['name'])->toBe('PaishaPay')
         ->and($manifest['theme_color'])->toBe('#2053DD')
         ->and($manifest['icons'])->toHaveCount(2);
 });

@@ -46,7 +46,7 @@
                         <div class="flex items-start justify-between">
                             <div class="flex items-center gap-2">
                                 <svg class="h-5 w-5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M14.615 1.595a.75.75 0 0 1 .359.852L12.982 9.75h7.268a.75.75 0 0 1 .548 1.262l-10.5 11.25a.75.75 0 0 1-1.272-.71l1.992-7.302H3.75a.75.75 0 0 1-.548-1.262l10.5-11.25a.75.75 0 0 1 .913-.143Z"/></svg>
-                                <span class="text-sm font-semibold">PoishaPay</span>
+                                <span class="text-sm font-semibold">PaishaPay</span>
                             </div>
                             <span class="inline-flex items-center gap-1.5 rounded-full bg-white/85 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-900 shadow-sm">
                                 <span class="h-1.5 w-1.5 rounded-full {{ $statusDot }}"></span>{{ $card->status->label() }}
@@ -100,9 +100,9 @@
                 </x-ui.card>
 
                 {{-- Card details — revealed straight from the issuer into the user's browser
-                     (PCI SAQ-A). Step-up guarded; PoishaPay's server never sees the PAN/CVV
+                     (PCI SAQ-A). Step-up guarded; PaishaPay's server never sees the PAN/CVV
                      for a live provider. See CardManageController::revealSession(). --}}
-                <x-ui.card :title="__('Card details')" :subtitle="__('Sensitive data never touches PoishaPay servers.')">
+                <x-ui.card :title="__('Card details')" :subtitle="__('Sensitive data never touches PaishaPay servers.')">
                     @if ($canReveal)
                         <div
                             x-data="cardReveal({
@@ -153,9 +153,9 @@
 
                             <x-ui.alert type="info">
                                 @if ($revealDriver === 'mock')
-                                    {{ __('Simulated provider: these demo details are generated locally. With a live issuer the real PAN, expiry and CVV render inside the issuer\'s PCI-DSS iframe and never touch PoishaPay servers.') }}
+                                    {{ __('Simulated provider: these demo details are generated locally. With a live issuer the real PAN, expiry and CVV render inside the issuer\'s PCI-DSS iframe and never touch PaishaPay servers.') }}
                                 @else
-                                    {{ __('The full PAN, expiry and CVV are rendered inside the issuer\'s PCI-DSS-compliant iframe directly in your browser. PoishaPay never sees or stores them — we retain only an opaque issuer token.') }}
+                                    {{ __('The full PAN, expiry and CVV are rendered inside the issuer\'s PCI-DSS-compliant iframe directly in your browser. PaishaPay never sees or stores them — we retain only an opaque issuer token.') }}
                                 @endif
                             </x-ui.alert>
                         </div>

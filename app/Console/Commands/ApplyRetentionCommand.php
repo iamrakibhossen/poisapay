@@ -20,7 +20,7 @@ use Illuminate\Console\Command;
  */
 class ApplyRetentionCommand extends Command
 {
-    protected $signature = 'poisapay:retention {--days=90}';
+    protected $signature = 'paishapay:retention {--days=90}';
 
     protected $description = 'Prune login history, acknowledged security events and settled webhook records older than the retention window';
 

@@ -1,4 +1,4 @@
-@props(['title' => 'PoishaPay', 'description' => null])
+@props(['title' => 'PaishaPay', 'description' => null])
 
 {{-- Public marketing layout: the same document shell, header (x-marketing.nav) and
      footer (x-marketing.footer) the homepage uses, so every marketing page (FAQs,
@@ -12,7 +12,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title }} · PoishaPay</title>
+    <title>{{ $title }} · PaishaPay</title>
     @if ($description)<meta name="description" content="{{ $description }}">@endif
     @vite(['resources/css/app.css', 'resources/js/frontend.js'])
     @include('partials.marketing-styles')

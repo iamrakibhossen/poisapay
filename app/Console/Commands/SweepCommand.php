@@ -15,7 +15,7 @@ use Illuminate\Console\Command;
 
 class SweepCommand extends Command
 {
-    protected $signature = 'poisapay:sweep';
+    protected $signature = 'paishapay:sweep';
 
     protected $description = 'Real on-chain sweep of deposit balances into the hot wallet, TRON + EVM (opt-in: onchain_sweep_enabled flag)';
 

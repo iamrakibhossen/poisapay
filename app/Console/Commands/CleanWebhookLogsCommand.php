@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
  */
 class CleanWebhookLogsCommand extends Command
 {
-    protected $signature = 'poisapay:webhooks-clean {--days=7}';
+    protected $signature = 'paishapay:webhooks-clean {--days=7}';
 
     protected $description = 'Delete inbound webhook_logs records older than the retention window';
 

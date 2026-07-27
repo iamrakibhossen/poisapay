@@ -1,4 +1,4 @@
-<x-landing::layouts.master :title="__('System Status')" :description="__('Live operational status of PoishaPay services.')">
+<x-landing::layouts.master :title="__('System Status')" :description="__('Live operational status of PaishaPay services.')">
     @php
         // Per-status presentation (badge chip + dot colour).
         $meta = [
@@ -21,7 +21,7 @@
     <div class="mx-auto max-w-3xl px-4 pb-24 pt-14 sm:px-6 sm:pt-20">
         <div class="mb-6">
             <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">{{ __('System Status') }}</h1>
-            <p class="mt-2 text-sm text-slate-500">{{ __('Live health of PoishaPay services. This page reflects checks run when it loaded.') }}</p>
+            <p class="mt-2 text-sm text-slate-500">{{ __('Live health of PaishaPay services. This page reflects checks run when it loaded.') }}</p>
         </div>
 
         {{-- Overall banner --}}

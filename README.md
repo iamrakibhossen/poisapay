@@ -78,16 +78,16 @@ Deposits and withdrawals move end-to-end via a simulated Blockchain Monitor / Si
 
 ```bash
 # Simulate an inbound on-chain deposit (detection only)
-php artisan poisapay:simulate-deposit demo@poisapay.test USDT 250
+php artisan paishapay:simulate-deposit demo@poisapay.test USDT 250
 
 # Advance confirmations → credit deposits, and broadcast+settle approved withdrawals
-php artisan poisapay:chain-tick
+php artisan paishapay:chain-tick
 
 # Accrue interest on credit lines + liquidate any breaching maintenance LTV
-php artisan poisapay:accrue-credit
+php artisan paishapay:accrue-credit
 ```
 
-`poisapay:chain-tick` is scheduled every minute (see `routes/console.php`), and the admin
+`paishapay:chain-tick` is scheduled every minute (see `routes/console.php`), and the admin
 **Simulation** page exposes both as buttons. Real nodes/signers drop in behind the same
 interfaces (`AddressDeriver`, the settlement actions) without touching callers.
 

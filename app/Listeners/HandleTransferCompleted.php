@@ -27,7 +27,7 @@ class HandleTransferCompleted implements ShouldQueue
 
         // Recipient — the incoming money alert (this is what was previously missing).
         if ($transfer->recipient) {
-            $from = $transfer->sender?->name ?: 'a PoishaPay user';
+            $from = $transfer->sender?->name ?: 'a PaishaPay user';
             $transfer->recipient->notify(new LedgerEventNotification(
                 title: 'Money received',
                 body: "You received {$amount} from {$from}.",
@@ -38,7 +38,7 @@ class HandleTransferCompleted implements ShouldQueue
 
         // Sender — a record of the money sent.
         if ($transfer->sender) {
-            $to = $transfer->recipient?->name ?: 'a PoishaPay user';
+            $to = $transfer->recipient?->name ?: 'a PaishaPay user';
             $transfer->sender->notify(new LedgerEventNotification(
                 title: 'Money sent',
                 body: "You sent {$amount} to {$to}.",

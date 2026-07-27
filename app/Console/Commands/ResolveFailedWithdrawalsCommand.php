@@ -9,7 +9,7 @@ use Illuminate\Console\Command;
 
 class ResolveFailedWithdrawalsCommand extends Command
 {
-    protected $signature = 'poisapay:resolve-failed-withdrawals';
+    protected $signature = 'paishapay:resolve-failed-withdrawals';
 
     protected $description = 'Release the reserve on failed withdrawals that never broadcast (opt-in: withdrawal_auto_release_failed flag)';
 

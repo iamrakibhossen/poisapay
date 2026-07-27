@@ -231,7 +231,7 @@
 
                 {{-- Trust + discovery --}}
                 <div class="rounded-xl border border-neutral-100 bg-neutral-50/60 px-4 py-3">
-                    <p class="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-500"><x-heroicon-o-shield-check class="h-4 w-4 text-emerald-500" /> {{ __('Protected by PoishaPay Buyer Protection') }}</p>
+                    <p class="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-500"><x-heroicon-o-shield-check class="h-4 w-4 text-emerald-500" /> {{ __('Protected by PaishaPay Buyer Protection') }}</p>
                 </div>
                 <a href="{{ route('home') }}" class="flex items-center justify-between rounded-xl border border-brand-100 bg-gradient-to-r from-brand-50/70 to-white px-4 py-3 text-sm font-medium text-neutral-800 transition hover:border-brand-200">
                     <span class="inline-flex items-center gap-2"><x-heroicon-o-sparkles class="h-4 w-4 text-brand-500" /> {{ __('Discover more products') }}</span>

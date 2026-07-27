@@ -21,7 +21,7 @@ final class FaqController extends Controller
         $faqs = Faq::query()->published()->ordered()->get();
         $groups = $faqs->groupBy(fn (Faq $faq) => $faq->group ?: 'General');
 
-        $seo = SeoData::make('Help Center', 'Answers to common questions about PoishaPay — wallet, cards, exchange, P2P, merchant payments, security and more.')
+        $seo = SeoData::make('Help Center', 'Answers to common questions about PaishaPay — wallet, cards, exchange, P2P, merchant payments, security and more.')
             ->withCanonical(route('help-center'))
             ->withBreadcrumbs([
                 ['name' => 'Home', 'url' => route('home')],

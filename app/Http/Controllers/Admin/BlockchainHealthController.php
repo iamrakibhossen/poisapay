@@ -52,7 +52,7 @@ class BlockchainHealthController extends Controller
     {
         $this->guardAccess();
 
-        Artisan::call('poisapay:chain-health');
+        Artisan::call('paishapay:chain-health');
 
         ActivityLogger::log('chain.health.checked', null, [], 'Ran blockchain health check.');
 
@@ -63,7 +63,7 @@ class BlockchainHealthController extends Controller
     {
         $this->guardAccess();
 
-        Artisan::call('poisapay:chain-tick');
+        Artisan::call('paishapay:chain-tick');
         $output = trim(Artisan::output());
 
         return back()->with('success', $output !== '' ? $output : 'Monitor tick complete.');

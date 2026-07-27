@@ -28,7 +28,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
- * The Sell money path. A buyer pays with their PoishaPay wallet; the Ledger (single
+ * The Sell money path. A buyer pays with their PaishaPay wallet; the Ledger (single
  * source of truth) moves the money in one balanced entry:
  *
  *   DR buyer user:available (order total)
@@ -186,7 +186,7 @@ class PlaceOrder
             // The Ledger moves the money — one balanced, idempotent entry.
             // With the earnings-hold flag on, the seller's net lands in their HELD
             // balance (user:locked) and is released to spendable once the buyer's
-            // refund window passes (poisapay:shop-release-earnings). Off (default):
+            // refund window passes (paishapay:shop-release-earnings). Off (default):
             // net is spendable immediately, as before.
             $holdEarnings = feature('shop_earnings_hold', false);
             $sellerAccount = $resolver->forUser(

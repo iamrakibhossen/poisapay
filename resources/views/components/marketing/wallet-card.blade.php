@@ -21,7 +21,7 @@
     @endif
     class="pp-card3d card-{{ $finish }} group relative aspect-[1.586/1] w-full select-none overflow-hidden rounded-[1.5rem] p-6 text-white shadow-2xl"
     role="img"
-    aria-label="{{ __('PoishaPay virtual :finish card ending :number, balance :balance', ['finish' => $finish, 'number' => $number, 'balance' => $balance]) }}"
+    aria-label="{{ __('PaishaPay virtual :finish card ending :number, balance :balance', ['finish' => $finish, 'number' => $number, 'balance' => $balance]) }}"
 >
     {{-- Holographic sheen --}}
     @if ($shine)
@@ -37,7 +37,7 @@
                     <span class="grid h-6 w-6 place-items-center rounded-lg bg-white/90 text-[#0a0f1c]">
                         <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="currentColor"><path d="M13 2 4.5 12.5H11l-2 9.5 8.5-11H11z"/></svg>
                     </span>
-                    <span class="text-[0.95rem] font-bold tracking-tight">PoishaPay</span>
+                    <span class="text-[0.95rem] font-bold tracking-tight">PaishaPay</span>
                 </div>
                 <p class="mt-1 text-[0.62rem] font-medium uppercase tracking-[0.18em] text-white/60">{{ $label }}</p>
             </div>

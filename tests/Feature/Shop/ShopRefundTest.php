@@ -104,7 +104,7 @@ it('never releases earnings for a refunded held order', function () {
     app(RefundOrder::class)->full($order, $this->sellerUser);
 
     $this->travel(15)->days();
-    $this->artisan('poisapay:shop-release-earnings')->assertSuccessful();
+    $this->artisan('paishapay:shop-release-earnings')->assertSuccessful();
 
     // Money already returned to the buyer; nothing releases to the seller.
     expect(($this->locked)($this->sellerUser))->toBe('0')

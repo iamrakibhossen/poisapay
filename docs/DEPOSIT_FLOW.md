@@ -20,7 +20,7 @@
 | Credit after N confirmations + immutable ledger + event + notify | `CreditDepositAction` → double-entry `journal_entries`/`ledger_lines`, `DepositCredited` event → `HandleDepositCredited` listener | ✅ |
 | Automatic sweep, settle only after on-chain confirm, retry, no double-credit | `TronSweepAction`/`EvmSweepAction` (broadcast) + `SettleTronSweepsAction`/`SettleEvmSweepsAction` (settle) | ✅ (sweep is a flag-gated command, **not** auto-queued on confirm — see §Deltas) |
 | Separate user / hot / cold ledgers, double-entry | `LedgerAccountType` (UserAvailable, UserLocked, TreasuryHot, TreasuryCold, TreasuryPending) via `LedgerService` | ✅ |
-| Reconciliation worker, alert on drift, never silently mutate | `poisapay:reconcile` (every 5 min) → `ReconciliationService` + `CustodyReconciler` → `security_events` + `notifyAdmins`; read-only | ✅ |
+| Reconciliation worker, alert on drift, never silently mutate | `paishapay:reconcile` (every 5 min) → `ReconciliationService` + `CustodyReconciler` → `security_events` + `notifyAdmins`; read-only | ✅ |
 | Idempotency everywhere | DB uniques (`uq_onchain_tx`, `uq_deposit_onchain_tx`, `uq_sweep_nonce_context`) + ledger `idempotency_key` | ✅ |
 | Full audit trail + transactional transitions | `ActivityLogger`, `security_events`, every state change wrapped in `DB::transaction` | ✅ |
 
@@ -64,9 +64,9 @@ sequenceDiagram
     participant CR as CreditDepositAction
     participant LG as LedgerService
     participant EV as DepositCredited event
-    participant SW as Sweep*Action (poisapay:sweep)
+    participant SW as Sweep*Action (paishapay:sweep)
     participant ST as Settle*SweepsAction
-    participant RC as poisapay:reconcile
+    participant RC as paishapay:reconcile
 
     U->>BC: send USDT to user's deposit address
     loop every custody tick (job)
@@ -181,8 +181,8 @@ Treasury & reconciliation:
 
 **Scheduled entry points** (`routes/console.php`):
 - `TronCustodyTickJob`, `EvmCustodyTickJob` — `scan → advanceDeposits → withdrawals (+RBF)` per tick
-- `poisapay:reconcile` (5 min), `poisapay:resolve-failed-withdrawals` (5 min)
-- `poisapay:sweep`, `poisapay:rebalance` — opt-in (flag-gated), run on schedule/manually
+- `paishapay:reconcile` (5 min), `paishapay:resolve-failed-withdrawals` (5 min)
+- `paishapay:sweep`, `paishapay:rebalance` — opt-in (flag-gated), run on schedule/manually
 
 **Services / actions (the real "jobs" of the pipeline):**
 - Detect: `ScanTronDepositsAction`, `ScanEvmDepositsAction`
@@ -212,7 +212,7 @@ transitions + `ActivityLogger`, not dispatched Event objects.
 | **Sweep reverts on-chain** | `SettleSweepsAction` sets `failed` + onchain_tx `orphaned`; **no** ledger post | No phantom treasury credit |
 | **Sweep settle worker retried** | `idempotency_key = sweep:settle:{id}` + `uq_sweep_nonce_context` | No double treasury credit, no duplicate broadcast |
 | **Insufficient gas** | gas sponsor tops up (idempotent, bounded retry, dead-letters + alerts) or sweep stays `gassing` | No stuck-without-visibility beyond the alert |
-| **Ledger vs chain drift** | `poisapay:reconcile` flags `breached`/insolvent → `security_events` + `notifyAdmins` | Never auto-corrects; humans investigate |
+| **Ledger vs chain drift** | `paishapay:reconcile` flags `breached`/insolvent → `security_events` + `notifyAdmins` | Never auto-corrects; humans investigate |
 | **Process crash mid-transition** | every transition is `DB::transaction`-wrapped | Atomic; partial state impossible |
 
 ---
@@ -237,7 +237,7 @@ transitions + `ActivityLogger`, not dispatched Event objects.
    internal balance) — keyed by `idempotency_key = deposit:{tx}:{log}`. It stamps the deposit
    `credited` with `credit_entry_id` + `credited_at`, then dispatches **`DepositCredited`**;
    `HandleDepositCredited` notifies the user. The user's balance is now spendable.
-6. **Sweep (custody consolidation).** With `onchain_sweep_enabled`, `poisapay:sweep` runs
+6. **Sweep (custody consolidation).** With `onchain_sweep_enabled`, `paishapay:sweep` runs
    `Tron/EvmSweepAction`: it reads the on-chain balance at the deposit address, optionally
    gas-sponsors the native fee from the hot wallet, reconstructs the deposit key **in memory**
    via `SignerKeyProvider`, signs a token transfer to the **hot wallet**, and broadcasts it. It
@@ -249,7 +249,7 @@ transitions + `ActivityLogger`, not dispatched Event objects.
    sweep `swept`. If the sweep reverted, it marks `failed` and leaves the ledger untouched; the
    next tick re-sweeps. The net books: **User:Available (liability) ↑, Treasury:Hot (asset) ↑,
    Treasury:Pending nets to zero** — user credited exactly once, treasury reflects real custody.
-8. **Reconciliation (continuous).** Every 5 minutes `poisapay:reconcile` compares on-chain hot
+8. **Reconciliation (continuous).** Every 5 minutes `paishapay:reconcile` compares on-chain hot
    balance vs ledger `Treasury:Hot`, and total user liabilities vs treasury assets. Zero drift +
    solvent → silent. Any drift/insolvency → `security_events` + `notifyAdmins`; balances are
    **never** silently changed.

@@ -79,7 +79,7 @@ it('does nothing when the flag is off', function () {
 it('the rebalance command broadcasts a move when over the watermark', function () {
     fakeMove(null);
 
-    $this->artisan('poisapay:rebalance')->assertSuccessful();
+    $this->artisan('paishapay:rebalance')->assertSuccessful();
 
     expect(TreasuryMove::where('asset_id', $this->asset->id)->where('status', 'broadcast')->exists())->toBeTrue();
 });

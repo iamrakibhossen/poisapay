@@ -10,7 +10,7 @@
             {{-- Chain tick --}}
             <x-ui.card :title="__('Run chain tick')" :subtitle="__('Advance confirmations, credit deposits, and settle approved withdrawals.')">
                 <p class="mb-5 text-sm text-neutral-500">
-                    {{ __('Runs') }} <span class="font-mono text-xs text-neutral-700">poisapay:chain-tick</span>,
+                    {{ __('Runs') }} <span class="font-mono text-xs text-neutral-700">paishapay:chain-tick</span>,
                     {{ __('mirroring one pass of the monitor: detected deposits gain confirmations and, once confirmed, are credited; approved withdrawals are signed and settled.') }}
                 </p>
                 <form method="POST" action="{{ route('admin.simulation.tick') }}"

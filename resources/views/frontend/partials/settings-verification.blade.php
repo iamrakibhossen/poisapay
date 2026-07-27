@@ -25,7 +25,7 @@
         </x-ui.alert>
     @elseif ($kyc['key'] === 'approved')
         <x-ui.alert type="success" :title="__('You\'re verified')" class="mt-5">
-            {{ __('Your identity has been verified. Enjoy higher limits across PoishaPay.') }}
+            {{ __('Your identity has been verified. Enjoy higher limits across PaishaPay.') }}
         </x-ui.alert>
     @elseif ($kyc['key'] === 'rejected')
         <x-ui.alert type="danger" :title="__('Previous submission was rejected')" class="mt-5">

@@ -15,7 +15,7 @@ Because there is **no live data**, we do a **clean rewrite** rather than an expa
 - The handful of `Sell`-prefixed classes renamed (`SellServiceProvider`, `SellException`, `SellDomainEvent`, `AuditSellEvent`, `SellAudit`).
 - Semantic rename **Seller → Merchant** (see §5 — the most invasive change; flagged for your veto).
 - Routes/URLs `sell.*` → `shop.*`, `/sell` → `/shop`, `api/sell` → `api/shop`.
-- Cache keys `sell:*` → `shop:*`, flags/settings `sell_*` → `shop_*`, commands `poisapay:sell-*` → `poisapay:shop-*`.
+- Cache keys `sell:*` → `shop:*`, flags/settings `sell_*` → `shop_*`, commands `paishapay:sell-*` → `paishapay:shop-*`.
 - Frontend nav: **Seller → Merchant**, dashboard restructured to the requested IA (existing sections wired, net-new sections stubbed and labelled).
 
 We **also deliver** a Schema::rename-based zero-downtime migration script and rollback plan as *artifacts* (§6.2, §11) even though the clean rewrite is what we run — so the same migration is repeatable against an environment that *does* have data later.
@@ -49,7 +49,7 @@ We **also deliver** a Schema::rename-based zero-downtime migration script and ro
 
 **Cache keys:** `sell:order:`, `sell:refund:order:`, `sell:refund:req:`, `sell:release:`, `sell:upsell:`, `sell:commission_income`.
 **Flags/settings:** `sell_enabled`, `sell_commission_bps`, `sell_commission_bps_free`, `sell_commission_bps_pro`, `sell_earnings_hold`; settings section `sell`.
-**Commands:** `poisapay:sell-release-earnings`, `poisapay:sell-escalate-refunds`.
+**Commands:** `paishapay:sell-release-earnings`, `paishapay:sell-escalate-refunds`.
 **Ledger:** `App\Enums\LedgerAccountType` has a `sell:commission_income` account reference (⚠ money path — §9 risk).
 **Tests:** `tests/Feature/Sell/` (26 files) + `P2pDisputeTest` (touches `seller_id`).
 
@@ -85,7 +85,7 @@ Consumer frontend controllers stay where they are but are renamed for terminolog
 **Prefixed classes:** `SellServiceProvider→ShopServiceProvider`, `SellException→ShopException`, `SellDomainEvent→ShopDomainEvent`, `AuditSellEvent→AuditShopEvent`, `SellAudit→ShopAudit`.
 **Tables:** every `sell_*` → `shop_*` (26). `sell_sellers → shop_merchants`, `sell_seller_applications → shop_merchant_applications` (§5). Columns `seller_id → merchant_id`, `seller_net_amount`, `seller_reply*`, `seller_unread` → `merchant_*`.
 **Routes/URLs:** `sell.* → shop.*` names; `/sell → /shop`; `api/sell → api/shop`; admin `sellers → merchants`, `sell-refunds → shop-refunds`.
-**Cache:** `sell: → shop:`. **Flags/settings:** `sell_ → shop_`, section `sell → shop`. **Commands:** `poisapay:sell-* → poisapay:shop-*`.
+**Cache:** `sell: → shop:`. **Flags/settings:** `sell_ → shop_`, section `sell → shop`. **Commands:** `paishapay:sell-* → paishapay:shop-*`.
 **Ledger:** `sell:commission_income → shop:commission_income` (⚠ see §9).
 
 ---
@@ -157,7 +157,7 @@ Expand→contract: (1) deploy code that reads both names via compatibility VIEWs
 - [ ] `php artisan route:list | grep shop` sane; no `sell.` names remain.
 - [ ] Full test suite green (`php artisan test`).
 - [ ] Update `bootstrap/providers.php` provider ref (done in code).
-- [ ] Update supervisor/cron: command names `poisapay:shop-*` (console.php scheduled — no external cron entries to change).
+- [ ] Update supervisor/cron: command names `paishapay:shop-*` (console.php scheduled — no external cron entries to change).
 - [ ] Feature flag `shop_enabled` verified in admin settings.
 - [ ] Smoke: `/shop`, `/shop/products`, checkout, refund request, admin merchants + shop-refunds.
 
@@ -167,7 +167,7 @@ Expand→contract: (1) deploy code that reads both names via compatibility VIEWs
 3. **Database** — rewrite migrations (tables, FKs, columns `seller_id→merchant_id`) + audit improvements; `migrate:fresh`. *Gate: migrate + schema dump.*
 4. **Routes / URLs / controllers** — `sell.*→shop.*`, `/sell→/shop`, `api/sell→api/shop`, admin `sellers→merchants`; frontend `SellerController→MerchantController`, views moved. *Gate: `route:list`.*
 5. **Frontend terminology & nav IA** — Seller→Merchant labels, dashboard nav to requested IA (existing wired, future stubbed), i18n `__()` strings updated. *Gate: render tests.*
-6. **Cache / flags / commands / ledger** — `sell:→shop:`, `sell_→shop_`, `poisapay:sell-*→shop-*`, ledger string. *Gate: earnings/refund tests.*
+6. **Cache / flags / commands / ledger** — `sell:→shop:`, `sell_→shop_`, `paishapay:sell-*→shop-*`, ledger string. *Gate: earnings/refund tests.*
 7. **Tests & docs** — move `tests/Feature/Sell→Shop`, rename test refs; update ERD/README/architecture docs. *Gate: full suite green.*
 8. **Final sweep** — grep gate returns only intended P2P hits; `route:list`, `migrate:fresh`, full `php artisan test`.
 
@@ -192,7 +192,7 @@ Phases and commits (each gated by the test suite):
 - **P2** — *dropped* (Seller retained; see above).
 - **P3** `ce739ef` — 26 tables `sell_* → shop_*`, FKs, index names, model `$table`, 11 migration files renamed. *143 green.*
 - **P4** `6197dfd` — routes `sell.* → shop.*`, URLs `/sell → /shop`, `api/sell → api/shop`, admin `sell-refunds → shop-refunds`, view dir `admin/sell → admin/shop`. *143 + smoke green.*
-- **P6** `81f0e13` — cache `sell:* → shop:*`, flags/settings `sell_* → shop_*`, commands `poisapay:sell-* → poisapay:shop-*`, `LedgerAccountType::ShopCommissionIncome`, settings section `sell → shop`. *151 green.*
+- **P6** `81f0e13` — cache `sell:* → shop:*`, flags/settings `sell_* → shop_*`, commands `paishapay:sell-* → paishapay:shop-*`, `LedgerAccountType::ShopCommissionIncome`, settings section `sell → shop`. *151 green.*
 - **P5** `ba69efe` — UI rebrand title `Sell → Shop` (dashboard/sidebar/settings); seller dashboard already carried the full IA. *151 green.*
 - **P7** — tests moved `tests/Feature/Sell → tests/Feature/Shop` (+ `Sell*Test → Shop*Test`); docs renamed/updated; this ERD + outcome.
 

@@ -151,7 +151,7 @@ class TrackingManager
         $consentRequired = ! empty($tracking['privacy']['consent_required']) ? 'true' : 'false';
 
         return <<<HTML
-        <!-- PoishaPay tracking runtime -->
+        <!-- PaishaPay tracking runtime -->
         <script>
         (function(){var started=false,q=[],ev={$eventsJson};window.ppTrack=function(t,d){if(!started){q.push([t,d]);return;}(window.__ppTrackers||[]).forEach(function(x){try{x.fire(t,d||{})}catch(e){}})};function start(){if(started)return;started=true;(window.__ppTrackers||[]).forEach(function(x){try{x.init()}catch(e){}});ev.forEach(function(e){window.ppTrack(e.type,e.data)});q.splice(0).forEach(function(z){window.ppTrack(z[0],z[1])})}window.ppTrackingConsent=function(){start()};function dp(el){if(!el||!el.getAttribute)return;var t=el.getAttribute('data-pp-track');if(!t)return;var d={};try{d=JSON.parse(el.getAttribute('data-pp-track-data')||'{}')}catch(e){}window.ppTrack(t,d)}document.addEventListener('click',function(e){dp(e.target.closest&&e.target.closest('[data-pp-track]'))},true);document.addEventListener('submit',function(e){dp(e.target&&e.target.closest&&e.target.closest('[data-pp-track]'))},true);if(!{$consentRequired}){start()}})();
         </script>
