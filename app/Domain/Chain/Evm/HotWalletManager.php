@@ -7,6 +7,7 @@ namespace App\Domain\Chain\Evm;
 use App\Domain\Chain\Evm\Contracts\BlockchainProvider;
 use App\Domain\Ledger\AccountResolver;
 use App\Enums\ChainType;
+use App\Enums\GasWalletHealth;
 use App\Enums\LedgerAccountType;
 use App\Models\Asset;
 use App\Models\Chain;
@@ -25,7 +26,11 @@ class HotWalletManager
         private readonly AccountResolver $accounts,
     ) {}
 
-    /** Pull the native balance from chain into the GasWallet; alert if below threshold. */
+    /**
+     * Pull the native balance from chain into the GasWallet and raise a tiered
+     * alert: WARNING (top up soon, withdrawals continue) or CRITICAL (cannot pay
+     * gas — withdrawals on this chain are held until refilled).
+     */
     public function syncGas(ChainType $chainType): ?GasWallet
     {
         $chain = Chain::where('key', $chainType->value)->first();
@@ -37,10 +42,14 @@ class HotWalletManager
         $wallet->update(['balance' => $this->chain->getBalance($chainType, $wallet->address)]);
         $wallet = $wallet->fresh();
 
-        if ($wallet->isLow()) {
+        $health = $wallet->health();
+        if ($health->isAlertable()) {
+            $critical = $health === GasWalletHealth::Critical;
             notifyAdmins(
-                'Low gas wallet',
-                "The {$chainType->value} gas wallet is below its threshold (balance {$wallet->balance} wei). Top it up to keep sweeps/withdrawals flowing.",
+                $critical ? "Critical: {$chainType->value} gas wallet depleted" : "Low gas wallet ({$chainType->value})",
+                $critical
+                    ? "The {$chainType->value} gas wallet is CRITICALLY LOW (balance {$wallet->balance} wei) and can no longer reliably pay network gas — withdrawals on this chain are paused until it is topped up."
+                    : "The {$chainType->value} gas wallet is below its warning threshold (balance {$wallet->balance} wei). Top it up to keep sweeps/withdrawals flowing.",
                 null,
                 'security',
             );

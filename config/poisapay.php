@@ -98,6 +98,29 @@ return [
         'evm_scan_range' => (int) env('POISAPAY_EVM_SCAN_RANGE', 500),
         // Gas limit used for ERC-20 transfers when estimation is unavailable.
         'evm_transfer_gas' => (int) env('POISAPAY_EVM_TRANSFER_GAS', 90000),
+
+        // Per-chain gas-wallet alert/health thresholds, in native BASE units (wei,
+        // 18 decimals). `warning` = top up soon (alert only, withdrawals continue);
+        // `critical` = the wallet cannot realistically pay network gas, so on-chain
+        // withdrawals for that chain are held until it is refilled. These are the
+        // seed defaults for BlockchainInfraSeeder; the live values are stored per
+        // wallet (gas_wallets.min_threshold / .critical_threshold) and are admin-
+        // editable. A chain that falls back to `default` (or critical=0) keeps
+        // warning-only, non-blocking behaviour — backwards compatible.
+        'gas_thresholds' => [
+            'default' => [
+                'warning' => env('POISAPAY_GAS_WARN_DEFAULT', '500000000000000000'),  // 0.5 native
+                'critical' => env('POISAPAY_GAS_CRIT_DEFAULT', '0'),                   // 0 = no critical tier
+            ],
+            'ethereum' => [
+                'warning' => env('POISAPAY_GAS_WARN_ETHEREUM', '20000000000000000'),   // 0.02 ETH
+                'critical' => env('POISAPAY_GAS_CRIT_ETHEREUM', '5000000000000000'),   // 0.005 ETH
+            ],
+            'bsc' => [
+                'warning' => env('POISAPAY_GAS_WARN_BSC', '50000000000000000'),        // 0.05 BNB
+                'critical' => env('POISAPAY_GAS_CRIT_BSC', '10000000000000000'),       // 0.01 BNB
+            ],
+        ],
     ],
 
     // Currency shown as the user's aggregate total (§F1.1).

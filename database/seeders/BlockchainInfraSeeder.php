@@ -35,12 +35,16 @@ class BlockchainInfraSeeder extends Seeder
                 );
             }
 
+            $gasCfg = config('poisapay.custody.gas_thresholds', []);
+            $thresholds = $gasCfg[$chain->key->value] ?? $gasCfg['default'] ?? ['warning' => '500000000000000000', 'critical' => '0'];
+
             GasWallet::updateOrCreate(
                 ['chain_id' => $chain->id],
                 [
                     'address' => $chain->is_evm ? '0xGAS'.strtoupper($chain->key->value) : 'TGAS'.strtoupper($chain->key->value),
                     'balance' => '5000000000000000000',   // 5 native coins
-                    'min_threshold' => '500000000000000000', // 0.5 native
+                    'min_threshold' => (string) $thresholds['warning'],   // warning tier (top-up alert)
+                    'critical_threshold' => (string) $thresholds['critical'], // critical tier (blocks withdrawals)
                     'is_active' => true,
                 ],
             );

@@ -499,6 +499,13 @@ adds bottom tab bar + global search + dark mode + ≤3-tap withdraw + guest chec
   secp256k1 HD derivation gated by `custody_simulated`.
 - Custody hardening landed (reconciliation, real TRON+EVM sweeps, gas engine,
   verify-then-release) — all money paths flag-gated.
+- **Gas-wallet health is two-tier** (`GasWalletHealth`: Healthy/Warning/Critical). `gas_wallets`
+  carries `min_threshold` (**warning** — top-up alert, withdrawals continue) + `critical_threshold`
+  (**critical** — wallet can't realistically pay gas). `GasWallet::health()` derives the tier;
+  `HotWalletManager::syncGas` raises a warning vs critical alert; `EvmCustodyTickJob` **holds new
+  EVM withdrawal broadcasts only while Critical** (`canPayGas()`), warning never blocks. Seed
+  defaults in `config/poisapay.custody.gas_thresholds` (ETH 0.02/0.005, BSC 0.05/0.01, others
+  0.5/0); `critical_threshold=0` ⇒ legacy warning-only, non-blocking (backwards compatible).
 - KYC withdrawal ceiling is **enforced** (was previously dead); tiers/limits from settings.
 - Run `/security-review` on pending changes before shipping money-path work.
 

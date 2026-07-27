@@ -64,13 +64,21 @@ class EvmCustodyTickJob implements ShouldQueue
 
             $scan->execute($chainType);
             $advanceDeposits->execute($chainType);
-            $hotWallet->syncGas($chainType);
+            $gas = $hotWallet->syncGas($chainType);
             $this->syncHealth($provider, $chain, $chainType);
 
-            Withdrawal::where('status', WithdrawalStatus::Approved)
-                ->whereHas('asset', fn ($q) => $q->where('chain_id', $chain->id))
-                ->get()
-                ->each(fn (Withdrawal $w) => $signer->execute($w));
+            // Gas-health gate: only broadcast NEW withdrawals while the gas wallet can
+            // realistically pay network fees. A CRITICAL wallet holds them (they stay
+            // Approved) until it is topped up; a WARNING wallet still broadcasts. The
+            // signing/broadcasting itself is unchanged — this only decides whether to
+            // attempt it. Confirmations of already-broadcast withdrawals advance below
+            // regardless (never stall an in-flight tx).
+            if ($gas === null || $gas->canPayGas()) {
+                Withdrawal::where('status', WithdrawalStatus::Approved)
+                    ->whereHas('asset', fn ($q) => $q->where('chain_id', $chain->id))
+                    ->get()
+                    ->each(fn (Withdrawal $w) => $signer->execute($w));
+            }
 
             $advanceWithdrawals->execute($chainType);
         }
