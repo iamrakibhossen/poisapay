@@ -28,12 +28,14 @@ class BaseCurrency
     }
 
     /**
-     * Currency the public rate widgets (converter / prices) display in: the signed-in
-     * user's own base currency, else USD. Restricted to fiats the feed can price.
+     * Currency the public rate widgets (converter / prices) display in: the platform
+     * "Base Currency" setting ({@see code()}), restricted to fiats the feed can price
+     * (else USD). These marketing surfaces show the SITE base currency, not any
+     * signed-in viewer's personal choice.
      */
     public static function displayCode(): string
     {
-        $code = strtoupper((string) (auth()->user()?->base_currency ?: ''));
+        $code = strtoupper(self::code());
 
         return in_array($code, self::DISPLAY_FIATS, true) ? $code : 'USD';
     }

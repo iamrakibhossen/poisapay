@@ -18,7 +18,7 @@ use App\Shop\Services\CatalogService;
 
 beforeEach(function () {
     updateSetting('shop_enabled', true);
-    $this->asset = testAsset('USDT', 6, 'tron');
+    $this->asset = fiatAsset('USD', 2); // Shop prices are fiat-only
     $this->user = User::factory()->create();
     $this->seller = Seller::create([
         'user_id' => $this->user->id, 'status' => SellerStatus::Approved, 'categories' => [],

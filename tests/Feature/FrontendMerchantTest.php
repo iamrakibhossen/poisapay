@@ -15,7 +15,8 @@ use Illuminate\Support\Str;
 use function Pest\Laravel\actingAs;
 
 beforeEach(function () {
-    $this->asset = testAsset('USDT', 6, 'tron');
+    $this->asset = fiatAsset('USD', 6); // Merchant Pay invoices in fiat only
+
     $this->ledger = app(LedgerService::class);
     $this->merchant = User::factory()->create(['kyc_tier' => KycTier::Full]);
     $this->payer = User::factory()->create(['kyc_tier' => KycTier::Full]);
@@ -43,7 +44,7 @@ it('renders the merchant console with the merchant profile once registered', fun
 
 it('renders the pay invoice page and 404s for an unknown invoice', function () {
     $invoice = app(CreateInvoiceAction::class)->execute(
-        $this->merchant, $this->asset, Money::ofBase('1000000', 6, 'USDT'), 'PAGE-1'
+        $this->merchant, $this->asset, Money::ofBase('1000000', 6, 'USD'), 'PAGE-1'
     );
 
     actingAs($this->payer)->get(route('pay.invoice', $invoice->id))->assertOk()->assertSee('PAGE-1');
@@ -85,7 +86,7 @@ it('createInvoice creates an invoice for the merchant and redirects', function (
 it('pay moves ledger funds from payer to merchant net of fee', function () {
     creditUser($this->payer, $this->asset, '10000000');
     $invoice = app(CreateInvoiceAction::class)->execute(
-        $this->merchant, $this->asset, Money::ofBase('5000000', 6, 'USDT'), 'PAY-API-1'
+        $this->merchant, $this->asset, Money::ofBase('5000000', 6, 'USD'), 'PAY-API-1'
     );
 
     actingAs($this->payer)->post(route('pay.execute', $invoice->id))
@@ -100,7 +101,7 @@ it('pay moves ledger funds from payer to merchant net of fee', function () {
 it('pay rejects insufficient balance with a validation error', function () {
     creditUser($this->payer, $this->asset, '1000000');
     $invoice = app(CreateInvoiceAction::class)->execute(
-        $this->merchant, $this->asset, Money::ofBase('5000000', 6, 'USDT'), 'PAY-API-2'
+        $this->merchant, $this->asset, Money::ofBase('5000000', 6, 'USD'), 'PAY-API-2'
     );
 
     actingAs($this->payer)->post(route('pay.execute', $invoice->id))->assertSessionHasErrors('invoice');
@@ -110,7 +111,7 @@ it('pay rejects insufficient balance with a validation error', function () {
 
 it('a non-owner cannot cancel or refund an invoice', function () {
     $invoice = app(CreateInvoiceAction::class)->execute(
-        $this->merchant, $this->asset, Money::ofBase('5000000', 6, 'USDT'), 'SCOPE-1'
+        $this->merchant, $this->asset, Money::ofBase('5000000', 6, 'USD'), 'SCOPE-1'
     );
 
     $other = User::factory()->create(['kyc_tier' => KycTier::Full]);
@@ -125,7 +126,7 @@ it('a non-owner cannot cancel or refund an invoice', function () {
 it('the owner can cancel their own pending invoice', function () {
     makeMerchant($this->merchant);
     $invoice = app(CreateInvoiceAction::class)->execute(
-        $this->merchant, $this->asset, Money::ofBase('5000000', 6, 'USDT'), 'CANCEL-1'
+        $this->merchant, $this->asset, Money::ofBase('5000000', 6, 'USD'), 'CANCEL-1'
     );
 
     actingAs($this->merchant)->post(route('merchant.invoice.cancel', $invoice->id))

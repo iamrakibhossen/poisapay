@@ -33,4 +33,13 @@ class TransactionController extends Controller
             'analytics' => $analytics->forUser($request->user()),
         ]);
     }
+
+    /** Unified detail page for a single transaction, resolved by source + id. */
+    public function show(Request $request, string $source, string $id, TransactionFeedService $feed): View
+    {
+        $detail = $feed->detail($request->user(), $source, $id);
+        abort_if($detail === null, 404);
+
+        return view('frontend.transaction-show', ['tx' => $detail]);
+    }
 }

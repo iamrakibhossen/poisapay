@@ -84,8 +84,9 @@ it('quarantines an infected (EICAR) file — not current, not deliverable', func
 it('creating a digital product with a file stores + queues it', function () {
     Queue::fake();
 
+    $fiat = fiatAsset('USD', 2); // Shop prices are fiat-only
     $this->actingAs($this->sellerUser)->post(route('shop.products.store'), [
-        'name' => 'PDF Guide', 'type' => 'digital', 'price' => '9', 'price_asset_id' => $this->asset->id,
+        'name' => 'PDF Guide', 'type' => 'digital', 'price' => '9', 'price_asset_id' => $fiat->id,
         'file' => UploadedFile::fake()->create('guide.pdf', 30, 'application/pdf'),
     ])->assertRedirect(route('shop.products'));
 

@@ -7,6 +7,7 @@
         ['href' => route('products.show', 'virtual-card'), 'label' => __('Virtual Cards'), 'active' => $onProduct('virtual-card')],
         ['href' => route('products.show', 'wallet'), 'label' => __('Wallet'), 'active' => $onProduct('wallet')],
         ['href' => route('products.show', 'exchange'), 'label' => __('Exchange'), 'active' => $onProduct('exchange')],
+        ['href' => route('products.show', 'p2p'), 'label' => __('P2P'), 'active' => $onProduct('p2p')],
         ['href' => route('products.show', 'merchant-pay'), 'label' => __('Merchant Pay'), 'active' => $onProduct('merchant-pay')],
         ['href' => route('help-center'), 'label' => __('Help Center'), 'active' => request()->routeIs('help-center')],
     ];

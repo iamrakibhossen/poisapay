@@ -12,7 +12,7 @@
         }" class="space-y-6">
         {{-- ============================= ONBOARDING ============================= --}}
         @unless ($isMerchant)
-            <x-ui.page-header :title="__('Merchant Pay')" :subtitle="__('Accept crypto payments with shareable, QR-ready invoices — settled straight to your wallet.')" />
+            <x-ui.page-header :title="__('Merchant Pay')" :subtitle="__('Accept fiat payments with shareable, QR-ready invoices — settled straight to your wallet.')" />
 
             {{-- Value hero (always shown so people understand the product before verifying) --}}
             <div class="pp-card relative overflow-hidden bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 p-6 text-white shadow-[var(--shadow-card)] sm:p-8">
@@ -24,11 +24,11 @@
                         </span>
                         <h2 class="mt-4 text-2xl font-bold tracking-tight">{{ __('Turn your account into a payment gateway') }}</h2>
                         <p class="mt-2 max-w-xl text-sm text-white/80">
-                            {{ __('Bill customers in crypto with a link or QR code. When they pay, funds settle to your chosen asset instantly — no gateway, no chargebacks, no monthly fees.') }}
+                            {{ __('Bill customers in fiat with a link or QR code. When they pay, funds settle to your chosen currency instantly — no gateway, no chargebacks, no monthly fees.') }}
                         </p>
                         <ul class="mt-5 grid gap-2 text-sm sm:grid-cols-2">
                             <li class="flex items-center gap-2"><x-heroicon-o-qr-code class="h-4 w-4 shrink-0" /> {{ __('Shareable, QR-ready invoices') }}</li>
-                            <li class="flex items-center gap-2"><x-heroicon-o-bolt class="h-4 w-4 shrink-0" /> {{ __('Instant crypto settlement') }}</li>
+                            <li class="flex items-center gap-2"><x-heroicon-o-bolt class="h-4 w-4 shrink-0" /> {{ __('Instant fiat settlement') }}</li>
                             <li class="flex items-center gap-2"><x-heroicon-o-arrow-uturn-left class="h-4 w-4 shrink-0" /> {{ __('One-click full refunds') }}</li>
                             <li class="flex items-center gap-2"><x-heroicon-o-shield-check class="h-4 w-4 shrink-0" /> {{ __('No chargebacks, ledger-backed') }}</li>
                         </ul>
@@ -40,7 +40,7 @@
                         <div class="mt-4 space-y-1.5 text-xs text-white/70">
                             <p class="flex items-center gap-1.5"><x-heroicon-o-check class="h-3.5 w-3.5" /> {{ __('No setup or monthly fee') }}</p>
                             <p class="flex items-center gap-1.5"><x-heroicon-o-check class="h-3.5 w-3.5" /> {{ __('Fee only on money received') }}</p>
-                            <p class="flex items-center gap-1.5"><x-heroicon-o-check class="h-3.5 w-3.5" /> {{ __('Settlement in the asset you pick') }}</p>
+                            <p class="flex items-center gap-1.5"><x-heroicon-o-check class="h-3.5 w-3.5" /> {{ __('Settlement in the currency you pick') }}</p>
                         </div>
                     </div>
                 </div>
@@ -51,9 +51,9 @@
                 <h3 class="mb-3 px-1 text-sm font-semibold text-neutral-900">{{ __('How Merchant Pay works') }}</h3>
                 <div class="grid gap-4 sm:grid-cols-3">
                     @foreach ([
-                        ['document-plus', __('1. Create an invoice'), __('Enter an amount and asset. We generate a unique payment request with a reference.')],
+                        ['document-plus', __('1. Create an invoice'), __('Enter an amount and currency. We generate a unique payment request with a reference.')],
                         ['qr-code', __('2. Share the QR or link'), __('Send the payment link or show the QR at the counter. Customers pay from any PaishaPay balance.')],
-                        ['banknotes', __('3. Get paid instantly'), __('Funds settle to your wallet in your chosen asset, minus the flat fee. Refund in one click if needed.')],
+                        ['banknotes', __('3. Get paid instantly'), __('Funds settle to your wallet in your chosen currency, minus the flat fee. Refund in one click if needed.')],
                     ] as [$icon, $title, $desc])
                         <div class="pp-card p-5">
                             <span class="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand-600">
@@ -86,7 +86,7 @@
                         </li>
                         <li class="flex items-start gap-3">
                             <span class="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-500"><x-heroicon-s-check class="h-3 w-3" /></span>
-                            <span class="text-neutral-700">{{ __('Your business name and a settlement asset (chosen during registration).') }}</span>
+                            <span class="text-neutral-700">{{ __('Your business name and a settlement currency (chosen during registration).') }}</span>
                         </li>
                     </ul>
                     <div class="mt-5">
@@ -112,7 +112,7 @@
                                     <x-ui.input :label="__('Category (optional)')" name="category" icon="tag"
                                         :value="old('category')" :placeholder="__('e.g. Retail, SaaS')" :error="$errors->first('category')" />
                                     <div>
-                                        <x-ui.select :label="__('Settlement asset')" name="settlementAssetId" id="regSettlementAssetId" :error="$errors->first('settlementAssetId')">
+                                        <x-ui.select :label="__('Settlement currency')" name="settlementAssetId" id="regSettlementAssetId" :error="$errors->first('settlementAssetId')">
                                             <option value="">{{ __('Platform default') }}</option>
                                             @foreach ($assets as $a)
                                                 <option value="{{ $a->id }}" @selected(old('settlementAssetId') == $a->id)>{{ $a->symbol }} — {{ $a->name }}</option>
@@ -138,7 +138,7 @@
                         <x-ui.card :title="__('What you get')">
                             <ul class="space-y-3 text-sm">
                                 <li class="flex items-start gap-3"><x-heroicon-o-check-circle class="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" /><span class="text-neutral-700">{{ __('Unlimited invoices with QR codes and shareable links.') }}</span></li>
-                                <li class="flex items-start gap-3"><x-heroicon-o-check-circle class="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" /><span class="text-neutral-700">{{ __('Instant settlement to your chosen asset.') }}</span></li>
+                                <li class="flex items-start gap-3"><x-heroicon-o-check-circle class="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" /><span class="text-neutral-700">{{ __('Instant settlement to your chosen currency.') }}</span></li>
                                 <li class="flex items-start gap-3"><x-heroicon-o-check-circle class="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" /><span class="text-neutral-700">{{ __('One-click full refunds from your balance.') }}</span></li>
                                 <li class="flex items-start gap-3"><x-heroicon-o-check-circle class="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" /><span class="text-neutral-700">{{ __('A revenue & fees dashboard, updated in real time.') }}</span></li>
                             </ul>
@@ -290,7 +290,7 @@
                         <dd class="mt-0.5 tabular font-medium text-gray-900">{{ $feePct }}</dd>
                     </div>
                     <div>
-                        <dt class="text-gray-500">{{ __('Settlement asset') }}</dt>
+                        <dt class="text-gray-500">{{ __('Settlement currency') }}</dt>
                         <dd class="mt-0.5 font-medium text-gray-900">{{ $merchant->settlementAsset?->symbol ?: '—' }}</dd>
                     </div>
                     <div>
@@ -318,13 +318,13 @@
                             <x-ui.empty-state icon="clock" :title="__('Invoicing locked')"
                                 :description="__('You\'ll be able to create invoices once your merchant account is active.')" />
                         @elseif ($assets->isEmpty())
-                            <x-ui.empty-state icon="cube" :title="__('No crypto assets')"
-                                :description="__('Crypto assets must be configured before you can invoice.')" />
+                            <x-ui.empty-state icon="banknotes" :title="__('No fiat currencies')"
+                                :description="__('Fiat currencies must be configured before you can invoice.')" />
                         @else
                             <form method="POST" action="{{ route('merchant.invoice.create') }}" class="space-y-5">
                                 @csrf
                                 <div>
-                                    <x-ui.select :label="__('Asset')" name="assetId" :error="$errors->first('assetId')">
+                                    <x-ui.select :label="__('Currency')" name="assetId" :error="$errors->first('assetId')">
                                         @foreach ($assets as $a)
                                             <option value="{{ $a->id }}" @selected(old('assetId') == $a->id)>{{ $a->symbol }} — {{ $a->name }}</option>
                                         @endforeach
@@ -425,7 +425,7 @@
                             <x-ui.input :label="__('Category')" name="category" icon="tag"
                                 :value="old('category', $merchant->category)" :error="$errors->first('category')" />
                             <div>
-                                <x-ui.select :label="__('Settlement asset')" name="settlementAssetId" id="editSettlementAssetId" :error="$errors->first('settlementAssetId')">
+                                <x-ui.select :label="__('Settlement currency')" name="settlementAssetId" id="editSettlementAssetId" :error="$errors->first('settlementAssetId')">
                                     <option value="">{{ __('Platform default') }}</option>
                                     @foreach ($assets as $a)
                                         <option value="{{ $a->id }}" @selected(old('settlementAssetId', $merchant->settlement_asset_id) == $a->id)>{{ $a->symbol }} — {{ $a->name }}</option>

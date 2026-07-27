@@ -1641,7 +1641,7 @@ class SellerController extends Controller
             'name' => ['required', 'string', 'max:160'],
             'type' => ['required', 'string', 'in:'.implode(',', array_keys(self::PRODUCT_TYPES))],
             'price' => ['required', 'numeric', 'min:0'],
-            'price_asset_id' => ['required', 'integer', 'exists:assets,id'],
+            'price_asset_id' => ['required', 'integer', 'exists:assets,id,kind,fiat,is_active,1'],
             'summary' => ['nullable', 'string', 'max:300'],
             'description' => ['nullable', 'string'],
             'image' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'], // 2 MB cover
@@ -1813,9 +1813,10 @@ class SellerController extends Controller
     }
 
     /**
-     * Assets a product/settlement may be priced in: fiat + stablecoins only.
-     * Volatile 18-decimal coins are excluded — they make no sense as a listing
-     * price and their minor-unit amounts overflow the int64 price column.
+     * Assets a product/settlement may be priced in: fiat only. Crypto (incl.
+     * stablecoins) is not a valid listing currency for the Shop — buyers can still
+     * fund a purchase from any balance (the Spending Engine converts to the fiat
+     * settlement currency), but the price the merchant sets is always fiat.
      * One asset per currency (the canonical/lowest id).
      *
      * @return Collection<int, array{id:int,symbol:string,name:string}>
@@ -1823,7 +1824,7 @@ class SellerController extends Controller
     private function pricingAssets(): Collection
     {
         return Asset::where('is_active', true)
-            ->where('decimals', '<=', 8)
+            ->where('kind', 'fiat')
             ->get()
             ->groupBy('currency_id')
             ->map(fn ($g) => $g->sortBy('id')->first())

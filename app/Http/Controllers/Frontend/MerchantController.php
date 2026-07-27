@@ -34,15 +34,13 @@ class MerchantController extends Controller
     {
         $user = $request->user();
 
-        // Balances are pooled per coin (USDT/USDC etc. exist as one Asset row per
-        // network), so the merchant only picks a coin — collapse to one canonical
-        // (lowest-id) row per symbol to avoid listing USDT/USDC once per chain.
+        // Merchant Pay invoices in fiat only. One Asset row per fiat currency, so no
+        // per-network pooling is needed — just list the active fiat currencies.
         $assets = Asset::where('is_active', true)
-            ->where('kind', 'crypto')
-            ->orderBy('id')
+            ->where('kind', 'fiat')
+            ->orderBy('sort')
+            ->orderBy('symbol')
             ->get()
-            ->unique('symbol')
-            ->sortBy(fn (Asset $a) => [$a->sort, $a->symbol])
             ->values();
 
         $allowRefunds = (bool) getSetting('merchant_allow_refunds', true);
@@ -170,9 +168,9 @@ class MerchantController extends Controller
             'memo' => 'nullable|string|max:140',
         ]);
 
-        $asset = Asset::where('is_active', true)->where('kind', 'crypto')->find($validated['assetId']);
+        $asset = Asset::where('is_active', true)->where('kind', 'fiat')->find($validated['assetId']);
         if (! $asset) {
-            throw ValidationException::withMessages(['assetId' => 'Please choose a valid crypto asset.']);
+            throw ValidationException::withMessages(['assetId' => 'Please choose a valid fiat currency.']);
         }
 
         try {

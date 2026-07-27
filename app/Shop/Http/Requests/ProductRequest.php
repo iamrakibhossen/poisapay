@@ -28,7 +28,7 @@ class ProductRequest extends FormRequest
             'summary' => ['nullable', 'string', 'max:300'],
             'description' => ['nullable', 'string', 'max:20000'],
             'price_amount' => ['required', 'integer', 'min:0'],
-            'price_asset_id' => ['required', 'integer', Rule::exists('assets', 'id')->where('is_active', true)],
+            'price_asset_id' => ['required', 'integer', Rule::exists('assets', 'id')->where('is_active', true)->where('kind', 'fiat')],
             'compare_price_amount' => ['nullable', 'integer', 'min:0'],
             'requires_shipping' => ['boolean'],
             'attributes' => ['array'],

@@ -23,6 +23,7 @@
                             <th class="px-5 py-3 text-left font-semibold">{{ __('Transaction') }}</th>
                             <th class="px-5 py-3 text-left font-semibold">{{ __('Status') }}</th>
                             <th class="px-5 py-3 text-right font-semibold">{{ __('Amount') }}</th>
+                            <th class="w-8 px-2 py-3"><span class="sr-only">{{ __('View') }}</span></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -57,6 +58,9 @@
                                 </td>
                                 <td class="tabular whitespace-nowrap px-5 py-4 text-right align-middle text-sm font-semibold {{ $isDebit ? 'text-neutral-900' : 'text-emerald-600' }}">
                                     {{ $item['amount'] }}
+                                </td>
+                                <td class="w-8 px-2 py-4 align-middle text-right">
+                                    <x-heroicon-o-chevron-right class="ms-auto h-4 w-4 text-neutral-300 transition group-hover:translate-x-0.5 group-hover:text-brand-500" />
                                 </td>
                             </tr>
                         @endforeach

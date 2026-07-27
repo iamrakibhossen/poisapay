@@ -3,8 +3,6 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Auth\EmailVerificationController;
-use App\Http\Controllers\Seo\RobotsController;
-use App\Http\Controllers\Seo\SitemapController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\LoginController;
@@ -29,6 +27,8 @@ use App\Http\Controllers\Frontend\WithdrawController;
 use App\Http\Controllers\Funnel\PublicSalesController;
 use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\Seo\RobotsController;
+use App\Http\Controllers\Seo\SitemapController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -110,6 +110,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/wallet', [WalletController::class, 'index'])->name('wallet');
     Route::get('/wallet/{asset}', [AssetShowController::class, 'index'])->name('wallet.show');
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions');
+    Route::get('/transactions/{source}/{id}', [TransactionController::class, 'show'])->name('transactions.show');
     Route::get('/rewards', [RewardsController::class, 'index'])->name('rewards');
 
     // ── Wallet mutations ──
