@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
             DealerInventorySeeder::class,
             BlockchainInfraSeeder::class,
             CmsSeeder::class,
+            LegalPagesSeeder::class,
+            HelpFaqSeeder::class,
             CardProviderSeeder::class,
             RewardCampaignSeeder::class,
             NotificationTemplateSeeder::class,
