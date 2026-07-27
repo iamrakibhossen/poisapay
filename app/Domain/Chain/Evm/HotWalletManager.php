@@ -7,12 +7,10 @@ namespace App\Domain\Chain\Evm;
 use App\Domain\Chain\Evm\Contracts\BlockchainProvider;
 use App\Domain\Ledger\AccountResolver;
 use App\Enums\ChainType;
-use App\Enums\GasWalletHealth;
 use App\Enums\LedgerAccountType;
 use App\Models\Asset;
 use App\Models\Chain;
 use App\Models\GasWallet;
-use Brick\Math\BigInteger;
 
 /**
  * EVM hot-wallet + gas management and on-chain reconciliation (Wave 2). Syncs the
@@ -43,22 +41,20 @@ class HotWalletManager
         $wallet->update(['balance' => $this->chain->getBalance($chainType, $wallet->address)]);
         $wallet = $wallet->fresh();
 
-        $health = $wallet->health();
-        if ($health->isAlertable()) {
-            if ($health === GasWalletHealth::Critical) {
-                $title = "Critical: {$chainType->value} gas wallet depleted";
-                $body = "The {$chainType->value} gas wallet is CRITICALLY LOW (balance {$wallet->balance} wei) and can no longer reliably pay network gas — withdrawals on this chain are paused until it is topped up.";
-            } else {
-                // Warning: below the healthy target. Escalate the wording once it slips
-                // past the warning marker (min_threshold) toward critical.
-                $urgent = BigInteger::of((string) $wallet->balance)->isLessThan($wallet->warningThreshold());
-                $title = "Low gas wallet ({$chainType->value})".($urgent ? ' — top up urgently' : '');
-                $body = "The {$chainType->value} gas wallet is below its healthy level (balance {$wallet->balance} wei"
-                    .($urgent ? ', past the warning threshold and approaching critical' : '')
-                    .'). Top it up to restore the healthy buffer and keep sweeps/withdrawals flowing.';
-            }
-
-            notifyAdmins($title, $body, null, 'security');
+        // Alert only on a WARNING-marker breach (min_threshold) or worse. A balance
+        // below the healthy target but still at/above the warning marker is a Warning
+        // *status* (see health()) that does NOT page operators — the wallet can still
+        // comfortably pay gas. Critical additionally holds withdrawals (canPayGas()).
+        if ($wallet->isLow()) {
+            $critical = $wallet->isCritical();
+            notifyAdmins(
+                $critical ? "Critical: {$chainType->value} gas wallet depleted" : "Low gas wallet ({$chainType->value})",
+                $critical
+                    ? "The {$chainType->value} gas wallet is CRITICALLY LOW (balance {$wallet->balance} wei) and can no longer reliably pay network gas — withdrawals on this chain are paused until it is topped up."
+                    : "The {$chainType->value} gas wallet is below its warning threshold (balance {$wallet->balance} wei) — still operating, but top it up before it nears the critical level.",
+                null,
+                'security',
+            );
         }
 
         return $wallet;

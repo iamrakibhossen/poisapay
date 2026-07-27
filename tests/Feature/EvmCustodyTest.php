@@ -20,6 +20,7 @@ use App\Enums\ChainType;
 use App\Enums\DepositStatus;
 use App\Enums\KycTier;
 use App\Enums\WithdrawalStatus;
+use App\Models\Admin;
 use App\Models\Asset;
 use App\Models\Chain;
 use App\Models\Currency;
@@ -29,6 +30,8 @@ use App\Models\DepositAddress;
 use App\Models\GasWallet;
 use App\Models\OnchainTx;
 use App\Models\User;
+use App\Notifications\OperatorNotification;
+use Illuminate\Support\Facades\Notification;
 
 beforeEach(function () {
     // Live custody with a deterministic test seed + the in-memory chain.
@@ -156,4 +159,43 @@ it('syncs the gas wallet balance and alerts when low', function () {
     $wallet = app(HotWalletManager::class)->syncGas(ChainType::Ethereum);
     expect($wallet->balance)->toBe('500000000000000000')
         ->and($wallet->isLow())->toBeTrue();
+});
+
+it('does NOT alert while below the healthy target but at/above the warning marker', function () {
+    Notification::fake();
+    Admin::create(['name' => 'Op', 'email' => 'gas-op@test.local', 'password' => bcrypt('x'), 'is_active' => true]);
+
+    $hot = app(SignerKeyProvider::class)->hotWalletAddress(ChainType::Ethereum);
+    GasWallet::create([
+        'chain_id' => $this->chain->id, 'address' => $hot, 'balance' => '0',
+        'critical_threshold' => '2000000000000000',  // 0.002
+        'min_threshold' => '5000000000000000',        // 0.005 warning marker
+        'healthy_threshold' => '10000000000000000',   // 0.01 healthy target
+        'is_active' => true,
+    ]);
+    $this->fake->setBalance(ChainType::Ethereum, $hot, '7000000000000000'); // 0.007: < healthy, > warning
+
+    $wallet = app(HotWalletManager::class)->syncGas(ChainType::Ethereum);
+
+    expect($wallet->health()->value)->toBe('warning')   // status is Warning...
+        ->and($wallet->canPayGas())->toBeTrue();         // ...but not blocked
+    Notification::assertNothingSent(); // ...and no operator alert
+});
+
+it('alerts once the balance breaches the warning marker (still not blocked above critical)', function () {
+    Notification::fake();
+    Admin::create(['name' => 'Op', 'email' => 'gas-op2@test.local', 'password' => bcrypt('x'), 'is_active' => true]);
+
+    $hot = app(SignerKeyProvider::class)->hotWalletAddress(ChainType::Ethereum);
+    GasWallet::create([
+        'chain_id' => $this->chain->id, 'address' => $hot, 'balance' => '0',
+        'critical_threshold' => '2000000000000000', 'min_threshold' => '5000000000000000',
+        'healthy_threshold' => '10000000000000000', 'is_active' => true,
+    ]);
+    $this->fake->setBalance(ChainType::Ethereum, $hot, '3000000000000000'); // 0.003: < warning, > critical
+
+    $wallet = app(HotWalletManager::class)->syncGas(ChainType::Ethereum);
+
+    expect($wallet->canPayGas())->toBeTrue(); // warning breach still pays gas
+    Notification::assertSentTimes(OperatorNotification::class, 1);
 });
