@@ -207,8 +207,20 @@ Shop/         commerce bounded context (App\Shop, ShopServiceProvider)
 - Frontend display currency via `App\Support\BaseCurrency` (user choice → admin default);
   a currency only works if its fiat asset exists in `RegistrySeeder`.
 - Swaps trade against house `TradingInventory` (starts at 0, no seeder). Empty inventory →
-  "Insufficient X liquidity" and Confirm silently fails. Fund via
+  ExchangeService throws `RuntimeException("Insufficient X liquidity…")`. Fund via
   `php artisan paishapay:inject-inventory {assetId} {amount}` (or `DealerInventorySeeder`).
+  The consumer swap targets the **canonical (lowest-id) network asset** per coin
+  (`ExchangeController` comment), so fund *that* asset's `dealer:inventory` — not an
+  alternate-network row.
+- **Consumer money-path error UX (`ExchangeController::confirm`/`quote`):** business
+  failures are plain `RuntimeException` (SwapPolicy + ExchangeService) → catch and show
+  the **exact message**; any other `\Throwable` → `Log::error` with context + generic
+  "Something went wrong." On a confirm failure, **re-flash the quote + form input**
+  (`backToConfirm`) so the confirm panel stays open (its `$activeQuote` gate would
+  otherwise drop it → the old *silent failure*), and flash a top-level `error` toast in
+  addition to the inline `quoteId` error. This is the pattern for any redirect+flash
+  money-path form: catch business exceptions, re-flash the state that keeps the panel
+  rendered, never let a handled exception render nothing.
 
 ---
 

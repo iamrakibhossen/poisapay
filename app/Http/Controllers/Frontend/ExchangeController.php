@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Domain\Analytics\FlowAnalytics;
 use App\Domain\Exchange\Contracts\RateProvider;
 use App\Domain\Exchange\ExchangeService;
 use App\Domain\Exchange\ExecuteSwapAction;
@@ -22,8 +23,10 @@ use Brick\Math\RoundingMode;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use RuntimeException;
 
 /**
  * Exchange / swap — traditional server-rendered MVC. {@see index()} renders the
@@ -169,7 +172,7 @@ class ExchangeController extends Controller
 
     /**
      * All-time (or since $since) swap volume, valued in the user's base currency
-     * from the amount paid in. Mirrors {@see \App\Domain\Analytics\FlowAnalytics}.
+     * from the amount paid in. Mirrors {@see FlowAnalytics}.
      */
     private function swapVolumeInBaseCurrency($user, ?\DateTimeInterface $since = null): string
     {
@@ -237,8 +240,18 @@ class ExchangeController extends Controller
             $policy->assertEligible($request->user());
             $policy->assertWithinDailyLimit($request->user(), $from, $amount);
             $quote = $exchange->quote($request->user(), $from, $to, $amount, ConversionContext::Swap);
-        } catch (\Throwable $e) {
+        } catch (RuntimeException $e) {
+            // Expected business failure (eligibility, limit, unsupported pair, no rate…) — safe to show.
             throw ValidationException::withMessages(['fromAmount' => $e->getMessage()]);
+        } catch (\Throwable $e) {
+            Log::error('Swap quote failed unexpectedly', [
+                'user_id' => $request->user()->id,
+                'from' => $from->symbol,
+                'to' => $to->symbol,
+                'exception' => $e,
+            ]);
+
+            throw ValidationException::withMessages(['fromAmount' => __('Something went wrong. Please try again.')]);
         }
 
         return redirect()->route('exchange.index')
@@ -252,22 +265,62 @@ class ExchangeController extends Controller
 
         $quote = FxQuote::with(['fromAsset', 'toAsset'])->find($validated['quoteId']);
         if (! $quote || $quote->user_id !== $request->user()->id) {
-            throw ValidationException::withMessages(['quoteId' => 'Quote not found. Please request a new one.']);
+            // No valid quote to re-open the panel with — surface as a top-level
+            // toast (session error) and keep the error bag for the inline field.
+            return redirect()->route('exchange.index')
+                ->with('error', __('Quote not found. Please request a new one.'))
+                ->withErrors(['quoteId' => __('Quote not found. Please request a new one.')]);
         }
 
         if ($quote->expires_at->isPast()) {
-            throw ValidationException::withMessages(['quoteId' => 'Quote expired. Please request a new quote.']);
+            return redirect()->route('exchange.index')
+                ->with('error', __('Quote expired. Please request a new quote.'))
+                ->withErrors(['quoteId' => __('Quote expired. Please request a new quote.')]);
         }
 
         // Idempotent by the quote itself — a double-submit returns the same
         // conversion instead of swapping twice (the Action derives the key).
         try {
             $action->execute($request->user(), $quote);
+        } catch (RuntimeException $e) {
+            // Expected business failure (liquidity, daily limit, KYC, disabled
+            // pair…) — show the exact reason and keep the confirm panel open.
+            return $this->backToConfirm($quote, $e->getMessage());
         } catch (\Throwable $e) {
-            throw ValidationException::withMessages(['quoteId' => $e->getMessage()]);
+            // Unexpected — log with context, never leak internals to the user.
+            Log::error('Swap confirm failed unexpectedly', [
+                'user_id' => $request->user()->id,
+                'quote_id' => $quote->id,
+                'exception' => $e,
+            ]);
+
+            return $this->backToConfirm($quote, __('Something went wrong. Please try again.'));
         }
 
         return redirect()->route('exchange.index')->with('success', 'Swap complete.');
+    }
+
+    /**
+     * Redirect back to the swap form with the confirm panel still open and the
+     * failure surfaced both inline (quoteId error) and as a toast. Re-flashing
+     * the quote + the original form input is what keeps {@see index()}'s
+     * `$activeQuote` alive across the redirect — without it the panel (and its
+     * error) would vanish, which read as a silent failure.
+     */
+    private function backToConfirm(FxQuote $quote, string $message): RedirectResponse
+    {
+        $quote->loadMissing(['fromAsset', 'toAsset']);
+        $view = $this->quoteView($quote);
+
+        return redirect()->route('exchange.index')
+            ->with('quote', $view)
+            ->with('error', $message)
+            ->withErrors(['quoteId' => $message])
+            ->withInput([
+                'fromAssetId' => $view['fromAssetId'],
+                'toAssetId' => $view['toAssetId'],
+                'fromAmount' => $view['fromAmountInput'],
+            ]);
     }
 
     /**

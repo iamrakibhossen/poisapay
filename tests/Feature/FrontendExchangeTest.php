@@ -83,6 +83,27 @@ it('confirms a quote and moves both balances', function () {
         ->and($this->ledger->availableBalance($this->user, $this->trx->id)->isPositive())->toBeTrue();
 });
 
+it('surfaces a business failure on confirm instead of failing silently', function () {
+    // TRX has dealer inventory; USDT has none — so TRX→USDT trips the liquidity
+    // guard on confirm. This must NOT vanish silently: the quote is re-flashed
+    // (panel stays open), a toast error fires, and the exact reason is shown.
+    creditUser($this->user, $this->trx, '100000000000000000000'); // 100 TRX
+
+    $quoteId = actingAs($this->user)->post(route('exchange.quote'), [
+        'fromAssetId' => $this->trx->id, 'toAssetId' => $this->usdt->id, 'fromAmount' => '10',
+    ])->getSession()->get('quote')['quoteId'];
+
+    actingAs($this->user)->post(route('exchange.confirm'), ['quoteId' => $quoteId])
+        ->assertRedirect(route('exchange.index'))
+        ->assertSessionHas('quote')  // confirm panel re-rendered, not lost
+        ->assertSessionHas('error')  // top-level toast
+        ->assertSessionHasErrors(['quoteId' => 'Insufficient USDT liquidity to fill this conversion.']);
+
+    // Nothing moved — the swap did not execute.
+    expect($this->ledger->availableBalance($this->user, $this->usdt->id)->baseString())->toBe('0')
+        ->and($this->ledger->availableBalance($this->user, $this->trx->id)->baseString())->toBe('100000000000000000000');
+});
+
 it('rejects confirming an expired quote', function () {
     creditUser($this->user, $this->usdt, '10000000');
 
