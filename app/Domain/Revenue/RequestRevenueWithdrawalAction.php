@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Revenue;
 
 use App\Domain\Audit\ActivityLogger;
+use App\Domain\Withdrawal\WithdrawalAddressValidator;
 use App\Enums\RevenueWithdrawalStatus;
 use App\Models\Admin;
 use App\Models\Asset;
@@ -21,7 +22,10 @@ use RuntimeException;
  */
 class RequestRevenueWithdrawalAction
 {
-    public function __construct(private readonly RevenueService $revenue) {}
+    public function __construct(
+        private readonly RevenueService $revenue,
+        private readonly WithdrawalAddressValidator $addresses,
+    ) {}
 
     public function execute(Admin $operator, Asset $asset, Money $amount, string $network, string $destinationAddress, ?string $note = null): RevenueWithdrawal
     {
@@ -31,6 +35,9 @@ class RequestRevenueWithdrawalAction
         if (trim($destinationAddress) === '') {
             throw new RuntimeException('A destination address is required.');
         }
+
+        // The payout address must match the asset's network (TRON T… / EVM 0x…).
+        $this->addresses->validate($asset, $destinationAddress);
 
         $available = $this->revenue->balance($asset);
         if ($amount->isGreaterThanOrEqual($available) && ! $amount->equals($available)) {

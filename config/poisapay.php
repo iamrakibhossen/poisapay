@@ -3,10 +3,14 @@
 declare(strict_types=1);
 
 return [
-    // Custody is simulated until a real HD deriver + chain watcher/signer are wired.
-    // While true, crypto deposit addresses are demo-only — the platform does NOT
-    // hold their keys, so a "do not send real funds" notice is shown. Set false
-    // (POISAPAY_CUSTODY_LIVE=true) once real on-chain custody is integrated.
+    // Custody mode — the SINGLE source of truth (read via App\Domain\Custody\CustodyMode).
+    // SIMULATED (default): deposit addresses are demo-only (the platform does NOT hold
+    // their keys — "do not send real funds"), and withdrawals never broadcast on-chain.
+    // LIVE (POISAPAY_CUSTODY_LIVE=true): real HD keys/signers/RPC — withdrawals only
+    // process when CustodyReadiness passes (signer + funded gas + reachable RPC), and a
+    // real tx hash is always stored (never fabricated). Run `paishapay:custody-doctor`
+    // before flipping; the "custody_simulated" SETTING must agree with this flag or the
+    // consistency guard fails fast (no split-brain / silent fake broadcasts).
     'custody_simulated' => ! filter_var(env('POISAPAY_CUSTODY_LIVE', false), FILTER_VALIDATE_BOOL),
 
     // Real custody configuration (used only when custody_simulated is false).

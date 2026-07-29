@@ -4,21 +4,27 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Domain\Custody\CustodyReadiness;
 use App\Domain\Revenue\ProcessRevenueWithdrawalAction;
+use App\Domain\Revenue\RevenueWithdrawalBroadcaster;
+use App\Enums\ChainType;
 use App\Enums\RevenueWithdrawalStatus;
 use App\Models\RevenueWithdrawal;
-use App\Support\Money;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use RuntimeException;
+use Throwable;
 
 /**
- * Broadcast an approved revenue withdrawal to the chain (§Finance workflow).
- * Custody is simulated, so this stamps a simulated tx hash + gas and completes.
- * When real custody is wired, the signer/broadcaster slots in here; a thrown
- * error routes the withdrawal to Failed (which reverses the ledger entry).
+ * Broadcast an approved revenue withdrawal to the chain. Live custody only:
+ * it requires a ready signer/hot wallet, funded gas, and a reachable RPC
+ * ({@see CustodyReadiness}), then broadcasts via {@see RevenueWithdrawalBroadcaster}
+ * and stamps the REAL tx hash. It NEVER fabricates a hash — if custody isn't ready
+ * (or is simulated), the withdrawal is marked Failed, which reverses the ledger
+ * entry so the revenue returns to the wallet.
  */
 class BroadcastRevenueWithdrawalJob implements ShouldQueue
 {
@@ -28,8 +34,11 @@ class BroadcastRevenueWithdrawalJob implements ShouldQueue
 
     public function __construct(public string $withdrawalId) {}
 
-    public function handle(ProcessRevenueWithdrawalAction $process): void
-    {
+    public function handle(
+        ProcessRevenueWithdrawalAction $process,
+        RevenueWithdrawalBroadcaster $broadcaster,
+        CustodyReadiness $readiness,
+    ): void {
         $withdrawal = RevenueWithdrawal::with('asset.chain')->find($this->withdrawalId);
         if (! $withdrawal || $withdrawal->status !== RevenueWithdrawalStatus::Approved) {
             return;
@@ -38,19 +47,24 @@ class BroadcastRevenueWithdrawalJob implements ShouldQueue
         $process->setStatus($withdrawal, RevenueWithdrawalStatus::Broadcasting);
 
         try {
-            // --- Real signer/broadcaster would run here (custody-live). ---
+            $chain = $withdrawal->asset->chain?->key; // Chain::$key is cast to ChainType
+            if ($chain === null) {
+                throw new RuntimeException('Revenue withdrawal asset is not on a broadcastable chain.');
+            }
+
+            // Live custody + readiness are mandatory. No fallback, no fake hash.
+            $readiness->assertReady($chain);
+
             $process->setStatus($withdrawal, RevenueWithdrawalStatus::Processing);
+            $result = $broadcaster->broadcast($withdrawal);
 
-            $txHash = '0x'.substr(hash('sha256', $withdrawal->id.$withdrawal->idempotency_key), 0, 64);
-            $gas = Money::ofBase('300000000000000', 18, $withdrawal->asset->chain?->native_symbol ?? 'ETH'); // ~0.0003 native
-
-            $process->markCompleted($withdrawal, $txHash, $gas);
-        } catch (\Throwable $e) {
+            $process->markCompleted($withdrawal, $result['tx_hash'], $result['gas']);
+        } catch (Throwable $e) {
             $process->markFailed($withdrawal, $e->getMessage());
         }
     }
 
-    public function failed(\Throwable $e): void
+    public function failed(Throwable $e): void
     {
         app(ProcessRevenueWithdrawalAction::class)->markFailed(
             RevenueWithdrawal::findOrFail($this->withdrawalId),

@@ -7,6 +7,7 @@ namespace App\Domain\Reconciliation;
 use App\Domain\Chain\Evm\HotWalletManager;
 use App\Domain\Chain\Tron\TronGridClient;
 use App\Domain\Custody\Contracts\SignerKeyProvider;
+use App\Domain\Custody\CustodyMode;
 use App\Domain\Ledger\AccountResolver;
 use App\Enums\LedgerAccountType;
 use App\Models\Asset;
@@ -41,7 +42,7 @@ class CustodyReconciler
      */
     public function hotBalanceBase(Asset $asset): ?string
     {
-        if (config('poisapay.custody_simulated') || $asset->contract_address === null) {
+        if (CustodyMode::isSimulated() || $asset->contract_address === null) {
             return null;
         }
 
@@ -69,7 +70,11 @@ class CustodyReconciler
      */
     public function reconcile(?string $toleranceBase = null): array
     {
-        if (config('poisapay.custody_simulated')) {
+        // Fail fast if the custody-mode flags disagree — never reconcile against an
+        // ambiguous mode.
+        CustodyMode::assertConsistent();
+
+        if (CustodyMode::isSimulated()) {
             return []; // nothing real to reconcile under simulated custody
         }
 

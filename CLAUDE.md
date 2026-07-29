@@ -600,6 +600,22 @@ adds bottom tab bar + global search + dark mode + ≤3-tap withdraw + guest chec
   secp256k1 HD derivation gated by `custody_simulated`.
 - Custody hardening landed (reconciliation, real TRON+EVM sweeps, gas engine,
   verify-then-release) — all money paths flag-gated.
+- **Custody mode = one source of truth** (`App\Domain\Custody\CustodyMode`, reads
+  `config('poisapay.custody_simulated')` = `!POISAPAY_CUSTODY_LIVE`). `CustodyMode::assertConsistent()`
+  **fails fast** if the settings-engine `custody_simulated` flag disagrees with the config (prevents
+  the split-brain that let a live config + simulated signer stamp a **fake** revenue tx hash). Align
+  with `php artisan paishapay:custody-doctor [--sync]`.
+- **No simulated withdrawal paths in live mode.** `BroadcastRevenueWithdrawalJob` no longer fabricates
+  a hash — it requires `CustodyReadiness::assertReady($chain)` (live mode + signer/hot-wallet + funded
+  gas + reachable RPC) and broadcasts via `RevenueWithdrawalBroadcaster` (real EVM/TRON signer,
+  mirrors the user-withdrawal signers), storing the **real** tx hash. If not ready/simulated →
+  `markFailed` (reverses the ledger), never a fake completion.
+- **Withdrawal addresses are network-validated** (`WithdrawalAddressValidator`, wired into
+  `WithdrawController::submit`, `RequestWithdrawalAction`, `RequestRevenueWithdrawalAction`): TRON must
+  start with `T`, EVM must start with `0x` (+ 20-byte hex). Prevents the cross-network mistake (e.g.
+  BEP-20 USDT → a TRON `T…` address) that can never settle. `CustodyReadiness` refuses withdrawals
+  when any signer/gas/RPC is unavailable. Tests: `tests/Feature/Custody/LiveCustodyTest.php`,
+  `RevenueWithdrawalTest` (now runs the real broadcast via the `'fake'` BlockchainProvider driver).
 - **Gas-wallet health is three-tier** (`GasWalletHealth`: Healthy/Warning/Critical), thresholds
   ordered `critical_threshold ≤ min_threshold (warning) ≤ healthy_threshold` on `gas_wallets`.
   `GasWallet::health()`: Healthy at/above `healthy_threshold`; Critical below `critical_threshold`

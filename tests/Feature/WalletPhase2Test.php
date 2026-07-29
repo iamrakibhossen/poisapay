@@ -35,11 +35,11 @@ it('requests a withdrawal through the withdraw page (reserves funds)', function 
 
     // Backend path (the UI wraps this) reserves funds available -> locked.
     $w = app(RequestWithdrawalAction::class)->execute(
-        $user, $this->asset, Money::ofBase('2000000', 6, 'USDT'), 'TdestAddr', 'ui-wd-1'
+        $user, $this->asset, Money::ofBase('2000000', 6, 'USDT'), 'TRee4QxddRp4hS9BsavhxWEqKbLif8dVYe', 'ui-wd-1'
     );
 
     expect($this->ledger->lockedBalance($user, $this->asset->id)->isPositive())->toBeTrue()
-        ->and($w->to_address)->toBe('TdestAddr');
+        ->and($w->to_address)->toBe('TRee4QxddRp4hS9BsavhxWEqKbLif8dVYe');
 });
 
 it('renders the transactions history page', function () {

@@ -11,6 +11,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property-read Asset $asset
+ * @property string $amount
+ * @property string $destination_address
+ */
 class RevenueWithdrawal extends Model
 {
     use HasUuids, SoftDeletes;

@@ -37,6 +37,7 @@ class RequestWithdrawalAction
         private readonly VelocityGuard $velocity,
         private readonly TravelRuleService $travelRule,
         private readonly WithdrawalLimitGuard $limits,
+        private readonly WithdrawalAddressValidator $addresses,
     ) {}
 
     /**
@@ -72,8 +73,10 @@ class RequestWithdrawalAction
             ]);
         }
 
-        // Address whitelist (on-chain destinations only; feature-gated, no-op when off).
+        // On-chain destinations must match the asset's network (TRON T… / EVM 0x…);
+        // then the address whitelist (feature-gated, no-op when off).
         if ($payoutMethod === null) {
+            $this->addresses->validate($asset, $toAddress);
             $this->addressBook->assertWithdrawable($user, $toAddress, $asset->chain_id);
         }
 

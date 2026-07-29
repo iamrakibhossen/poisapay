@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Domain\Analytics\FlowAnalytics;
 use App\Domain\Audit\ActivityLogger;
 use App\Domain\Auth\TwoFactorService;
 use App\Domain\Exchange\Contracts\RateProvider;
 use App\Domain\Fees\PlatformFees;
 use App\Domain\Wallet\WalletService;
+use App\Domain\Withdrawal\Exceptions\InvalidWithdrawalAddressException;
 use App\Domain\Withdrawal\RequestWithdrawalAction;
+use App\Domain\Withdrawal\WithdrawalAddressValidator;
 use App\Http\Controllers\Controller;
 use App\Models\Asset;
 use App\Models\PayoutAccount;
@@ -206,7 +209,7 @@ class WithdrawController extends Controller
 
     /**
      * All-time completed withdrawals, valued in the user's base currency.
-     * Mirrors {@see \App\Domain\Analytics\FlowAnalytics} so the figure never drifts.
+     * Mirrors {@see FlowAnalytics} so the figure never drifts.
      */
     private function sentInBaseCurrency($user): string
     {
@@ -555,6 +558,14 @@ class WithdrawController extends Controller
         }
 
         $toAddress = trim($validated['toAddress']);
+
+        // Reject a destination that doesn't match the asset's network (TRON T… / EVM 0x…)
+        // before reserving funds — a mismatched address can never settle on-chain.
+        try {
+            app(WithdrawalAddressValidator::class)->validate($asset, $toAddress);
+        } catch (InvalidWithdrawalAddressException $e) {
+            throw ValidationException::withMessages(['toAddress' => $e->getMessage()]);
+        }
 
         try {
             $withdrawal = $action->execute(

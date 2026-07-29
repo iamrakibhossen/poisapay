@@ -118,7 +118,7 @@ it('requests a revenue withdrawal without moving money', function () {
     $response = actingAs($this->operator, 'admin')->post(route('admin.revenue-wallet.withdraw'), [
         'amount' => '0.4',
         'network' => 'tron',
-        'destination' => '0xabc',
+        'destination' => 'TdestExchange',
         'password' => 'password',
     ]);
 
@@ -137,7 +137,7 @@ it('rejects a revenue withdrawal with the wrong password', function () {
         ->post(route('admin.revenue-wallet.withdraw'), [
             'amount' => '0.4',
             'network' => 'tron',
-            'destination' => '0xabc',
+            'destination' => 'TdestExchange',
             'password' => 'wrong-password',
         ]);
 
@@ -149,7 +149,7 @@ it('approves a pending revenue withdrawal and moves the ledger', function () {
     Queue::fake();
     seedFee($this->ledger, $this->resolver, $this->usdt, '1000000');
     $w = app(RequestRevenueWithdrawalAction::class)->execute(
-        $this->operator, $this->usdt, Money::ofBase('400000', 6, 'USDT'), 'tron', '0xabc'
+        $this->operator, $this->usdt, Money::ofBase('400000', 6, 'USDT'), 'tron', 'TdestExchange'
     );
 
     $response = actingAs($this->operator, 'admin')->post(route('admin.revenue-withdrawals.approve', $w->id), [
