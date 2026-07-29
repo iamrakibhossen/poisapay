@@ -68,7 +68,7 @@ class CustodyDoctorCommand extends Command
     /** @return list<ChainType> */
     private function chainsWithTokens(): array
     {
-        $keys = Asset::whereNotNull('contract_address')->where('is_active', true)
+        $keys = Asset::whereNotNull('contract_address')->where('assets.is_active', true)
             ->join('chains', 'assets.chain_id', '=', 'chains.id')
             ->distinct()->pluck('chains.key')->all();
 
