@@ -22,6 +22,7 @@ use App\Enums\OnchainTxStatus;
 use App\Models\Admin;
 use App\Models\Asset;
 use App\Models\Chain;
+use App\Models\GasWallet;
 use App\Models\OnchainTx;
 use App\Support\Money;
 use Illuminate\Console\Command;
@@ -184,6 +185,12 @@ class WithdrawGasCommand extends Command
             return self::FAILURE;
         }
 
+        // On-chain native base-unit scale — EVM wei = 18, TRON sun = 6. This is the scale
+        // the RPC balance/transfer amounts are in, NOT the ledger asset's `decimals` (native
+        // rows are a uniform 18 in the registry, which is wrong for TRON's 6-dp sun and would
+        // misscale every displayed/parsed figure by 1e12). All display + --amount parsing use it.
+        $nativeDecimals = $chainType->isEvm() ? 18 : 6;
+
         // 6. Estimate the network fee and derive the maximum spendable amount.
         //    Capture the EVM gas params ONCE so the broadcast uses the same numbers the
         //    max-amount was sized against (avoids a value+fee > balance race).
@@ -199,8 +206,8 @@ class WithdrawGasCommand extends Command
         if (bccomp($maxBase, '0') <= 0) {
             $this->error(sprintf(
                 'Balance %s is too low to cover the estimated network fee %s.',
-                $asset->money($balanceBase)->format(),
-                $asset->money($feeBase)->format(),
+                $this->fmt($balanceBase, $nativeDecimals, $asset->symbol),
+                $this->fmt($feeBase, $nativeDecimals, $asset->symbol),
             ));
 
             return self::FAILURE;
@@ -210,7 +217,7 @@ class WithdrawGasCommand extends Command
         $amountOpt = $this->option('amount');
         if ($amountOpt !== null && $amountOpt !== '') {
             try {
-                $amountBase = Money::ofDecimal((string) $amountOpt, $asset->decimals, $asset->symbol)->baseString();
+                $amountBase = Money::ofDecimal((string) $amountOpt, $nativeDecimals, $asset->symbol)->baseString();
             } catch (Throwable $e) {
                 $this->error("Invalid --amount “{$amountOpt}”.");
 
@@ -224,10 +231,10 @@ class WithdrawGasCommand extends Command
             if (bccomp($amountBase, $maxBase) > 0) {
                 $this->error(sprintf(
                     'Requested %s exceeds the max spendable %s (balance %s − fee %s).',
-                    $asset->money($amountBase)->format(),
-                    $asset->money($maxBase)->format(),
-                    $asset->money($balanceBase)->format(),
-                    $asset->money($feeBase)->format(),
+                    $this->fmt($amountBase, $nativeDecimals, $asset->symbol),
+                    $this->fmt($maxBase, $nativeDecimals, $asset->symbol),
+                    $this->fmt($balanceBase, $nativeDecimals, $asset->symbol),
+                    $this->fmt($feeBase, $nativeDecimals, $asset->symbol),
                 ));
 
                 return self::FAILURE;
@@ -243,10 +250,10 @@ class WithdrawGasCommand extends Command
             ['Asset', $asset->symbol],
             ['Source (hot wallet)', $hot],
             ['Destination', $to],
-            ['Current balance', $asset->money($balanceBase)->format()],
-            ['Estimated network fee', $asset->money($feeBase)->format()],
-            ['Max withdrawable', $asset->money($maxBase)->format()],
-            ['Amount to send', $asset->money($amountBase)->format()],
+            ['Current balance', $this->fmt($balanceBase, $nativeDecimals, $asset->symbol)],
+            ['Estimated network fee', $this->fmt($feeBase, $nativeDecimals, $asset->symbol)],
+            ['Max withdrawable', $this->fmt($maxBase, $nativeDecimals, $asset->symbol)],
+            ['Amount to send', $this->fmt($amountBase, $nativeDecimals, $asset->symbol)],
             ['Acting admin', $admin !== null ? $admin->name : 'CLI operator (system)'],
         ]);
 
@@ -277,7 +284,8 @@ class WithdrawGasCommand extends Command
         }
 
         // 11. Record the on-chain tx + audit trail.
-        $onchain = DB::transaction(function () use ($chain, $asset, $txHash, $hot, $to, $amountBase, $feeBase, $chainType, $admin) {
+        $amountDisplay = $this->fmt($amountBase, $nativeDecimals, $asset->symbol);
+        $onchain = DB::transaction(function () use ($chain, $asset, $txHash, $hot, $to, $amountBase, $feeBase, $chainType, $admin, $amountDisplay) {
             $tx = OnchainTx::create([
                 'chain_id' => $chain->id,
                 'tx_hash' => strtolower($txHash),
@@ -297,10 +305,10 @@ class WithdrawGasCommand extends Command
                 'source' => $hot,
                 'destination' => $to,
                 'amount' => $amountBase,
-                'amount_display' => $asset->money($amountBase)->format(),
+                'amount_display' => $amountDisplay,
                 'network_fee' => $feeBase,
                 'tx_hash' => strtolower($txHash),
-            ], "Admin gas withdrawal: {$asset->money($amountBase)->format()} → {$to}", actor: $admin);
+            ], "Admin gas withdrawal: {$amountDisplay} → {$to}", actor: $admin);
 
             return $tx;
         });
@@ -313,9 +321,35 @@ class WithdrawGasCommand extends Command
 
         // 12. Wait for confirmation (best-effort), then re-sync the gas wallet balance.
         $this->awaitConfirmation($chainType, $onchain, (int) $this->option('wait'));
-        $this->hotWallets->syncGas($chainType);
+        $this->syncGasBalance($chainType, $hot, $chain->id);
 
         return self::SUCCESS;
+    }
+
+    /** Format an on-chain base-unit amount at the chain's native scale (NOT the ledger asset decimals). */
+    private function fmt(string $base, int $decimals, string $symbol): string
+    {
+        return Money::ofBase($base, $decimals, $symbol)->format();
+    }
+
+    /**
+     * Refresh the tracked gas-wallet balance after a sweep (best-effort). EVM goes through
+     * the existing HotWalletManager; TRON reads sun directly (HotWalletManager is EVM-only).
+     */
+    private function syncGasBalance(ChainType $chainType, string $hot, int $chainId): void
+    {
+        try {
+            if ($chainType->isEvm()) {
+                $this->hotWallets->syncGas($chainType);
+
+                return;
+            }
+
+            $wallet = GasWallet::where('chain_id', $chainId)->first();
+            $wallet?->update(['balance' => $this->tron->accountTrxBalance($hot)]);
+        } catch (Throwable $e) {
+            // non-fatal: the sweep already succeeded; gas jobs will re-sync
+        }
     }
 
     /**
