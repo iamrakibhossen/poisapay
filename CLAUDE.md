@@ -626,6 +626,22 @@ adds bottom tab bar + global search + dark mode + ≤3-tap withdraw + guest chec
   0.005/0.01/0.03; others 0.5 warning only). `critical_threshold=0` ⇒ never blocks and
   `healthy_threshold=0` ⇒ warning is the healthy line — legacy behaviour, backwards compatible.
 - KYC withdrawal ceiling is **enforced** (was previously dead); tiers/limits from settings.
+- **Admin gas withdrawal** (`paishapay:withdraw-gas`, `app/Console/Commands/WithdrawGasCommand.php`): operator
+  CLI to sweep remaining **native** gas (TRX/ETH/BNB) from a hot wallet to an external treasury during the
+  wind-down. Flag-gated default-OFF **`gas_withdrawal_enabled`**. Options `--chain=tron|ethereum|bsc --to=
+  --amount= --admin= --wait= --dry-run`. **Reuses the custody primitives** (SignerKeyProvider,
+  Secp256k1Signer, Eip1559Transaction, NonceManager, GasEstimationService, BlockchainProvider,
+  TronGridClient) — it only adds the native value-transfer the token signers don't cover (EVM: value+`0x`
+  data, gasLimit `21000`; TRON: `TronGridClient::createTrxTransfer`). Gated by `CustodyReadiness::assertReady`
+  (hard on broadcast, warn-only on `--dry-run`), destination checked by `WithdrawalAddressValidator`. Requires
+  a typed **`CONFIRM`** before broadcasting. **No double-entry ledger posting on purpose** — the native gas
+  float is off-ledger (lives in `GasWallet.balance`, synced from chain), is not a customer liability, and
+  posting it against `treasury:hot` would distort reserve solvency; the movement is recorded via an
+  **`OnchainTx`** (`direction=out`) + an **`ActivityLogger`** `gas.withdrawal` audit entry (chain/asset/source/
+  destination/amount/fee/tx_hash/admin), then `HotWalletManager::syncGas` re-syncs the gas wallet. Max-sweep
+  sizes the amount against the same `GasEstimationService::suggest()` call used to broadcast (EVM fee =
+  maxFeePerGas·21000; TRON reserves 1.1 TRX bandwidth). CLI access is the authority (`--admin` only attributes
+  the audit + verifies `super-admin` when supplied).
 - Run `/security-review` on pending changes before shipping money-path work.
 
 ---
