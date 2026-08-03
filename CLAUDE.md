@@ -638,10 +638,18 @@ adds bottom tab bar + global search + dark mode + ≤3-tap withdraw + guest chec
   float is off-ledger (lives in `GasWallet.balance`, synced from chain), is not a customer liability, and
   posting it against `treasury:hot` would distort reserve solvency; the movement is recorded via an
   **`OnchainTx`** (`direction=out`) + an **`ActivityLogger`** `gas.withdrawal` audit entry (chain/asset/source/
-  destination/amount/fee/tx_hash/admin), then `HotWalletManager::syncGas` re-syncs the gas wallet. Max-sweep
-  sizes the amount against the same `GasEstimationService::suggest()` call used to broadcast (EVM fee =
-  maxFeePerGas·21000; TRON reserves 1.1 TRX bandwidth). CLI access is the authority (`--admin` only attributes
-  the audit + verifies `super-admin` when supplied).
+  destination/amount/fee/tx_hash/admin), then the gas wallet is re-synced (EVM via `HotWalletManager::syncGas`;
+  TRON reads sun directly — `HotWalletManager` is EVM-only). Max-sweep sizes the amount against the same
+  `GasEstimationService::suggest()` call used to broadcast (EVM fee = maxFeePerGas·21000; TRON reserves 1.1 TRX
+  bandwidth — sending TRX to an **unactivated** account burns ~1.1 TRX activation, so that reserve can be fully
+  consumed). CLI access is the authority (`--admin` only attributes the audit + verifies `super-admin` when supplied).
+  - **On-chain native decimals ≠ ledger asset decimals.** `RegistrySeeder` seeds ALL native coins at
+    `decimals=18` (uniform ledger precision — correct for EVM wei, but TRON's on-chain unit is **sun = 6 dp**).
+    The command formats/parses native amounts at the **on-chain** scale (`$chainType->isEvm() ? 18 : 6`), NEVER
+    `$asset->decimals` — using 18 for TRON misscales the sun balance by 1e12 (dry-run showed `0.00`). The
+    transfer math was always in sun (unaffected); only display + `--amount` used the wrong scale (fixed
+    `0e91025`). **Do not "fix" the TRX asset row to 6** — native TRX is a real ledger asset (21 accounts on
+    prod) stored at the 18-dp ledger scale; changing `decimals` would misread every balance.
 - Run `/security-review` on pending changes before shipping money-path work.
 
 ---
